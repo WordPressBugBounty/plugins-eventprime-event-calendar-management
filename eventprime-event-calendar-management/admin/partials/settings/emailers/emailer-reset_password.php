@@ -14,7 +14,7 @@ $sub_options = $global_settings->sub_options;
                     </label>
                 </th>
                 <td class="forminp forminp-text">
-                    <input name="reset_password_mail_subject" class="regular-text" id="reset_password_mail_subject" type="text" value="<?php echo isset($global_options->reset_password_mail_subject) ? $global_options->reset_password_mail_subject : __('Reset Your Password', 'eventprime-event-calendar-management');?>" required>
+                    <input name="reset_password_mail_subject" class="regular-text" id="reset_password_mail_subject" type="text" value="<?php echo isset($global_options->reset_password_mail_subject) ? esc_attr($global_options->reset_password_mail_subject) : esc_html__('Reset Your Password', 'eventprime-event-calendar-management');?>" required>
                 </td>
             </tr>
             <tr valign="top">

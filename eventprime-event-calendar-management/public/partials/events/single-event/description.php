@@ -4,7 +4,7 @@
         $content = apply_filters( 'ep_event_description', $args->post->post_content );
 
         $sc_processed_content = do_shortcode( $content );
-        echo wpautop( $sc_processed_content );        
+        echo wp_kses_post(wpautop( $sc_processed_content ));        
     ?>
     </div>
 </div>

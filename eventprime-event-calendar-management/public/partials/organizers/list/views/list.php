@@ -24,7 +24,7 @@
                     </div>
                     <?php if ( ! empty( $organizer->description ) ) { ?>
                         <div class="ep-organizer-description ep-content-truncate ep-content-truncate-line-3">
-                            <?php echo wpautop( wp_kses_post( $organizer->description ) ); ?>
+                            <?php echo wp_kses_post( wpautop( $organizer->description ) ); ?>
                         </div>
                     <?php } ?>
                 </div>

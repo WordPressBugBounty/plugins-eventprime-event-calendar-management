@@ -26,13 +26,13 @@ $ep_functions = new Eventprime_Basic_Functions;
                     
                     <div class="ep-mb-2 ep-text-small ep-text-muted ep-text-truncate"><?php 
                         if ( ! empty( $venue->em_address ) && ! empty( $venue->em_display_address_on_frontend ) ) {
-                            echo wp_trim_words( $venue->em_address, 10 );
+                            echo wp_kses_post(wp_trim_words( $venue->em_address, 10 ));
                         }?>
                     </div>
 
                     <?php if ( ! empty( $venue->description ) ) { ?>
                         <div class="ep-venue-description ep-content-truncate ep-content-truncate-line-3">
-                            <?php echo wpautop( wp_kses_post( $venue->description ) ); ?>
+                            <?php echo wp_kses_post( wpautop( $venue->description ) ); ?>
                         </div>
                     <?php } ?>
                 </div>

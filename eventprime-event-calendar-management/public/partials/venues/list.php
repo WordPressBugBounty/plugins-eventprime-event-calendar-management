@@ -26,7 +26,7 @@ wp_enqueue_script(
         $venues_settings              = $settings->ep_get_settings( 'venues' );
        
         $venues_data['display_style'] = isset( $atts['display_style'] ) ? $atts["display_style"] : $venues_settings->venue_display_view;
-        $venues_data['limit'] = isset( $atts['limit'] ) ? ( empty($atts["limit"]) || !is_numeric($atts["limit"]) ? 10 : $atts["limit"]) : ( empty( $venues_settings->type_limit ) ? 10 : $venues_settings->type_limit );
+        $venues_data['limit'] = isset( $atts['limit'] ) ? ( empty($atts["limit"]) || !is_numeric($atts["limit"]) ? 10 : $atts["limit"]) : ( !empty( $venues_settings->venue_limit ) ? $venues_settings->venue_limit:10 );
         $venues_data['column']        = isset( $atts['cols'] ) && is_numeric( $atts['cols'] ) ? $atts['cols'] : $venues_settings->venue_no_of_columns;
         $venues_data['cols']          = isset( $atts['cols'] ) && is_numeric( $atts['cols'] ) ? $ep_functions->ep_check_column_size( $atts['cols'] ) : $ep_functions->ep_check_column_size( $venues_settings->venue_no_of_columns );
         $venues_data['load_more']     = isset( $atts['load_more'] ) ? $atts['load_more'] : $venues_settings->venue_load_more;
@@ -109,8 +109,8 @@ wp_enqueue_script(
         <?php
         if( isset( $args->venues ) && !empty( $args->venues ) ) {?>
             <div class="em_venues dbfl">
-                <div class="ep-box-wrap ep-event-venues-<?php echo $args->display_style;?>-container">
-                    <div id="ep-event-venues-loader-section" class="ep-box-row ep-box-top ep-venue-<?php echo $args->display_style;?>-wrap">
+                <div class="ep-box-wrap ep-event-venues-<?php echo esc_attr($args->display_style);?>-container">
+                    <div id="ep-event-venues-loader-section" class="ep-box-row ep-box-top ep-venue-<?php echo esc_attr($args->display_style);?>-wrap">
                         <?php
                         switch ( $args->display_style ) {
                             case 'card':

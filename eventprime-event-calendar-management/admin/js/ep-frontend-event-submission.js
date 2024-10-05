@@ -1607,7 +1607,7 @@ function upload_file_media(element){
     var individual_file = file[0].files[0];
     fd.append("file", individual_file);
     fd.append('action', 'ep_upload_file_media');  
-    
+    fd.append('security', em_event_fes_object.fes_nonce);
     jQuery.ajax({
         type: 'POST',
         url: eventprime.ajaxurl,

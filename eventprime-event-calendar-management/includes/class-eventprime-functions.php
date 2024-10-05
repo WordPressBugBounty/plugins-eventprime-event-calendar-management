@@ -91,7 +91,8 @@ class Eventprime_Basic_Functions {
             'Eventprime_Event_Stripe',
             'Eventprime_Offline',
             'Eventprime_Woocommerce_Checkout_Integration',
-            'Eventprime_Advanced_Live_Seating'
+            'Eventprime_Advanced_Live_Seating',
+            'Eventprime_Attendee_Event_Check_In'
         );
         $free_exist = array();
         foreach ($free as $fc) {
@@ -165,7 +166,8 @@ class Eventprime_Basic_Functions {
             'Eventprime_Event_Stripe',
             'Eventprime_Offline',
             'Eventprime_Woocommerce_Checkout_Integration',
-            'Eventprime_Advanced_Live_Seating'
+            'Eventprime_Advanced_Live_Seating',
+            'Eventprime_Attendee_Event_Check_In'
         );
         $activate = array();
         foreach ($extensions as $extension) {
@@ -1763,14 +1765,14 @@ class Eventprime_Basic_Functions {
                         $day_data = $times->format('D');
                         $date_data = $times->format('d');
                         $month_data = $times->format('M');
-                        $date = __($day_data, 'eventprime-event-calendar-management') . ', ' . $date_data . ' ' . __($month_data, 'eventprime-event-calendar-management');
+                        $date = $day_data . ', ' . $date_data . ' ' . $month_data;
                         $date .= ' ' . $times->format('H:i');
                     } else {
                         $day_data = $times->format('D');
                         $date_data = $times->format('d');
                         $month_data = $times->format('M');
                         $time_data = $times->format('h:i A');
-                        $date = __($day_data, 'eventprime-event-calendar-management') . ', ' . $date_data . ' ' . __($month_data, 'eventprime-event-calendar-management') . ', ' . $time_data;
+                        $date = $day_data . ', ' . $date_data . ' ' . $month_data . ', ' . $time_data;
                     }
                 }
                 return $date;
@@ -1788,14 +1790,14 @@ class Eventprime_Basic_Functions {
                         $day_data = $times->format('D');
                         $date_data = $times->format('d');
                         $month_data = $times->format('M');
-                        $date = __($day_data, 'eventprime-event-calendar-management') . ', ' . $date_data . ' ' . __($month_data, 'eventprime-event-calendar-management');
+                        $date = $day_data . ', ' . $date_data . ' ' . $month_data;
                         $date .= ' ' . $times->format('H:i');
                     } else {
                         $day_data = $times->format('D');
                         $date_data = $times->format('d');
                         $month_data = $times->format('M');
                         $time_data = $times->format('h:i A');
-                        $date = __($day_data, 'eventprime-event-calendar-management') . ', ' . $date_data . ' ' . __($month_data, 'eventprime-event-calendar-management') . ', ' . $time_data;
+                        $date = $day_data . ', ' . $date_data . ' ' . $month_data . ', ' . $time_data;
                     }
                 }
                 return $date;
@@ -2186,9 +2188,9 @@ class Eventprime_Basic_Functions {
      * Return current week no.
      */
     public function ep_get_current_week_no() {
-        $date = date("Y-m-d");
-        $first_of_month = date("Y-m-01", strtotime($date));
-        $current_week_no = intval(date("W", strtotime($date))) - intval(date("W", strtotime($first_of_month)));
+        $date = gmdate("Y-m-d");
+        $first_of_month = gmdate("Y-m-01", strtotime($date));
+        $current_week_no = intval(gmdate("W", strtotime($date))) - intval(gmdate("W", strtotime($first_of_month)));
         return $current_week_no;
     }
 
@@ -2234,11 +2236,11 @@ class Eventprime_Basic_Functions {
         $terms = get_terms($taxonomy, array('hide_empty' => false));
 
         // Output the dropdown
-        echo '<select name="tax_input[' . $name . ']">';
-        echo '<option value="">Select ' . $tax->label . '</option>';
+        echo '<select name="tax_input[' . esc_attr($name) . ']">';
+        echo '<option value="">Select ' . esc_attr($tax->label) . '</option>';
         foreach ($terms as $term) {
-            $selected = has_term($term->term_id, $taxonomy, $post->ID) ? 'selected' : '';
-            echo '<option value="' . esc_attr($term->term_id) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
+            $selected = has_term($term->term_id, $taxonomy, $post->ID) ? 'selected' : "";
+            echo '<option value="' . esc_attr($term->term_id) . '" ' . !empty($selected)?esc_attr($selected):'' . '>' . esc_html($term->name) . '</option>';
         }
         echo '</select>';
     }
@@ -2247,14 +2249,15 @@ class Eventprime_Basic_Functions {
         $taxonomy = 'em_event_type';
         $tax = get_taxonomy($taxonomy);
         $name = esc_attr($tax->name);
-        $terms = get_terms($taxonomy, array('hide_empty' => false));
-
+        $terms = get_terms(array( 'taxonomy' => $taxonomy,'hide_empty' => false));
+        //print_r($terms);die;
         // Output the dropdown
-        echo '<select name="tax_input[' . $name . ']" class="widefat">';
-        echo '<option value="">Select ' . $tax->label . '</option>';
+        echo '<select name="tax_input[' . esc_attr($name) . ']" class="widefat">';
+        echo '<option value="">Select ' . esc_attr($tax->label) . '</option>';
         foreach ($terms as $term) {
-            $selected = has_term($term->term_id, $taxonomy, $post->ID) ? 'selected' : '';
-            echo '<option value="' . esc_attr($term->term_id) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
+            $selected = has_term($term->term_id, $taxonomy, $post->ID) ? 'selected' : "";
+            echo '<option value="' . esc_attr($term->term_id) . '" '.esc_attr($selected).'>' . esc_html($term->name) . '</option>';
+           
         }
         echo '</select>';
     }
@@ -2327,7 +2330,7 @@ class Eventprime_Basic_Functions {
                                 if (isset($booking_start->days_option)) {
                                     $updated_booking_start['em_ticket_start_booking_days_option'] = $booking_start->days_option;
                                 }
-                                $cat_ticket->booking_starts = json_encode($updated_booking_start);
+                                $cat_ticket->booking_starts = wp_json_encode($updated_booking_start);
                             }
                         }
 
@@ -2353,7 +2356,7 @@ class Eventprime_Basic_Functions {
                                 if (isset($booking_end->days_option)) {
                                     $updated_booking_end['em_ticket_ends_booking_days_option'] = $booking_end->days_option;
                                 }
-                                $cat_ticket->booking_ends = json_encode($updated_booking_end);
+                                $cat_ticket->booking_ends = wp_json_encode($updated_booking_end);
                             }
                         }
 
@@ -2433,7 +2436,7 @@ class Eventprime_Basic_Functions {
                                 if (isset($booking_start->days_option)) {
                                     $updated_booking_start['em_ticket_start_booking_days_option'] = $booking_start->days_option;
                                 }
-                                $cat_ticket->booking_starts = json_encode($updated_booking_start);
+                                $cat_ticket->booking_starts = wp_json_encode($updated_booking_start);
                             }
                         }
 
@@ -2459,7 +2462,7 @@ class Eventprime_Basic_Functions {
                                 if (isset($booking_end->days_option)) {
                                     $updated_booking_end['em_ticket_ends_booking_days_option'] = $booking_end->days_option;
                                 }
-                                $cat_ticket->booking_ends = json_encode($updated_booking_end);
+                                $cat_ticket->booking_ends = wp_json_encode($updated_booking_end);
                             }
                         }
 
@@ -3589,7 +3592,7 @@ class Eventprime_Basic_Functions {
             $where = array("form_type" => 1);
             $data_specifier = array('%d');
             $forms = RM_DBManager::get('FORMS', $where, $data_specifier, 'results', 0, 99999, '*', $sort_by = 'created_on', $descending = true);
-            //$form_dropdown_array[0] = __('Default EventPrime Form','eventprime-event-calendar-management');
+            //$form_dropdown_array[0] = esc_html__('Default EventPrime Form','eventprime-event-calendar-management');
             if ($forms) {
                 foreach ($forms as $form) {
                     $rm_forms[$form->form_id] = $form->form_name;
@@ -3601,13 +3604,13 @@ class Eventprime_Basic_Functions {
 
     // list all extension
     public function ep_list_all_exts() {
-        $exts = array('Live Seating', 'Events Import Export', 'Stripe Payments', 'Offline Payments', 'WooCommerce Integration', 'Event Sponsors', 'Attendees List', 'EventPrime Invoices', 'Coupon Codes', 'Guest Bookings', 'EventPrime Zoom Integration', 'Event List Widgets', 'Admin Attendee Bookings', 'EventPrime MailPoet', 'Twilio Text Notifications', 'Event Tickets', 'Zapier Integration', 'Advanced Reports', 'Advanced Checkout Fields', 'Elementor Integration', 'Mailchimp Integration', 'User Feedback', 'RSVP', 'WooCommerce Checkout', 'Ratings and Reviews');
+        $exts = array('Live Seating', 'Events Import Export', 'Stripe Payments', 'Offline Payments', 'WooCommerce Integration', 'Event Sponsors', 'Attendees List', 'EventPrime Invoices', 'Coupon Codes', 'Guest Bookings', 'EventPrime Zoom Integration', 'Event List Widgets', 'Admin Attendee Bookings', 'EventPrime MailPoet', 'Twilio Text Notifications', 'Event Tickets', 'Zapier Integration', 'Advanced Reports', 'Advanced Checkout Fields', 'Elementor Integration', 'Mailchimp Integration', 'User Feedback', 'RSVP', 'WooCommerce Checkout', 'Ratings and Reviews','Attendee Event Check In');
         return $exts;
     }
 
     // get premium extension list
     public function ep_load_premium_extension_list() {
-        $premium_ext_list = array('Live Seating', 'Stripe Payments', 'Offline Payments', 'Event Sponsors', 'Attendees List', 'EventPrime Invoices', 'Coupon Codes', 'Guest Bookings', 'EventPrime Zoom Integration', 'Event List Widgets', 'Admin Attendee Bookings', 'EventPrime MailPoet', 'Twilio Text Notifications', 'Event Tickets', 'Advanced Reports', 'Advanced Checkout Fields', 'Mailchimp Integration', 'User Feedback', 'RSVP', 'WooCommerce Checkout', 'Ratings and Reviews');
+        $premium_ext_list = array('Live Seating', 'Stripe Payments', 'Offline Payments', 'Event Sponsors', 'Attendees List', 'EventPrime Invoices', 'Coupon Codes', 'Guest Bookings', 'EventPrime Zoom Integration', 'Event List Widgets', 'Admin Attendee Bookings', 'EventPrime MailPoet', 'Twilio Text Notifications', 'Event Tickets', 'Advanced Reports', 'Advanced Checkout Fields', 'Mailchimp Integration', 'User Feedback', 'RSVP', 'WooCommerce Checkout', 'Ratings and Reviews','Attendee Event Check In');
         return $premium_ext_list;
     }
 
@@ -4154,6 +4157,27 @@ class Eventprime_Basic_Functions {
                 $data['image'] = 'review-icon.png';
                 $data['desc'] = "Allow users to post reviews and rate events using star ratings. Supports multiple options including review likes and dislikes, frontend scorecard, and a robust admin area configuration!";
                 break;
+           case 'Attendee Event Check In':
+                $data['url'] = 'https://theeventprime.com/all-extensions/attendee-event-check-in/';
+                if (in_array('eventprime-attendee-event-check-in.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-attendee-event-check-in.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Attendee_Event_Check_In");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=attendee-check-in-settings');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Attendee Event Check In');
+                $data['image'] = 'attendee-check-in.png';
+                $data['desc'] = "Enable attendee check-in system for your events. Authorize your check-in staff to manage attendee tracking efficiently for a smooth and organized event experience.";
+                break;
         }
         return $data;
     }
@@ -4542,7 +4566,7 @@ class Eventprime_Basic_Functions {
             $events_data['cols'] = 12 / $atts['cols'];
         }
         if( ! empty( $_POST['cols'] ) ) {
-            $events_data['cols'] = sanitize_text_field($_POST['cols']);
+            $events_data['cols'] = sanitize_text_field(wp_unslash($_POST['cols']));
         }
         // show hide filter elements
         $events_data['quick_search'] = $events_data['date_range'] = $events_data['event_type'] = $events_data['venue'] = $events_data['performer'] = $events_data['organizer'] = 1;
@@ -4579,7 +4603,7 @@ class Eventprime_Basic_Functions {
                 $events_data['organizer'] = 0;
             } 
         }
-        $events_data['load_more_text'] = __( 'Load more', 'eventprime-event-calendar-management' );
+        $events_data['load_more_text'] = esc_html__( 'Load more', 'eventprime-event-calendar-management' );
         if ( ! empty( $atts['block_square_card_load_more_button'] ) )
         {
             $events_data['load_more_text'] = $atts['block_square_card_load_more_button'] ;
@@ -4785,9 +4809,9 @@ class Eventprime_Basic_Functions {
             return $dates;
         } else {
             while ($begin <= $end) {
-                $day = date("N", $begin);
+                $day = gmdate("N", $begin);
                 if (!in_array($day, [6,7]) ){
-                    $dates[]= date("Y-m-d h:i a", $begin);
+                    $dates[]= gmdate("Y-m-d h:i a", $begin);
                 }
                 $begin += 86400; // +1 day
             }
@@ -4803,9 +4827,9 @@ class Eventprime_Basic_Functions {
             return $dates;
         } else {
             while ($begin <= $end) {
-                $day = date("N", $begin);
+                $day = gmdate("N", $begin);
                 if (!in_array($day, [1,2,3,4,5]) ){
-                    $dates[]= date("Y-m-d h:i a", $begin);
+                    $dates[]= gmdate("Y-m-d h:i a", $begin);
                 }
                 $begin += 86400; // +1 day
             }
@@ -5428,7 +5452,7 @@ class Eventprime_Basic_Functions {
                 $start_date       = $this->ep_timestamp_to_date( $event->em_start_date, 'Y-m-d', 1 );
                 $ev['start']      = $start_date;
                 if( ! empty( $event->em_start_time ) && $this->ep_show_event_date_time( 'em_start_time', $event ) ) {
-                    $st_time = date( "H:i", strtotime( $event->em_start_time ) );
+                    $st_time = gmdate( "H:i", strtotime( $event->em_start_time ) );
                     $st_time = explode( ' ', $st_time )[0];
                     $ev['start'] .= ' '. $st_time;
                 }
@@ -5438,11 +5462,11 @@ class Eventprime_Basic_Functions {
                 $end_date   = $this->ep_timestamp_to_date( $event->em_end_date, 'Y-m-d', 1 );
                 $ev['end']  = $end_date;
                 if( ! empty( $event->em_start_date ) && $event->em_start_date == $event->em_end_date ) {
-                    $ev['event_day']  = date( 'l', $event->em_start_date );
+                    $ev['event_day']  = gmdate( 'l', $event->em_start_date );
                 }
                 if( $this->ep_show_event_date_time( 'em_end_time', $event ) ) {
                     if( ! empty( $event->em_end_time ) ) {
-                        $end_time = date( "H:i", strtotime( $event->em_end_time ) );
+                        $end_time = gmdate( "H:i", strtotime( $event->em_end_time ) );
                         $end_time = explode( ' ', $end_time )[0];
                         $ev['end'] .= ' '. $end_time;
                     } else{
@@ -5459,7 +5483,7 @@ class Eventprime_Basic_Functions {
                     if( ! empty( $event->em_hide_event_start_time ) && ! empty( $event->em_hide_event_end_time ) ) {
                         if( $this->ep_is_multidate_event( $event ) ) {
                             if( ! empty( $event->em_end_time ) ) {
-                                $end_time = date( "H:i", strtotime( $event->em_end_time ) );
+                                $end_time = gmdate( "H:i", strtotime( $event->em_end_time ) );
                                 $end_time = explode( ' ', $end_time )[0];
                                 $ev['end'] .= ' '. $end_time;
                             }else{
@@ -6237,7 +6261,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
                     $booking_start_string = human_time_diff( $current_time, $min_start );
                     $booking_status = array( 'status' => 'not_started', 'message' => esc_html__( 'Tickets available after', 'eventprime-event-calendar-management' ) . ' ' . $booking_start_string );
                 } else{
-                    if( date( 'Y-m-d', $min_start ) == date( 'Y-m-d', $max_end ) ) {
+                    if( gmdate( 'Y-m-d', $min_start ) == gmdate( 'Y-m-d', $max_end ) ) {
                         $booking_status = array( 'status' => 'not_started', 'message' => esc_html__( 'Tickets available from', 'eventprime-event-calendar-management' ) . ' ' . $this->ep_timestamp_to_date( $min_start, 'dS M H:i A', 1 ) . ' ' . esc_html__( 'to', 'eventprime-event-calendar-management' ) . ' ' . $this->ep_timestamp_to_date( $max_end, 'h:i A', 1 ) );
                     } else{
                         $booking_status = array( 'status' => 'not_started', 'message' => esc_html__( 'Tickets available from', 'eventprime-event-calendar-management' ) . ' ' . $this->ep_timestamp_to_date( $min_start, 'dS M', 1 ) . ' ' . esc_html__( 'to', 'eventprime-event-calendar-management' ) . ' ' . $this->ep_timestamp_to_date( $max_end, 'dS M', 1 ) );
@@ -7114,7 +7138,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
                         'em_recurrence_yearly_fullweekday' => isset($post_data['em_recurrence_yearly_fullweekday']) ? $post_data['em_recurrence_yearly_fullweekday'] : '',
                         'em_recurrence_yearly_monthday' => isset($post_data['em_recurrence_yearly_monthday']) ? $post_data['em_recurrence_yearly_monthday'] : '',
                         'em_recurrence_yearly_day' => isset($post_data['em_recurrence_yearly_day']) ? $post_data['em_recurrence_yearly_day'] : '',
-                        'em_recurrence_advanced_dates' => isset($post_data['em_recurrence_advanced_dates']) ? json_encode($post_data['em_recurrence_advanced_dates']) : '',
+                        'em_recurrence_advanced_dates' => isset($post_data['em_recurrence_advanced_dates']) ? wp_json_encode($post_data['em_recurrence_advanced_dates']) : '',
                         'em_recurrence_selected_custom_dates' => isset($post_data['em_recurrence_selected_custom_dates']) ? $post_data['em_recurrence_selected_custom_dates'] : '',
                     );                         
                     switch( $em_recurrence_interval ) {
@@ -7221,7 +7245,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
         if( $date ) {
             $timezone = new DateTimeZone( $this->ep_get_user_timezone() );
             // Convert to Date
-            if( is_numeric( $date ) ) $date = date( 'Y-m-d', $date );
+            if( is_numeric( $date ) ) $date = gmdate( 'Y-m-d', $date );
 
             $target = new DateTime( $date, $timezone );
             return $timezone->getOffset( $target );
@@ -8070,7 +8094,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
                 if($key=='ep_event_booking_ticket_data')
                 {
                     $newtickets_data = $this->ep_recalculate_tickets_data($value,$offer);
-                    $value = json_encode($newtickets_data[0]);
+                    $value = wp_json_encode($newtickets_data[0]);
                     $total += $newtickets_data[1];
                     $qty += $newtickets_data[2];
                     $total_discount += $newtickets_data[3];
@@ -8982,9 +9006,9 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
         $custom_venue_class = ( $taxonomy == 'em_venue' ) ? 'ep_event_venue_meta_box' : '';
         
         // Output the dropdown
-        echo '<div id="taxonomy-'.$taxonomy.'" class="selectdiv">';
-        echo '<select name="tax_input[' . $name . ']" class="widefat '.$custom_venue_class.'">';
-        echo '<option value="">Select ' . $tax->label . '</option>';
+        echo '<div id="taxonomy-'.esc_attr($taxonomy).'" class="selectdiv">';
+        echo '<select name="tax_input[' . esc_attr($name) . ']" class="widefat '.esc_attr($custom_venue_class).'">';
+        echo '<option value="">Select ' . esc_attr($tax->label) . '</option>';
         foreach ($terms as $term) {
             //$selected = has_term($term->term_id, $taxonomy, $post->ID) ? 'selected' : '';
             //echo '<option value="' . esc_attr($term->term_id) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
@@ -9023,11 +9047,11 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
             )
         );
         $custom_venue_class = ( $taxonomy == 'em_venue' ) ? 'ep_event_venue_meta_box' : '';?>
-        <div id="taxonomy-<?php echo $taxonomy; ?>" class="selectdiv"><?php 
+        <div id="taxonomy-<?php echo esc_attr($taxonomy); ?>" class="selectdiv"><?php 
             if ( current_user_can( $tax->cap->edit_terms ) ) {
                 if( $taxonomy == 'em_venue' ) {?>
-                    <select name="<?php echo "tax_input[$taxonomy][]"; ?>" class="widefat <?php echo esc_attr( $custom_venue_class );?>">
-                        <option value="0"><?php echo esc_html__( 'Select', 'eventprime-event-calendar-management' ). " " . $box['title'];?></option>
+                    <select name="tax_input[<?php esc_attr_e($taxonomy);?>][]" class="widefat <?php echo esc_attr( $custom_venue_class );?>">
+                        <option value="0"><?php echo esc_html__( 'Select', 'eventprime-event-calendar-management' ). " " . esc_attr($box['title']);?></option>
                         <?php foreach ( get_terms( $taxonomy, array( 'hide_empty' => false, 'meta_query'=>$meta_query ) ) as $term ){
                             $venue_data = $this->ep_get_venue_by_id( $term->term_id ); ?>
                             <option value="<?php echo esc_attr( $term->term_id ); ?>" <?php echo selected( $term->term_id, count( $selected ) >= 1 ? $selected[0] : '' ); ?> data-term_id="<?php echo esc_attr( $term->term_id );?>" data-type="<?php if ( isset( $venue_data->em_type ) )  echo esc_attr( $venue_data->em_type );?>" data-event_id="<?php echo esc_attr( $post->ID );?>"><?php echo esc_html( $term->name ); ?></option>
@@ -9047,8 +9071,8 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
                         'show_option_all' => esc_html__( 'Select', 'eventprime-event-calendar-management' ). " " . $box['title']
                     ));
                 } else { ?>
-                    <select name="<?php echo "tax_input[$taxonomy][]"; ?>" class="widefat">
-                        <option value="0"><?php echo esc_html__( 'Select', 'eventprime-event-calendar-management' ). " " . $box['title'];?></option>
+                    <select name="tax_input[<?php esc_attr_e($taxonomy);?>][]" class="widefat">
+                        <option value="0"><?php echo esc_html__( 'Select', 'eventprime-event-calendar-management' ). " " . esc_attr($box['title']);?></option>
                         <?php foreach ( get_terms( $taxonomy, array( 'hide_empty' => false, 'meta_query'=> $meta_query ) ) as $term): ?>
                             <option value="<?php echo esc_attr( $term->slug ); ?>" <?php echo selected($term->term_id, count($selected) >= 1 ? $selected[0] : ''); ?>><?php echo esc_html($term->name); ?></option>
                         <?php endforeach; ?>
@@ -9154,7 +9178,7 @@ public function ep_get_events( $fields ) {
                     )
                 )
             );
-            $terms      = get_terms( $this->term_type, $args );
+            $terms      = get_terms('em_event_organizer', $args );
             $organizers = array();
             if( empty( $terms ) || is_wp_error( $terms ) ){
                return $organizers;
@@ -9247,7 +9271,7 @@ public function ep_get_events( $fields ) {
                 )
             )
         );
-        $terms       = get_terms( $this->term_type, $args );
+        $terms       = get_terms('em_event_type', $args );
         $event_types = array();
         if( empty( $terms ) || is_wp_error( $terms ) ){
            return $event_types;
@@ -9297,7 +9321,7 @@ public function ep_get_events( $fields ) {
                 )
             )
         );
-        $terms       = get_terms( $this->term_type, $args );
+        $terms       = get_terms( 'em_venue', $args );
         $venues = array();
         if( empty( $terms ) || is_wp_error( $terms ) ){
            return $venues;
@@ -9366,7 +9390,7 @@ public function ep_get_events( $fields ) {
             );           
         }  
 
-        $terms = get_terms( $this->term_type, $args );
+        $terms = get_terms( 'em_event_organizer', $args );
 
         // check no of events in event organizers
         $events = $this->get_events_post_data();
@@ -9499,7 +9523,7 @@ public function ep_get_events( $fields ) {
             );           
         }  
 
-        $terms = get_terms( $this->term_type, $args );
+        $terms = get_terms( 'em_event_type', $args );
         // check no of events in event types
         $events = $this->get_events_post_data();
         $event_count= array();
@@ -9585,7 +9609,7 @@ public function ep_get_events( $fields ) {
             );           
         }
         
-        $terms       = get_terms( $this->term_type, $args );
+        $terms       = get_terms( 'em_venue', $args );
 
         // check no of events in event venues
         $events = $this->get_events_post_data();
@@ -9715,7 +9739,7 @@ public function ep_get_events( $fields ) {
         * Get greeting text
         */
        public function ep_get_greeting_text() {
-           $hour = date('H');
+           $hour = gmdate('H');
            $greet = esc_html__( 'Good ', 'eventprime-event-calendar-management' );
            $greet .= ( $hour >= 17 ) ? esc_html__( 'Evening', 'eventprime-event-calendar-management' ) : ( ( $hour >= 12 ) ? esc_html__( 'Afternoon', 'eventprime-event-calendar-management' ) : esc_html__( 'Morning', 'eventprime-event-calendar-management' ) );
            return $greet;
@@ -10153,7 +10177,7 @@ public function ep_get_events( $fields ) {
                     <?php
                 }
                 ?>
-                    <button data-max="<?php echo $max_num_pages;?>" id="ep-loadmore-<?php echo esc_attr($type); ?>" class="ep-btn ep-btn-outline-primary"><span class="ep-spinner ep-spinner-border-sm ep-mr-1"></span><?php esc_html_e( 'Load more', 'eventprime-event-calendar-management' );?></button>
+                    <button data-max="<?php echo esc_attr($max_num_pages);?>" id="ep-loadmore-<?php echo esc_attr($type); ?>" class="ep-btn ep-btn-outline-primary"><span class="ep-spinner ep-spinner-border-sm ep-mr-1"></span><?php esc_html_e( 'Load more', 'eventprime-event-calendar-management' );?></button>
             </div>
                 <?php
         }
@@ -10365,6 +10389,157 @@ public function ep_get_events( $fields ) {
         }
 
          return $new_post_id;
+    }
+    
+    public function eventprime_get_allowed_wpkses_html()
+    {
+        $allowed_html = array(
+            'table' => array(
+                'class' => array(),
+                'border' => array(),
+                'cellspacing' => array(),
+                'cellpadding' => array(),
+                'width' => array(),
+                'style' => array(),
+            ),
+            'tbody' => array(),
+            'tr' => array(
+                'style' => array(),
+                'valign' => array(),
+                'class' => array(),
+                'id' => array(),
+                'title' => array(),
+            ),
+            'th' => array(
+                'scope' => array(),
+                'class' => array(),
+            ),
+            'td' => array(
+                'class' => array(),
+                'colspan' => array(),
+                'style' => array(),
+                'align' => array(),
+                'valign' => array(),
+            ),
+            'label' => array(
+                'for' => array(),
+                'class' => array(),
+            ),
+            'span' => array(
+                'class' => array(),
+            ),
+            'input' => array(
+                'type' => array(),
+                'name' => array(),
+                'id' => array(),
+                'class' => array(),
+                'value' => array(),
+                'required' => array(),
+                'checked' => array(), // For checkboxes
+                'placeholder' => array(),
+                'disabled' => array(),
+                'data-*' => true, // Allowing data attributes
+            ),
+            'textarea' => array(
+                'class' => array(),
+                'rows' => array(),
+                'cols' => array(),
+                'name' => array(),
+                'id' => array(),
+                'style' => array(),
+                'aria-hidden' => array(),
+                'autocomplete' => array(),
+                'data-*' => true, // Allowing data attributes
+            ),
+            'a' => array(
+                'href' => array(),
+                'target' => array(),
+                'class' => array(),
+                'data-*' => true, // Allowing data attributes
+            ),
+            'h1' => array(
+                'style' => array(),
+            ),
+            'div' => array(
+                'id' => array(),
+                'class' => array(),
+                'style' => array(),
+                'aria-hidden' => array(),
+                'data-*' => true, // Allowing data attributes
+            ),
+            'button' => array(
+                'type' => array(),
+                'id' => array(),
+                'class' => array(),
+                'aria-label' => array(),
+                'aria-pressed' => array(),
+                'data-*' => true, // Allowing data attributes
+                'onclick' => array(), // Allowing JavaScript actions
+            ),
+            'strong' => array(),
+            'em' => array(),
+            'i' => array(
+                'class' => array(),
+            ),
+            'p' => array(
+                'class' => array(),
+            ),
+            'ul' => array(),
+            'ol' => array(),
+            'li' => array(),
+            'iframe' => array(
+                'id' => array(),
+                'frameborder' => array(),
+                'allowtransparency' => array(),
+                'style' => array(),
+                'title' => array(),
+                'width' => array(),
+                'height' => array(),
+            ),
+            'link' => array(
+                'rel' => array(),
+                'id' => array(),
+                'href' => array(),
+                'type' => array(),
+                'media' => array(),
+            ),
+            'img' => array(
+                'src' => array(),
+                'alt' => array(),
+                'width' => array(),
+                'height' => array(),
+                'style' => array(),
+            ),
+            'h1' => array(
+                'style' => array(),
+            ),
+            'br' => array(), // Allowing line breaks
+            'script' => array( // Allowing script elements for JavaScript
+                'type' => array(),
+                'src' => array(),
+                'id' => array(),
+            ),
+            'link' => array( // Allowing <link> for stylesheets and related uses
+                'rel' => array(),
+                'id' => array(),
+                'href' => array(),
+                'type' => array(),
+                'media' => array(),
+            ),
+            'option' => array( // For select elements
+                'value' => array(),
+                'selected' => array(),
+            ),
+            'select' => array( // Allowing select inputs
+                'name' => array(),
+                'id' => array(),
+                'class' => array(),
+                'disabled' => array(),
+            ),
+        );
+
+        return $allowed_html;
+       
     }
 
 

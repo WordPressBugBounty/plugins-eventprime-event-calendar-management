@@ -34,7 +34,7 @@
         <?php foreach( $options['buttonsections'] as $labels ) {?>
             <tr valign="top">
                 <th scope="row" class="titledesc">
-                    <label for="button_titles_<?php echo $labels;?>">
+                    <label for="button_titles_<?php echo esc_attr($labels);?>">
                         <?php echo esc_html( $labels );?>
                     </label>
                 </th>

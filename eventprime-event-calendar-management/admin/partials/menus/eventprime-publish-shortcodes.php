@@ -21,7 +21,7 @@ $ext_list = $global_function->ep_list_all_exts();
                             <span class="material-icons ep-cursor">more_vert</span>
                             <ul class="ep-sc-dropdown" style="display: none;">
                                 <li class="ep-sc-dropdown-item"><a href="javascript:void(0)" onclick="ep_copy_shortcode(document.getElementById('ep-all-event-page'))"><?php esc_html_e('Copy Shortcode', 'eventprime-event-calendar-management'); ?></a></li> 
-                                <li class="ep-sc-dropdown-item"><a href="<?php echo admin_url('post.php?post='.$options->events_page.'&action=edit'); ?>"><?php esc_html_e('New Page with Shortcode', 'eventprime-event-calendar-management'); ?></a></li>
+                                <li class="ep-sc-dropdown-item"><a href="<?php echo esc_url(admin_url('post.php?post='.$options->events_page.'&action=edit')); ?>"><?php esc_html_e('New Page with Shortcode', 'eventprime-event-calendar-management'); ?></a></li>
                             </ul>
                         </div>
                     </div>
@@ -66,7 +66,7 @@ $ext_list = $global_function->ep_list_all_exts();
                             <span class="material-icons ep-cursor">more_vert</span>
                             <ul class="ep-sc-dropdown" style="display: none;">
                                 <li class="ep-sc-dropdown-item"><a href="javascript:void(0)" onclick="ep_copy_shortcode(document.getElementById('ep-all-event-types-page'))"><?php esc_html_e('Copy Shortcode', 'eventprime-event-calendar-management'); ?></a></li> 
-                                <li class="ep-sc-dropdown-item"><a href="<?php echo admin_url('post.php?post='.$options->event_types.'&action=edit'); ?>">New Page with Shortcode</a></li>
+                                <li class="ep-sc-dropdown-item"><a href="<?php echo esc_url(admin_url('post.php?post='.$options->event_types.'&action=edit')); ?>">New Page with Shortcode</a></li>
                             </ul>
                         </div>
                     </div>
@@ -111,7 +111,7 @@ $ext_list = $global_function->ep_list_all_exts();
                             <span class="material-icons ep-cursor">more_vert</span>
                             <ul class="ep-sc-dropdown" style="display: none;">
                                 <li class="ep-sc-dropdown-item"><a href="javascript:void(0)" onclick="ep_copy_shortcode(document.getElementById('ep-all-event-sites-page'))"><?php esc_html_e('Copy Shortcode', 'eventprime-event-calendar-management'); ?></a></li> 
-                                <li class="ep-sc-dropdown-item"><a href="<?php echo admin_url('post.php?post='.$options->venues_page.'&action=edit'); ?>"><?php esc_html_e('New Page with Shortcode', 'eventprime-event-calendar-management'); ?></a></li>
+                                <li class="ep-sc-dropdown-item"><a href="<?php echo esc_url(admin_url('post.php?post='.$options->venues_page.'&action=edit')); ?>"><?php esc_html_e('New Page with Shortcode', 'eventprime-event-calendar-management'); ?></a></li>
                             </ul>
                         </div>
                     </div>
@@ -156,7 +156,7 @@ $ext_list = $global_function->ep_list_all_exts();
                             <span class="material-icons ep-cursor">more_vert</span>
                             <ul class="ep-sc-dropdown" style="display: none;">
                                 <li class="ep-sc-dropdown-item"><a href="javascript:void(0)" onclick="ep_copy_shortcode(document.getElementById('ep-all-event-organizers-page'))"><?php esc_html_e('Copy Shortcode', 'eventprime-event-calendar-management'); ?></a></li> 
-                                <li class="ep-sc-dropdown-item"><a href="<?php echo admin_url('post.php?post='.$options->event_organizers.'&action=edit'); ?>"><?php esc_html_e('New Page with Shortcode', 'eventprime-event-calendar-management'); ?></a></li>
+                                <li class="ep-sc-dropdown-item"><a href="<?php echo esc_url(admin_url('post.php?post='.$options->event_organizers.'&action=edit')); ?>"><?php esc_html_e('New Page with Shortcode', 'eventprime-event-calendar-management'); ?></a></li>
                             </ul>
                         </div>
                     </div>
@@ -201,7 +201,7 @@ $ext_list = $global_function->ep_list_all_exts();
                             <span class="material-icons ep-cursor">more_vert</span>
                             <ul class="ep-sc-dropdown" style="display: none;">
                                 <li class="ep-sc-dropdown-item"><a href="javascript:void(0)" onclick="ep_copy_shortcode(document.getElementById('ep-all-event-performers-page'))"><?php esc_html_e('Copy Shortcode', 'eventprime-event-calendar-management'); ?></a></li> 
-                                <li class="ep-sc-dropdown-item"><a href="<?php echo admin_url('post.php?post='.$options->performers_page.'&action=edit'); ?>"><?php esc_html_e('New Page with Shortcode', 'eventprime-event-calendar-management'); ?></a></li>
+                                <li class="ep-sc-dropdown-item"><a href="<?php echo esc_url(admin_url('post.php?post='.$options->performers_page.'&action=edit')); ?>"><?php esc_html_e('New Page with Shortcode', 'eventprime-event-calendar-management'); ?></a></li>
                             </ul>
                         </div>
                     </div>
@@ -249,7 +249,7 @@ $ext_list = $global_function->ep_list_all_exts();
                                     <span class="material-icons ep-cursor">more_vert</span>
                                     <ul class="ep-sc-dropdown" style="display: none;">
                                         <li class="ep-sc-dropdown-item"><a href="javascript:void(0)" onclick="ep_copy_shortcode(document.getElementById('ep-all-event-sponsors-page'))"><?php esc_html_e('Copy Shortcode', 'eventprime-event-calendar-management'); ?></a></li> 
-                                        <li class="ep-sc-dropdown-item"><a href="<?php echo admin_url('post.php?post='.$options->sponsor_page.'&action=edit'); ?>"><?php esc_html_e('New Page with Shortcode', 'eventprime-event-calendar-management'); ?></a></li>
+                                        <li class="ep-sc-dropdown-item"><a href="<?php echo esc_url(admin_url('post.php?post='.$options->sponsor_page.'&action=edit')); ?>"><?php esc_html_e('New Page with Shortcode', 'eventprime-event-calendar-management'); ?></a></li>
                                     </ul>
                                 </div>
                             </div>
@@ -547,7 +547,7 @@ $ext_list = $global_function->ep_list_all_exts();
                             <span class="material-icons ep-cursor">more_vert</span>
                             <ul class="ep-sc-dropdown" style="display: none;">
                                 <li class="ep-sc-dropdown-item"><a href="javascript:void(0)" onclick="ep_copy_shortcode(document.getElementById('ep-user-profile-page'))"><?php esc_html_e('Copy Shortcode', 'eventprime-event-calendar-management'); ?></a></li> 
-                                <li class="ep-sc-dropdown-item"><a href="<?php echo admin_url('post.php?post='.$options->profile_page.'&action=edit'); ?>"><?php esc_html_e('New Page with Shortcode', 'eventprime-event-calendar-management'); ?></a></li>
+                                <li class="ep-sc-dropdown-item"><a href="<?php echo esc_url(admin_url('post.php?post='.$options->profile_page.'&action=edit')); ?>"><?php esc_html_e('New Page with Shortcode', 'eventprime-event-calendar-management'); ?></a></li>
                             </ul>
                         </div>
                     </div>
@@ -593,7 +593,7 @@ $ext_list = $global_function->ep_list_all_exts();
                             <span class="material-icons ep-cursor">more_vert</span>
                             <ul class="ep-sc-dropdown" style="display: none;">
                                 <li class="ep-sc-dropdown-item"><a href="javascript:void(0)" onclick="ep_copy_shortcode(document.getElementById('ep-event-booking-page'))"><?php esc_html_e('Copy Shortcode', 'eventprime-event-calendar-management'); ?></a></li> 
-                                <li class="ep-sc-dropdown-item"><a href="<?php echo admin_url('post.php?post='.$options->booking_page.'&action=edit'); ?>"><?php esc_html_e('New Page with Shortcode', 'eventprime-event-calendar-management'); ?></a></li>
+                                <li class="ep-sc-dropdown-item"><a href="<?php echo esc_url(admin_url('post.php?post='.$options->booking_page.'&action=edit')); ?>"><?php esc_html_e('New Page with Shortcode', 'eventprime-event-calendar-management'); ?></a></li>
                             </ul>
                         </div>
                     </div>
@@ -639,7 +639,7 @@ $ext_list = $global_function->ep_list_all_exts();
                             <span class="material-icons ep-cursor">more_vert</span>
                             <ul class="ep-sc-dropdown" style="display: none;">
                                 <li class="ep-sc-dropdown-item"><a href="javascript:void(0)" onclick="ep_copy_shortcode(document.getElementById('ep-event-submit-form-page'))"><?php esc_html_e('Copy Shortcode', 'eventprime-event-calendar-management'); ?></a></li> 
-                                <li class="ep-sc-dropdown-item"><a href="<?php echo admin_url('post.php?post='.$options->event_submit_form.'&action=edit'); ?>"><?php esc_html_e('New Page with Shortcode', 'eventprime-event-calendar-management'); ?></a></li>
+                                <li class="ep-sc-dropdown-item"><a href="<?php echo esc_url(admin_url('post.php?post='.$options->event_submit_form.'&action=edit')); ?>"><?php esc_html_e('New Page with Shortcode', 'eventprime-event-calendar-management'); ?></a></li>
                             </ul>
                         </div>
                     </div>
@@ -685,7 +685,7 @@ $ext_list = $global_function->ep_list_all_exts();
                             <span class="material-icons ep-cursor">more_vert</span>
                             <ul class="ep-sc-dropdown" style="display: none;">
                                 <li class="ep-sc-dropdown-item"><a href="javascript:void(0)" onclick="ep_copy_shortcode(document.getElementById('ep-booking-details'))"><?php esc_html_e('Copy Shortcode', 'eventprime-event-calendar-management'); ?></a></li> 
-                                <li class="ep-sc-dropdown-item"><a href="<?php echo admin_url('post.php?post='.$options->booking_details_page.'&action=edit'); ?>"><?php esc_html_e('New Page with Shortcode', 'eventprime-event-calendar-management'); ?></a></li>
+                                <li class="ep-sc-dropdown-item"><a href="<?php echo esc_url(admin_url('post.php?post='.$options->booking_details_page.'&action=edit')); ?>"><?php esc_html_e('New Page with Shortcode', 'eventprime-event-calendar-management'); ?></a></li>
                             </ul>
                         </div>
                     </div>

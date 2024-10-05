@@ -44,7 +44,7 @@ foreach ( $args->event_types as $event_type ) {
     $bg_color = $ep_functions->ep_hex2rgba( $bg_color, 1 );
     ?>
     <div class="ep-box-col-<?php echo absint( $args->cols ); ?> ep-box-column ep-box-px-0" data-id="<?php echo esc_attr( $event_type->id ); ?>" data-element_type="column">
-        <div class="ep-column-wrap ep-column-populated" style="background-image: linear-gradient(190deg,<?= $bg_color;?>,<?= $light_bg_color;?>); background-color: transparent;">
+        <div class="ep-column-wrap ep-column-populated" style="background-image: linear-gradient(190deg,<?= esc_attr($bg_color);?>,<?= esc_attr($light_bg_color);?>); background-color: transparent;">
             <div class="ep-box-widget-wrap" data-id="<?php echo esc_attr( $event_type->id );?>">
                 <div class="ep-box-box-item">
                     <div class="ep-box-box-thumb">

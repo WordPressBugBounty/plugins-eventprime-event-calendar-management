@@ -9,10 +9,10 @@
 $ep_functions = new Eventprime_Basic_Functions;
 ?>
 <?php foreach ( $args->venues as $venue ) {?>
-    <div class="ep-box-col-<?php echo $args->cols; ?> ep-col-md-6 ep-mb-3 ep-venue-col-section">
+    <div class="ep-box-col-<?php echo esc_attr($args->cols); ?> ep-col-md-6 ep-mb-3 ep-venue-col-section">
         <div class="ep-box-card-item ">
             <div class="ep-box-card-thumb" >
-                <a href="<?php echo $venue->venue_url; ?>" class="ep-img-link">
+                <a href="<?php echo esc_attr($venue->venue_url); ?>" class="ep-img-link">
                     <img src="<?php echo esc_url( $venue->image_url ); ?>" alt="<?php echo esc_attr( $venue->name ); ?>">
                 </a>
             </div>
@@ -25,7 +25,7 @@ $ep_functions = new Eventprime_Basic_Functions;
                 
                 <div class="ep-box-card-venue ep-card-venue ep-text-muted ep-text-small ep-text-truncate ep-mb-1">
                     <?php if ( !empty( $venue->em_address ) && ! empty( $venue->em_display_address_on_frontend ) ) {
-                        echo wp_trim_words( $venue->em_address, 10 );
+                        echo wp_kses_post(wp_trim_words( $venue->em_address, 10 ));
                     }?>
                 </div>
                 

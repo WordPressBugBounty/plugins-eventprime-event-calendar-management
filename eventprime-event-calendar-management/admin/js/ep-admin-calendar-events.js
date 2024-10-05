@@ -82,6 +82,7 @@ jQuery( function( $ ) {
             method: 'POST',
             data: {
                 action:'ep_get_calendar_event',
+                security  : em_admin_calendar_event_object._nonce,
                 start: info.startStr,
                 end: info.endStr,
                 is_dashboard:true
@@ -482,6 +483,7 @@ jQuery( function( $ ) {
         
         let dropedevent_data = { 
             action: 'ep_calendar_events_drag_event_date', 
+            security  : em_admin_calendar_event_object._nonce,
             id  : event_id,
             start_date : startDate,
             end_date : endDate

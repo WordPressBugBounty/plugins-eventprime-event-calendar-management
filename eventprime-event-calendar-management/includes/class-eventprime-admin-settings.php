@@ -8,71 +8,87 @@ defined( 'ABSPATH' ) || exit;
 class EventPrime_Admin_settings{
 
     public function save_settings() {
-        $admin_notices = new EventM_Admin_Notices;
-        if( current_user_can( 'manage_options' ) ) {
-            // setting type
-            if( isset( $_POST['em_setting_type'] ) && ! empty( $_POST['em_setting_type'] ) ) {
-                $setting_type = sanitize_text_field( $_POST['em_setting_type'] );
-                if( $setting_type == 'regular_settings' ) {
-                    $this->save_regular_settings();
-                }else if($setting_type == 'timezone_settings'){
-                    $this->save_timezone_settings();
-                }else if($setting_type == 'external_settings'){
-                    $this->save_external_settings();
-                }else if($setting_type == 'seo_settings'){
-                    $this->save_seo_settings();
-                }else if($setting_type == 'payment_settings'){
-                    $this->save_payment_settings();
-                }else if ($setting_type == 'page_settings'){
-                    $this->save_page_settings();
-                } elseif( $setting_type == 'customcss_settings' ) {
-                    $this->save_custom_css_settings();
-                }else if ($setting_type == 'email_settings'){
-                    $this->save_email_settings();
-                } elseif( $setting_type == 'front_events_settings' ){
-                    $this->save_front_events_settings();
-                } elseif( $setting_type == 'event_type_settings' ){
-                    $this->save_event_type_settings();
-                } elseif( $setting_type == 'performer_settings' ){
-                    $this->save_event_performer_settings();
-                } elseif( $setting_type == 'organizer_settings' ){
-                    $this->save_event_organizer_settings();
-                } elseif( $setting_type == 'venue_settings' ){
-                    $this->save_event_venue_settings();
-                } elseif( $setting_type == 'login_form_settings' ){
-                    $this->save_login_form_settings();
-                } elseif( $setting_type == 'register_form_settings' ){
-                    $this->save_register_form_settings();
-                } elseif( $setting_type == 'front_event_submission_settings' ){
-                    $this->save_frontend_sub_form_settings();
-                } elseif( $setting_type == 'button_labels_settings' ){
-                    $this->save_button_labels_settings();
-                } elseif( $setting_type == 'checkout_registration_form_settings'){
-                    $this->save_checkout_registration_form_settings();
-                } elseif( $setting_type == 'front_event_details_settings'){
-                    $this->save_front_event_details_settings();
+         $admin_notices = new EventM_Admin_Notices;
+        if ( !empty( $_POST['ep_global_settings_nonce'] ) && wp_verify_nonce(sanitize_text_field(wp_unslash( $_POST['ep_global_settings_nonce'] )), 'ep_save_global_settings' ) ) 
+        {
+            if( current_user_can( 'manage_options' ) ) {
+                // setting type
+                $ep_sanitizer = new EventPrime_sanitizer;
+                $form_data = $ep_sanitizer->sanitize($_POST);
+                if( isset( $form_data['em_setting_type'] ) && ! empty( $form_data['em_setting_type'] ) ) {
+                    $setting_type = $form_data['em_setting_type'];
+                    if( $setting_type == 'regular_settings' ) {
+                        $this->save_regular_settings($form_data);
+                    }else if($setting_type == 'timezone_settings'){
+                        $this->save_timezone_settings($form_data);
+                    }else if($setting_type == 'external_settings'){
+                        $this->save_external_settings($form_data);
+                    }else if($setting_type == 'seo_settings'){
+                        $this->save_seo_settings($form_data);
+                    }else if($setting_type == 'payment_settings'){
+                        $this->save_payment_settings($form_data);
+                    }else if ($setting_type == 'page_settings'){
+                        $this->save_page_settings($form_data);
+                    } elseif( $setting_type == 'customcss_settings' ) {
+                        $this->save_custom_css_settings($form_data);
+                    }else if ($setting_type == 'email_settings'){
+                        $this->save_email_settings($form_data);
+                    } elseif( $setting_type == 'front_events_settings' ){
+                        $this->save_front_events_settings($form_data);
+                    } elseif( $setting_type == 'event_type_settings' ){
+                        $this->save_event_type_settings($form_data);
+                    } elseif( $setting_type == 'performer_settings' ){
+                        $this->save_event_performer_settings($form_data);
+                    } elseif( $setting_type == 'organizer_settings' ){
+                        $this->save_event_organizer_settings($form_data);
+                    } elseif( $setting_type == 'venue_settings' ){
+                        $this->save_event_venue_settings($form_data);
+                    } elseif( $setting_type == 'login_form_settings' ){
+                        $this->save_login_form_settings($form_data);
+                    } elseif( $setting_type == 'register_form_settings' ){
+                        $this->save_register_form_settings($form_data);
+                    } elseif( $setting_type == 'front_event_submission_settings' ){
+                        $this->save_frontend_sub_form_settings($form_data);
+                    } elseif( $setting_type == 'button_labels_settings' ){
+                        $this->save_button_labels_settings($form_data);
+                    } elseif( $setting_type == 'checkout_registration_form_settings'){
+                        $this->save_checkout_registration_form_settings($form_data);
+                    } elseif( $setting_type == 'front_event_details_settings'){
+                        $this->save_front_event_details_settings($form_data);
+                    }
+
+                    // hook for save global settings from extensions
+                    do_action( 'ep_submit_global_setting' );
                 }
-                
-                // hook for save global settings from extensions
-                do_action( 'ep_submit_global_setting' );
+            } else{
+                $admin_notices->ep_add_notice( 'error', esc_html__('You don\'t have permission to update settings.', 'eventprime-event-calendar-management' ) );
+                echo "<script type='text/javascript'>
+                    window.location=document.location.href;
+                    </script>";
             }
-        } else{
-            $admin_notices->ep_add_notice( 'error', esc_html__('You don\'t have permission to update settings.', 'eventprime-event-calendar-management' ) );
-            echo "<script type='text/javascript'>
-                window.location=document.location.href;
-                </script>";
         }
+        else
+        {
+            $admin_notices->ep_add_notice( 'error', esc_html__('Failed security check', 'eventprime-event-calendar-management' ) );
+            $tab_param = isset($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : 'general';
+            // Construct the redirect URL dynamically
+            $redirect_url = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=' . $tab_param);
+            // Redirect after saving
+            $nonce = wp_create_nonce('ep_settings_tab');
+            $redirect_url = add_query_arg( array('tab_nonce'=>$nonce ),$redirect_url);
+            wp_redirect($redirect_url);
+            exit;
+        }
+        
     }
 
     /**
      * Save general settings - regular setting tab
      */
-    public function save_regular_settings() {
+    public function save_regular_settings($form_data) {
         $global_settings = new Eventprime_Global_Settings;
         $admin_notices = new EventM_Admin_Notices;
         $global_settings_data = $global_settings->ep_get_settings();
-        $form_data = $_POST;
-        
         $global_settings_data->time_format                    = ( ! empty( $form_data['time_format'] ) ? sanitize_text_field( $form_data['time_format'] ) : 'h:mmt' );
         $global_settings_data->required_booking_attendee_name = isset($form_data['required_booking_attendee_name']) ? (int) $form_data['required_booking_attendee_name'] : 0;
         $global_settings_data->hide_0_price_from_frontend     = isset($form_data['hide_0_price_from_frontend']) ? (int) $form_data['hide_0_price_from_frontend'] : 0;
@@ -87,6 +103,8 @@ class EventPrime_Admin_settings{
         $admin_notices->ep_add_notice( 'success', esc_html__('Setting saved successfully', 'eventprime-event-calendar-management' ) );
         
         $redirect_url = admin_url( "edit.php?post_type=em_event&page=ep-settings&tab=general" );
+        $nonce = wp_create_nonce('ep_settings_tab');
+        $redirect_url = add_query_arg( array('tab_nonce'=>$nonce ),$redirect_url);
         wp_redirect($redirect_url);
         exit();   
     }
@@ -95,13 +113,10 @@ class EventPrime_Admin_settings{
      * Save general settings - timezone setting tab
      */
     
-    public function save_timezone_settings(){
+    public function save_timezone_settings($form_data){
         $global_settings = new Eventprime_Global_Settings;
         $admin_notices = new EventM_Admin_Notices;
         $global_settings_data = $global_settings->ep_get_settings();
-        
-        $form_data = $_POST;
-        
         $global_settings_data->enable_event_time_to_user_timezone  = isset( $form_data['enable_event_time_to_user_timezone'] ) ? absint( $form_data['enable_event_time_to_user_timezone'] ) : 0;
         $global_settings_data->show_timezone_message_on_event_page = isset( $form_data['show_timezone_message_on_event_page'] ) ? absint( $form_data['show_timezone_message_on_event_page'] ) : 0;
         $global_settings_data->timezone_related_message            = isset( $form_data['timezone_related_message'] ) ? $form_data['timezone_related_message'] : '';
@@ -110,6 +125,8 @@ class EventPrime_Admin_settings{
         $admin_notices->ep_add_notice( 'success', esc_html__('Setting saved successfully', 'eventprime-event-calendar-management' ) );
         
         $redirect_url = admin_url( "edit.php?post_type=em_event&page=ep-settings&tab=general&sub_tab=timezone" );
+        $nonce = wp_create_nonce('ep_settings_tab');
+        $redirect_url = add_query_arg( array('tab_nonce'=>$nonce ),$redirect_url);
         wp_redirect($redirect_url);
         exit();  
     }
@@ -117,12 +134,10 @@ class EventPrime_Admin_settings{
     /**
      * Save general settings - external setting tab
      */
-    public function save_external_settings() {
+    public function save_external_settings($form_data) {
         $global_settings = new Eventprime_Global_Settings;
         $admin_notices = new EventM_Admin_Notices;
         $global_settings_data = $global_settings->ep_get_settings();
-        $form_data                                         = $_POST;
-        
         $global_settings_data->gmap_api_key                = sanitize_text_field($form_data['gmap_api_key']);
         $global_settings_data->social_sharing              = isset($form_data['social_sharing']) ? (int) $form_data['social_sharing'] : 0;
         $global_settings_data->gcal_sharing                = isset($form_data['gcal_sharing']) ? (int) $form_data['gcal_sharing'] : 0;
@@ -135,6 +150,8 @@ class EventPrime_Admin_settings{
         $global_settings->ep_save_settings( $global_settings_data );
         $admin_notices->ep_add_notice( 'success', esc_html__( 'Setting saved successfully', 'eventprime-event-calendar-management' ) );
         $redirect_url = admin_url( "edit.php?post_type=em_event&page=ep-settings&tab=general&sub_tab=external" );
+        $nonce = wp_create_nonce('ep_settings_tab');
+        $redirect_url = add_query_arg( array('tab_nonce'=>$nonce ),$redirect_url);
         wp_redirect( $redirect_url );
         exit();
     }
@@ -142,11 +159,10 @@ class EventPrime_Admin_settings{
     /**
      * Save general settings - seo setting tab
      */
-    public function save_seo_settings() {
+    public function save_seo_settings($form_data) {
         $global_settings = new Eventprime_Global_Settings;
         $admin_notices = new EventM_Admin_Notices;
         $global_settings_data = $global_settings->ep_get_settings();
-        $form_data                             = $_POST;
         $seo_settings                          = new stdClass();
         $seo_settings->event_page_type_url     = ( ! empty( $form_data['event_page_type_url'] ) ) ? sanitize_text_field( $form_data['event_page_type_url'] ) : '';
         $seo_settings->performer_page_type_url = ( ! empty( $form_data['performer_page_type_url'] ) ) ? sanitize_text_field( $form_data['performer_page_type_url'] ) : '';
@@ -165,6 +181,8 @@ class EventPrime_Admin_settings{
         $global_settings->ep_save_settings( $global_settings_data );
         $admin_notices->ep_add_notice( 'success', esc_html__( 'Setting saved successfully', 'eventprime-event-calendar-management' ) );
         $redirect_url = admin_url( "edit.php?post_type=em_event&page=ep-settings&tab=general&sub_tab=seo" );
+        $nonce = wp_create_nonce('ep_settings_tab');
+        $redirect_url = add_query_arg( array('tab_nonce'=>$nonce ),$redirect_url);
         wp_redirect( $redirect_url );
         exit();
     }
@@ -172,14 +190,11 @@ class EventPrime_Admin_settings{
     /**
      * Save Payment Setting tab
      */
-    public function save_payment_settings(){
+    public function save_payment_settings($form_data){
         $payment_gateway = apply_filters('ep_payments_gateways_list', array());
         $global_settings = new Eventprime_Global_Settings;
         $admin_notices = new EventM_Admin_Notices;
         $global_settings_data = $global_settings->ep_get_settings();
-        
-        $form_data = $_POST;
-        
         if(isset($form_data) && isset($form_data['em_payment_type'])){
             if($form_data['em_payment_type'] == 'basic'){               
                 foreach ($payment_gateway as $key => $method){
@@ -207,16 +222,16 @@ class EventPrime_Admin_settings{
         
         //also sent on _wp_http_referer
         $redirect_url = admin_url( "edit.php?post_type=em_event&page=ep-settings&tab=payments" );
-        
+        $nonce = wp_create_nonce('ep_settings_tab');
+        $redirect_url = add_query_arg( array('tab_nonce'=>$nonce ),$redirect_url);
         wp_redirect($redirect_url);
         exit();
     }
     
-    public function save_page_settings(){
+    public function save_page_settings($form_data){
         $global_settings = new Eventprime_Global_Settings;
         $admin_notices = new EventM_Admin_Notices;
         $global_settings_data = $global_settings->ep_get_settings();
-        $form_data = $_POST;
         $global_settings_data->performers_page = isset($form_data['performers_page']) ? sanitize_text_field($form_data['performers_page']) : 0;
         $global_settings_data->venues_page = isset($form_data['venues_page']) ? sanitize_text_field($form_data['venues_page']) : 0;
         $global_settings_data->events_page = isset($form_data['events_page']) ? sanitize_text_field($form_data['events_page']) : 0;
@@ -233,17 +248,18 @@ class EventPrime_Admin_settings{
         do_action('ep_save_pages_setting', $form_data);
         $admin_notices->ep_add_notice( 'success', esc_html__('Setting saved successfully', 'eventprime-event-calendar-management' ) );
         $redirect_url = admin_url( "edit.php?post_type=em_event&page=ep-settings&tab=pages" );
+        $nonce = wp_create_nonce('ep_settings_tab');
+        $redirect_url = add_query_arg( array('tab_nonce'=>$nonce ),$redirect_url);
         wp_redirect($redirect_url);
         exit();
     }
     
-    public function save_email_settings(){
+    public function save_email_settings($form_data){
         global $wpdb, $wp_roles;
         
         $global_settings = new Eventprime_Global_Settings;
         $admin_notices = new EventM_Admin_Notices;
         $global_settings_data = $global_settings->ep_get_settings();
-        $form_data = $_POST;
         if(isset($form_data) && isset($form_data['em_emailer_type'])){
             if($form_data['em_emailer_type'] == 'basic'){
                 $global_settings_data->disable_admin_email = isset($form_data['disable_admin_email']) ? (int) $form_data['disable_admin_email'] : 0;
@@ -314,7 +330,8 @@ class EventPrime_Admin_settings{
         do_action('ep_save_emailer_setting', $form_data);
         $admin_notices->ep_add_notice( 'success', esc_html__('Setting saved successfully', 'eventprime-event-calendar-management' ) );
         $redirect_url = admin_url( "edit.php?post_type=em_event&page=ep-settings&tab=emails" );
-        
+        $nonce = wp_create_nonce('ep_settings_tab');
+        $redirect_url = add_query_arg( array('tab_nonce'=>$nonce ),$redirect_url);
         wp_redirect($redirect_url);
         exit();
     }
@@ -322,15 +339,17 @@ class EventPrime_Admin_settings{
     /**
      * Save custom css
      */
-    public function save_custom_css_settings() {
+    public function save_custom_css_settings($form_data) {
         $global_settings = new Eventprime_Global_Settings;
         $admin_notices = new EventM_Admin_Notices;
         $global_settings_data = $global_settings->ep_get_settings();
-        $global_settings_data->custom_css = isset( $_POST['custom_css']) ? sanitize_text_field( $_POST['custom_css'] ) : '';
+        $global_settings_data->custom_css = isset( $form_data['custom_css']) ? sanitize_text_field( $form_data['custom_css'] ) : '';
         $global_settings->ep_save_settings( $global_settings_data );
         
         $admin_notices->ep_add_notice( 'success', esc_html__('Setting saved successfully', 'eventprime-event-calendar-management' ) );
         $redirect_url = admin_url( "edit.php?post_type=em_event&page=ep-settings&tab=customcss" );
+        $nonce = wp_create_nonce('ep_settings_tab');
+        $redirect_url = add_query_arg( array('tab_nonce'=>$nonce ),$redirect_url);
         wp_redirect($redirect_url);
         exit();
     }
@@ -339,12 +358,10 @@ class EventPrime_Admin_settings{
      * Save Events Settings
      */
     
-    public function save_front_events_settings(){
+    public function save_front_events_settings($form_data){
         $global_settings = new Eventprime_Global_Settings;
         $admin_notices = new EventM_Admin_Notices;
         $global_settings_data = $global_settings->ep_get_settings();
-        $form_data = $_POST;
-
         $global_settings_data->event_listings_date_format_std_option                = sanitize_text_field( $form_data['event_listings_date_format_std_option'] );
         if ( isset( $form_data['event_listings_date_format_std_option'] ) && !empty( $form_data['event_listings_date_format_std_option']  ) && ( $form_data['event_listings_date_format_std_option'] == 'custom' ) ) {
             $global_settings_data->event_listings_date_format_val      = ( isset($form_data['event_listings_date_format_custom']) && !empty($form_data['event_listings_date_format_custom']) ) ? sanitize_text_field( $form_data['event_listings_date_format_custom'] ) : 'F j, Y';
@@ -383,6 +400,8 @@ class EventPrime_Admin_settings{
         $admin_notices->ep_add_notice( 'success', esc_html__('Setting saved successfully', 'eventprime-event-calendar-management' ) );
         
         $redirect_url = admin_url( "edit.php?post_type=em_event&page=ep-settings&tab=frontviews&sub_tab=events" );
+        $nonce = wp_create_nonce('ep_settings_tab');
+        $redirect_url = add_query_arg( array('tab_nonce'=>$nonce ),$redirect_url);
         wp_redirect($redirect_url);
         exit();   
     }
@@ -390,28 +409,30 @@ class EventPrime_Admin_settings{
     /**
      * Save Event Type settings
      */
-    public function save_event_type_settings() {
+    public function save_event_type_settings($form_data) {
         $global_settings = new Eventprime_Global_Settings;
         $admin_notices = new EventM_Admin_Notices;
         $global_settings_data = $global_settings->ep_get_settings();
-        $global_settings_data->type_display_view              = isset( $_POST['type_display_view'] ) ? sanitize_text_field( $_POST['type_display_view'] ) : 'card';
-        $global_settings_data->type_box_color                 = isset( $_POST['type_box_color'] ) ? array_map( 'sanitize_text_field', $_POST['type_box_color'] ) : '';
-        $global_settings_data->type_limit                     = isset( $_POST['type_limit'] ) ? absint( $_POST['type_limit'] ) : 0;
-        $global_settings_data->type_no_of_columns             = isset( $_POST['type_no_of_columns'] ) ? absint( $_POST['type_no_of_columns'] ) : 4;
-        $global_settings_data->type_load_more                 = isset( $_POST['type_load_more'] ) ? 1 : 0;
-        $global_settings_data->type_search                    = isset( $_POST['type_search'] ) ? 1 : 0;
-        $global_settings_data->single_type_show_events        = isset( $_POST['single_type_show_events'] ) ? 1 : 0;
-        $global_settings_data->single_type_event_display_view = isset( $_POST['single_type_event_display_view'] ) ? sanitize_text_field( $_POST['single_type_event_display_view'] ) : 'card';
-        $global_settings_data->single_type_event_limit        = isset( $_POST['single_type_event_limit'] ) ? absint( $_POST['single_type_event_limit'] ) : 0;
-        $global_settings_data->single_type_event_column       = isset( $_POST['single_type_event_column'] ) ? absint( $_POST['single_type_event_column'] ) : 4;
-        $global_settings_data->single_type_event_load_more    = isset( $_POST['single_type_event_load_more'] ) ? 1 : 0;
-        $global_settings_data->single_type_hide_past_events   = isset( $_POST['single_type_hide_past_events'] ) ? 1 : 0;
-        $global_settings_data->single_type_event_order    = isset( $_POST['single_type_event_order'] ) ? sanitize_text_field( $_POST['single_type_event_order'] ) : 'asc';
-        $global_settings_data->single_type_event_orderby   = isset( $_POST['single_type_event_orderby'] )? sanitize_text_field( $_POST['single_type_event_orderby'] ) : 'em_start_date_time';
-        $global_settings_data->single_type_event_section_title   = isset( $_POST['single_type_event_section_title'] ) && !empty($_POST['single_type_event_section_title']) ? sanitize_text_field($_POST['single_type_event_section_title']) : esc_html__("Upcoming Events", "eventprime-event-calendar-management");
+        $global_settings_data->type_display_view              = isset( $form_data['type_display_view'] ) ? sanitize_text_field( $form_data['type_display_view'] ) : 'card';
+        $global_settings_data->type_box_color                 = isset( $form_data['type_box_color'] ) ? array_map( 'sanitize_text_field', $form_data['type_box_color'] ) : '';
+        $global_settings_data->type_limit                     = isset( $form_data['type_limit'] ) ? absint( $form_data['type_limit'] ) : 0;
+        $global_settings_data->type_no_of_columns             = isset( $form_data['type_no_of_columns'] ) ? absint( $form_data['type_no_of_columns'] ) : 4;
+        $global_settings_data->type_load_more                 = isset( $form_data['type_load_more'] ) ? 1 : 0;
+        $global_settings_data->type_search                    = isset( $form_data['type_search'] ) ? 1 : 0;
+        $global_settings_data->single_type_show_events        = isset( $form_data['single_type_show_events'] ) ? 1 : 0;
+        $global_settings_data->single_type_event_display_view = isset( $form_data['single_type_event_display_view'] ) ? sanitize_text_field( $form_data['single_type_event_display_view'] ) : 'card';
+        $global_settings_data->single_type_event_limit        = isset( $form_data['single_type_event_limit'] ) ? absint( $form_data['single_type_event_limit'] ) : 0;
+        $global_settings_data->single_type_event_column       = isset( $form_data['single_type_event_column'] ) ? absint( $form_data['single_type_event_column'] ) : 4;
+        $global_settings_data->single_type_event_load_more    = isset( $form_data['single_type_event_load_more'] ) ? 1 : 0;
+        $global_settings_data->single_type_hide_past_events   = isset( $form_data['single_type_hide_past_events'] ) ? 1 : 0;
+        $global_settings_data->single_type_event_order    = isset( $form_data['single_type_event_order'] ) ? sanitize_text_field( $form_data['single_type_event_order'] ) : 'asc';
+        $global_settings_data->single_type_event_orderby   = isset( $form_data['single_type_event_orderby'] )? sanitize_text_field( $form_data['single_type_event_orderby'] ) : 'em_start_date_time';
+        $global_settings_data->single_type_event_section_title   = isset( $form_data['single_type_event_section_title'] ) && !empty($form_data['single_type_event_section_title']) ? sanitize_text_field(wp_unslash($form_data['single_type_event_section_title'])) : esc_html__("Upcoming Events", "eventprime-event-calendar-management");
         $global_settings->ep_save_settings( $global_settings_data );
         $admin_notices->ep_add_notice( 'success', esc_html__('Setting saved successfully', 'eventprime-event-calendar-management' ) );
         $redirect_url = admin_url( "edit.php?post_type=em_event&page=ep-settings&tab=frontviews&sub_tab=eventtypes" );
+        $nonce = wp_create_nonce('ep_settings_tab');
+        $redirect_url = add_query_arg( array('tab_nonce'=>$nonce ),$redirect_url);
         wp_redirect( $redirect_url );
         exit();
     }
@@ -419,28 +440,30 @@ class EventPrime_Admin_settings{
     /**
      * Save Event Performer settings
      */
-    public function save_event_performer_settings() {
+    public function save_event_performer_settings($form_data) {
         $global_settings = new Eventprime_Global_Settings;
         $admin_notices = new EventM_Admin_Notices;
         $global_settings_data = $global_settings->ep_get_settings();
-        $global_settings_data->performer_display_view              = isset( $_POST['performer_display_view'] ) ? sanitize_text_field( $_POST['performer_display_view'] ) : 'card';
-        $global_settings_data->performer_box_color                 = isset( $_POST['performer_box_color'] ) ? array_map( 'sanitize_text_field', $_POST['performer_box_color'] ) : '';
-        $global_settings_data->performer_limit                     = isset( $_POST['performer_limit'] ) ? absint( $_POST['performer_limit'] ) : 0;
-        $global_settings_data->performer_no_of_columns             = isset( $_POST['performer_no_of_columns'] ) ? absint( $_POST['performer_no_of_columns'] ) : 4;
-        $global_settings_data->performer_load_more                 = isset( $_POST['performer_load_more'] ) ? 1 : 0;
-        $global_settings_data->performer_search                    = isset( $_POST['performer_search'] ) ? 1 : 0;
-        $global_settings_data->single_performer_show_events        = isset( $_POST['single_performer_show_events'] ) ? 1 : 0;
-        $global_settings_data->single_performer_event_display_view = isset( $_POST['single_performer_event_display_view'] ) ? sanitize_text_field( $_POST['single_performer_event_display_view'] ) : 'card';
-        $global_settings_data->single_performer_event_limit        = isset( $_POST['single_performer_event_limit'] ) ? absint( $_POST['single_performer_event_limit'] ) : 0;
-        $global_settings_data->single_performer_event_column       = isset( $_POST['single_performer_event_column'] ) ? absint( $_POST['single_performer_event_column'] ) : 4;
-        $global_settings_data->single_performer_event_load_more    = isset( $_POST['single_performer_event_load_more'] ) ? 1 : 0;
-        $global_settings_data->single_performer_hide_past_events   = isset( $_POST['single_performer_hide_past_events'] ) ? 1 : 0;
-        $global_settings_data->single_performer_event_section_title   = isset( $_POST['single_performer_event_section_title'] ) && !empty($_POST['single_performer_event_section_title']) ? sanitize_text_field($_POST['single_performer_event_section_title']) : esc_html__("Upcoming Events", "eventprime-event-calendar-management");
+        $global_settings_data->performer_display_view              = isset( $form_data['performer_display_view'] ) ? sanitize_text_field( $form_data['performer_display_view'] ) : 'card';
+        $global_settings_data->performer_box_color                 = isset( $form_data['performer_box_color'] ) ? array_map( 'sanitize_text_field', $form_data['performer_box_color'] ) : '';
+        $global_settings_data->performer_limit                     = isset( $form_data['performer_limit'] ) ? absint( $form_data['performer_limit'] ) : 0;
+        $global_settings_data->performer_no_of_columns             = isset( $form_data['performer_no_of_columns'] ) ? absint( $form_data['performer_no_of_columns'] ) : 4;
+        $global_settings_data->performer_load_more                 = isset( $form_data['performer_load_more'] ) ? 1 : 0;
+        $global_settings_data->performer_search                    = isset( $form_data['performer_search'] ) ? 1 : 0;
+        $global_settings_data->single_performer_show_events        = isset( $form_data['single_performer_show_events'] ) ? 1 : 0;
+        $global_settings_data->single_performer_event_display_view = isset( $form_data['single_performer_event_display_view'] ) ? sanitize_text_field( $form_data['single_performer_event_display_view'] ) : 'card';
+        $global_settings_data->single_performer_event_limit        = isset( $form_data['single_performer_event_limit'] ) ? absint( $form_data['single_performer_event_limit'] ) : 0;
+        $global_settings_data->single_performer_event_column       = isset( $form_data['single_performer_event_column'] ) ? absint( $form_data['single_performer_event_column'] ) : 4;
+        $global_settings_data->single_performer_event_load_more    = isset( $form_data['single_performer_event_load_more'] ) ? 1 : 0;
+        $global_settings_data->single_performer_hide_past_events   = isset( $form_data['single_performer_hide_past_events'] ) ? 1 : 0;
+        $global_settings_data->single_performer_event_section_title   = isset( $form_data['single_performer_event_section_title'] ) && !empty($form_data['single_performer_event_section_title']) ? sanitize_text_field(wp_unslash($form_data['single_performer_event_section_title'])) : esc_html__("Upcoming Events", "eventprime-event-calendar-management");
         $global_settings->ep_save_settings( $global_settings_data );
         
-        do_action('ep_save_performer_setting', $_POST);
+        do_action('ep_save_performer_setting', $form_data);
         $admin_notices->ep_add_notice( 'success', esc_html__('Setting saved successfully', 'eventprime-event-calendar-management' ) );
         $redirect_url = admin_url( "edit.php?post_type=em_event&page=ep-settings&tab=frontviews&sub_tab=performers" );
+        $nonce = wp_create_nonce('ep_settings_tab');
+        $redirect_url = add_query_arg( array('tab_nonce'=>$nonce ),$redirect_url);
         wp_redirect( $redirect_url );
         exit();
     }
@@ -448,27 +471,29 @@ class EventPrime_Admin_settings{
     /**
      * Save Event Organizer settings
      */
-    public function save_event_organizer_settings() {
+    public function save_event_organizer_settings($form_data) {
         $global_settings = new Eventprime_Global_Settings;
         $admin_notices = new EventM_Admin_Notices;
         $global_settings_data = $global_settings->ep_get_settings();
-        $global_settings_data->organizer_display_view              = isset( $_POST['organizer_display_view'] ) ? sanitize_text_field( $_POST['organizer_display_view'] ) : 'card';
-        $global_settings_data->organizer_box_color                 = isset( $_POST['organizer_box_color'] ) ? array_map( 'sanitize_text_field', $_POST['organizer_box_color'] ) : '';
-        $global_settings_data->organizer_limit                     = isset( $_POST['organizer_limit'] ) ? absint( $_POST['organizer_limit'] ) : 0;
-        $global_settings_data->organizer_no_of_columns             = isset( $_POST['organizer_no_of_columns'] ) ? absint( $_POST['organizer_no_of_columns'] ) : 4;
-        $global_settings_data->organizer_load_more                 = isset( $_POST['organizer_load_more'] ) ? 1 : 0;
-        $global_settings_data->organizer_search                    = isset( $_POST['organizer_search'] ) ? 1 : 0;
-        $global_settings_data->single_organizer_show_events        = isset( $_POST['single_organizer_show_events'] ) ? 1 : 0;
-        $global_settings_data->single_organizer_event_display_view = isset( $_POST['single_organizer_event_display_view'] ) ? sanitize_text_field( $_POST['single_organizer_event_display_view'] ) : 'card';
-        $global_settings_data->single_organizer_event_limit        = isset( $_POST['single_organizer_event_limit'] ) ? absint( $_POST['single_organizer_event_limit'] ) : 0;
-        $global_settings_data->single_organizer_event_column       = isset( $_POST['single_organizer_event_column'] ) ? absint( $_POST['single_organizer_event_column'] ) : 4;
-        $global_settings_data->single_organizer_event_load_more    = isset( $_POST['single_organizer_event_load_more'] ) ? 1 : 0;
-        $global_settings_data->single_organizer_hide_past_events   = isset( $_POST['single_organizer_hide_past_events'] ) ? 1 : 0;
-        $global_settings_data->single_organizer_event_section_title   = isset( $_POST['single_organizer_event_section_title'] ) && !empty($_POST['single_organizer_event_section_title']) ? sanitize_text_field($_POST['single_organizer_event_section_title']) : esc_html__("Upcoming Events", "eventprime-event-calendar-management");
+        $global_settings_data->organizer_display_view              = isset( $form_data['organizer_display_view'] ) ? sanitize_text_field( $form_data['organizer_display_view'] ) : 'card';
+        $global_settings_data->organizer_box_color                 = isset( $form_data['organizer_box_color'] ) ? array_map( 'sanitize_text_field', $form_data['organizer_box_color'] ) : '';
+        $global_settings_data->organizer_limit                     = isset( $form_data['organizer_limit'] ) ? absint( $form_data['organizer_limit'] ) : 0;
+        $global_settings_data->organizer_no_of_columns             = isset( $form_data['organizer_no_of_columns'] ) ? absint( $form_data['organizer_no_of_columns'] ) : 4;
+        $global_settings_data->organizer_load_more                 = isset( $form_data['organizer_load_more'] ) ? 1 : 0;
+        $global_settings_data->organizer_search                    = isset( $form_data['organizer_search'] ) ? 1 : 0;
+        $global_settings_data->single_organizer_show_events        = isset( $form_data['single_organizer_show_events'] ) ? 1 : 0;
+        $global_settings_data->single_organizer_event_display_view = isset( $form_data['single_organizer_event_display_view'] ) ? sanitize_text_field( $form_data['single_organizer_event_display_view'] ) : 'card';
+        $global_settings_data->single_organizer_event_limit        = isset( $form_data['single_organizer_event_limit'] ) ? absint( $form_data['single_organizer_event_limit'] ) : 0;
+        $global_settings_data->single_organizer_event_column       = isset( $form_data['single_organizer_event_column'] ) ? absint( $form_data['single_organizer_event_column'] ) : 4;
+        $global_settings_data->single_organizer_event_load_more    = isset( $form_data['single_organizer_event_load_more'] ) ? 1 : 0;
+        $global_settings_data->single_organizer_hide_past_events   = isset( $form_data['single_organizer_hide_past_events'] ) ? 1 : 0;
+        $global_settings_data->single_organizer_event_section_title   = isset( $form_data['single_organizer_event_section_title'] ) && !empty($form_data['single_organizer_event_section_title']) ? sanitize_text_field(wp_unslash($form_data['single_organizer_event_section_title'])) : esc_html__("Upcoming Events", "eventprime-event-calendar-management");
         $global_settings->ep_save_settings( $global_settings_data );
-        do_action('ep_save_organizer_setting', $_POST);
+        do_action('ep_save_organizer_setting', $form_data);
         $admin_notices->ep_add_notice( 'success', esc_html__('Setting saved successfully', 'eventprime-event-calendar-management' ) );
         $redirect_url = admin_url( "edit.php?post_type=em_event&page=ep-settings&tab=frontviews&sub_tab=organizers" );
+        $nonce = wp_create_nonce('ep_settings_tab');
+        $redirect_url = add_query_arg( array('tab_nonce'=>$nonce ),$redirect_url);
         wp_redirect( $redirect_url );
         exit();
     }
@@ -476,27 +501,29 @@ class EventPrime_Admin_settings{
     /**
      * Save Event Venue settings
      */
-    public function save_event_venue_settings() {
+    public function save_event_venue_settings($form_data) {
         $global_settings = new Eventprime_Global_Settings;
         $admin_notices = new EventM_Admin_Notices;
         $global_settings_data = $global_settings->ep_get_settings();
-        $global_settings_data->venue_display_view              = isset( $_POST['venue_display_view'] ) ? sanitize_text_field( $_POST['venue_display_view'] ) : 'card';
-        $global_settings_data->venue_box_color                 = isset( $_POST['venue_box_color'] ) ? array_map( 'sanitize_text_field', $_POST['venue_box_color'] ) : '';
-        $global_settings_data->venue_limit                     = isset( $_POST['venue_limit'] ) ? absint( $_POST['venue_limit'] ) : 0;
-        $global_settings_data->venue_no_of_columns             = isset( $_POST['venue_no_of_columns'] ) ? absint( $_POST['venue_no_of_columns'] ) : 4;
-        $global_settings_data->venue_load_more                 = isset( $_POST['venue_load_more'] ) ? 1 : 0;
-        $global_settings_data->venue_search                    = isset( $_POST['venue_search'] ) ? 1 : 0;
-        $global_settings_data->single_venue_show_events        = isset( $_POST['single_venue_show_events'] ) ? 1 : 0;
-        $global_settings_data->single_venue_event_display_view = isset( $_POST['single_venue_event_display_view'] ) ? sanitize_text_field( $_POST['single_venue_event_display_view'] ) : 'card';
-        $global_settings_data->single_venue_event_limit        = isset( $_POST['single_venue_event_limit'] ) ? absint( $_POST['single_venue_event_limit'] ) : 0;
-        $global_settings_data->single_venue_event_column       = isset( $_POST['single_venue_event_column'] ) ? absint( $_POST['single_venue_event_column'] ) : 4;
-        $global_settings_data->single_venue_event_load_more    = isset( $_POST['single_venue_event_load_more'] ) ? 1 : 0;
-        $global_settings_data->single_venue_hide_past_events   = isset( $_POST['single_venue_hide_past_events'] ) ? 1 : 0;
-        $global_settings_data->single_venue_event_section_title   = isset( $_POST['single_venue_event_section_title'] ) && !empty($_POST['single_venue_event_section_title']) ? sanitize_text_field($_POST['single_venue_event_section_title']) : __("Upcoming Events", "eventprime-event-calendar-management");
+        $global_settings_data->venue_display_view              = isset( $form_data['venue_display_view'] ) ? sanitize_text_field( $form_data['venue_display_view'] ) : 'card';
+        $global_settings_data->venue_box_color                 = isset( $form_data['venue_box_color'] ) ? array_map( 'sanitize_text_field', $form_data['venue_box_color'] ) : '';
+        $global_settings_data->venue_limit                     = isset( $form_data['venue_limit'] ) ? absint( $form_data['venue_limit'] ) : 0;
+        $global_settings_data->venue_no_of_columns             = isset( $form_data['venue_no_of_columns'] ) ? absint( $form_data['venue_no_of_columns'] ) : 4;
+        $global_settings_data->venue_load_more                 = isset( $form_data['venue_load_more'] ) ? 1 : 0;
+        $global_settings_data->venue_search                    = isset( $form_data['venue_search'] ) ? 1 : 0;
+        $global_settings_data->single_venue_show_events        = isset( $form_data['single_venue_show_events'] ) ? 1 : 0;
+        $global_settings_data->single_venue_event_display_view = isset( $form_data['single_venue_event_display_view'] ) ? sanitize_text_field( $form_data['single_venue_event_display_view'] ) : 'card';
+        $global_settings_data->single_venue_event_limit        = isset( $form_data['single_venue_event_limit'] ) ? absint( $form_data['single_venue_event_limit'] ) : 0;
+        $global_settings_data->single_venue_event_column       = isset( $form_data['single_venue_event_column'] ) ? absint( $form_data['single_venue_event_column'] ) : 4;
+        $global_settings_data->single_venue_event_load_more    = isset( $form_data['single_venue_event_load_more'] ) ? 1 : 0;
+        $global_settings_data->single_venue_hide_past_events   = isset( $form_data['single_venue_hide_past_events'] ) ? 1 : 0;
+        $global_settings_data->single_venue_event_section_title   = isset( $form_data['single_venue_event_section_title'] ) && !empty($form_data['single_venue_event_section_title']) ? sanitize_text_field(wp_unslash($form_data['single_venue_event_section_title'])) : esc_html__("Upcoming Events", "eventprime-event-calendar-management");
         $global_settings->ep_save_settings( $global_settings_data );
-        do_action('ep_save_venue_setting', $_POST);
+        do_action('ep_save_venue_setting', $form_data);
         $admin_notices->ep_add_notice( 'success', esc_html__('Setting saved successfully', 'eventprime-event-calendar-management' ) );
         $redirect_url = admin_url( "edit.php?post_type=em_event&page=ep-settings&tab=frontviews&sub_tab=venues" );
+        $nonce = wp_create_nonce('ep_settings_tab');
+        $redirect_url = add_query_arg( array('tab_nonce'=>$nonce ),$redirect_url);
         wp_redirect( $redirect_url );
         exit();
     }
@@ -504,31 +531,33 @@ class EventPrime_Admin_settings{
     /**
      * Save Login form settings
      */
-    public function save_login_form_settings() {
+    public function save_login_form_settings($form_data) {
         $global_settings = new Eventprime_Global_Settings;
         $admin_notices = new EventM_Admin_Notices;
         $global_settings_data = $global_settings->ep_get_settings();
-        $global_settings_data->login_id_field                  = isset( $_POST['login_id_field'] ) ? sanitize_text_field( $_POST['login_id_field'] ) : 'username';
-        $global_settings_data->login_id_field_label_setting    = isset( $_POST['login_id_field_label_setting'] ) ? sanitize_text_field( $_POST['login_id_field_label_setting'] ) : '';
-        $global_settings_data->login_show_rememberme           = isset( $_POST['login_show_rememberme'] ) ? 1 : 0;
-        $global_settings_data->login_show_rememberme_label     = isset( $_POST['login_show_rememberme_label'] ) ? sanitize_text_field( $_POST['login_show_rememberme_label'] ) : '';
-        $global_settings_data->login_show_forgotpassword       = isset( $_POST['login_show_forgotpassword'] ) ? 1 : 0;
-        $global_settings_data->login_show_forgotpassword_label = isset( $_POST['login_show_forgotpassword_label'] ) ? sanitize_text_field( $_POST['login_show_forgotpassword_label'] ) : '';
-        $global_settings_data->login_google_recaptcha       = isset( $_POST['login_google_recaptcha'] ) ? 1 : 0;
-        //$global_settings_data->login_google_recaptcha_label = isset( $_POST['login_google_recaptcha_label'] ) ? sanitize_text_field( $_POST['login_google_recaptcha_label'] ) : '';
+        $global_settings_data->login_id_field                  = isset( $form_data['login_id_field'] ) ? sanitize_text_field( $form_data['login_id_field'] ) : 'username';
+        $global_settings_data->login_id_field_label_setting    = isset( $form_data['login_id_field_label_setting'] ) ? sanitize_text_field( $form_data['login_id_field_label_setting'] ) : '';
+        $global_settings_data->login_show_rememberme           = isset( $form_data['login_show_rememberme'] ) ? 1 : 0;
+        $global_settings_data->login_show_rememberme_label     = isset( $form_data['login_show_rememberme_label'] ) ? sanitize_text_field( $form_data['login_show_rememberme_label'] ) : '';
+        $global_settings_data->login_show_forgotpassword       = isset( $form_data['login_show_forgotpassword'] ) ? 1 : 0;
+        $global_settings_data->login_show_forgotpassword_label = isset( $form_data['login_show_forgotpassword_label'] ) ? sanitize_text_field( $form_data['login_show_forgotpassword_label'] ) : '';
+        $global_settings_data->login_google_recaptcha       = isset( $form_data['login_google_recaptcha'] ) ? 1 : 0;
+        //$global_settings_data->login_google_recaptcha_label = isset( $form_data['login_google_recaptcha_label'] ) ? sanitize_text_field( $form_data['login_google_recaptcha_label'] ) : '';
         
-        $global_settings_data->login_password_label            = isset( $_POST['login_password_label'] ) ? sanitize_text_field( $_POST['login_password_label'] ) : '';
-        $global_settings_data->login_heading_text              = isset( $_POST['login_heading_text'] ) ? sanitize_text_field( $_POST['login_heading_text'] ) : '';
-        $global_settings_data->login_subheading_text           = isset( $_POST['login_subheading_text'] ) ? sanitize_text_field( $_POST['login_subheading_text'] ) : '';
-        $global_settings_data->login_button_label              = isset( $_POST['login_button_label'] ) ? sanitize_text_field( $_POST['login_button_label'] ) : '';
-        $global_settings_data->login_redirect_after_login      = isset( $_POST['login_redirect_after_login'] ) ? sanitize_text_field( $_POST['login_redirect_after_login'] ) : '';
-        $global_settings_data->login_show_registerlink       = isset( $_POST['login_show_registerlink'] ) ? 1 : 0;
-        $global_settings_data->login_show_registerlink_label = isset( $_POST['login_show_registerlink_label'] ) ? sanitize_text_field( $_POST['login_show_registerlink_label'] ) : '';
+        $global_settings_data->login_password_label            = isset( $form_data['login_password_label'] ) ? sanitize_text_field( $form_data['login_password_label'] ) : '';
+        $global_settings_data->login_heading_text              = isset( $form_data['login_heading_text'] ) ? sanitize_text_field( $form_data['login_heading_text'] ) : '';
+        $global_settings_data->login_subheading_text           = isset( $form_data['login_subheading_text'] ) ? sanitize_text_field( $form_data['login_subheading_text'] ) : '';
+        $global_settings_data->login_button_label              = isset( $form_data['login_button_label'] ) ? sanitize_text_field( $form_data['login_button_label'] ) : '';
+        $global_settings_data->login_redirect_after_login      = isset( $form_data['login_redirect_after_login'] ) ? sanitize_text_field( $form_data['login_redirect_after_login'] ) : '';
+        $global_settings_data->login_show_registerlink       = isset( $form_data['login_show_registerlink'] ) ? 1 : 0;
+        $global_settings_data->login_show_registerlink_label = isset( $form_data['login_show_registerlink_label'] ) ? sanitize_text_field( $form_data['login_show_registerlink_label'] ) : '';
         
         $global_settings->ep_save_settings( $global_settings_data );
         
         $admin_notices->ep_add_notice( 'success', esc_html__('Setting saved successfully', 'eventprime-event-calendar-management' ) );
         $redirect_url = admin_url( "edit.php?post_type=em_event&page=ep-settings&tab=forms&section=login" );
+        $nonce = wp_create_nonce('ep_settings_tab');
+        $redirect_url = add_query_arg( array('tab_nonce'=>$nonce ),$redirect_url);
         wp_redirect($redirect_url);
         exit();
     }
@@ -536,25 +565,27 @@ class EventPrime_Admin_settings{
     /**
      * Save Register form settings
      */
-    public function save_register_form_settings() {
+    public function save_register_form_settings($form_data) {
         $global_settings = new Eventprime_Global_Settings;
         $admin_notices = new EventM_Admin_Notices;
         $global_settings_data = $global_settings->ep_get_settings();
-        $global_settings_data->login_registration_form       = isset( $_POST['login_registration_form'] ) ? sanitize_text_field( $_POST['login_registration_form'] ) : '';
-        $global_settings_data->login_rm_registration_form    = isset( $_POST['login_rm_registration_form'] ) ? sanitize_text_field( $_POST['login_rm_registration_form'] ) : '';
-        $global_settings_data->register_google_recaptcha     = isset( $_POST['register_google_recaptcha']) ? 1 : 0;
-        $global_settings_data->register_username             = isset( $_POST['register_username'] ) ? $_POST['register_username'] : array();
-        $global_settings_data->register_email                = isset( $_POST['register_email'] ) ? $_POST['register_email'] : array();
-        $global_settings_data->register_password             = isset( $_POST['register_password'] ) ? $_POST['register_password'] : array();
-        $global_settings_data->register_repeat_password      = isset( $_POST['register_repeat_password'] ) ? $_POST['register_repeat_password'] : array();
-        $global_settings_data->register_dob                  = isset( $_POST['register_dob'] ) ? $_POST['register_dob'] : array();
-        $global_settings_data->register_phone                = isset( $_POST['register_phone'] ) ? $_POST['register_phone'] : array();
-        $global_settings_data->register_timezone             = isset( $_POST['register_timezone'] ) ? $_POST['register_timezone'] : array();
+        $global_settings_data->login_registration_form       = isset( $form_data['login_registration_form'] ) ? sanitize_text_field( $form_data['login_registration_form'] ) : '';
+        $global_settings_data->login_rm_registration_form    = isset( $form_data['login_rm_registration_form'] ) ? sanitize_text_field( $form_data['login_rm_registration_form'] ) : '';
+        $global_settings_data->register_google_recaptcha     = isset( $form_data['register_google_recaptcha']) ? 1 : 0;
+        $global_settings_data->register_username             = isset( $form_data['register_username'] ) ? $form_data['register_username'] : array();
+        $global_settings_data->register_email                = isset( $form_data['register_email'] ) ? $form_data['register_email'] : array();
+        $global_settings_data->register_password             = isset( $form_data['register_password'] ) ? $form_data['register_password'] : array();
+        $global_settings_data->register_repeat_password      = isset( $form_data['register_repeat_password'] ) ? $form_data['register_repeat_password'] : array();
+        $global_settings_data->register_dob                  = isset( $form_data['register_dob'] ) ? $form_data['register_dob'] : array();
+        $global_settings_data->register_phone                = isset( $form_data['register_phone'] ) ? $form_data['register_phone'] : array();
+        $global_settings_data->register_timezone             = isset( $form_data['register_timezone'] ) ? $form_data['register_timezone'] : array();
         
         $global_settings->ep_save_settings( $global_settings_data );
         
         $admin_notices->ep_add_notice( 'success', esc_html__('Setting saved successfully', 'eventprime-event-calendar-management' ) );
         $redirect_url = admin_url( "edit.php?post_type=em_event&page=ep-settings&tab=forms&section=register" );
+        $nonce = wp_create_nonce('ep_settings_tab');
+        $redirect_url = add_query_arg( array('tab_nonce'=>$nonce ),$redirect_url);
         wp_redirect($redirect_url);
         exit();
     }
@@ -563,20 +594,22 @@ class EventPrime_Admin_settings{
      * Save Checkout Registration Form
      */
     
-    public function save_checkout_registration_form_settings(){
+    public function save_checkout_registration_form_settings($form_data){
         $global_settings = new Eventprime_Global_Settings;
         $admin_notices = new EventM_Admin_Notices;
         $global_settings_data = $global_settings->ep_get_settings();
-        $global_settings_data->checkout_register_fname             = isset( $_POST['checkout_register_fname'] ) ? $_POST['checkout_register_fname'] : array();
-        $global_settings_data->checkout_register_lname             = isset( $_POST['checkout_register_lname'] ) ? $_POST['checkout_register_lname'] : array();
-        $global_settings_data->checkout_register_username             = isset( $_POST['checkout_register_username'] ) ? $_POST['checkout_register_username'] : array();
-        $global_settings_data->checkout_register_email                = isset( $_POST['checkout_register_email'] ) ? $_POST['checkout_register_email'] : array();
-        $global_settings_data->checkout_register_password             = isset( $_POST['checkout_register_password'] ) ? $_POST['checkout_register_password'] : array();
-        $global_settings_data->checkout_reg_google_recaptcha = isset($_POST['checkout_reg_google_recaptcha']) && !empty($_POST['checkout_reg_google_recaptcha']) ? 1 : 0;
+        $global_settings_data->checkout_register_fname             = isset( $form_data['checkout_register_fname'] ) ? $form_data['checkout_register_fname'] : array();
+        $global_settings_data->checkout_register_lname             = isset( $form_data['checkout_register_lname'] ) ? $form_data['checkout_register_lname'] : array();
+        $global_settings_data->checkout_register_username             = isset( $form_data['checkout_register_username'] ) ? $form_data['checkout_register_username'] : array();
+        $global_settings_data->checkout_register_email                = isset( $form_data['checkout_register_email'] ) ? $form_data['checkout_register_email'] : array();
+        $global_settings_data->checkout_register_password             = isset( $form_data['checkout_register_password'] ) ? $form_data['checkout_register_password'] : array();
+        $global_settings_data->checkout_reg_google_recaptcha = isset($form_data['checkout_reg_google_recaptcha']) && !empty($form_data['checkout_reg_google_recaptcha']) ? 1 : 0;
         $global_settings->ep_save_settings( $global_settings_data );
         
         $admin_notices->ep_add_notice( 'success', esc_html__('Setting saved successfully', 'eventprime-event-calendar-management' ) );
         $redirect_url = admin_url( "edit.php?post_type=em_event&page=ep-settings&tab=forms&section=checkout_registration" );
+        $nonce = wp_create_nonce('ep_settings_tab');
+        $redirect_url = add_query_arg( array('tab_nonce'=>$nonce ),$redirect_url);
         wp_redirect($redirect_url);
         exit();
     }
@@ -584,25 +617,27 @@ class EventPrime_Admin_settings{
     /*
      * Save Frontend Submission Form
      */
-    public function save_frontend_sub_form_settings(){
+    public function save_frontend_sub_form_settings($form_data){
         $global_settings = new Eventprime_Global_Settings;
         $admin_notices = new EventM_Admin_Notices;
         $global_settings_data = $global_settings->ep_get_settings();
-        $global_settings_data->ues_confirm_message                  = isset( $_POST['ues_confirm_message'] ) ? sanitize_text_field($_POST['ues_confirm_message']) : '';
-        $global_settings_data->allow_submission_by_anonymous_user   = isset( $_POST['allow_submission_by_anonymous_user'] ) ? 1 : 0;
-        $global_settings_data->ues_login_message                    = isset( $_POST['ues_login_message'] ) ? sanitize_text_field( $_POST['ues_login_message'] ) : '';
-        $global_settings_data->ues_default_status                   = isset( $_POST['ues_default_status'] ) ? sanitize_text_field( $_POST['ues_default_status'] ) : '';
-        $global_settings_data->frontend_submission_roles            = isset( $_POST['frontend_submission_roles']) ? $_POST['frontend_submission_roles'] : array();
-        $global_settings_data->ues_restricted_submission_message    = isset( $_POST['ues_restricted_submission_message'] ) ? $_POST['ues_restricted_submission_message'] : '';
-        $global_settings_data->frontend_submission_sections         = isset( $_POST['frontend_submission_sections'] ) ? $_POST['frontend_submission_sections'] : array();
-        $global_settings_data->frontend_submission_required         = isset( $_POST['frontend_submission_required'] ) ? $_POST['frontend_submission_required'] : array();
-        $global_settings_data->fes_allow_media_library              = isset( $_POST['fes_allow_media_library'] ) ? 1 : 0;
-        $global_settings_data->fes_allow_user_to_delete_event       = isset( $_POST['fes_allow_user_to_delete_event'] ) ? 1 : 0;
-        $global_settings_data->fes_show_add_event_in_profile        = isset( $_POST['fes_show_add_event_in_profile'] ) ? 1 : 0;
+        $global_settings_data->ues_confirm_message                  = isset( $form_data['ues_confirm_message'] ) ? sanitize_text_field(wp_unslash($form_data['ues_confirm_message'])) : '';
+        $global_settings_data->allow_submission_by_anonymous_user   = isset( $form_data['allow_submission_by_anonymous_user'] ) ? 1 : 0;
+        $global_settings_data->ues_login_message                    = isset( $form_data['ues_login_message'] ) ? sanitize_text_field( wp_unslash( $form_data['ues_login_message'] )) : '';
+        $global_settings_data->ues_default_status                   = isset( $form_data['ues_default_status'] ) ? sanitize_text_field( wp_unslash($form_data['ues_default_status'] )) : '';
+        $global_settings_data->frontend_submission_roles            = isset( $form_data['frontend_submission_roles']) ? array_map('sanitize_text_field',  wp_unslash($form_data['frontend_submission_roles'])) : array();
+        $global_settings_data->ues_restricted_submission_message    = isset( $form_data['ues_restricted_submission_message'] ) ? sanitize_text_field( wp_unslash($form_data['ues_restricted_submission_message'])) : '';
+        $global_settings_data->frontend_submission_sections         = isset( $form_data['frontend_submission_sections'] ) ? array_map('sanitize_text_field',  wp_unslash($form_data['frontend_submission_sections'])) : array();
+        $global_settings_data->frontend_submission_required         = isset( $form_data['frontend_submission_required'] ) ? array_map('sanitize_text_field',  wp_unslash($form_data['frontend_submission_required'])) : array();
+        $global_settings_data->fes_allow_media_library              = isset( $form_data['fes_allow_media_library'] ) ? 1 : 0;
+        $global_settings_data->fes_allow_user_to_delete_event       = isset( $form_data['fes_allow_user_to_delete_event'] ) ? 1 : 0;
+        $global_settings_data->fes_show_add_event_in_profile        = isset( $form_data['fes_show_add_event_in_profile'] ) ? 1 : 0;
         
         $global_settings->ep_save_settings( $global_settings_data );
         $admin_notices->ep_add_notice( 'success', esc_html__('Setting saved successfully', 'eventprime-event-calendar-management' ) );
         $redirect_url = admin_url( "edit.php?post_type=em_event&page=ep-settings&tab=forms&section=fes" );
+        $nonce = wp_create_nonce('ep_settings_tab');
+        $redirect_url = add_query_arg( array('tab_nonce'=>$nonce ),$redirect_url);
         wp_redirect($redirect_url);
         exit();
     }
@@ -610,13 +645,13 @@ class EventPrime_Admin_settings{
     /**
      * Save button labels settings
      */
-    public function save_button_labels_settings() {
+    public function save_button_labels_settings($form_data) {
         $global_settings = new Eventprime_Global_Settings;
         $admin_notices = new EventM_Admin_Notices;
         $global_settings_data = $global_settings->ep_get_settings();
         $button_titles = array();
-        if( isset( $_POST['button_titles'] ) && ! empty( $_POST['button_titles'] ) ) {
-            foreach( $_POST['button_titles'] as $bt_key => $bt ) {
+        if( isset( $form_data['button_titles'] ) && ! empty( $form_data['button_titles'] ) ) {
+            foreach( $form_data['button_titles'] as $bt_key => $bt ) {
                 $button_titles[$bt_key] = sanitize_text_field( $bt );
             }
         }
@@ -626,6 +661,8 @@ class EventPrime_Admin_settings{
         // redirect and show message
         $admin_notices->ep_add_notice( 'success', esc_html__('Setting saved successfully', 'eventprime-event-calendar-management' ) );
         $redirect_url = admin_url( "edit.php?post_type=em_event&page=ep-settings&tab=buttonlabels" );
+        $nonce = wp_create_nonce('ep_settings_tab');
+        $redirect_url = add_query_arg( array('tab_nonce'=>$nonce ),$redirect_url);
         wp_redirect( $redirect_url );
         exit();
     }
@@ -634,27 +671,19 @@ class EventPrime_Admin_settings{
      * Get checkout fields data
      */
     public function ep_get_checkout_fields_data() {
-        global $wpdb;
-        $get_field_data = array();
-        $table_name = $wpdb->prefix.'eventprime_checkout_fields';
-        $check_checkout_fields_table = $wpdb->get_results(
-            $wpdb->prepare(
-                "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s ",
-                $wpdb->dbname,
-                $table_name
-            )
-        );
-        if( ! empty( $check_checkout_fields_table ) ) {
-            $get_field_data = $wpdb->get_results( "SELECT * FROM $table_name ORDER BY id DESC", OBJECT_K );
+        $dbhander = new EP_DBhandler;
+        $get_field_data = $dbhander->get_all_result('CHECKOUT_FIELDS','*', 1,'results', 0,false,'id','DESC','','OBJECT_K');
+        if(empty($get_field_data))
+        {
+            $get_field_data = array();
         }
         return $get_field_data;
     }
     
-    public function save_front_event_details_settings(){
+    public function save_front_event_details_settings($form_data){
         $global_settings = new Eventprime_Global_Settings;
         $admin_notices = new EventM_Admin_Notices;
         $global_settings_data = $global_settings->ep_get_settings();
-        $form_data = $_POST;
         $global_settings_data->hide_weather_tab = ( ! empty( $form_data['hide_weather_tab'] ) ? 1 : 0 );
         if( empty( $global_settings_data->hide_weather_tab ) ) {
             $global_settings_data->weather_unit_fahrenheit  = ( ! empty( $form_data['weather_unit_fahrenheit'] ) ? 1 : 0 );
@@ -680,11 +709,13 @@ class EventPrime_Admin_settings{
         $global_settings_data->event_detail_image_align           = ( ! empty( $form_data['event_detail_image_align'] ) ? $form_data['event_detail_image_align'] : '' );
         $global_settings_data->event_detail_image_auto_scroll     = ( ! empty( $form_data['event_detail_image_auto_scroll'] ) ? $form_data['event_detail_image_auto_scroll'] : 0 );
         $global_settings_data->event_detail_image_slider_duration = ( ! empty( $form_data['event_detail_image_slider_duration'] ) ? $form_data['event_detail_image_slider_duration'] : 4 );
-        $global_settings_data->event_detail_message_for_recap     = ( ! empty( $_POST['event_detail_message_for_recap'] ) ) ? sanitize_text_field( $_POST['event_detail_message_for_recap'] ) : '';
+        $global_settings_data->event_detail_message_for_recap     = ( ! empty( $form_data['event_detail_message_for_recap'] ) ) ? sanitize_text_field( $form_data['event_detail_message_for_recap'] ) : '';
         
         $global_settings->ep_save_settings( $global_settings_data );
         $admin_notices->ep_add_notice( 'success', esc_html__( 'Setting saved successfully', 'eventprime-event-calendar-management' ) );
         $redirect_url = admin_url( "edit.php?post_type=em_event&page=ep-settings&tab=frontviews&sub_tab=eventdetails" );
+        $nonce = wp_create_nonce('ep_settings_tab');
+        $redirect_url = add_query_arg( array('tab_nonce'=>$nonce ),$redirect_url);
         wp_redirect( $redirect_url );
         exit();
     }

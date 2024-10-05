@@ -3,6 +3,7 @@ $global_settings = new Eventprime_Global_Settings;
 $admin_notices = new EventM_Admin_Notices;
 $ep_functions = new Eventprime_Basic_Functions;
 $ep_license = new EventPrime_License;
+$ep_sanitizer = new EventPrime_sanitizer;
 $sub_options = $global_settings->sub_options;
 $options = $global_settings->ep_get_settings();
 wp_enqueue_style( 'ep-toast-css' );
@@ -10,7 +11,7 @@ wp_enqueue_script( 'ep-toast-js' );
 wp_enqueue_script( 'ep-toast-message-js' );     
 // save license key
 if( isset( $_POST['submit'] ) && ! empty( $_POST['submit'] ) ){
-    $form_data = $_POST;
+    $form_data = $ep_sanitizer->sanitize($_POST);
     $options->ep_premium_license_key  = ( isset( $form_data['ep_premium_license_key'] ) && ! empty( $form_data['ep_premium_license_key'] ) ) ? $form_data['ep_premium_license_key'] : '';
     $global_settings->ep_save_settings( $options );
 }
@@ -83,7 +84,7 @@ $activate_license_btn = $key.'_license_activate';
                                 if( $ep_license_response->expires == 'lifetime' ){
                                     esc_html_e( 'Your License key is activated for lifetime', 'eventprime-event-calendar-management' );
                                 }else{
-                                    echo sprintf( esc_html__('Your License Key expires on %s', 'eventprime-event-calendar-management' ), esc_html(date( 'F d, Y', strtotime( $ep_license_response->expires ) )) );
+                                    echo sprintf( esc_html__('Your License Key expires on %s', 'eventprime-event-calendar-management' ), esc_html(gmdate( 'F d, Y', strtotime( $ep_license_response->expires ) )) );
                                 }
                             } else {
                                 $expire_date = '';
@@ -140,7 +141,7 @@ $activate_license_btn = $key.'_license_activate';
                                 if( $ep_license_response->expires == 'lifetime' ){
                                     esc_html_e( 'Your License key is activated for lifetime', 'eventprime-event-calendar-management' );
                                 }else{
-                                    echo sprintf( esc_html__('Your License Key expires on %s', 'eventprime-event-calendar-management' ), esc_html(date( 'F d, Y', strtotime( $ep_license_response->expires ) )) );
+                                    echo sprintf( esc_html__('Your License Key expires on %s', 'eventprime-event-calendar-management' ), esc_html(gmdate( 'F d, Y', strtotime( $ep_license_response->expires ) )) );
                                 }
                             } else {
                                 $expire_date = '';

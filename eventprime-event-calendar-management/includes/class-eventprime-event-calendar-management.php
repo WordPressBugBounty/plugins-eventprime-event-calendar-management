@@ -228,9 +228,6 @@ class Eventprime_Event_Calendar_Management {
                 $this->loader->add_action( 'created_em_event_type', $plugin_admin, 'em_create_event_type_data');
                 // edit event type
                 $this->loader->add_action( 'edited_em_event_type', $plugin_admin, 'em_create_event_type_data');
-                // sorting for ID column
-                //$this->loader->add_filter( 'manage_edit-em_event_type_sortable_columns', $plugin_admin, 'add_event_type_sortable_custom_columns' );
-                $this->loader->add_filter( 'pre_get_terms', $plugin_admin, 'add_event_type_sortable_columns_callback' );
                 /* 
                  * Event Types end 
                  */
@@ -305,10 +302,7 @@ class Eventprime_Event_Calendar_Management {
                 $this->loader->add_action( 'created_em_venue',$plugin_admin, 'em_create_event_venue_data');
                 // edit event venue
                 $this->loader->add_action( 'edited_em_venue', $plugin_admin, 'em_create_event_venue_data');
-                // sorting for ID column
-                //$this->loader->add_filter( 'manage_edit-em_venue_sortable_columns',$plugin_admin, 'add_venue_sortable_custom_columns' );
-                $this->loader->add_filter( 'pre_get_terms', $plugin_admin, 'add_venue_sortable_columns_callback' );
-
+               
                  /*
                  * Event Organizer Start
                  */
@@ -322,9 +316,7 @@ class Eventprime_Event_Calendar_Management {
                 // add custom column
                 $this->loader->add_filter('manage_edit-em_event_organizer_columns', $plugin_admin, 'add_event_organizer_custom_columns');
                 $this->loader->add_filter('manage_em_event_organizer_custom_column', $plugin_admin, 'add_event_organizer_custom_column', 10, 3);
-                // sorting for ID column
-                //$this->loader->add_filter('manage_edit-em_event_organizer_sortable_columns', $plugin_admin, 'add_event_organizer_sortable_custom_columns');
-                $this->loader->add_filter('pre_get_terms', $plugin_admin, 'add_event_organizer_sortable_columns_callback');
+                
                 
                 
                 $this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'ep_performer_remove_meta_boxes', 10 );
@@ -345,7 +337,7 @@ class Eventprime_Event_Calendar_Management {
 
                 $this->loader->add_filter( 'bulk_actions-edit-em_booking', $plugin_admin,'ep_export_booking_bulk_list', 10, 1 );
                 $this->loader->add_filter( 'handle_bulk_actions-edit-em_booking', $plugin_admin, 'ep_export_booking_bulk_action_handle', 10, 3 );
-                $this->loader->add_action( 'admin_notices', $plugin_admin, 'ep_admin_notice_export' );
+                
                 $this->loader->add_action( 'admin_head-edit.php',$plugin_admin, 'ep_add_booking_export_btn');
                 $this->loader->add_action( 'before_delete_post', $plugin_admin, 'ep_before_delete_event_bookings', 99, 2 );
 
@@ -397,7 +389,7 @@ class Eventprime_Event_Calendar_Management {
 		
                 //$this->loader->add_action( 'admin_notices', $plugin_admin, 'ep_dismissible_notice' );
                 
-                $this->loader->add_action( 'admin_notices', $plugin_admin, 'ep_conflict_notices' );
+                //$this->loader->add_action( 'admin_notices', $plugin_admin, 'ep_conflict_notices' );
                 
                 $this->loader->add_filter('post_row_actions', $plugin_admin, 'ep_add_custom_view_link', 10, 2);
                 

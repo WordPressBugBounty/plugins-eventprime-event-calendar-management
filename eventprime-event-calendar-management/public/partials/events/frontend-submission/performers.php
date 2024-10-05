@@ -143,10 +143,10 @@ $ep_functions = new Eventprime_Basic_Functions;
                 foreach( $social_links as $key => $links) { ?>
                     <div class="ep-form-row ep-form-group ep-mb-3">
                                 <label class="ep-meta-box-title">
-                                    <?php echo $links; ?>
+                                    <?php echo esc_html($links); ?>
                                </label>
                            
-                                    <input class="ep-form-control"  type="text" name="em_social_links[<?php echo $key; ?>]" 
+                        <input class="ep-form-control"  type="text" name="em_social_links[<?php echo esc_attr($key); ?>]" 
                                         placeholder="<?php echo esc_attr($links); ?>"
                                         value="">
                                 

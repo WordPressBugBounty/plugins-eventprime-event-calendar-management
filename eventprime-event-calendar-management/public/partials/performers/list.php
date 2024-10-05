@@ -94,8 +94,8 @@ wp_enqueue_script(
 
         <?php
         if( isset( $args->performers ) && !empty( $args->performers ) ) {?>
-            <div class="em_performers ep-event-performers-<?php echo $args->display_style;?>-container ep-px-3">
-                <div id="ep-event-performers-loader-section" class="ep-box-row ep-box-top ep-performer-<?php echo $args->display_style;?>-wrap ">
+            <div class="em_performers ep-event-performers-<?php echo esc_attr($args->display_style);?>-container ep-px-3">
+                <div id="ep-event-performers-loader-section" class="ep-box-row ep-box-top ep-performer-<?php echo esc_attr($args->display_style);?>-wrap ">
                     <?php
                     switch ( $args->display_style ) {
                         case 'card':

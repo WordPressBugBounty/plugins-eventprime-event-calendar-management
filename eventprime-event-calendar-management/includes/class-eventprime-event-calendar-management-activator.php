@@ -1025,7 +1025,7 @@ class Eventprime_Event_Calendar_Management_Activator {
 							if( empty( $start_time ) ) {
 								$start_time = '12:00 AM';
 							}
-							$convert_start_date = date( 'Y-m-d', $start_date );
+							$convert_start_date = gmdate( 'Y-m-d', $start_date );
 							$new_start_date = $convert_start_date . ' ' . $start_time;
 							$merge_start_date_time = strtotime( $new_start_date );
 							if( ! empty( $merge_start_date_time ) ) {
@@ -1038,7 +1038,7 @@ class Eventprime_Event_Calendar_Management_Activator {
 							if( empty( $end_time ) ) {
 								$end_time = '11:59 PM';
 							}
-							$convert_end_date = date( 'Y-m-d', $end_date );
+							$convert_end_date = gmdate( 'Y-m-d', $end_date );
 							$new_end_date = $convert_end_date . ' ' . $end_time;
 							$merge_end_date_time = strtotime( $new_end_date );
 							if( ! empty( $merge_end_date_time ) ) {

@@ -2,29 +2,36 @@
 $ep_functions = new Eventprime_Basic_Functions;
 ?>
 <div class="wrap">
-    <div class="ep-box-row">
-        <div class="ep-box-col-10">
+    <div class="ep-box-row ep-justify-content-between ep-px-2">
+        <div class="ep-box-col-6">
             <h2>
                 <?php
                 esc_html_e( 'Attendee List:- ', 'eventprime-event-calendar-management' );?> 
-                <?php echo get_the_title( $event_id );?>
+                <?php esc_html_e(get_the_title( $event_id ));?>
             </h2>
         </div>
-        <div class="ep-box-col-1 ep-text-end ep-pt-3">
-            <button type="button" id="ep_print_event_attendees_list" name="ep_print_event_attendees_list" class="button-primary ep-save-button">
-                <?php esc_html_e( 'Print', 'eventprime-event-calendar-management' );?> 
-            </button>
+        <div class="ep-box-col-5 ep-text-end ep-pt-3 ep-d-flex ep-justify-content-end ep-align-items-center">
+            
             <span class="spinner" id="ep_print_attendee_list_loader"></span>
+            <button type="button" id="ep_print_event_attendees_list" name="ep_print_event_attendees_list" class="button-primary ep-save-button">
+                <?php esc_html_e( 'Download', 'eventprime-event-calendar-management' );?> 
+            </button>
             <?php wp_nonce_field( 'ep_print_event_attendees', 'ep_ep_print_event_attendees_nonce' );?>
         </div>
     </div>
+    <div class="ep-justify-content-between">
+        <?php do_action('ep_add_filter_in_attendee_list_page'); ?>
+    </div>
     <input type="hidden" id="ep_event_id" value="<?php esc_attr_e( $event_id );?>">
-    <table class="form-table">
+    <input type="hidden" id="attendee_check_in_filter" value="<?php esc_attr_e( $filter_value );?>">
+    <input type="hidden" id="ep_attendee_page_user_filter" value="<?php esc_attr_e( $user_filter_value );?>">
+    <table class="form-table ep-attendee-check-in-list">
         <tr> 
             <td class="ep-px-0">
                 <table class="ep-setting-table ep-setting-table-wide">
                     <thead>
                         <tr>
+                            <?php do_action('ep_add_attendee_field_heading_front');?>
                             <th><?php esc_html_e('#','eventprime-event-calendar-management');?></th>
                             <?php if( empty( $attendee_fileds_data ) ) {?>
                                 <th><?php esc_html_e( 'First Name', 'eventprime-event-calendar-management' );?></th>
@@ -49,6 +56,7 @@ $ep_functions = new Eventprime_Basic_Functions;
                             <th><?php esc_html_e( 'User Email', 'eventprime-event-calendar-management' );?></th>
                             <th><?php esc_html_e( 'Ticket', 'eventprime-event-calendar-management' );?></th>
                             <th><?php esc_html_e( 'Booked On', 'eventprime-event-calendar-management' );?></th>
+                            <?php do_action('ep_add_attendee_field_heading');?>
                         </tr>
                     </thead>
                     <tbody id="ep-feedback-list-body"><?php
@@ -66,8 +74,14 @@ $ep_functions = new Eventprime_Basic_Functions;
                                             $ticket_name = $ep_functions->get_ticket_name_by_id( $ticket_id );
                                         }
                                         if( ! empty( $ticket_attendees ) && count( $ticket_attendees ) > 0 ) {
-                                            foreach( $ticket_attendees as $attendee_data ) {?>
+                                            $att_count = 1;
+                                            foreach( $ticket_attendees as $attendee_data ) {
+                                                $filter_attendee = apply_filters('attendee_check_in_filter',$attendee_data, $booking_id, $ticket_id, $att_count);
+                                                if(!empty($filter_attendee))
+                                                {
+                                                ?>
                                                 <tr>
+                                                <?php do_action('ep_add_attendee_field_heading_data_front', $booking_id, $ticket_id, $att_count, $attendee_data); ?>
                                                     <td><?php echo esc_html( $num );?></td><?php
                                                     if( empty( $attendee_fileds_data ) ) {?>
                                                         <td><?php echo ( ! empty( $attendee_data['name']['first_name'] ) ? esc_html( $attendee_data['name']['first_name'] ) : '----' );?></td>
@@ -138,8 +152,15 @@ $ep_functions = new Eventprime_Basic_Functions;
                                                             echo esc_html( $ep_functions->ep_timestamp_to_date( $em_date, 'd M, Y' ) );
                                                         }?>
                                                     </td>
-                                                </tr><?php
+
+                                                    <?php do_action('ep_add_attendee_field_heading_data', $booking_id, $ticket_id, $att_count, $attendee_data); ?>
+                                                </tr>
+                                                <?php 
+                                                // print_r($num);
                                                 $num++;
+                                            }
+                                            // print_r($att_count);
+                                            $att_count++;   
                                             }
                                         }
                                     }

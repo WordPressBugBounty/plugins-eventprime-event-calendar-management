@@ -1,5 +1,7 @@
-<?php if( isset( $_GET['section'] ) && ! empty( $_GET['section'] ) ) {
-    $section = sanitize_text_field( $_GET['section'] );
+<?php 
+if (isset($_GET['tab_nonce']) && isset( $_GET['section'] ) && wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['tab_nonce'])), 'ep_settings_tab'))
+{
+    $section = sanitize_text_field( wp_unslash($_GET['section'] ));
     if( in_array( $section, array_keys( $options['form_list'] ) ) ) {
         $this->get_form_settings_html( $section );
     } else{
@@ -18,7 +20,9 @@
             </p>
         </div><?php
     }
-} else{?>
+} else{
+    $nonce = wp_create_nonce('ep_settings_tab');
+    ?>
     <div class="ep-forms-tab-content">
         <h2><?php esc_html_e( 'Manage Form Settings', 'eventprime-event-calendar-management' );?></h2>
         <input type="hidden" name="em_setting_type" value="form_settings">
@@ -43,11 +47,11 @@
                             <tbody>
                                 <?php foreach( $options['form_list'] as $key => $form ){ ?>
                                     <tr>
-                                        <td><?php echo $form['title'];?></td>
-                                        <td><?php echo $form['description'];?></td>
+                                        <td><?php echo wp_kses_post($form['title']);?></td>
+                                        <td><?php echo wp_kses_post($form['description']);?></td>
                                         <td>
-                                            <?php $tab_url = esc_url( add_query_arg( array( 'tab' => 'forms', 'section' => $key ) ) );?>
-                                            <a href="<?php echo $tab_url; ?>" class="button alignright">
+                                            <?php $tab_url = add_query_arg( array( 'tab' => 'forms', 'section' => $key,'tab_nonce'=>$nonce ) );?>
+                                            <a href="<?php echo esc_url($tab_url); ?>" class="button alignright">
                                                 <?php esc_html_e( 'Manage', 'eventprime-event-calendar-management' ); ?>
                                             </a>
                                         </td>

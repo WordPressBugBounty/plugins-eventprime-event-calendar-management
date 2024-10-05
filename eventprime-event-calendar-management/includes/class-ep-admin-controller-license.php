@@ -62,7 +62,7 @@ class EventM_Admin_Controller_License {
             
             // make sure the response came back okay
             if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-                $message =  ( is_wp_error( $response ) && ! empty( $response->get_error_message() ) ) ? $response->get_error_message() : __( 'An error occurred, please try again.' );
+                $message =  ( is_wp_error( $response ) && ! empty( $response->get_error_message() ) ) ? $response->get_error_message() : esc_html__( 'An error occurred, please try again.' );
             } else {
                 $license_data = json_decode( wp_remote_retrieve_body( $response ) );
                 $error_status = $license_data->error;
@@ -71,28 +71,28 @@ class EventM_Admin_Controller_License {
                         switch( $license_data->error ) {
                             case 'expired' :
                                 $message = sprintf(
-                                    __( 'Your license key expired on %s.', 'eventprime-event-calendar-management' ),
+                                    esc_html__( 'Your license key expired on %s.', 'eventprime-event-calendar-management' ),
                                     date_i18n( get_option( 'date_format' ), strtotime( $license_data->expires, current_time( 'timestamp' ) ) )
                                 );
                                 break;
                             case 'revoked' :
-                                $message = __( 'Your license key has been disabled.' , 'eventprime-event-calendar-management' );
+                                $message = esc_html__( 'Your license key has been disabled.' , 'eventprime-event-calendar-management' );
                                 break;
                             case 'missing' :
-                                $message = __( 'Your license key is invalid.' , 'eventprime-event-calendar-management' );
+                                $message = esc_html__( 'Your license key is invalid.' , 'eventprime-event-calendar-management' );
                                 break;
                             case 'invalid' :
                             case 'site_inactive' :
-                                $message = __( 'Your license is not active for this URL.' , 'eventprime-event-calendar-management' );
+                                $message = esc_html__( 'Your license is not active for this URL.' , 'eventprime-event-calendar-management' );
                                 break;
                             case 'item_name_mismatch' :
-                                $message = sprintf( __( 'This appears to be an invalid license key for %s.', 'eventprime-event-calendar-management'  ), $item_name );
+                                $message = sprintf( esc_html__( 'This appears to be an invalid license key for %s.', 'eventprime-event-calendar-management'  ), $item_name );
                                 break;
                             case 'no_activations_left':
-                                $message = __( 'Your license key has reached its activation limit.', 'eventprime-event-calendar-management'  );
+                                $message = esc_html__( 'Your license key has reached its activation limit.', 'eventprime-event-calendar-management'  );
                                 break;
                             default :
-                                $message = __( 'An error occurred, please try again.', 'eventprime-event-calendar-management'  );
+                                $message = esc_html__( 'An error occurred, please try again.', 'eventprime-event-calendar-management'  );
                                 break;
                         }
                     }
@@ -122,7 +122,7 @@ class EventM_Admin_Controller_License {
                 
             //     // make sure the response came back okay
             //     if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-            //         $message =  ( is_wp_error( $response ) && ! empty( $response->get_error_message() ) ) ? $response->get_error_message() : __( 'An error occurred, please try again.' );
+            //         $message =  ( is_wp_error( $response ) && ! empty( $response->get_error_message() ) ) ? $response->get_error_message() : esc_html__( 'An error occurred, please try again.' );
             //     } else {
             //         $license_data = json_decode( wp_remote_retrieve_body( $response ) );
             //         if ( false === $license_data->success ) {
@@ -130,28 +130,28 @@ class EventM_Admin_Controller_License {
             //                 switch( $license_data->error ) {
             //                     case 'expired' :
             //                         $message = sprintf(
-            //                             __( 'Your license key expired on %s.', 'eventprime-event-calendar-management' ),
+            //                             esc_html__( 'Your license key expired on %s.', 'eventprime-event-calendar-management' ),
             //                             date_i18n( get_option( 'date_format' ), strtotime( $license_data->expires, current_time( 'timestamp' ) ) )
             //                         );
             //                         break;
             //                     case 'revoked' :
-            //                         $message = __( 'Your license key has been disabled.' , 'eventprime-event-calendar-management' );
+            //                         $message = esc_html__( 'Your license key has been disabled.' , 'eventprime-event-calendar-management' );
             //                         break;
             //                     case 'missing' :
-            //                         $message = __( 'Your license key is invalid.' , 'eventprime-event-calendar-management' );
+            //                         $message = esc_html__( 'Your license key is invalid.' , 'eventprime-event-calendar-management' );
             //                         break;
             //                     case 'invalid' :
             //                     case 'site_inactive' :
-            //                         $message = __( 'Your license is not active for this URL.' , 'eventprime-event-calendar-management' );
+            //                         $message = esc_html__( 'Your license is not active for this URL.' , 'eventprime-event-calendar-management' );
             //                         break;
             //                     case 'item_name_mismatch' :
-            //                         $message = sprintf( __( 'This appears to be an invalid license key for %s.', 'eventprime-event-calendar-management'  ), $item_name );
+            //                         $message = sprintf( esc_html__( 'This appears to be an invalid license key for %s.', 'eventprime-event-calendar-management'  ), $item_name );
             //                         break;
             //                     case 'no_activations_left':
-            //                         $message = __( 'Your license key has reached its activation limit.', 'eventprime-event-calendar-management'  );
+            //                         $message = esc_html__( 'Your license key has reached its activation limit.', 'eventprime-event-calendar-management'  );
             //                         break;
             //                     default :
-            //                         $message = __( 'An error occurred, please try again.', 'eventprime-event-calendar-management'  );
+            //                         $message = esc_html__( 'An error occurred, please try again.', 'eventprime-event-calendar-management'  );
             //                         break;
             //                 }
             //             }
@@ -172,9 +172,9 @@ class EventM_Admin_Controller_License {
 
             if( isset( $license_data->expires ) && ! empty( $license_data->expires ) ) {
                 if( $license_data->expires == 'lifetime' ){
-                    $expire_date = __( 'Your license key is activated for lifetime', 'eventprime-event-calendar-management' );
+                    $expire_date = esc_html__( 'Your license key is activated for lifetime', 'eventprime-event-calendar-management' );
                 }else{
-                    $expire_date = sprintf( __( 'Your license Key expires on %s.', 'eventprime-event-calendar-management' ), date( 'F d, Y', strtotime($license_data->expires) ) );
+                    $expire_date = sprintf( esc_html__( 'Your license Key expires on %s.', 'eventprime-event-calendar-management' ), gmdate( 'F d, Y', strtotime($license_data->expires) ) );
                 }
             }else{
                 $expire_date = '';
@@ -205,16 +205,16 @@ class EventM_Admin_Controller_License {
 
             if ( empty( $message ) || $license_data->license == 'valid' ) {
                 if( isset( $license_data->license ) && $license_data->license == 'valid' ){
-                    $message = __( 'Your License key is activated.', 'eventprime-event-calendar-management'  );
+                    $message = esc_html__( 'Your License key is activated.', 'eventprime-event-calendar-management'  );
                 }
                 if( isset( $license_data->license ) && $license_data->license == 'invalid' ){
-                    $message = __( 'Your license key is invalid.', 'eventprime-event-calendar-management'  );
+                    $message = esc_html__( 'Your license key is invalid.', 'eventprime-event-calendar-management'  );
                 }
                 if( isset( $license_data->license ) && $license_data->license == 'deactivated' ){
-                    $message = __( 'Your License key is deactivated.', 'eventprime-event-calendar-management'  );
+                    $message = esc_html__( 'Your License key is deactivated.', 'eventprime-event-calendar-management'  );
                 }
                 if( isset( $license_data->license ) && $license_data->license == 'failed' ){
-                    $message = __( 'Your License key deactivation failed. Please try after some time.', 'eventprime-event-calendar-management'  );
+                    $message = esc_html__( 'Your License key deactivation failed. Please try after some time.', 'eventprime-event-calendar-management'  );
                 }
             }
 
@@ -280,7 +280,7 @@ class EventM_Admin_Controller_License {
             
             // make sure the response came back okay
             if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-                $message =  ( is_wp_error( $response ) && ! empty( $response->get_error_message() ) ) ? $response->get_error_message() : __( 'An error occurred, please try again.' );
+                $message =  ( is_wp_error( $response ) && ! empty( $response->get_error_message() ) ) ? $response->get_error_message() : esc_html__( 'An error occurred, please try again.' );
             } else {
                 $license_data = json_decode( wp_remote_retrieve_body( $response ) );
                 $error_status = $license_data->error;
@@ -289,28 +289,28 @@ class EventM_Admin_Controller_License {
                         switch( $license_data->error ) {
                             case 'expired' :
                                 $message = sprintf(
-                                    __( 'Your license key expired on %s.' ),
+                                    esc_html__( 'Your license key expired on %s.' ),
                                     date_i18n( get_option( 'date_format' ), strtotime( $license_data->expires, current_time( 'timestamp' ) ) )
                                 );
                                 break;
                             case 'revoked' :
-                                $message = __( 'Your license key has been disabled.', 'eventprime-event-calendar-management'   );
+                                $message = esc_html__( 'Your license key has been disabled.', 'eventprime-event-calendar-management'   );
                                 break;
                             case 'missing' :
-                                $message = __( 'Your license key is invalid.', 'eventprime-event-calendar-management'   );
+                                $message = esc_html__( 'Your license key is invalid.', 'eventprime-event-calendar-management'   );
                                 break;
                             case 'invalid' :
                             case 'site_inactive' :
-                                $message = __( 'Your license is not active for this URL.', 'eventprime-event-calendar-management'   );
+                                $message = esc_html__( 'Your license is not active for this URL.', 'eventprime-event-calendar-management'   );
                                 break;
                             case 'item_name_mismatch' :
-                                $message = sprintf( __( 'This appears to be an invalid license key for %s.', 'eventprime-event-calendar-management'   ), $item_name );
+                                $message = sprintf( esc_html__( 'This appears to be an invalid license key for %s.', 'eventprime-event-calendar-management'   ), $item_name );
                                 break;
                             case 'no_activations_left':
-                                $message = __( 'Your license key has reached its activation limit.', 'eventprime-event-calendar-management'   );
+                                $message = esc_html__( 'Your license key has reached its activation limit.', 'eventprime-event-calendar-management'   );
                                 break;
                             default :
-                                $message = __( 'An error occurred, please try again.', 'eventprime-event-calendar-management'   );
+                                $message = esc_html__( 'An error occurred, please try again.', 'eventprime-event-calendar-management'   );
                                 break;
                         }
                     }
@@ -341,7 +341,7 @@ class EventM_Admin_Controller_License {
                 
             //     // make sure the response came back okay
             //     if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-            //         $message =  ( is_wp_error( $response ) && ! empty( $response->get_error_message() ) ) ? $response->get_error_message() : __( 'An error occurred, please try again.' );
+            //         $message =  ( is_wp_error( $response ) && ! empty( $response->get_error_message() ) ) ? $response->get_error_message() : esc_html__( 'An error occurred, please try again.' );
             //     } else {
             //         $license_data = json_decode( wp_remote_retrieve_body( $response ) );
             //         if ( false === $license_data->success ) {
@@ -349,28 +349,28 @@ class EventM_Admin_Controller_License {
             //                 switch( $license_data->error ) {
             //                     case 'expired' :
             //                         $message = sprintf(
-            //                             __( 'Your license key expired on %s.', 'eventprime-event-calendar-management' ),
+            //                             esc_html__( 'Your license key expired on %s.', 'eventprime-event-calendar-management' ),
             //                             date_i18n( get_option( 'date_format' ), strtotime( $license_data->expires, current_time( 'timestamp' ) ) )
             //                         );
             //                         break;
             //                     case 'revoked' :
-            //                         $message = __( 'Your license key has been disabled.' , 'eventprime-event-calendar-management' );
+            //                         $message = esc_html__( 'Your license key has been disabled.' , 'eventprime-event-calendar-management' );
             //                         break;
             //                     case 'missing' :
-            //                         $message = __( 'Your license key is invalid.' , 'eventprime-event-calendar-management' );
+            //                         $message = esc_html__( 'Your license key is invalid.' , 'eventprime-event-calendar-management' );
             //                         break;
             //                     case 'invalid' :
             //                     case 'site_inactive' :
-            //                         $message = __( 'Your license is not active for this URL.' , 'eventprime-event-calendar-management' );
+            //                         $message = esc_html__( 'Your license is not active for this URL.' , 'eventprime-event-calendar-management' );
             //                         break;
             //                     case 'item_name_mismatch' :
-            //                         $message = sprintf( __( 'This appears to be an invalid license key for %s.', 'eventprime-event-calendar-management'  ), $item_name );
+            //                         $message = sprintf( esc_html__( 'This appears to be an invalid license key for %s.', 'eventprime-event-calendar-management'  ), $item_name );
             //                         break;
             //                     case 'no_activations_left':
-            //                         $message = __( 'Your license key has reached its activation limit.', 'eventprime-event-calendar-management'  );
+            //                         $message = esc_html__( 'Your license key has reached its activation limit.', 'eventprime-event-calendar-management'  );
             //                         break;
             //                     default :
-            //                         $message = __( 'An error occurred, please try again.', 'eventprime-event-calendar-management'  );
+            //                         $message = esc_html__( 'An error occurred, please try again.', 'eventprime-event-calendar-management'  );
             //                         break;
             //                 }
             //             }
@@ -397,9 +397,9 @@ class EventM_Admin_Controller_License {
             
             if( isset( $license_data->expires ) && ! empty( $license_data->expires ) ) {
                 if( $license_data->expires == 'lifetime' ){
-                    $expire_date = __( 'Your license key is activated for lifetime', 'eventprime-event-calendar-management' );
+                    $expire_date = esc_html__( 'Your license key is activated for lifetime', 'eventprime-event-calendar-management' );
                 }else{
-                    $expire_date = sprintf( __( 'Your License Key expires on %s.', 'eventprime-event-calendar-management' ), date('F d, Y', strtotime( $license_data->expires ) ) );
+                    $expire_date = sprintf( esc_html__( 'Your License Key expires on %s.', 'eventprime-event-calendar-management' ), gmdate('F d, Y', strtotime( $license_data->expires ) ) );
                 }
             }else{
                 $expire_date = '';
@@ -434,16 +434,16 @@ class EventM_Admin_Controller_License {
 
             if ( empty( $message ) || $license_data->license == 'valid' ) {
                 if( isset( $license_data->license ) && $license_data->license == 'valid' ){
-                    $message = __( 'Your License key is activated.', 'eventprime-event-calendar-management'  );
+                    $message = esc_html__( 'Your License key is activated.', 'eventprime-event-calendar-management'  );
                 }
                 if( isset( $license_data->license ) && $license_data->license == 'invalid' ){
-                    $message = __( 'Your license key is invalid.', 'eventprime-event-calendar-management'  );
+                    $message = esc_html__( 'Your license key is invalid.', 'eventprime-event-calendar-management'  );
                 }
                 if( isset( $license_data->license ) && $license_data->license == 'deactivated' ){
-                    $message = __( 'Your License key is deactivated.', 'eventprime-event-calendar-management'  );
+                    $message = esc_html__( 'Your License key is deactivated.', 'eventprime-event-calendar-management'  );
                 }
                 if( isset( $license_data->license ) && $license_data->license == 'failed' ){
-                    $message = __( 'Your License key deactivation failed. Please try after some time.', 'eventprime-event-calendar-management'  );
+                    $message = esc_html__( 'Your License key deactivation failed. Please try after some time.', 'eventprime-event-calendar-management'  );
                 }
             }
 

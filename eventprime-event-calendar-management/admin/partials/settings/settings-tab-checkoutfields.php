@@ -38,7 +38,7 @@
                                     <td><?php 
                                         $format = get_option('date_format').' '.get_option('time_format');
                                         if( ! empty( $format ) ) {
-                                            echo esc_html( date( $format, strtotime( $fields->created_at ) ) );
+                                            echo esc_html( gmdate( $format, strtotime( $fields->created_at ) ) );
                                         } else{
                                             echo esc_html( $fields->created_at );
                                         } ?>

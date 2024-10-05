@@ -14,7 +14,7 @@ $sub_options = $global_settings->sub_options;
                     </label>
                 </th>
                 <td class="forminp forminp-text">
-                    <input name="registration_email_subject" id="registration_email_subject" class="regular-text" type="text" value="<?php echo isset($global_options->registration_email_subject) ? $global_options->registration_email_subject : __('Register successfully', 'eventprime-event-calendar-management');?>" required>
+                    <input name="registration_email_subject" id="registration_email_subject" class="regular-text" type="text" value="<?php echo isset($global_options->registration_email_subject) ? esc_attr($global_options->registration_email_subject) : esc_html__('Register successfully', 'eventprime-event-calendar-management');?>" required>
                 </td>
             </tr>
             <tr valign="top">

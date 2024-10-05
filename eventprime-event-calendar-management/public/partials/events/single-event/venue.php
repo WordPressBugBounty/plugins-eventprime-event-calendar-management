@@ -130,7 +130,7 @@ if( ! empty( $args->event->em_venue ) ) {
                                                 <a href="<?php echo esc_url( $event->event_url );?>" <?php echo esc_attr( $new_window );?>>
                                                     <div class="ep-fw-bold ep-text-small"><?php echo esc_html( $event->name );?></div>
                                                 </a>
-                                                <div class="ep-text-small ep-text-muted ep-desc-truncate"><?php echo wp_trim_words( wp_kses_post( $event->description ), 35 );?></div>
+                                                <div class="ep-text-small ep-text-muted ep-desc-truncate"><?php echo wp_kses_post( wp_trim_words($event->description,35 ));?></div>
                                             </div>
                                             <div class="ep-box-col-3">
                                                 <?php 

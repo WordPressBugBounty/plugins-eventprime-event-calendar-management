@@ -18,9 +18,19 @@ $sub_options = $global_settings->sub_options;
             </th>
             <td class="forminp forminp-text">
                 <label>
-                    <input name="gmap_api_key" id="gmap_api_key" class="regular-text" type="text" value="<?php echo isset($global_options->gmap_api_key ) ? $global_options->gmap_api_key : '';?>">    
+                    <input name="gmap_api_key" id="gmap_api_key" class="regular-text" type="text" value="<?php echo isset($global_options->gmap_api_key ) ? esc_attr($global_options->gmap_api_key) : '';?>">    
                 </label>
-                <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php _e( sprintf('EventPrime can display venue location, weather forecast, directions etc. to the visitors if Google Maps API key is configured. You can generate one from your Google Maps account.<a href="%s" target="__">Learn more about Google Maps API keys</a>','https://developers.google.com/maps/documentation/javascript/get-api-key'), 'eventprime-event-calendar-management' );?></div>
+                <div class="ep-help-tip-info ep-my-2 ep-text-muted">
+                    <?php 
+                    $google_maps_url = 'https://developers.google.com/maps/documentation/javascript/get-api-key';
+                    printf(
+                        esc_html__( 'EventPrime can display venue location, weather forecast, directions etc. to the visitors if Google Maps API key is configured. You can generate one from your Google Maps account. %s Learn more about Google Maps API keys %s', 'eventprime-event-calendar-management' ),
+                        '<a href="' . esc_url( $google_maps_url ) . '" target="_blank">',
+                        '</a>'
+                    );
+                    ?>
+                </div>
+
             </td>
         </tr>
         <tr valign="top">
@@ -58,7 +68,7 @@ $sub_options = $global_settings->sub_options;
                 </label>
             </th>
             <td class="forminp forminp-text">
-                <input name="google_cal_client_id" id="google_cal_client_id" type="text" value="<?php echo isset($global_options->google_cal_client_id) ? $global_options->google_cal_client_id : '';?>" <?php echo isset($global_options->google_cal_client_id ) && $global_options->google_cal_client_id == 1 ? 'required' : '';?>>
+                <input name="google_cal_client_id" id="google_cal_client_id" type="text" value="<?php echo isset($global_options->google_cal_client_id) ? esc_attr($global_options->google_cal_client_id) : '';?>" <?php echo isset($global_options->google_cal_client_id ) && $global_options->google_cal_client_id == 1 ? 'required' : '';?>>
             </td>
         </tr>
         <tr valign="top" class="ep_gcal_sharing_child" style="<?php echo isset($global_options->gcal_sharing ) && $global_options->gcal_sharing == 1 ? '' : 'display:none;';?>">
@@ -68,7 +78,7 @@ $sub_options = $global_settings->sub_options;
                 </label>
             </th>
             <td class="forminp forminp-text">
-                <input name="google_cal_api_key" id="google_cal_api_key" type="text" value="<?php echo isset($global_options->google_cal_api_key) ? $global_options->google_cal_api_key : '';?>" <?php echo isset($global_options->google_cal_api_key ) && $global_options->google_cal_api_key == 1 ? 'required' : '';?>>
+                <input name="google_cal_api_key" id="google_cal_api_key" type="text" value="<?php echo isset($global_options->google_cal_api_key) ? esc_attr($global_options->google_cal_api_key) : '';?>" <?php echo isset($global_options->google_cal_api_key ) && $global_options->google_cal_api_key == 1 ? 'required' : '';?>>
             </td>
         </tr>
         <tr valign="top">
@@ -82,7 +92,17 @@ $sub_options = $global_settings->sub_options;
                     <input name="google_recaptcha" id="google_recaptcha" onclick="hide_show_google_share_setting(this,'ep_google_recaptcha_child')" type="checkbox" value="1" <?php echo isset($global_options->google_recaptcha ) && $global_options->google_recaptcha == 1 ? 'checked' : '';?>>
                     <span class="ep-toogle-slider round"></span>
                 </label>
-                <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php _e( sprintf('If enabled, users will be asked to verify reCAPTCHA while filling login and registration forms. <a href="%s" target="__">Generate reCAPTCHA key</a>','https://www.google.com/recaptcha/admin/create'), 'eventprime-event-calendar-management' );?></div>
+                <div class="ep-help-tip-info ep-my-2 ep-text-muted">
+                    <?php 
+                    $recaptcha_url = 'https://www.google.com/recaptcha/admin/create';
+                    printf(
+                        esc_html__( 'If enabled, users will be asked to verify reCAPTCHA while filling login and registration forms. %s Generate reCAPTCHA key %s', 'eventprime-event-calendar-management' ),
+                        '<a href="' . esc_url( $recaptcha_url ) . '" target="_blank">',
+                        '</a>'
+                    );
+                    ?>
+                </div>
+
             </td>
         </tr>
         <tr valign="top" class="ep_google_recaptcha_child" style="<?php echo isset($global_options->google_recaptcha ) && $global_options->google_recaptcha == 1 ? '' : 'display:none;';?>">
@@ -92,7 +112,7 @@ $sub_options = $global_settings->sub_options;
                 </label>
             </th>
             <td class="forminp forminp-text">
-                <input name="google_recaptcha_site_key" class="regular-text" id="google_recaptcha_site_key" type="text" value="<?php echo isset($global_options->google_recaptcha_site_key) ? $global_options->google_recaptcha_site_key : '';?>" <?php echo isset($global_options->google_recaptcha_site_key ) && $global_options->google_recaptcha_site_key == 1 ? 'required' : '';?>>
+                <input name="google_recaptcha_site_key" class="regular-text" id="google_recaptcha_site_key" type="text" value="<?php echo isset($global_options->google_recaptcha_site_key) ? esc_attr($global_options->google_recaptcha_site_key) : '';?>" <?php echo isset($global_options->google_recaptcha_site_key ) && $global_options->google_recaptcha_site_key == 1 ? 'required' : '';?>>
             </td>
         </tr>
         <tr valign="top" class="ep_google_recaptcha_child" style="<?php echo isset($global_options->google_recaptcha ) && $global_options->google_recaptcha == 1 ? '' : 'display:none;';?>">
@@ -102,7 +122,7 @@ $sub_options = $global_settings->sub_options;
                 </label>
             </th>
             <td class="forminp forminp-text">
-                <input name="google_recaptcha_secret_key" class="regular-text" id="google_recaptcha_secret_key" type="text" value="<?php echo isset($global_options->google_recaptcha_secret_key) ? $global_options->google_recaptcha_secret_key : '';?>" <?php echo isset($global_options->google_recaptcha_secret_key ) && $global_options->google_recaptcha_secret_key == 1 ? 'required' : '';?>>
+                <input name="google_recaptcha_secret_key" class="regular-text" id="google_recaptcha_secret_key" type="text" value="<?php echo isset($global_options->google_recaptcha_secret_key) ? esc_attr($global_options->google_recaptcha_secret_key) : '';?>" <?php echo isset($global_options->google_recaptcha_secret_key ) && $global_options->google_recaptcha_secret_key == 1 ? 'required' : '';?>>
             </td>
         </tr>
     </tbody>

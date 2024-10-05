@@ -3,7 +3,15 @@ $global_settings = new Eventprime_Global_Settings;
 $admin_notices = new EventM_Admin_Notices;
 $global_options = $global_settings->ep_get_settings();
 $ep_functions = new Eventprime_Basic_Functions;
-$active_sub_tab = isset( $_GET['sub_tab'] ) && array_key_exists( $_GET['sub_tab'], $this->ep_get_front_view_settings_sub_tabs() ) ? $_GET['sub_tab'] : 'events';
+if (isset($_GET['tab_nonce']) && isset( $_GET['sub_tab'] ) && wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['tab_nonce'])), 'ep_settings_tab'))
+{
+    $sub_tab = sanitize_text_field(wp_unslash($_GET['sub_tab']));
+    $active_sub_tab = isset( $sub_tab ) && array_key_exists( $sub_tab,$this->ep_get_front_view_settings_sub_tabs() ) ? $sub_tab : 'events';
+}
+else
+{
+    $active_sub_tab = 'events';
+}
 $sub_options = $global_settings->sub_options;
 ?>
 <div class="ep-setting-tab-content">

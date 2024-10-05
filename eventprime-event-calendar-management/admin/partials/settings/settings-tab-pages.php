@@ -304,6 +304,6 @@ $pages = $options['pages'];
                 </select>
             </td>
         </tr>
-        <?php echo do_action('ep_pages_global_setting', $pages, $global_options);?>
+        <?php do_action('ep_pages_global_setting', $pages, $global_options);?>
     </tbody>
 </table>

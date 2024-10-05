@@ -26,7 +26,7 @@ $sub_options = $global_settings->sub_options;
                     </label>
                 </th>
                 <td class="forminp forminp-text">
-                    <input name="booking_cancelation_email_subject" class="regular-text" id="booking_cancelation_email_subject" type="text" value="<?php echo isset($global_options->booking_cancelation_email_subject) ? $global_options->booking_cancelation_email_subject : __('Your booking now canceled!!!', 'eventprime-event-calendar-management');?>" required>
+                    <input name="booking_cancelation_email_subject" class="regular-text" id="booking_cancelation_email_subject" type="text" value="<?php echo isset($global_options->booking_cancelation_email_subject) ? esc_attr($global_options->booking_cancelation_email_subject) : esc_html__('Your booking now canceled!!!', 'eventprime-event-calendar-management');?>" required>
                 </td>
             </tr>
             <tr valign="top">
@@ -49,7 +49,7 @@ $sub_options = $global_settings->sub_options;
                     </label>
                 </th>
                 <td class="forminp forminp-text">
-                    <input name="booking_cancelation_email_cc" class="regular-text" id="booking_cancelation_email_cc" type="text" value="<?php echo isset($global_options->booking_cancelation_email_cc) ? $global_options->booking_cancelation_email_cc : '';?>">
+                    <input name="booking_cancelation_email_cc" class="regular-text" id="booking_cancelation_email_cc" type="text" value="<?php echo isset($global_options->booking_cancelation_email_cc) ? esc_attr($global_options->booking_cancelation_email_cc) : '';?>">
                 </td>
             </tr>
         </tbody>

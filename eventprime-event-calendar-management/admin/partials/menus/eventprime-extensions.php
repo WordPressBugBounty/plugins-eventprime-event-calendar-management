@@ -81,7 +81,7 @@ $global_function =  new Eventprime_Basic_Functions();
                             }
                             
                             if( ! empty( $ext_details['button'] ) ) {?>
-                                <a href="<?php echo esc_url( $ext_details['url'] );?>" class="" target="_blank"><?php echo $ext_details['button'];?></a><?php
+                                <a href="<?php echo esc_url( $ext_details['url'] );?>" class="" target="_blank"><?php esc_html_e($ext_details['button']);?></a><?php
                             }?>
                         </div>
                     </div>

@@ -8,10 +8,10 @@
  */
 ?>
 <?php foreach ( $args->organizers as $organizer ) { ?>
-    <div class="ep-box-col-<?php echo $args->cols; ?> ep-col-md-6 ep-mb-3 ep-organizer-col-section">
+    <div class="ep-box-col-<?php echo esc_attr($args->cols); ?> ep-col-md-6 ep-mb-3 ep-organizer-col-section">
         <div class="ep-box-card-item ep-bg-white">
             <div class="ep-box-card-thumb" >
-                <a href="<?php echo $organizer->organizer_url; ?>" class="ep-img-link">
+                <a href="<?php echo esc_url($organizer->organizer_url); ?>" class="ep-img-link">
                     <img src="<?php echo esc_url($organizer->image_url); ?>" alt="<?php esc_html_e( 'Dummy Image', 'eventprime-event-calendar-management' ); ?>">
                 </a>
                 <?php

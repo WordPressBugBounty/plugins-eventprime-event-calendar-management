@@ -35,7 +35,7 @@ wp_localize_script(
         </div>
         <div class="ep-box-col-6 ep-d-flex ep-items-center ep-content-right">
             <div class="ep-text-end ep-user-profile-logout-section">
-                <a href="<?php echo wp_logout_url(); ?>">
+                <a href="<?php echo esc_url(wp_logout_url()); ?>">
                     <button type="button" class="ep-btn ep-btn-danger">
                         <span><?php esc_html_e( 'Logout', 'eventprime-event-calendar-management');?></span>
                         <span class="material-icons-round ep-fs-6 ep-align-middle">logout</span>
@@ -80,7 +80,7 @@ wp_localize_script(
                     </a>
                 </li>
                 
-                <?php echo do_action( 'ep_profile_tabs_list', $args->current_user );?>
+                <?php do_action( 'ep_profile_tabs_list', $args->current_user );?>
 
                 <li class="ep-list-group-item ep-tab-item ep-user-profile-my-account-tab" role="presentation">
                     <a href="javascript:void(0);" data-tag="ep-list-profile" class="ep-list-group-item-ligh ep-tab-link">
@@ -107,7 +107,7 @@ wp_localize_script(
                 
                 <?php $ep_functions->ep_get_template_part( 'users/profile/user-profile-data', null, $args );?>
                 
-                <?php echo do_action('ep_profile_tabs_list_content', $args->current_user);?>
+                <?php do_action('ep_profile_tabs_list_content', $args->current_user);?>
             </div>
         </div>
     </div>

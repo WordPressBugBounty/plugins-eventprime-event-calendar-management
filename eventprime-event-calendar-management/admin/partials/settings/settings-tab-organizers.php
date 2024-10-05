@@ -39,7 +39,7 @@ $sub_options = $global_settings->sub_options;
             </th>
             <td class="forminp forminp-text">
                 <?php foreach( $global_options->organizer_box_color as $key => $color ){?>
-                    <input type="text" data-jscolor="{}" name="organizer_box_color[<?php echo $key;?>]" id="performer_box_color_<?php echo $key;?>" value="<?php echo esc_attr( $global_options->organizer_box_color[$key] );?>"><?php
+                    <input type="text" data-jscolor="{}" name="organizer_box_color[<?php echo esc_attr($key);?>]" id="performer_box_color_<?php echo esc_attr($key);?>" value="<?php echo esc_attr( $global_options->organizer_box_color[$key] );?>"><?php
                 }?>
                 <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( 'In this view 4 background colors repeat themselves to create a colorful grid of event type cards. Here, you can set those 4 colors which fit inside your frontend theme.', 'eventprime-event-calendar-management' );?></div>    
             </td>

@@ -4,6 +4,8 @@
  */
 defined( 'ABSPATH' ) || exit;
 $dbhandler = new EP_DBhandler;
+$ep_function = new Eventprime_Basic_Functions;
+$allowed_html = $ep_function->eventprime_get_allowed_wpkses_html();
 $get_field_data = $dbhandler->get_all_result('CHECKOUT_FIELDS','*',1,'results',0, false,'id',true);
 $em_event_checkout_attendee_fields = get_post_meta( $post->ID, 'em_event_checkout_attendee_fields', true );
 $em_event_checkout_fields_data = ( ! empty( $em_event_checkout_attendee_fields ) && isset( $em_event_checkout_attendee_fields['em_event_checkout_fields_data'] ) ? $em_event_checkout_attendee_fields['em_event_checkout_fields_data'] : array() );
@@ -80,7 +82,7 @@ $em_event_booking_fields_data_required = ( ! empty( $em_event_checkout_booking_f
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            <?php echo $html_generator->ep_get_checkout_essentials_fields_rows( $em_event_checkout_attendee_fields, '_popup' ); ?>
+                                                            <?php echo wp_kses($html_generator->ep_get_checkout_essentials_fields_rows( $em_event_checkout_attendee_fields, '_popup' ),$allowed_html); ?>
                                                         </tbody>
                                                     </table>
                                                 </div>
@@ -565,7 +567,7 @@ $em_event_booking_fields_data_required = ( ! empty( $em_event_checkout_booking_f
                                                         value="<?php echo esc_attr( $em_event_checkout_fixed_fields['em_event_checkout_fixed_terms_option'] );?>"
                                                         style="display:none;">
                                                     <input type="hidden" name="em_event_checkout_fixed_terms_content"
-                                                        value="<?php echo $em_event_checkout_fixed_terms_content;?>"
+                                                        value="<?php echo wp_kses_post($em_event_checkout_fixed_terms_content);?>"
                                                         style="display:none;">
                                                     <div class="checkout-field-options ep-border ep-rounded-1 ep-p-2 ep-py-4 ep-d-flex ep-justify-content-between ep-mx-2 ep-mb-2 ep-text-small">
                                                     <div class="ep-event-checkout-selected-fields-attributes">
@@ -573,7 +575,7 @@ $em_event_booking_fields_data_required = ( ! empty( $em_event_checkout_booking_f
                                                             <?php echo esc_html( ucwords( $em_event_checkout_fixed_fields['em_event_checkout_fixed_terms_option'] ) ) . ': ';?>
                                                         </span>
                                                         <span class="em-event-checkout-fixed-terms-content">
-                                                            <?php echo $em_event_checkout_fixed_terms_content;?>
+                                                            <?php echo wp_kses_post($em_event_checkout_fixed_terms_content);?>
                                                         </span>
                                                     </div>
                                                     

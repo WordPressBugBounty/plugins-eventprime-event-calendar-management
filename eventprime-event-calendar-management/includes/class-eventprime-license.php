@@ -26,7 +26,7 @@ class EventPrime_License {
            
             // make sure the response came back okay
             if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-                $message =  ( is_wp_error( $response ) && ! empty( $response->get_error_message() ) ) ? $response->get_error_message() : __( 'An error occurred, please try again.' );
+                $message =  ( is_wp_error( $response ) && ! empty( $response->get_error_message() ) ) ? $response->get_error_message() : esc_html__( 'An error occurred, please try again.' );
             } else {
                 $license_data = json_decode( wp_remote_retrieve_body( $response ) );
                 $error_status = (isset($license_data->error))?$license_data->error:'';
@@ -35,28 +35,28 @@ class EventPrime_License {
                         switch( $license_data->error ) {
                             case 'expired' :
                                 $message = sprintf(
-                                    __( 'Your license key expired on %s.', 'profilegrid-user-profiles-groups-and-communities' ),
+                                    esc_html__( 'Your license key expired on %s.', 'profilegrid-user-profiles-groups-and-communities' ),
                                     date_i18n( get_option( 'date_format' ), strtotime( $license_data->expires, current_time( 'timestamp' ) ) )
                                 );
                                 break;
                             case 'revoked' :
-                                $message = __( 'Your license key has been disabled.' , 'profilegrid-user-profiles-groups-and-communities' );
+                                $message = esc_html__( 'Your license key has been disabled.' , 'profilegrid-user-profiles-groups-and-communities' );
                                 break;
                             case 'missing' :
-                                $message = __( 'Your license key is invalid.' , 'profilegrid-user-profiles-groups-and-communities' );
+                                $message = esc_html__( 'Your license key is invalid.' , 'profilegrid-user-profiles-groups-and-communities' );
                                 break;
                             case 'invalid' :
                             case 'site_inactive' :
-                                $message = __( 'Your license is not active for this URL.' , 'profilegrid-user-profiles-groups-and-communities' );
+                                $message = esc_html__( 'Your license is not active for this URL.' , 'profilegrid-user-profiles-groups-and-communities' );
                                 break;
                             case 'item_name_mismatch' :
-                                $message = __( 'The key you have entered seems to be invalid. Please verify and try again.', 'profilegrid-user-profiles-groups-and-communities'  );
+                                $message = esc_html__( 'The key you have entered seems to be invalid. Please verify and try again.', 'profilegrid-user-profiles-groups-and-communities'  );
                                 break;
                             case 'no_activations_left':
-                                $message = __( 'Your license key has reached its activation limit.', 'profilegrid-user-profiles-groups-and-communities'  );
+                                $message = esc_html__( 'Your license key has reached its activation limit.', 'profilegrid-user-profiles-groups-and-communities'  );
                                 break;
                             default :
-                                $message = __( 'The key you have entered seems to be invalid. Please verify and try again.', 'profilegrid-user-profiles-groups-and-communities'  );
+                                $message = esc_html__( 'The key you have entered seems to be invalid. Please verify and try again.', 'profilegrid-user-profiles-groups-and-communities'  );
                                 break;
                         }
                     }
@@ -78,9 +78,9 @@ class EventPrime_License {
             
             if( isset( $license_data->expires ) && ! empty( $license_data->expires ) ) {
                 if( $license_data->expires == 'lifetime' ){
-                    $expire_date = __( 'Your license key is activated for lifetime', 'profilegrid-user-profiles-groups-and-communities' );
+                    $expire_date = esc_html__( 'Your license key is activated for lifetime', 'profilegrid-user-profiles-groups-and-communities' );
                 }else{
-                    $expire_date = sprintf( __( 'Your license Key expires on %s.', 'profilegrid-user-profiles-groups-and-communities' ), date( 'F d, Y', strtotime($license_data->expires) ) );
+                    $expire_date = sprintf( esc_html__( 'Your license Key expires on %s.', 'profilegrid-user-profiles-groups-and-communities' ), gmdate( 'F d, Y', strtotime($license_data->expires) ) );
                 }
             }else{
                 $expire_date = '';
@@ -99,16 +99,16 @@ class EventPrime_License {
 
             if ( empty( $message ) || $license_data->license == 'valid' ) {
                 if( isset( $license_data->license ) && $license_data->license == 'valid' ){
-                    $message = __( 'Your License key is activated.', 'profilegrid-user-profiles-groups-and-communities'  );
+                    $message = esc_html__( 'Your License key is activated.', 'profilegrid-user-profiles-groups-and-communities'  );
                 }
                 if( isset( $license_data->license ) && $license_data->license == 'invalid' ){
-                    $message = __( 'Your license key is invalid.', 'profilegrid-user-profiles-groups-and-communities'  );
+                    $message = esc_html__( 'Your license key is invalid.', 'profilegrid-user-profiles-groups-and-communities'  );
                 }
                 if( isset( $license_data->license ) && $license_data->license == 'deactivated' ){
-                    $message = __( 'Your License key is deactivated.', 'profilegrid-user-profiles-groups-and-communities'  );
+                    $message = esc_html__( 'Your License key is deactivated.', 'profilegrid-user-profiles-groups-and-communities'  );
                 }
                 if( isset( $license_data->license ) && $license_data->license == 'failed' ){
-                    $message = __( 'Your License key deactivation failed. Please try after some time.', 'profilegrid-user-profiles-groups-and-communities'  );
+                    $message = esc_html__( 'Your License key deactivation failed. Please try after some time.', 'profilegrid-user-profiles-groups-and-communities'  );
                 }
             }
 
@@ -138,7 +138,7 @@ class EventPrime_License {
             
             // make sure the response came back okay
             if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-                $message =  ( is_wp_error( $response ) && ! empty( $response->get_error_message() ) ) ? $response->get_error_message() : __( 'An error occurred, please try again.' );
+                $message =  ( is_wp_error( $response ) && ! empty( $response->get_error_message() ) ) ? $response->get_error_message() : esc_html__( 'An error occurred, please try again.' );
             } else {
                 $license_data = json_decode( wp_remote_retrieve_body( $response ) );
                 $error_status = (isset($license_data->error))?$license_data->error:'';
@@ -147,28 +147,28 @@ class EventPrime_License {
                         switch( $license_data->error ) {
                             case 'expired' :
                                 $message = sprintf(
-                                    __( 'Your license key expired on %s.' ),
+                                    esc_html__( 'Your license key expired on %s.' ),
                                     date_i18n( get_option( 'date_format' ), strtotime( $license_data->expires, current_time( 'timestamp' ) ) )
                                 );
                                 break;
                             case 'revoked' :
-                                $message = __( 'Your license key has been disabled.', 'profilegrid-user-profiles-groups-and-communities'   );
+                                $message = esc_html__( 'Your license key has been disabled.', 'profilegrid-user-profiles-groups-and-communities'   );
                                 break;
                             case 'missing' :
-                                $message = __( 'Your license key is invalid.', 'profilegrid-user-profiles-groups-and-communities'   );
+                                $message = esc_html__( 'Your license key is invalid.', 'profilegrid-user-profiles-groups-and-communities'   );
                                 break;
                             case 'invalid' :
                             case 'site_inactive' :
-                                $message = __( 'Your license is not active for this URL.', 'profilegrid-user-profiles-groups-and-communities'   );
+                                $message = esc_html__( 'Your license is not active for this URL.', 'profilegrid-user-profiles-groups-and-communities'   );
                                 break;
                             case 'item_name_mismatch' :
-                                $message = sprintf( __( 'This appears to be an invalid license key for %s.', 'profilegrid-user-profiles-groups-and-communities'   ), $item_name );
+                                $message = sprintf( esc_html__( 'This appears to be an invalid license key for %s.', 'profilegrid-user-profiles-groups-and-communities'   ), $item_name );
                                 break;
                             case 'no_activations_left':
-                                $message = __( 'Your license key has reached its activation limit.', 'profilegrid-user-profiles-groups-and-communities'   );
+                                $message = esc_html__( 'Your license key has reached its activation limit.', 'profilegrid-user-profiles-groups-and-communities'   );
                                 break;
                             default :
-                                $message = __( 'An error occurred, please try again.', 'profilegrid-user-profiles-groups-and-communities'   );
+                                $message = esc_html__( 'An error occurred, please try again.', 'profilegrid-user-profiles-groups-and-communities'   );
                                 break;
                         }
                     }
@@ -191,9 +191,9 @@ class EventPrime_License {
             
             if( isset( $license_data->expires ) && ! empty( $license_data->expires ) ) {
                 if( $license_data->expires == 'lifetime' ){
-                    $expire_date = __( 'Your license key is activated for lifetime', 'profilegrid-user-profiles-groups-and-communities' );
+                    $expire_date = esc_html__( 'Your license key is activated for lifetime', 'profilegrid-user-profiles-groups-and-communities' );
                 }else{
-                    $expire_date = sprintf( __( 'Your License Key expires on %s.', 'profilegrid-user-profiles-groups-and-communities' ), date('F d, Y', strtotime( $license_data->expires ) ) );
+                    $expire_date = sprintf( esc_html__( 'Your License Key expires on %s.', 'profilegrid-user-profiles-groups-and-communities' ), gmdate('F d, Y', strtotime( $license_data->expires ) ) );
                 }
             }else{
                 $expire_date = '';
@@ -214,16 +214,16 @@ class EventPrime_License {
 
             if ( empty( $message ) || $license_data->license == 'valid' ) {
                 if( isset( $license_data->license ) && $license_data->license == 'valid' ){
-                    $message = __( 'Your License key is activated.', 'profilegrid-user-profiles-groups-and-communities'  );
+                    $message = esc_html__( 'Your License key is activated.', 'profilegrid-user-profiles-groups-and-communities'  );
                 }
                 if( isset( $license_data->license ) && $license_data->license == 'invalid' ){
-                    $message = __( 'Your license key is invalid.', 'profilegrid-user-profiles-groups-and-communities'  );
+                    $message = esc_html__( 'Your license key is invalid.', 'profilegrid-user-profiles-groups-and-communities'  );
                 }
                 if( isset( $license_data->license ) && $license_data->license == 'deactivated' ){
-                    $message = __( 'Your License key is deactivated.', 'profilegrid-user-profiles-groups-and-communities'  );
+                    $message = esc_html__( 'Your License key is deactivated.', 'profilegrid-user-profiles-groups-and-communities'  );
                 }
                 if( isset( $license_data->license ) && $license_data->license == 'failed' ){
-                    $message = __( 'Your License key deactivation failed. Please try after some time.', 'profilegrid-user-profiles-groups-and-communities'  );
+                    $message = esc_html__( 'Your License key deactivation failed. Please try after some time.', 'profilegrid-user-profiles-groups-and-communities'  );
                 }
             }
 
@@ -261,6 +261,7 @@ class EventPrime_License {
             'Eventprime_Event_Stripe'=>array(879,'Stripe Payment'),
             'Eventprime_Offline'=>array(876,'Offline Payment'),
             'Eventprime_Woocommerce_Checkout_Integration'=>array(23284,'WooCommerce Checkout'),
+            'Eventprime_Attendee_Event_Check_In'=>array(30503,'Attendee Event Check In'),
         );
         
         $activate = array();

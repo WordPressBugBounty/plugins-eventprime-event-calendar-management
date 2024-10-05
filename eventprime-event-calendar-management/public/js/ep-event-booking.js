@@ -1387,7 +1387,8 @@ function loadPaymentSection_new() {
 
 function paypalPaymentOnApprove( orderData, order_id ) {
     let data = { 
-        action   : 'ep_paypal_sbpr', 
+        action   : 'ep_paypal_sbpr',
+        security    : ep_event_booking.flush_booking_timer_nonce,
         data     : orderData,
         order_id : order_id
     };
@@ -1407,7 +1408,8 @@ function paypalPaymentOnApprove( orderData, order_id ) {
 function loadCheckoutUserSection( userId ) {
     jQuery( '.ep-event-loader' ).show();
     let user_data = { 
-        action: 'ep_reload_checkout_user_section', 
+        action: 'ep_reload_checkout_user_section',
+        security    : ep_event_booking.flush_booking_timer_nonce,
         userId: userId,
     };
     jQuery.ajax({

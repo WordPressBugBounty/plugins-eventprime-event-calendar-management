@@ -30,7 +30,7 @@ $ep_functions = new Eventprime_Basic_Functions;
         <div class="ep-box-card-item ep-border ep-rounded-1 ep-overflow-hidden ep-box-h-100 ep-mb-4 ep-bg-white ep-position-relative ep-d-flex ep-flex-column">
             <div class="ep-box-card-thumb ep-overflow-hidden ep-position-relative">
                 <?php if ( !empty($event->_thumbnail_id) && !empty($ep_thumbnail_check) ) { ?>
-                    <a href="<?php echo $url; ?>" class="ep-img-link" <?php echo esc_attr( $new_window );?>>
+                    <a href="<?php echo esc_url($url); ?>" class="ep-img-link" <?php echo esc_attr( $new_window );?>>
                         <?php
                         if(is_admin() && defined('ELEMENTOR_VERSION'))
                         {
@@ -51,7 +51,7 @@ $ep_functions = new Eventprime_Basic_Functions;
                         ?>
                     </a><?php
                     } else { ?>
-                    <a href="<?php echo $url; ?>" class="ep-img-link" <?php echo esc_attr( $new_window );?>>
+                    <a href="<?php echo esc_url($url); ?>" class="ep-img-link" <?php echo esc_attr( $new_window );?>>
                        <img src="<?php echo esc_url(plugin_dir_url(EP_PLUGIN_FILE). 'admin/images/dummy_image.png' ); ?>" alt="<?php echo esc_attr( $event->em_name ); ?>" class="em-no-image ep-box-w-100 ep-event-cover">
                     </a><?php
                 } ?>
@@ -70,7 +70,7 @@ $ep_functions = new Eventprime_Basic_Functions;
             <div class="ep-box-card-content ep-text-small ep-p-3 ep-d-flex ep-flex-column ep-flex-1">
                 <!-- Event Title -->
                 <div class="ep-box-title ep-box-card-title ep-text-truncate ep-mb-2">
-                    <a href="<?php echo $url; ?>" <?php echo esc_attr( $new_window );?> class="ep-fw-bold ep-fs-6 ep-my-3 ep-text-dark">
+                    <a href="<?php echo esc_url($url); ?>" <?php echo esc_attr( $new_window );?> class="ep-fw-bold ep-fs-6 ep-my-3 ep-text-dark">
                         <?php echo esc_html( $event->em_name ); ?>
                     </a>
                 </div>
@@ -105,7 +105,7 @@ $ep_functions = new Eventprime_Basic_Functions;
                 <!-- Event Description -->
                 <div class="ep-box-card-desc ep-text-small ">
                     <?php if ( ! empty( $event->description ) ) {
-                        echo wp_trim_words( wp_kses_post( $event->description ), 20 );
+                        echo wp_kses_post(wp_trim_words( $event->description,20 ) );
                     }?>
                 </div>
 

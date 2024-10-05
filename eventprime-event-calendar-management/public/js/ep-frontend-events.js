@@ -844,6 +844,7 @@ function ep_load_calendar_view(search_param='')
             method: 'POST',
             data: {
                 action:'ep_get_calendar_event',
+                security  : em_front_event_object._nonce,
                 start: info.startStr,
                 end: info.endStr,
                 args: args,

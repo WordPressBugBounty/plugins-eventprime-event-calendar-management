@@ -19,11 +19,11 @@ $em_social_links = (array)get_post_meta( $post->ID, 'em_social_links', true );
                             </div>
                             <div class="ep-meta-box-data">
                                 <input class="ep-form-control"  type="text" name="em_social_links[<?php echo esc_attr( $key ); ?>]" 
-                                    placeholder="<?php echo sprintf( __( 'https://www.%s.com/XYZ/', 'eventprime-event-calendar-management' ), strtolower( $links ) ); ?>"
+                                    placeholder="<?php echo sprintf( esc_html__( 'https://www.%s.com/XYZ/', 'eventprime-event-calendar-management' ), esc_attr(strtolower( $links )) ); ?>"
                                     value="<?php echo isset( $em_social_links[$key] ) ? esc_attr( $em_social_links[$key] ) : ''; ?>"
                                     >
                                 <p class="emnote emeditor">
-                                    <?php echo sprintf( __( 'Enter %s URL of the Performer, if available. Eg.:https://www.%s.com/XYZ/', 'eventprime-event-calendar-management' ), $links, strtolower( $links ) ); ?>
+                                    <?php echo sprintf( esc_html__( 'Enter %s URL of the Performer, if available. Eg.:https://www.%s.com/XYZ/', 'eventprime-event-calendar-management' ), esc_attr($links), esc_attr(strtolower( $links )) ); ?>
                                 </p>
                             </div>
                         </div>

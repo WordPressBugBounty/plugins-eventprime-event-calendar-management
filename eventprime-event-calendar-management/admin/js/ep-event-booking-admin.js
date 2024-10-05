@@ -9,7 +9,7 @@ jQuery( function( $ ) {
         if( booking_id ) {
             let data = { 
                 action    : 'ep_booking_add_notes', 
-                security  : nonce,
+                security  : ep_booking_obj.nonce,
                 booking_id: booking_id,
                 note      : note       
             };
@@ -110,7 +110,7 @@ jQuery( function( $ ) {
         var nonce = $('#_wpnonce').val();
         let data = { 
             action    : 'ep_booking_export_all', 
-            security  : nonce,
+            security  : ep_booking_obj.nonce,
             event_id  : event_id,
             pay_method : pay_method,
             start_date : start_date,

@@ -239,7 +239,7 @@
                                 $attach_url = wp_get_attachment_image_url( $image_id );
                                 if( ! empty( $attach_url ) ) {?>
                                     <span class="ep-venue-gallery"><i class="remove-gallery-venue dashicons dashicons-trash ep-text-danger"></i>
-                                        <img src="<?php echo esc_url( $attach_url );?>" data-image_id="<?php echo $image_id;?>"/>
+                                        <img src="<?php echo esc_url( $attach_url );?>" data-image_id="<?php echo esc_attr($image_id);?>"/>
                                     </span><?php
                                 }
                             }
@@ -268,4 +268,4 @@
                 </div>
             </td>
         </tr>
-        <?php
+        <?php wp_nonce_field( 'em_event_venue_nonce_action', 'em_event_venue_nonce_field' );

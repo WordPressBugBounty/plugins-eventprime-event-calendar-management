@@ -114,8 +114,8 @@ wp_enqueue_script(
         
         <?php
         if( isset( $args->event_types ) && !empty( $args->event_types ) ) {?>
-            <div class="ep-event-type ep-event-type-<?php echo $args->display_style;?>-container ep-box-wrap"> 
-                <div id="ep-event-types-loader-section" class="ep-box-row ep-box-top ep-event_type-<?php echo $args->display_style;?>-wrap">
+            <div class="ep-event-type ep-event-type-<?php echo esc_attr($args->display_style);?>-container ep-box-wrap"> 
+                <div id="ep-event-types-loader-section" class="ep-box-row ep-box-top ep-event_type-<?php echo esc_attr($args->display_style);?>-wrap">
                     <?php
                     switch ( $args->display_style ) {
                         case 'card':

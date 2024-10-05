@@ -43,7 +43,7 @@
                             <div class="ep-box-row ep-border-bottom ep-pb-2">
                                 <div class="ep-box-col-12">
                                     <div class="chart-sidebar" id="ep_booking_stat_container">
-                                        <?php echo do_action('ep_bookings_report_stat', $bookings_data );?>
+                                        <?php do_action('ep_bookings_report_stat', $bookings_data );?>
                                     </div>
                                 </div>
                             </div>
@@ -64,7 +64,7 @@
     </div>
     
     <div class="ep-report-booking-list">
-        <?php echo do_action('ep_bookings_report_bookings_list', $bookings_data);?>
+        <?php do_action('ep_bookings_report_bookings_list', $bookings_data);?>
     </div>
 
 </div>
@@ -72,7 +72,7 @@
     document.addEventListener( "DOMContentLoaded", function(event) {
         google.load('visualization', '1', {packages: ['corechart']});
         google.charts.setOnLoadCallback( function() { 
-            drawBookingsChart(<?php echo json_encode( $bookings_data->chart );?>);
+            drawBookingsChart(<?php echo wp_json_encode( $bookings_data->chart );?>);
         });
     });
 </script>

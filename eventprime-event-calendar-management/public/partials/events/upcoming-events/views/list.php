@@ -13,7 +13,7 @@ foreach( $args->events->posts as $event ) {
     $event_data = $ep_functions->get_event_data_to_views( $single_event_data );
     $new_window = ( ! empty( $ep_functions->ep_get_global_settings( 'open_detail_page_in_new_tab' ) ) ? 'target="_blank"' : '' );
     if( !empty( $event_data ) ) {
-        $month_id = date( 'Ym', strtotime( $event_data['start'] ) );
+        $month_id = gmdate( 'Ym', strtotime( $event_data['start'] ) );
         if( empty( $last_month_id ) || $last_month_id != $month_id ) {
             $last_month_id = $month_id;?>
             <div class="ep-box-col-12 ep-month-divider ep-text-center ep-my-3">
@@ -74,7 +74,7 @@ foreach( $args->events->posts as $event ) {
                             <!-- Event Description -->
                             <div class="ep-box-list-desc ep-text-small ep-mt-3 ep-content-truncate ep-content-truncate-line-4">
                                 <?php if ( ! empty( $single_event_data->description ) ) {
-                                    echo wp_trim_words( wp_kses_post( $single_event_data->description ), 35 );
+                                    echo wp_kses_post( wp_trim_words( $single_event_data->description, 35 ));
                                 }?>
                             </div>
 

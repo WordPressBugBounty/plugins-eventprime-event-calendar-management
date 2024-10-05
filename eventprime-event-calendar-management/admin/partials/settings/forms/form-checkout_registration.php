@@ -39,7 +39,7 @@ $sub_options = $global_settings->sub_options;
                                 </td>
                                 
                                 <td>
-                                    <input type="text" name="checkout_register_fname[label]" id="checkout_register_fname_label" value="<?php if( isset( $global_options->checkout_register_fname['label'] ) && !empty($global_options->checkout_register_fname['label'])) { echo $global_options->checkout_register_fname['label']; } else{ esc_html_e('First Name', 'eventprime-event-calendar-management' );} ?>"  />
+                                    <input type="text" name="checkout_register_fname[label]" id="checkout_register_fname_label" value="<?php if( isset( $global_options->checkout_register_fname['label'] ) && !empty($global_options->checkout_register_fname['label'])) { echo esc_html($global_options->checkout_register_fname['label']); } else{ esc_html_e('First Name', 'eventprime-event-calendar-management' );} ?>"  />
                                 </td>
                             </tr>
                             <tr>
@@ -48,7 +48,7 @@ $sub_options = $global_settings->sub_options;
                                 </td>
                                 
                                 <td>
-                                    <input type="text" name="checkout_register_lname[label]" id="checkout_register_lname_label" value="<?php if( isset( $global_options->checkout_register_lname['label'] ) && !empty($global_options->checkout_register_lname['label'])) { echo $global_options->checkout_register_lname['label']; } else{ esc_html_e('Last Name', 'eventprime-event-calendar-management' );}?>"  />
+                                    <input type="text" name="checkout_register_lname[label]" id="checkout_register_lname_label" value="<?php if( isset( $global_options->checkout_register_lname['label'] ) && !empty($global_options->checkout_register_lname['label'])) { echo esc_html($global_options->checkout_register_lname['label']); } else{ esc_html_e('Last Name', 'eventprime-event-calendar-management' );}?>"  />
                                 </td>
                             </tr>
                             <tr>
@@ -57,7 +57,7 @@ $sub_options = $global_settings->sub_options;
                                 </td>
                                 
                                 <td>
-                                    <input type="text" name="checkout_register_username[label]" id="checkout_register_username_label" value="<?php if( isset( $global_options->checkout_register_username['label'] ) && !empty($global_options->checkout_register_username['label'])) { echo $global_options->checkout_register_username['label']; } else{ esc_html_e('Username', 'eventprime-event-calendar-management' );}?>"  />
+                                    <input type="text" name="checkout_register_username[label]" id="checkout_register_username_label" value="<?php if( isset( $global_options->checkout_register_username['label'] ) && !empty($global_options->checkout_register_username['label'])) { echo esc_html($global_options->checkout_register_username['label']); } else{ esc_html_e('Username', 'eventprime-event-calendar-management' );}?>"  />
                                 </td>
                             </tr>
                             <tr>
@@ -66,7 +66,7 @@ $sub_options = $global_settings->sub_options;
                                 </td>
                                 
                                 <td>
-                                    <input type="text" name="checkout_register_email[label]" id="checkout_register_email_label" value="<?php if( isset( $global_options->checkout_register_email['label'] ) && !empty($global_options->checkout_register_email['label'])) { echo $global_options->checkout_register_email['label']; } else{ esc_html_e('Email', 'eventprime-event-calendar-management' );}?>" />
+                                    <input type="text" name="checkout_register_email[label]" id="checkout_register_email_label" value="<?php if( isset( $global_options->checkout_register_email['label'] ) && !empty($global_options->checkout_register_email['label'])) { echo esc_html($global_options->checkout_register_email['label']); } else{ esc_html_e('Email', 'eventprime-event-calendar-management' );}?>" />
                                 </td>
                             </tr>
                             <tr>
@@ -75,7 +75,7 @@ $sub_options = $global_settings->sub_options;
                                 </td>
                                 
                                 <td>
-                                    <input type="text" name="checkout_register_password[label]" id="checkout_register_password_label" value="<?php if( isset( $global_options->checkout_register_password['label'] ) && !empty($global_options->checkout_register_password['label'])) { echo $global_options->checkout_register_password['label']; } else{ esc_html_e('Password', 'eventprime-event-calendar-management' );}?>" />
+                                    <input type="text" name="checkout_register_password[label]" id="checkout_register_password_label" value="<?php if( isset( $global_options->checkout_register_password['label'] ) && !empty($global_options->checkout_register_password['label'])) { echo esc_html($global_options->checkout_register_password['label']); } else{ esc_html_e('Password', 'eventprime-event-calendar-management' );}?>" />
                                 </td>
                             </tr>
                         </tbody>

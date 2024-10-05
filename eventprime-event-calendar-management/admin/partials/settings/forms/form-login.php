@@ -178,7 +178,7 @@ $log_in_text = $ep_functions->ep_global_settings_button_title('Log-In');
                     <option value=""><?php esc_html_e( 'Select Page', 'eventprime-event-calendar-management' );?></option>
                     <?php foreach($ep_functions->ep_get_all_pages_list() as $page_id => $page_title ){?>
                         <option value="<?php echo esc_attr( $page_id );?>" <?php if( $global_options->login_redirect_after_login == $page_id ) { echo 'selected="selected"'; } ?>>
-                            <?php echo $page_title;?>
+                            <?php echo esc_html($page_title);?>
                         </option><?php
                     }?>
                 </select>

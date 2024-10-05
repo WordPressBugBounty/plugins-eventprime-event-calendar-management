@@ -30,8 +30,14 @@ if( ! empty( $global_options->paypal_processor ) ) {
                 </label>
             </th>
             <td class="forminp forminp-text">
-                <input name="paypal_client_id" class="regular-text" id="paypal_client_id" type="text" value="<?php echo isset($global_options->paypal_client_id) ? $global_options->paypal_client_id : '';?>" required>
-                <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php _e( sprintf('Enter your PayPal client id. <a href="%s" target="__">How to find your PayPal client ID and secret?</a>','https://www.upwork.com/resources/paypal-client-id-secret-key'), 'eventprime-event-calendar-management' );?></div>
+                <input name="paypal_client_id" class="regular-text" id="paypal_client_id" type="text" value="<?php echo isset($global_options->paypal_client_id) ? esc_attr($global_options->paypal_client_id) : '';?>" required>
+                <div class="ep-help-tip-info ep-my-2 ep-text-muted">
+                    <?php 
+                    $paypal_help_url = 'https://www.upwork.com/resources/paypal-client-id-secret-key';
+                    printf(esc_html__( 'Enter your PayPal client id. %s How to find your PayPal client ID and secret? %s', 'eventprime-event-calendar-management' ),'<a href="' . esc_url( $paypal_help_url ) . '" target="_blank">','</a>');
+                    ?>
+                </div>
+
             </td>
         </tr>
     </tbody>

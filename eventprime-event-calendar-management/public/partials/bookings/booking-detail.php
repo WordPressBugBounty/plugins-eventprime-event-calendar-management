@@ -1,5 +1,7 @@
 <?php
 $ep_functions = new Eventprime_Basic_Functions;
+$global_settings = new Eventprime_Global_Settings();
+$options['global'] = $global_settings->ep_get_settings();
 $booking_data = array();
         if( isset( $_GET['order_id'] ) && ! empty( $_GET['order_id'] ) ) {
             $order_id = absint( $_GET['order_id'] );
@@ -39,17 +41,35 @@ $booking_data = array();
                 $user = wp_get_current_user();
                 $roles = (array) $user->roles;
                 
-                if( ! empty( $user->ID ) || ( isset( $args->em_order_info['guest_booking'] ) && $args->em_order_info['guest_booking'] == 1 ) ) {
-                    if( $user->ID != $args->em_user && empty( $args->em_order_info['guest_booking'] ) ) {
+                if( (! empty( $user->ID ) || ( isset( $args->em_order_info['guest_booking'] ) && $args->em_order_info['guest_booking'] == 1 ) )  || ( ! empty( $user->ID ) && (isset($options['global']->ep_allow_attendee_check_in) && $options['global']->ep_allow_attendee_check_in == 1)) ) {
+
+                    $ep_event_allowed_roles = metadata_exists('post', $args->em_event, 'ep_event_allowed_roles') ? get_post_meta($args->em_event, 'ep_event_allowed_roles', true) : [];
+                    $ep_event_allowed_individuals = metadata_exists('post', $args->em_event, 'ep_event_allowed_individuals') ? get_post_meta($args->em_event, 'ep_event_allowed_individuals', true) : [];
+
+                    $ep_event_allowed_roles = is_array($ep_event_allowed_roles) ? $ep_event_allowed_roles : [];
+                    $ep_event_allowed_individuals = is_array($ep_event_allowed_individuals) ? $ep_event_allowed_individuals : [];
+
+                    // $user_is_allowed = false;
+
+                    if( $user->ID != $args->em_user && !($user->ID != $args->em_user && !empty($args->em_order_info['guest_booking'])) && isset($options['global']->ep_allow_attendee_check_in) && $options['global']->ep_allow_attendee_check_in == 1 ) {
+                        $users = (array) $user->ID;
+                        $ep_user_roles = array_intersect($ep_event_allowed_roles, $roles);
+                        $ep_user_roles_indi = array_intersect($ep_event_allowed_individuals, $users);
+
+                        if( empty(array_intersect($ep_event_allowed_roles, $roles)) && empty(array_intersect($ep_event_allowed_individuals, $users))){ ?>
+                            <div class="ep-alert ep-alert-warning ep-mt-3 ep-fs-6">
+                                <?php esc_html_e( "Don't have permission to check in attendees", 'eventprime-event-calendar-management' );?>
+                            </div><?php
+                            exit();
+                        }
+                    }else if( $user->ID != $args->em_user && empty( $args->em_order_info['guest_booking'] ) ) {
                         if( ! in_array( 'administrator', $roles, true ) ) {?>
                             <div class="ep-alert ep-alert-warning ep-mt-3">
                                 <?php esc_html_e( 'No booking found!', 'eventprime-event-calendar-management' );?>
                             </div><?php
                             exit();
                         }
-                    }
-                    
-                    if( (empty($args->em_user) || $user->ID != $args->em_user) && !empty($args->em_order_info['guest_booking'])){
+                    }else if( (empty($args->em_user) || $user->ID != $args->em_user) && !empty($args->em_order_info['guest_booking'])){
                         $order_key = get_post_meta($order_id, 'ep_order_key', true);
                         $key = isset($_GET['order_key']) && !empty($_GET['order_key']) ? sanitize_text_field($_GET['order_key']) : '';
                         if(!empty($order_key) && $order_key != $key){
@@ -84,27 +104,42 @@ $booking_data = array();
                     </div>
 
                     <div class="ep-box-col-12 ep-border ep-rounded ep-bg-white">
-                        <div class="ep-box-row ep-border-bottom ep-text-small">
-                            <div class="ep-box-col-12 ep-ps-4 ep-py-4">
-                                <span class="ep-text-uppercase">
-                                    <span class="ep-fw-bold">
-                                        <?php esc_html_e( 'Booking ID', 'eventprime-event-calendar-management' );?>
+                        <div class="ep-box-row ep-text-small">
+                            <div class="ep-box-col-12 ep-ps-4 ep-py-4 ep-justify-content-between ep-d-flex">
+                                <div>
+                                    <span class="ep-text-uppercase">
+                                        <span class="ep-fw-bold">
+                                            <?php esc_html_e( 'Booking ID', 'eventprime-event-calendar-management' );?>
+                                        </span>
+                                        <?php echo ': #' . esc_html( $args->em_id );?>
                                     </span>
-                                    <?php echo ': #' . esc_html( $args->em_id );?>
-                                </span>
-                                <?php if( $args->em_status == 'completed' ) {?>
-                                    <span class="ep-text-white ep-small ep-rounded-1 ep-py-1 ep-px-2 ep-bg-success ep-ml-1 ep-align-top">
-                                        <?php esc_html_e( 'Confirmed', 'eventprime-event-calendar-management' );?>
-                                    </span><?php
-                                } else {?>
-                                    <span class="ep-text-white ep-small ep-rounded-1 ep-py-1 ep-px-2 ep-bg-warning ep-ml-1 ep-align-top">
-                                        <?php esc_html_e( $ep_functions->get_status()[ $args->em_status ], 'eventprime-event-calendar-management' );?>
-                                    </span><?php
-                                }?>
+                                    <?php if( $args->em_status == 'completed' ) {?>
+                                        <span class="ep-text-white ep-small ep-rounded-1 ep-py-1 ep-px-2 ep-bg-success ep-ml-1 ep-align-top">
+                                            <?php esc_html_e( 'Confirmed', 'eventprime-event-calendar-management' );?>
+                                        </span><?php
+                                    } else {?>
+                                        <span class="ep-text-white ep-small ep-rounded-1 ep-py-1 ep-px-2 ep-bg-warning ep-ml-1 ep-align-top">
+                                            <?php esc_html_e( $ep_functions->get_status()[ $args->em_status ], 'eventprime-event-calendar-management' );?>
+                                        </span><?php
+                                    }?>
+                                </div>
+                                <div> <?php do_action('ep_add_data_with_booking_status_tab', $args); ?>  </div>
                             </div>
                         </div>
 
-                        <div class="ep-box-row">
+                        <?php 
+                        $users = (array) $user->ID;
+                        $ep_show_booking_detail_page_event = get_post_meta($args->em_event, 'ep_show_booking_detail_page_event', true);
+                       
+                    if ($ep_show_booking_detail_page_event=='') {
+                        $ep_show_booking_detail_page_event = isset($options['global']->ep_show_booking_detail_page) 
+                            ? $options['global']->ep_show_booking_detail_page 
+                            : "";
+                    }
+                        // print_r($ep_show_booking_detail_page_event);
+                        if($ep_show_booking_detail_page_event == 0 && (!empty(array_intersect($ep_event_allowed_roles, $roles)) || !empty(array_intersect($ep_event_allowed_individuals, $users)))) { ?>
+                        <?php } 
+                        else { ?> <div class="ep-box-row ep-booking-detail-section ep-border-top">
                             <div class="ep-box-col-6 ep-py-4">
                                 <div class="ep-fs-4 ep-fw-bold ep-ps-4">
                                     <span><?php echo esc_html( $args->event_data->name );?></span>
@@ -319,7 +354,7 @@ $booking_data = array();
                                         </div><?php
                                     }?>
 
-                                    <?php echo do_action('ep_booking_confirmation_actions_lists',$args );?>
+                                    <?php do_action('ep_booking_confirmation_actions_lists',$args );?>
                                     
                                     <?php if( ! empty( $args->event_data->organizer_details ) && count( $args->event_data->organizer_details ) > 0 ) {
                                         $org_email = '';
@@ -346,7 +381,7 @@ $booking_data = array();
                                     }?>
                                 </div>
                             </div>
-                        </div>
+                        </div> <?php } ?>
                         
                         <!-- Custom Message from payment gateway -->
                         <?php do_action( 'ep_payment_method_custom_message', $args->em_id );?>
@@ -355,7 +390,7 @@ $booking_data = array();
                     
                     <?php if( ! empty( $args->em_attendee_names ) && count( $args->em_attendee_names ) > 0 ) {?>
                         <div class="ep-box-col-12 ep-border ep-rounded ep-my-5 ep-bg-white" id="ep_booking_detail_attendees_container">
-                            <div class="ep-box-row ep-border-bottom">
+                            <div class="ep-box-row ep-border-bottom ">
                                 <div class="ep-box-col-12 ep-py-4 ep-ps-4 ep-fw-bold ep-text-uppercase ep-text-small">
                                     <?php esc_html_e( 'Attendees', 'eventprime-event-calendar-management' );?>
                                 </div>
@@ -364,7 +399,7 @@ $booking_data = array();
                             foreach( $args->em_attendee_names as $ticket_id => $attendee_data ) {
                                 $first_key = array_keys( $attendee_data )[0];
                                 $booking_attendees_field_labels = $ep_functions->ep_get_booking_attendee_field_labels( $attendee_data[$first_key] );?>
-                                <div class="ep-box-row">
+                                <div class="ep-box-row ep-add-scroll-attendee-check-in">
                                     <div class="ep-box-col-12 ep-p-4">
                                         <div class="ep-mb-3 ep-fw-bold ep-text-small">
                                             <?php echo esc_html( $ep_functions->get_event_ticket_name_by_id_event( $ticket_id, $args->event_data ) );?>
@@ -450,7 +485,7 @@ $booking_data = array();
                                             <?php 
                                             if( ! empty( $booking_fields[$formated_val] ) ) {
                                                 if( is_array( $booking_fields[$formated_val] ) ) {
-                                                    echo implode( ', ', $booking_fields[$formated_val] );
+                                                    echo wp_kses_post(implode( ', ', $booking_fields[$formated_val] ));
                                                 } else{
                                                     echo esc_html( $booking_fields[$formated_val] );
                                                 }
@@ -464,7 +499,8 @@ $booking_data = array();
 
                     <?php do_action('ep_front_user_booking_details_custom_data', $args );
 
-                } else{?>
+                } 
+                else{?>
                     <div class="ep-box-col-12 ep-fs-2 ep-my-5 ep-text-center">
                         <?php esc_html_e( 'To view the tickets, you need to login.', 'eventprime-event-calendar-management' );?>&nbsp;
                     </div>
@@ -481,7 +517,7 @@ $booking_data = array();
             }?>
         </div>
 
-        <div class="ep-modal ep-modal-view" id="ep_event_booking_cancellation_action" ep-modal="ep_booking_cancellation_modal" style="display: none;" data-booking_id='<?php if( ! empty( $args->em_id ) ) { echo esc_attr( json_encode( $args->em_id ) ); }?>'>
+        <div class="ep-modal ep-modal-view" id="ep_event_booking_cancellation_action" ep-modal="ep_booking_cancellation_modal" style="display: none;" data-booking_id='<?php if( ! empty( $args->em_id ) ) { echo esc_attr( wp_json_encode( $args->em_id ) ); }?>'>
             <div class="ep-modal-overlay" ep-modal-close="ep_booking_cancellation_modal"></div>
             <div class="ep-modal-wrap ep-modal-l">
                 <div class="ep-modal-content">

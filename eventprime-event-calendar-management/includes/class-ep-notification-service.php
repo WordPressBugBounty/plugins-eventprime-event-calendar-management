@@ -180,7 +180,7 @@ class EventM_Notification_Service {
             $sent = wp_mail( $to, $subject, $mail_body, $headers, $attachments );
             if ( count( $attachments ) != 0 ) {
                 foreach ( $attachments as $pdf_url ) {
-                    unlink( $pdf_url ); 
+                    wp_delete_file( $pdf_url ); 
                 }
             }
         }

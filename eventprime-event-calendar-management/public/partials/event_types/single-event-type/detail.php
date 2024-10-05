@@ -34,7 +34,7 @@ defined( 'ABSPATH' ) || exit;
             
             <div class="ep-single-box-summery ep-single-box-desc">
                 <?php if ( isset( $args->event_type->description ) && $args->event_type->description !== '' ) {
-                    echo wpautop( wp_kses_post( $args->event_type->description ) );
+                    echo wp_kses_post( wpautop( $args->event_type->description ) );
                 } else{
                     esc_html_e( 'No description available', 'eventprime-event-calendar-management' );
                 }?>

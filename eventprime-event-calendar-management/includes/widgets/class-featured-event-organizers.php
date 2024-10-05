@@ -20,7 +20,7 @@ if (!class_exists('EventM_Featured_Organizer')){
                 false, ''
             );
             $organizers_text = $basic_functions->ep_global_settings_button_title('Organizers');
-            $featured_event_organizers =  sprintf( __( 'Featured Event %s', 'eventprime-event-calendar-management' ), $organizers_text );
+            $featured_event_organizers =  sprintf( esc_html__( 'Featured Event %s', 'eventprime-event-calendar-management' ), $organizers_text );
             $title = ( ! empty( $instance['title'] ) ) ? $instance['title'] : $featured_event_organizers;
             $title = apply_filters( 'widget_title', $title, $instance, $this->id_base );
             $number = ( ! empty( $instance['number'] ) ) ? absint( $instance['number'] ) : 5;
@@ -53,7 +53,7 @@ if (!class_exists('EventM_Featured_Organizer')){
                     $html .= '<div class="ep-widgets-empty">'.esc_html__( 'No data found.', 'eventprime-event-calendar-management' ).'</div>';
                 }
             $html .= '</div></div>';
-            echo $html;
+            echo wp_kses_post($html);
         }
 
         public function form($instance) {
@@ -66,7 +66,7 @@ if (!class_exists('EventM_Featured_Organizer')){
             </p>
             <p>
                 <label for="<?php echo esc_attr( $this->get_field_id( 'number' ) ); ?>"><?php esc_html_e( 'Number of organizers to show:', 'eventprime-event-calendar-management' ); ?></label>
-                <input class="tiny-text" id="<?php echo esc_attr( $this->get_field_id( 'number' ) ); ?>" name="<?php echo $this->get_field_name( 'number' ); ?>" type="number" step="1" min="1" value="<?php echo esc_attr( $number ); ?>" size="3" />
+                <input class="tiny-text" id="<?php echo esc_attr( $this->get_field_id( 'number' ) ); ?>" name="<?php echo esc_attr($this->get_field_name( 'number' )); ?>" type="number" step="1" min="1" value="<?php echo esc_attr( $number ); ?>" size="3" />
             </p>
             <?php 
         }

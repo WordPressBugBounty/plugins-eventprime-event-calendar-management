@@ -50,44 +50,7 @@ class EventM_User_Controller {
         );
     }
 
-    /**
-     * Render template on the frontend
-     */
-    public function render_template( $atts = array() ) {
-        
-
-        ob_start();
-
-        $this->enqueue_style_script();
-        $ep_functions = new Eventprime_Basic_Functions;
-        $bookings = new EventPrime_Bookings;
-        $args = new stdClass();
-        $args->show_register = 0;
-        $args->redirect_url = ( ! empty( $ep_functions->ep_get_global_settings( 'login_redirect_after_login' ) ) ) ? get_permalink( $ep_functions->ep_get_global_settings( 'login_redirect_after_login' ) ) : get_permalink( $ep_functions->ep_get_global_settings( 'profile_page' ) );
-        
-        if( isset( $_POST['ep_register'] ) ) {
-            $args->show_register = 1;
-        }
-
-        $args = $this->get_login_options( $args );
-
-        $args = $this->get_register_options( $args );
-
-        if ( ! is_user_logged_in() ) {
-            $ep_functions->ep_get_template_part( 'users/login', null, $args );
-        }else{
-            $args->current_user = wp_get_current_user();
-            $args->upcoming_bookings = ( ! empty( $args->current_user->ID ) ) ? $bookings->get_user_wise_upcoming_bookings( $args->current_user->ID ) : array();
-            $args->all_bookings      = ( ! empty( $args->current_user->ID ) ) ? $bookings->get_user_all_bookings( $args->current_user->ID ) : array();
-            $args->wishlisted_events = ( ! empty( $args->current_user->ID ) ) ? $bookings->get_user_wishlisted_events( $args->current_user->ID ) : array();
-            $args->submitted_events  = ( ! empty( $args->current_user->ID ) ) ? $bookings->get_user_submitted_events( $args->current_user->ID ) : array();
-            
-            $ep_functions->ep_get_template_part( 'users/profile', null, $args );
-        }
-
-		return ob_get_clean();
-    }
-
+    
     /**
      * Render login template on the frontend
      */
@@ -160,75 +123,7 @@ class EventM_User_Controller {
 		return ob_get_clean();
     }
     
-    /**
-     * Render register template on the frontend
-     */
-    public function render_register_template( $atts = array() ) {
-        $ep_functions = new Eventprime_Basic_Functions;
-
-        ob_start();
-        $this->enqueue_style_script();
-        $args = new stdClass();
-        $args->show_register = 0;
-        $args->redirect_url = ( ! empty( $ep_functions->ep_get_global_settings( 'login_redirect_after_login' ) ) ) ? get_permalink( $ep_functions->ep_get_global_settings( 'login_redirect_after_login' ) ) : get_permalink( $ep_functions->ep_get_global_settings( 'profile_page' ) );
-
-        if( isset( $_POST['ep_register'] ) ) {
-            $args->show_register = 1;
-        }
-        //  Register Block Attributes start
-        if(! empty( $atts['block_register_custom_class'] ) ){
-            $args->block_register_custom_class = $atts['block_register_custom_class'];
-        }
-        if( ! empty( $atts['block_register_user_name_label'] ) ){
-            $args->block_register_user_name_label = $atts['block_register_user_name_label'];
-        }
-        if( ! empty( $atts['block_register_user_email_label'] ) ){
-            $args->block_register_user_email_label = $atts['block_register_user_email_label'];
-        }
-        if( ! empty( $atts['block_register_password_label'] ) ){
-            $args->block_register_password_label = $atts['block_register_password_label'];   
-        }
-        if( ! empty( $atts['block_register_repeat_password_label'] ) ){
-            $args->block_register_repeat_password_label = $atts['block_register_repeat_password_label'];   
-        }
-        if( ! empty( $atts['block_register_phone_label'] ) ){
-            $args->block_register_phone_label = $atts['block_register_phone_label'];
-        }
-        if( ! empty( $atts['block_register_button'] ) ){
-            $args->block_register_button_label = $atts['block_register_button'];
-        }
-        if( ! empty( $atts['block_register_already__account_label'] ) ){
-            $args->block_register_already__account_label = $atts['block_register_already__account_label'];
-        }
-        if( ! empty( $atts['block_register_please__login_label'] ) ){
-            $args->block_register_please__login_label = $atts['block_register_please__login_label'];
-        }
-        if( ! empty( $atts['align'] ) ){
-            $args->align = $atts['align'];
-        }
-        if( ! empty( $atts['backgroundColor'] ) ){
-            $args->backgroundColor = $atts['backgroundColor'];
-        }
-        if( ! empty( $atts['textColor'] ) ){
-            $args->textColor = $atts['textColor'];
-        }
-        //  Register Block Attributes end
-
-        $args->redirect_url = '';
-        if(isset( $atts['redirect'] ) ) {
-            if( $atts['redirect'] == 'reload' ) {
-                $args->redirect_url = 'reload';
-            }
-        }
-
-        $args = $this->get_register_options( $args );
-        $args->current_user = wp_get_current_user();
-            
-        $ep_functions->ep_get_template_part( 'users/register', null, $args );
-		
-		return ob_get_clean();
-    }
-    /**
+   /**
      * Get login options from global settings
      * 
      * @param object $args Arguments
@@ -503,6 +398,8 @@ class EventM_User_Controller {
     }
     
     public function ep_handle_login() {
+        if (isset( $_REQUEST['ep-attendee-login-nonce'] ) && wp_verify_nonce(sanitize_text_field(wp_unslash($_REQUEST['ep-attendee-login-nonce'])), 'ep-attendee-login' ) ) 
+        {
         $ep_functions = new Eventprime_Basic_Functions;
         $result = array();
         $recaptcha = true;  
@@ -527,16 +424,16 @@ class EventM_User_Controller {
 
         }
         if(isset($_POST['login_id_field']) && !empty($_POST['login_id_field'])){
-            $login_field = sanitize_text_field($_POST['login_id_field']);
+            $login_field = sanitize_text_field(wp_unslash($_POST['login_id_field']));
             if(!empty($login_field) && $login_field == 'email'){
-                if(!is_email(sanitize_text_field($_POST['user_name']))){
+                if(!is_email(sanitize_text_field(wp_unslash($_POST['user_name'])))){
                     return $result = array(
                         'success' => 0,
                         'msg'     => esc_html__( 'Please enter email address.', 'eventprime-event-calendar-management' ),
                     );
                 }
             }elseif(!empty($login_field) && $login_field=='username'){
-                if(is_email(sanitize_text_field($_POST['user_name']))){
+                if(is_email(sanitize_text_field(wp_unslash($_POST['user_name'])))){
                     return $result = array(
                         'success' => 0,
                         'msg'     => esc_html__( 'Please enter username.', 'eventprime-event-calendar-management' ),
@@ -544,7 +441,7 @@ class EventM_User_Controller {
                 }
             }
         }
-        if( $recaptcha && isset( $_REQUEST['ep-attendee-login-nonce'] ) && ! empty( $_REQUEST['ep-attendee-login-nonce'] ) ) {
+        if( $recaptcha) {
             if ( isset( $_POST['user_name'], $_POST['password'] ) && wp_verify_nonce( $_REQUEST['ep-attendee-login-nonce'], 'ep-attendee-login' ) ) {
                 try {
                     $login_data = array(
@@ -597,7 +494,8 @@ class EventM_User_Controller {
                                 } elseif( 'reload' == $login_redirect ) {
                                     $redirect = 'reload';
                                 } else{
-                                    $redirect = wp_unslash( $_POST['redirect'] );
+                                    $redirect = ( ! empty( $ep_functions->ep_get_global_settings( 'login_redirect_after_login' ) ) ) ? get_permalink( $ep_functions->ep_get_global_settings( 'login_redirect_after_login' ) ) : get_permalink( $ep_functions->ep_get_global_settings( 'profile_page' ) );
+       
                                 }
                             } elseif ( wp_get_referer() ) {
                                 $redirect = wp_get_referer();
@@ -625,20 +523,38 @@ class EventM_User_Controller {
         }
         
         return $result;
+        }
+        else
+        {
+            $result = array( 'success' => 0, 'msg' => esc_html__( 'Security check failed. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ));
+            return $result;
+        }
     }
 
     // Submit registration form
-    public function ep_handle_registration() {
-        $ep_functions = new Eventprime_Basic_Functions;
-        $notifications = new EventM_Notification_Service;
-        $error = 1;
-        $args = $this->get_register_options( new stdClass() );
-        $recaptcha = true;  
-        $result = array( 'success' => 0, 'msg' => 'Failed.' );
-        if( $ep_functions->ep_get_global_settings( 'register_google_recaptcha') == 1 ) {
-            if( isset( $_POST['g-recaptcha-response'] ) && ! empty( $ep_functions->ep_get_global_settings( 'google_recaptcha_secret_key' ) ) ) {
-            $response = json_decode( file_get_contents( "https://www.google.com/recaptcha/api/siteverify?secret=".$ep_functions->ep_get_global_settings( 'google_recaptcha_secret_key' )."&response=".$_POST['g-recaptcha-response']."&remoteip=".$_SERVER['REMOTE_ADDR'] ), true );
-                if( ! $response['success'] ) {
+    public function ep_handle_registration() 
+    {
+        
+        if (isset( $_REQUEST['ep-attendee-register-nonce'] ) && wp_verify_nonce(sanitize_text_field(wp_unslash($_REQUEST['ep-attendee-register-nonce'])), 'ep-attendee-register' ) ) 
+        {
+            $ep_functions = new Eventprime_Basic_Functions;
+            $notifications = new EventM_Notification_Service;
+            $error = 1;
+            $args = $this->get_register_options( new stdClass() );
+            $recaptcha = true;  
+            $result = array( 'success' => 0, 'msg' => 'Failed.' );
+            if( $ep_functions->ep_get_global_settings( 'register_google_recaptcha') == 1 ) {
+                if( isset( $_POST['g-recaptcha-response'] ) && ! empty( $ep_functions->ep_get_global_settings( 'google_recaptcha_secret_key' ) ) ) {
+                $response = json_decode( file_get_contents( "https://www.google.com/recaptcha/api/siteverify?secret=".$ep_functions->ep_get_global_settings( 'google_recaptcha_secret_key' )."&response=".$_POST['g-recaptcha-response']."&remoteip=".$_SERVER['REMOTE_ADDR'] ), true );
+                    if( ! $response['success'] ) {
+                        $recaptcha = false;
+                        $result = array(
+                            'success' => 0,
+                            'msg'     => esc_html__( 'Recaptcha validation failed.', 'eventprime-event-calendar-management' ),
+                        );
+                    }
+                }
+                if( isset( $_POST['g-recaptcha-response'] ) && empty( $ep_functions->ep_get_global_settings('google_recaptcha_secret_key') ) ) {
                     $recaptcha = false;
                     $result = array(
                         'success' => 0,
@@ -646,193 +562,190 @@ class EventM_User_Controller {
                     );
                 }
             }
-            if( isset( $_POST['g-recaptcha-response'] ) && empty( $ep_functions->ep_get_global_settings('google_recaptcha_secret_key') ) ) {
-                $recaptcha = false;
-                $result = array(
-                    'success' => 0,
-                    'msg'     => esc_html__( 'Recaptcha validation failed.', 'eventprime-event-calendar-management' ),
-                );
-            }
-        }
-        if( $recaptcha && isset( $_REQUEST['ep-attendee-register-nonce'] ) && ! empty( $_REQUEST['ep-attendee-register-nonce'] ) ) {
-            if ( wp_verify_nonce( $_REQUEST['ep-attendee-register-nonce'], 'ep-attendee-register' ) ) {
-                $username = isset($_POST['user_name']) ? sanitize_text_field($_POST['user_name']) : '';
-                $email = sanitize_email( wp_unslash( $_POST['email'] ) );
-                $password = isset($_POST['password']) ? sanitize_text_field($_POST['password']) : '';
-                $re_password = isset($_POST['repeat_password']) ? sanitize_text_field($_POST['repeat_password']) : '';
-                $dob = isset($_POST['dob']) ? sanitize_text_field($_POST['dob']) : '';
-                $phone = isset($_POST['phone']) ? sanitize_text_field($_POST['phone']) : '';
-                $timezone = isset($_POST['timezone']) ? sanitize_text_field($_POST['timezone']) : '';
+            if( $recaptcha) {
                 
-                // username validation
-                if( ! empty( $args->register_username_show ) ) {
-                    if( ! empty( $args->register_username_mandatory ) && empty( $username ) ) {
-                        return $result = array(
-                            'success' => 0,
-                            'msg'     => esc_html__( 'Username is required!', 'eventprime-event-calendar-management' )
-                        );
-                    }
-                    if ( $this->ep_verify_user( $username ) ) {
-                        return $result = array(
-                            'success' => 0,
-                            'msg'     => esc_html__( 'Username already exists!', 'eventprime-event-calendar-management' ),
-                        );
-                    }
-                }
-                // Email Validation
-                if( ! is_email( $email ) ) {
-                    return $result = array(
-                        'success' => 0,
-                        'msg'     => esc_html__( 'Email is not valid!', 'eventprime-event-calendar-management' )
-                    );
-                }
-                if( empty( $email ) ) {
-                    return $result = array(
-                        'success' => 0,
-                        'msg'     => esc_html__( 'Email is required!', 'eventprime-event-calendar-management' )
-                    );
-                }
-                if ( $this->ep_verify_user( $email ) ) {
-                    return $result = array(
-                        'success' => 0,
-                        'msg' => esc_html__( 'Email is already exists!', 'eventprime-event-calendar-management' ),
-                    );
-                }
-                
-                // Password validation
-                if( ! empty( $args->register_password_show ) ) {
-                    if( ! empty( $args->register_password_mandatory ) && empty( $password ) ) {
-                        return $result = array(
-                            'success' => 0,
-                            'msg'     => esc_html__( 'Password is required!', 'eventprime-event-calendar-management' )
-                        );
-                    }
-                }
-                // Repeat Password validation
-                if( ! empty( $args->register_repeat_password_show ) ) {
-                    if( ! empty( $args->register_password_mandatory ) && empty( $re_password ) ) {
-                        return $result = array(
-                            'success' => 0,
-                            'msg'     => esc_html__( 'Repeat password is required!', 'eventprime-event-calendar-management' )
-                        );
-                    }
-                    if( $password != $re_password ) {
-                        return $result = array(
-                            'success' => 0,
-                            'msg'     => esc_html__( 'Repeat password does not match', 'eventprime-event-calendar-management' )
-                        );
-                    } 
-                }
-                
-                //DOB validation
-                if( ! empty( $args->register_dob_show ) ) {
-                    if( ! empty( $args->register_dob_mandatory ) && empty( $dob ) ) {
-                        return $result = array(
-                            'success' => 0,
-                            'msg'     => esc_html__( 'Date of birth is required!', 'eventprime-event-calendar-management' )
-                        );
-                    }
-                }
-                
-                //Phone validation
-                if( ! empty( $args->register_phone_show ) ) {
-                    if( ! empty( $args->register_phone_mandatory ) && empty( $phone ) ) {
-                        return $result = array(
-                            'success' => 0,
-                            'msg'     => esc_html__( 'Phone is required!', 'eventprime-event-calendar-management' )
-                        );
-                    }
-                }
-                
-                //Timezone validation
-                if( ! empty( $args->register_timezone_show ) ) {
-                    if( ! empty( $args->register_timezone_mandatory ) && empty( $timezone ) ) {
-                        return $result = array(
-                            'success' => 0,
-                            'msg'     => esc_html__( 'Timezone is required!', 'eventprime-event-calendar-management' )
-                        );
-                    }
-                }
+                    $username = isset($_POST['user_name']) ? sanitize_text_field(wp_unslash($_POST['user_name'])) : '';
+                    $email = sanitize_email( wp_unslash( $_POST['email'] ) );
+                    $password = isset($_POST['password']) ? sanitize_text_field(wp_unslash($_POST['password'])) : '';
+                    $re_password = isset($_POST['repeat_password']) ? sanitize_text_field(wp_unslash($_POST['repeat_password'])) : '';
+                    $dob = isset($_POST['dob']) ? sanitize_text_field(wp_unslash($_POST['dob'])) : '';
+                    $phone = isset($_POST['phone']) ? sanitize_text_field(wp_unslash($_POST['phone'])) : '';
+                    $timezone = isset($_POST['timezone']) ? sanitize_text_field(wp_unslash($_POST['timezone'])) : '';
 
-                $error = 0;
-                try {
-                    $pass_auto = 0;
-                    $login_page = $ep_functions->ep_get_global_settings( 'login_page' );
-                    $form_link = '#';
-                    if($login_page){
-                        $form_link =  get_permalink($login_page);
-                    }
-                    $success_msg = $success_msg = __(sprintf( 'Successfully registered! For login <a href="%s" class=""> Click here</a>', $form_link ),'eventprime-event-calendar-management' );
-                    
-                    if( empty( $error ) ) {
-                        if(empty($password)){
-                            $success_msg = __(sprintf( 'Successfully registered! Please check your registered email id for login deatils. For login <a href="%s" class=""> Click here</a>', $form_link ),'eventprime-event-calendar-management' );
-                            $password = wp_generate_password();
-                            $pass_auto = 1;
-                        }
-                        $username = ( ! empty( $username ) ? $username : $email );
-                        $new_customer = wp_create_user( $username, $password, $email );
-                        if ( is_wp_error( $new_customer ) ) {
+                    // username validation
+                    if( ! empty( $args->register_username_show ) ) {
+                        if( ! empty( $args->register_username_mandatory ) && empty( $username ) ) {
                             return $result = array(
                                 'success' => 0,
-                                'msg'     => esc_html( $new_customer->get_error_message() )
+                                'msg'     => esc_html__( 'Username is required!', 'eventprime-event-calendar-management' )
                             );
-                        } else {
-                            $user = get_user_by( 'ID', $new_customer );
-                            if ($user) {
-                                update_user_meta( $new_customer, 'dob', $dob );
-                                update_user_meta( $new_customer, 'phone', $phone );
-                                update_user_meta( $new_customer, 'ep_user_timezone_meta', $timezone );
-                            }
-
-                            do_action( 'ep_after_user_registration', $new_customer, $_POST );
-
-                            /*$info['user_login'] = $user->user_login;
-                            $info['user_password'] = $password;
-                            $info['remember'] = true;
-                            $user_signon = wp_signon( $info, false );
-                            wp_set_current_user( $new_customer );
-                            */
-                            //Send Email notification on registration
-                            $user_object = new stdClass();
-                            $user_object->user_id = $new_customer;
-                            $user_object->email = $email;
-                            if($pass_auto){
-                                $user_object->password = $password;
-                            }
-                            
-                            $notifications->user_registration($user_object);
-                            
-                            if ( ! empty( $_POST['redirect'] ) ) {
-                                $reg_redirect = sanitize_text_field( $_POST['redirect'] );
-                                if( 'reload' == $reg_redirect ) {
-                                    $redirect = 'reload';
-                                } else{
-                                    $redirect = wp_unslash( $_POST['redirect'] );
-                                }
-                            } else{
-                                $redirect = '';
-                            }
-
+                        }
+                        if ( $this->ep_verify_user( $username ) ) {
                             return $result = array(
-                                'success' => 1,
-                                'msg'     => $success_msg,
-                                'redirect'=> $redirect
+                                'success' => 0,
+                                'msg'     => esc_html__( 'Username already exists!', 'eventprime-event-calendar-management' ),
                             );
-                            //wp_redirect( wp_validate_redirect( apply_filters( 'ep_registration_redirect', $redirect, $user ), get_permalink( ep_get_global_settings( 'profile_page' ) ) ) );
-                            //exit;
                         }
                     }
-                } catch (Exception $e) {
-                    do_action( 'ep_registration_process_failed' );
-                    return $result = array(
-                        'success' => 0,
-                        'msg'     => esc_html__( 'Registration Failed! ', 'eventprime-event-calendar-management' ),
-                    );
-                }
+                    // Email Validation
+                    if( ! is_email( $email ) ) {
+                        return $result = array(
+                            'success' => 0,
+                            'msg'     => esc_html__( 'Email is not valid!', 'eventprime-event-calendar-management' )
+                        );
+                    }
+                    if( empty( $email ) ) {
+                        return $result = array(
+                            'success' => 0,
+                            'msg'     => esc_html__( 'Email is required!', 'eventprime-event-calendar-management' )
+                        );
+                    }
+                    if ( $this->ep_verify_user( $email ) ) {
+                        return $result = array(
+                            'success' => 0,
+                            'msg' => esc_html__( 'Email is already exists!', 'eventprime-event-calendar-management' ),
+                        );
+                    }
+
+                    // Password validation
+                    if( ! empty( $args->register_password_show ) ) {
+                        if( ! empty( $args->register_password_mandatory ) && empty( $password ) ) {
+                            return $result = array(
+                                'success' => 0,
+                                'msg'     => esc_html__( 'Password is required!', 'eventprime-event-calendar-management' )
+                            );
+                        }
+                    }
+                    // Repeat Password validation
+                    if( ! empty( $args->register_repeat_password_show ) ) {
+                        if( ! empty( $args->register_password_mandatory ) && empty( $re_password ) ) {
+                            return $result = array(
+                                'success' => 0,
+                                'msg'     => esc_html__( 'Repeat password is required!', 'eventprime-event-calendar-management' )
+                            );
+                        }
+                        if( $password != $re_password ) {
+                            return $result = array(
+                                'success' => 0,
+                                'msg'     => esc_html__( 'Repeat password does not match', 'eventprime-event-calendar-management' )
+                            );
+                        } 
+                    }
+
+                    //DOB validation
+                    if( ! empty( $args->register_dob_show ) ) {
+                        if( ! empty( $args->register_dob_mandatory ) && empty( $dob ) ) {
+                            return $result = array(
+                                'success' => 0,
+                                'msg'     => esc_html__( 'Date of birth is required!', 'eventprime-event-calendar-management' )
+                            );
+                        }
+                    }
+
+                    //Phone validation
+                    if( ! empty( $args->register_phone_show ) ) {
+                        if( ! empty( $args->register_phone_mandatory ) && empty( $phone ) ) {
+                            return $result = array(
+                                'success' => 0,
+                                'msg'     => esc_html__( 'Phone is required!', 'eventprime-event-calendar-management' )
+                            );
+                        }
+                    }
+
+                    //Timezone validation
+                    if( ! empty( $args->register_timezone_show ) ) {
+                        if( ! empty( $args->register_timezone_mandatory ) && empty( $timezone ) ) {
+                            return $result = array(
+                                'success' => 0,
+                                'msg'     => esc_html__( 'Timezone is required!', 'eventprime-event-calendar-management' )
+                            );
+                        }
+                    }
+
+                    $error = 0;
+                    try {
+                        $pass_auto = 0;
+                        $login_page = $ep_functions->ep_get_global_settings( 'login_page' );
+                        $form_link = '#';
+                        if($login_page){
+                            $form_link =  get_permalink($login_page);
+                        }
+                        $success_msg = sprintf(esc_html__( 'Successfully registered! For login %s Click here %s.', 'eventprime-event-calendar-management' ),'<a href="' . esc_url( $form_link ) . '" class="">','</a>');
+                        if( empty( $error ) ) {
+                            if(empty($password)){
+                                $success_msg = sprintf(esc_html__( 'Successfully registered! Please check your registered email id for login details. For login %s Click here %s.', 'eventprime-event-calendar-management' ),'<a href="' . esc_url( $form_link ) . '" class="">','</a>');
+                                $password = wp_generate_password();
+                                $pass_auto = 1;
+                            }
+                            $username = ( ! empty( $username ) ? $username : $email );
+                            $new_customer = wp_create_user( $username, $password, $email );
+                            if ( is_wp_error( $new_customer ) ) {
+                                return $result = array(
+                                    'success' => 0,
+                                    'msg'     => esc_html( $new_customer->get_error_message() )
+                                );
+                            } else {
+                                $user = get_user_by( 'ID', $new_customer );
+                                if ($user) {
+                                    update_user_meta( $new_customer, 'dob', $dob );
+                                    update_user_meta( $new_customer, 'phone', $phone );
+                                    update_user_meta( $new_customer, 'ep_user_timezone_meta', $timezone );
+                                }
+
+                                do_action( 'ep_after_user_registration', $new_customer, $_POST );
+
+                                /*$info['user_login'] = $user->user_login;
+                                $info['user_password'] = $password;
+                                $info['remember'] = true;
+                                $user_signon = wp_signon( $info, false );
+                                wp_set_current_user( $new_customer );
+                                */
+                                //Send Email notification on registration
+                                $user_object = new stdClass();
+                                $user_object->user_id = $new_customer;
+                                $user_object->email = $email;
+                                if($pass_auto){
+                                    $user_object->password = $password;
+                                }
+
+                                $notifications->user_registration($user_object);
+
+                                if ( ! empty( $_POST['redirect'] ) ) {
+                                    $reg_redirect = sanitize_text_field( $_POST['redirect'] );
+                                    if( 'reload' == $reg_redirect ) {
+                                        $redirect = 'reload';
+                                    } else{
+                                        $redirect = wp_unslash( $_POST['redirect'] );
+                                    }
+                                } else{
+                                    $redirect = '';
+                                }
+
+                                return $result = array(
+                                    'success' => 1,
+                                    'msg'     => $success_msg,
+                                    'redirect'=> $redirect
+                                );
+                                //wp_redirect( wp_validate_redirect( apply_filters( 'ep_registration_redirect', $redirect, $user ), get_permalink( ep_get_global_settings( 'profile_page' ) ) ) );
+                                //exit;
+                            }
+                        }
+                    } catch (Exception $e) {
+                        do_action( 'ep_registration_process_failed' );
+                        return $result = array(
+                            'success' => 0,
+                            'msg'     => esc_html__( 'Registration Failed! ', 'eventprime-event-calendar-management' ),
+                        );
+                    }
+                
             }
+            return $result;
         }
-        return $result;
+        else
+        {
+            $result = array( 'success' => 0, 'msg' => esc_html__( 'Security check failed. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ));
+            return $result;
+        }
     }
     
     public function ep_verify_user( $email ) {

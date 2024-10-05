@@ -16,7 +16,7 @@ $booking = $booking_controller->load_booking_detail( $booking_id );
     </div>
     <span class="ep-booking-transaction-log" style="display: none;">
         <?php echo "<pre>";
-            print_r( json_encode( $booking->em_payment_log, JSON_PRETTY_PRINT ) );
+            print_r( wp_json_encode( $booking->em_payment_log, JSON_PRETTY_PRINT ) );
         echo "</pre>";?>
     </span>
 </div>

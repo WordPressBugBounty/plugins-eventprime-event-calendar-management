@@ -5,9 +5,20 @@ $ep_functions = new Eventprime_Basic_Functions;
 $sub_options = $global_settings->sub_options;
 $payments = $options['payments'];
 $payments_settings = $options['payments_settings'];
+$allowed_html = $options['allowed_html'];
 $currencies = $ep_functions->get_currencies_cons();
 $currencies_position = array( 'before' => '$10 (Before)', 'before_space' => '$ 10 (Before, with space)' ,'after' => '10$ (After)', 'after_space' => '10 $ (After, with space)' );
-$active_payment_setting = isset( $_GET['section'] ) ? strtolower( sanitize_text_field( $_GET['section'] ) ) : '';?>
+if (isset($_GET['tab_nonce']) && isset( $_GET['section'] ) && wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['tab_nonce'])), 'ep_settings_tab'))
+{
+    $active_payment_setting = isset( $_GET['section'] ) ? strtolower( sanitize_text_field( wp_unslash($_GET['section'] )) ) : '';
+    $section = $active_payment_setting;
+}
+else
+{
+    $active_payment_setting = $section = '';
+
+}
+?>
 <div class="ep-payments-tab-content"><?php 
     if( ! empty( $active_payment_setting ) ) {?>
         <p class="ep-global-back-btn">
@@ -24,7 +35,7 @@ $active_payment_setting = isset( $_GET['section'] ) ? strtolower( sanitize_text_
     }?>
     <input type="hidden" name="em_setting_type" value="payment_settings">
 </div>
-<?php if( isset( $_GET['section'] ) ):?>
+<?php if( !empty( $section ) ):?>
     <div class="ep-payment-settings"><?php
         if( count( $payments_settings ) ) {?>
             <div class="ep-payment-setting-page" id="ep-payment-setting-<?php echo esc_attr( $active_payment_setting );?>">
@@ -55,10 +66,11 @@ $active_payment_setting = isset( $_GET['section'] ) ? strtolower( sanitize_text_
             </thead>
             <tbody id="ep-payment-sortable">
                 <?php
+                $nonce = wp_create_nonce('ep_settings_tab');
                     if( count( $payments ) ) {
                         foreach( $payments as $key => $method ) {
                             if( isset( $method['show_in_list'] ) && $method['show_in_list'] == 0 ) continue;
-                            $tab_url = esc_url( add_query_arg( array( 'settings-updated' => false, 'tab'=> 'payments', 'section'=> $key ) ) );?>
+                            $tab_url = esc_url( add_query_arg( array( 'settings-updated' => false, 'tab'=> 'payments', 'section'=> $key,'tab_nonce'=>$nonce ) ) );?>
                             <tr class="ep-payment-gateway" id="ep-payment-<?php echo esc_html($key)?>">
                                 <!-- <td>
                                     <span class="ep-payment-handle">Drag</span>
@@ -74,7 +86,7 @@ $active_payment_setting = isset( $_GET['section'] ) ? strtolower( sanitize_text_
                                 <td class="ep-payment-status">
                                     <label class="ep-toggle-btn">
                                         <?php $enable_key = $method['enable_key'];?>
-                                        <input type="checkbox" class="ep-payment-toggle" name="<?php echo esc_attr( $method['enable_key'] );?>" value="<?php echo ( ! empty( $global_options->$enable_key ) ? $global_options->$enable_key : 0 );?>" <?php echo isset( $global_options->$enable_key ) && $global_options->$enable_key == 1 ? 'checked' : '';?> >
+                                        <input type="checkbox" class="ep-payment-toggle" name="<?php echo esc_attr( $method['enable_key'] );?>" value="<?php echo ( ! empty( $global_options->$enable_key ) ? esc_attr($global_options->$enable_key) : 0 );?>" <?php echo isset( $global_options->$enable_key ) && $global_options->$enable_key == 1 ? 'checked' : '';?> >
                                         <span class="ep-toogle-slider round"></span>
                                     </label>
                                 </td>
@@ -88,7 +100,7 @@ $active_payment_setting = isset( $_GET['section'] ) ? strtolower( sanitize_text_
                                     <?php echo esc_html($method['description']);?>
                                 </td>
                                 <td class="ep-payment-setting">
-                                    <a href="<?php echo $tab_url;?>" class="button alignright"><?php _e('Manage','eventprime-event-calendar-management');?></a>
+                                    <a href="<?php echo esc_url($tab_url);?>" class="button alignright"><?php esc_html_e('Manage','eventprime-event-calendar-management');?></a>
                                 </td>
                             </tr><?php 
                         }

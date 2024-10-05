@@ -53,9 +53,9 @@ $args = $atts;
             <?php do_action( 'ep_add_loader_section' );?>
             <form class="ep-frontend-event-form" id="ep_frontend_event_form" method="post">
                 <div class="ep-fes-hidden-fields">
-                    <input type="hidden" name="user_id" value="<?php echo get_current_user_id();?>"/>
+                    <input type="hidden" name="user_id" value="<?php echo esc_attr(get_current_user_id());?>"/>
                     <?php if( ! empty( $args->event_id ) ) {?>
-                        <input type="hidden" name="event_id" value="<?php echo $args->event_id;?>"/>
+                        <input type="hidden" name="event_id" value="<?php echo esc_attr($args->event_id);?>"/>
                     <?php } ?>
                 </div>
                 
@@ -66,7 +66,7 @@ $args = $atts;
                                 <?php esc_html_e( 'Event Name', 'eventprime-event-calendar-management' );?>
                                 <span class="required">*</span>
                             </label>
-                            <input type="text" name="em_name" required id="ep_name" class="ep-form-input ep-input-text ep-form-control" value="<?php echo isset($args->event) ? $args->event->name : '';?>" />
+                            <input type="text" name="em_name" required id="ep_name" class="ep-form-input ep-input-text ep-form-control" value="<?php echo isset($args->event) ? esc_attr($args->event->name) : '';?>" />
                         </div>
                     </div>
                     <?php /// if(isset($args->fes_event_text_color) && !empty($args->fes_event_text_color)):?>
@@ -105,7 +105,7 @@ $args = $atts;
                                 } else{?>
                                     <input type="file" name="featured_img" id="ep-fes-featured-file" onchange="upload_file_media(this)" accept="image/png, image/jpeg"/><?php
                                 }?>
-                                <input type="hidden" name="attachment_id" id="attachment_id"class="ep-hidden-attachment-id" value="<?php echo isset( $args->event ) && isset( $args->event->_thumbnail_id ) ? $args->event->_thumbnail_id : '';?>"/>
+                                <input type="hidden" name="attachment_id" id="attachment_id"class="ep-hidden-attachment-id" value="<?php echo isset( $args->event ) && isset( $args->event->_thumbnail_id ) ? esc_attr($args->event->_thumbnail_id) : '';?>"/>
                             </div>
                             <?php if( isset( $args->event->image_url ) && ! empty( $args->event->image_url ) ) {?>
                                 <div class="ep-edit-event-image">

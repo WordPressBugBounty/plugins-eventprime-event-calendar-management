@@ -515,18 +515,18 @@ class Eventprime_Global_Settings{
                 $active_tab = isset( $tab ) && array_key_exists( $tab, $setting_tabs['core'] ) ? $tab : 'general';
             }?>
             <div class="wrap ep-admin-setting-tabs">
-                <form method="post" id="ep_setting_form" action="<?php echo admin_url( 'admin-post.php' ); ?>" enctype="multipart/form-data">
+                <form method="post" id="ep_setting_form" action="<?php echo esc_url(admin_url( 'admin-post.php' )); ?>" enctype="multipart/form-data">
                     <h2 class="nav-tab-wrapper">
                         <?php
                         $tab_url = remove_query_arg( array( 'section', 'sub_tab' ) );
-
+                        $nonce = wp_create_nonce('ep_settings_tab');
                         foreach ( $setting_tabs['core'] as $tab_id => $tab_name ) {
                             $tab_url = add_query_arg( 
-                                array( 'tab' => $tab_id),
+                                array( 'tab' => $tab_id,'tab_nonce' => $nonce),
                                 $tab_url
                             );
                             $active = $active_tab == $tab_id ? ' nav-tab-active' : '';
-                            echo '<a href="' . esc_url( $tab_url ) . '" title="' . esc_attr( $tab_name ) . '" class="nav-tab' . $active . '">';
+                            echo '<a href="' . esc_url( $tab_url ) . '" title="' . esc_attr( $tab_name ) . '" class="nav-tab' . esc_attr($active) . '">';
                                 echo esc_html( $tab_name );
                             echo '</a>';
                         }
@@ -536,7 +536,7 @@ class Eventprime_Global_Settings{
                                 $tab_url
                             );
                             $active =' nav-tab-active';
-                            echo '<a href="' . esc_url( $tab_url ) . '" title="' . esc_attr( $setting_tabs['extension'][$active_tab] ) . '" class="nav-tab' . $active . '">';
+                            echo '<a href="' . esc_url( $tab_url ) . '" title="' . esc_attr( $setting_tabs['extension'][$active_tab] ) . '" class="nav-tab' . esc_attr($active) . '">';
                                 echo esc_html( $setting_tabs['extension'][$active_tab] );
                             echo '</a>';
                         }?>
@@ -590,6 +590,7 @@ class Eventprime_Global_Settings{
         $options['buttons_help_text']    = $this->get_label_section_help_text_lists();
         $options['form_list']            = $this->ep_settings_forms_list();
         $options['extensions']           = $this->ep_setting_extensions_list();
+        $options['allowed_html']         = $ep_functions->eventprime_get_allowed_wpkses_html();
         if( in_array( $active_tab, $this->ep_setting_tabs ) ){
             include plugin_dir_path( __DIR__ ) .'/admin/partials/settings/settings-tab-'. $active_tab .'.php';
         }else{
@@ -805,32 +806,32 @@ class Eventprime_Global_Settings{
         $sub_options['events_per_page'] = array( 10, 20, 30, 50, 'all', 'custom' );
         $sub_options['time_format'] = array( 'h:mmt' => '12-hour', 'HH:mm' => '24-hour' );
         $sub_options['calendar_title_format'] = array(
-            'DD MMMM, YYYY' => date("d F, Y"),
-            'MMMM DD, YYYY' => date("F d, Y"),
-            'DD-MMMM-YYYY'  => date("d-F-Y"),
-            'MMMM-DD-YYYY'  => date('F-d-Y'),
-            'DD/MMMM/YYYY'  => date('d/F/Y'),
-            'MMMM/DD/YYYY'  => date("F/d/Y"),
-            'MMMM YYYY'     => date("F Y"),
-            'MMMM, YYYY'    => date("F, Y"),
+            'DD MMMM, YYYY' => gmdate("d F, Y"),
+            'MMMM DD, YYYY' => gmdate("F d, Y"),
+            'DD-MMMM-YYYY'  => gmdate("d-F-Y"),
+            'MMMM-DD-YYYY'  => gmdate('F-d-Y'),
+            'DD/MMMM/YYYY'  => gmdate('d/F/Y'),
+            'MMMM/DD/YYYY'  => gmdate("F/d/Y"),
+            'MMMM YYYY'     => gmdate("F Y"),
+            'MMMM, YYYY'    => gmdate("F, Y"),
         );
 
         $sub_options['calendar_header_format'] = array(
-            'ddd'     => date("D"),
-            'dddd'    => date("l"),
-            /* 'ddd D/M' => date("D j/m"),
-            'ddd M/D' => date("D m/j"), */
+            'ddd'     => gmdate("D"),
+            'dddd'    => gmdate("l"),
+            /* 'ddd D/M' => gmdate("D j/m"),
+            'ddd M/D' => gmdate("D m/j"), */
         );
         $sub_options['datepicker_format'] = array(
-            'dd-mm-yy&d-m-Y' => date('d-m-Y') .' (d-m-Y)',
-            'mm-dd-yy&m-d-Y' => date('m-d-Y') .' (m-d-Y)',
-            'yy-mm-dd&Y-m-d' => date('Y-m-d') .' (Y-m-d)',
-            'dd/mm/yy&d/m/Y' => date('d/m/Y') .' (d/m/Y)',
-            'mm/dd/yy&m/d/Y' => date('m/d/Y') .' (m/d/Y)',
-            'yy/mm/dd&Y/m/d' => date('Y/m/d') .' (Y/m/d)',
-            'dd.mm.yy&d.m.Y' => date('d.m.Y') .' (d.m.Y)',
-            'mm.dd.yy&m.d.Y' => date('m.d.Y') .' (m.d.Y)',
-            'yy.mm.dd&Y.m.d' => date('Y.m.d') .' (Y.m.d)',
+            'dd-mm-yy&d-m-Y' => gmdate('d-m-Y') .' (d-m-Y)',
+            'mm-dd-yy&m-d-Y' => gmdate('m-d-Y') .' (m-d-Y)',
+            'yy-mm-dd&Y-m-d' => gmdate('Y-m-d') .' (Y-m-d)',
+            'dd/mm/yy&d/m/Y' => gmdate('d/m/Y') .' (d/m/Y)',
+            'mm/dd/yy&m/d/Y' => gmdate('m/d/Y') .' (m/d/Y)',
+            'yy/mm/dd&Y/m/d' => gmdate('Y/m/d') .' (Y/m/d)',
+            'dd.mm.yy&d.m.Y' => gmdate('d.m.Y') .' (d.m.Y)',
+            'mm.dd.yy&m.d.Y' => gmdate('m.d.Y') .' (m.d.Y)',
+            'yy.mm.dd&Y.m.d' => gmdate('Y.m.d') .' (Y.m.d)',
         );
         
         $sub_options['image_visibility_options'] = $basic_functions->get_image_visibility_options();
@@ -848,45 +849,42 @@ class Eventprime_Global_Settings{
         $sub_options['events_per_page'] = array( 10, 20, 30, 50, 'all', 'custom' );
         $sub_options['time_format'] = array( 'h:mmt' => '12-hour', 'HH:mm' => '24-hour' );
         $sub_options['calendar_title_format'] = array(
-            'DD MMMM, YYYY' => date("d F, Y"),
-            'MMMM DD, YYYY' => date("F d, Y"),
-            'DD-MMMM-YYYY'  => date("d-F-Y"),
-            'MMMM-DD-YYYY'  => date('F-d-Y'),
-            'DD/MMMM/YYYY'  => date('d/F/Y'),
-            'MMMM/DD/YYYY'  => date("F/d/Y"),
-            'MMMM YYYY'     => date("F Y"),
-            'MMMM, YYYY'    => date("F, Y"),
+            'DD MMMM, YYYY' => gmdate("d F, Y"),
+            'MMMM DD, YYYY' => gmdate("F d, Y"),
+            'DD-MMMM-YYYY'  => gmdate("d-F-Y"),
+            'MMMM-DD-YYYY'  => gmdate('F-d-Y'),
+            'DD/MMMM/YYYY'  => gmdate('d/F/Y'),
+            'MMMM/DD/YYYY'  => gmdate("F/d/Y"),
+            'MMMM YYYY'     => gmdate("F Y"),
+            'MMMM, YYYY'    => gmdate("F, Y"),
         );
 
         $sub_options['calendar_header_format'] = array(
-            'ddd'     => date("D"),
-            'dddd'    => date("l"),
-            /* 'ddd D/M' => date("D j/m"),
-            'ddd M/D' => date("D m/j"), */
+            'ddd'     => gmdate("D"),
+            'dddd'    => gmdate("l"),
+            /* 'ddd D/M' => gmdate("D j/m"),
+            'ddd M/D' => gmdate("D m/j"), */
         );
         $sub_options['datepicker_format'] = array(
-            'dd-mm-yy&d-m-Y' => date('d-m-Y') .' (d-m-Y)',
-            'mm-dd-yy&m-d-Y' => date('m-d-Y') .' (m-d-Y)',
-            'yy-mm-dd&Y-m-d' => date('Y-m-d') .' (Y-m-d)',
-            'dd/mm/yy&d/m/Y' => date('d/m/Y') .' (d/m/Y)',
-            'mm/dd/yy&m/d/Y' => date('m/d/Y') .' (m/d/Y)',
-            'yy/mm/dd&Y/m/d' => date('Y/m/d') .' (Y/m/d)',
-            'dd.mm.yy&d.m.Y' => date('d.m.Y') .' (d.m.Y)',
-            'mm.dd.yy&m.d.Y' => date('m.d.Y') .' (m.d.Y)',
-            'yy.mm.dd&Y.m.d' => date('Y.m.d') .' (Y.m.d)',
+            'dd-mm-yy&d-m-Y' => gmdate('d-m-Y') .' (d-m-Y)',
+            'mm-dd-yy&m-d-Y' => gmdate('m-d-Y') .' (m-d-Y)',
+            'yy-mm-dd&Y-m-d' => gmdate('Y-m-d') .' (Y-m-d)',
+            'dd/mm/yy&d/m/Y' => gmdate('d/m/Y') .' (d/m/Y)',
+            'mm/dd/yy&m/d/Y' => gmdate('m/d/Y') .' (m/d/Y)',
+            'yy/mm/dd&Y/m/d' => gmdate('Y/m/d') .' (Y/m/d)',
+            'dd.mm.yy&d.m.Y' => gmdate('d.m.Y') .' (d.m.Y)',
+            'mm.dd.yy&m.d.Y' => gmdate('m.d.Y') .' (m.d.Y)',
+            'yy.mm.dd&Y.m.d' => gmdate('Y.m.d') .' (Y.m.d)',
         );
         
         $sub_options['image_visibility_options'] = $basic_functions->get_image_visibility_options();
 
-        ob_start();
         if(in_array($active_sub_tab, $core_tabs)){
             include plugin_dir_path( __DIR__ ) .'admin/partials/settings/settings-tab-'. $active_sub_tab .'.php';
         }else{
             do_action( 'ep_get_settings_sub_tab_content', $active_sub_tab, $sub_options );
         }
-        $sub_tab_content = ob_get_clean();
         
-        echo $sub_tab_content;
     }
     
     public function get_form_settings_html( $section ) {
@@ -898,17 +896,17 @@ class Eventprime_Global_Settings{
         $options['fes_sections'] = $this->get_fes_section_lists();
         $options['fes_required'] = $this->get_fes_required_lists();
         if( empty( $options['global']->em_ues_confirm_message ) ) {
-            $options['global']->em_ues_confirm_message = __( 'Thank you for submitting your event. We will review and publish it soon.', 'eventprime-event-calendar-management' );
+            $options['global']->em_ues_confirm_message = esc_html__( 'Thank you for submitting your event. We will review and publish it soon.', 'eventprime-event-calendar-management' );
         }
         if( empty( $options['global']->em_ues_login_message ) ) {
-            $options['global']->em_ues_login_message = __( 'Please login to submit your event.', 'eventprime-event-calendar-management' );
+            $options['global']->em_ues_login_message = esc_html__( 'Please login to submit your event.', 'eventprime-event-calendar-management' );
         }
         if( empty( $options['global']->em_ues_restricted_submission_message ) ) {
-            $options['global']->em_ues_restricted_submission_message = __( 'You are not authorised to access this page. Please contact with your administrator.', 'eventprime-event-calendar-management' );
+            $options['global']->em_ues_restricted_submission_message = esc_html__( 'You are not authorised to access this page. Please contact with your administrator.', 'eventprime-event-calendar-management' );
         }
         $options['status_list'] = array(
-            "publish" => __( 'Active','eventprime-event-calendar-management' ),
-            "draft"   => __( 'Draft','eventprime-event-calendar-management' )
+            "publish" => esc_html__( 'Active','eventprime-event-calendar-management' ),
+            "draft"   => esc_html__( 'Draft','eventprime-event-calendar-management' )
         );
         $registration_forms_list = array(
             'ep' => 'EventPrime',
@@ -921,15 +919,15 @@ class Eventprime_Global_Settings{
         $default_core_forms = array( 'fes', 'login', 'register', 'checkout_registration' );
         //$options['global']->frontend_submission_roles = $options['global']->frontend_submission_sections = $options['global']->frontend_submission_required = array();
         $manage_form_data = '';
-        ob_start();
+        //ob_start();
         // if section is in the core form then include the file else call hook
         if( in_array( $section, $default_core_forms ) ) {
             include plugin_dir_path( __DIR__ ) .'admin/partials/settings/forms/form-'.$section.'.php';
         } else{
             do_action( 'ep_get_extended_form_settings_content', $section, $options );
         }
-        $manage_form_data = ob_get_clean();
-        echo $manage_form_data;
+        //$manage_form_data = ob_get_clean();
+        //echo $manage_form_data;
     }
     
     public function ep_settings_forms_list(){

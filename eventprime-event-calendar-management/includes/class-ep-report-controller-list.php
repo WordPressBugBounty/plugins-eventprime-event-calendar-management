@@ -16,8 +16,8 @@ class EventM_Report_Controller_List {
             if( ! empty( $filter_args->start_date ) ) {
                 $start_date = $filter_args->start_date;
             } else{
-                $start_date  = date('d-m-Y', strtotime('-6 days'));
-                $end_date  = date('d-m-Y');
+                $start_date  = gmdate('d-m-Y', strtotime('-6 days'));
+                $end_date  = gmdate('d-m-Y');
             }
             if( ! empty( $filter_args->end_date ) ) {
                 $end_date = $filter_args->end_date;
@@ -26,8 +26,8 @@ class EventM_Report_Controller_List {
                 $paged = $filter_args->paged;
             }
         } else{
-            $start_date = date( 'd-m-Y', strtotime( '-6 days' ) );
-            $end_date  = date( 'd-m-Y' );
+            $start_date = gmdate( 'd-m-Y', strtotime( '-6 days' ) );
+            $end_date  = gmdate( 'd-m-Y' );
         }
         $args = array(
             'numberposts' => -1,
@@ -40,14 +40,14 @@ class EventM_Report_Controller_List {
             'date_query' => array(
                 array(
                     'after'  => array(
-                        'year'   => date( 'Y', strtotime( $start_date ) ),
-                        'month'  => date( 'm', strtotime( $start_date ) ),
-                        'day'    => date( 'd', strtotime( $start_date ) ),
+                        'year'   => gmdate( 'Y', strtotime( $start_date ) ),
+                        'month'  => gmdate( 'm', strtotime( $start_date ) ),
+                        'day'    => gmdate( 'd', strtotime( $start_date ) ),
                     ),
                     'before'     => array(
-                        'year'   => date( 'Y', strtotime( $end_date ) ),
-                        'month'  => date( 'm', strtotime( $end_date ) ),
-                        'day'    => date( 'd', strtotime( $end_date ) ),
+                        'year'   => gmdate( 'Y', strtotime( $end_date ) ),
+                        'month'  => gmdate( 'm', strtotime( $end_date ) ),
+                        'day'    => gmdate( 'd', strtotime( $end_date ) ),
                     ),
                     'inclusive'  => true,
                 ),
@@ -88,8 +88,8 @@ class EventM_Report_Controller_List {
             if( ! empty( $filter_args->start_date ) ) {
                 $start_date = $filter_args->start_date;
             } else{
-                $start_date  = date('d-m-Y', strtotime('-6 days'));
-                $end_date  = date('d-m-Y');
+                $start_date  = gmdate('d-m-Y', strtotime('-6 days'));
+                $end_date  = gmdate('d-m-Y');
             }
             if( ! empty( $filter_args->end_date ) ) {
                 $end_date = $filter_args->end_date;
@@ -98,8 +98,8 @@ class EventM_Report_Controller_List {
                 $paged = $filter_args->paged;
             }
         } else{
-            $start_date = date( 'd-m-Y', strtotime( '-6 days' ) );
-            $end_date  = date( 'd-m-Y' );
+            $start_date = gmdate( 'd-m-Y', strtotime( '-6 days' ) );
+            $end_date  = gmdate( 'd-m-Y' );
         }
         
         $bookings =  new stdClass();
@@ -249,8 +249,8 @@ class EventM_Report_Controller_List {
     public function eventprime_report_filters(){
         $filter_data = '';
         $data = $_POST;
-        $start_date  = date( 'Y-m-d', strtotime('-6 days'));
-        $end_date  = date( 'Y-m-d' );
+        $start_date  = gmdate( 'Y-m-d', strtotime('-6 days'));
+        $end_date  = gmdate( 'Y-m-d' );
         $event_id = 'all';
         if( ! empty( $data ) ) {
             if( isset( $data['ep_filter_date'] ) && ! empty( $data['ep_filter_date'] ) ) {
@@ -258,8 +258,8 @@ class EventM_Report_Controller_List {
                 $dates = explode( ' - ', $date_range );
                 $start = isset( $dates[0] ) && ! empty( $dates[0] ) ? $dates[0] : '';
                 $end = isset( $dates[1] ) && ! empty( $dates[1] ) ? $dates[1] : '';
-                $start_date = date( 'Y-m-d', strtotime( $start ) );
-                $end_date = date( 'Y-m-d', strtotime( $end ) );
+                $start_date = gmdate( 'Y-m-d', strtotime( $start ) );
+                $end_date = gmdate( 'Y-m-d', strtotime( $end ) );
             }
 
             if( isset( $data['event_id'] ) && ! empty( $data['event_id'] ) ) {

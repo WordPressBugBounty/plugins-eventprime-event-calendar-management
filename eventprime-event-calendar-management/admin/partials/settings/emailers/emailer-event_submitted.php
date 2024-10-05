@@ -26,7 +26,7 @@ $sub_options = $global_settings->sub_options;
                     </label>
                 </th>
                 <td class="forminp forminp-text">
-                    <input name="event_submitted_email_subject" class="regular-text" id="event_submitted_email_subject" type="text" value="<?php echo isset($global_options->event_submitted_email_subject) ? $global_options->event_submitted_email_subject : __('New Event Submitted!!!', 'eventprime-event-calendar-management');?>" required>
+                    <input name="event_submitted_email_subject" class="regular-text" id="event_submitted_email_subject" type="text" value="<?php echo isset($global_options->event_submitted_email_subject) ? esc_attr($global_options->event_submitted_email_subject) : esc_html__('New Event Submitted!!!', 'eventprime-event-calendar-management');?>" required>
                 </td>
             </tr>
             <tr valign="top">
@@ -48,7 +48,7 @@ $sub_options = $global_settings->sub_options;
                     </label>
                 </th>
                 <td class="forminp forminp-text">
-                    <input name="event_submitted_email_cc" class="regular-text" id="event_submitted_email_cc" type="text" value="<?php echo isset($global_options->event_submitted_email_cc) ? $global_options->event_submitted_email_cc : '';?>">
+                    <input name="event_submitted_email_cc" class="regular-text" id="event_submitted_email_cc" type="text" value="<?php echo isset($global_options->event_submitted_email_cc) ? esc_attr($global_options->event_submitted_email_cc) : '';?>">
                 </td>
             </tr>
         </tbody>

@@ -15,7 +15,7 @@ get_header(); ?>
         <?php while ( have_posts() ) : the_post();
         
             $events = EventM_Factory_Service::ep_get_instance( 'EventM_Event_Controller_List' );
-            echo $events->render_post_content();
+            echo wp_kses_post($events->render_post_content());
             
         endwhile; // end of the loop. ?>
 

@@ -42,7 +42,7 @@ foreach ( $args->venues as $venue ) {
     $bg_color = $ep_functions->ep_hex2rgba( $bg_color, 1 );
     ?>
     <div class="ep-box-col-<?php echo absint( $args->cols ); ?> ep-box-column ep-box-px-0" data-id="<?php echo esc_attr( $venue->id ); ?>" data-element_type="column">
-        <div class="ep-column-wrap ep-column-populated" style="background-image: linear-gradient(190deg,<?= $bg_color;?>,<?= $light_bg_color;?>); background-color: transparent;">
+        <div class="ep-column-wrap ep-column-populated" style="background-image: linear-gradient(190deg,<?= esc_attr( $bg_color);?>,<?= esc_attr( $light_bg_color);?>); background-color: transparent;">
             <div class="ep-box-widget-wrap" data-id="<?php echo esc_attr( $venue->id );?>">
                 <div class="ep-box-box-item">
                     <div class="ep-box-box-thumb">
@@ -59,7 +59,7 @@ foreach ( $args->venues as $venue ) {
                         
                         <div class="ep-box-box-venue ep-card-venue  ep-text-small ep-text-truncate  ep-mb-1">
                             <?php if ( ! empty( $venue->em_address ) && ! empty( $venue->em_display_address_on_frontend ) ) {
-                                echo wp_trim_words( $venue->em_address, 10 );
+                                echo wp_kses_post(wp_trim_words( $venue->em_address, 10 ));
                             } else { ?>
                                 <div class="ep-box-box-venue-empty">&nbsp;</div><?php
                             } ?>

@@ -45,7 +45,7 @@ $ticket_sub_total = $offers = 0;
                                         }
                                     }
                                     if(!empty($additional_fees)){
-                                        echo implode(' | ',$additional_fees);
+                                        echo wp_kses_post(implode(' | ',$additional_fees));
                                     }else{
                                         echo '--';
                                     }?>
@@ -88,7 +88,7 @@ $ticket_sub_total = $offers = 0;
                                         }
                                     }
                                     if(!empty($additional_fees)){
-                                        echo implode(' | ',$additional_fees);
+                                        echo wp_kses_post(implode(' | ',$additional_fees));
                                     }else{
                                         echo '--';
                                     }?>
@@ -169,7 +169,7 @@ $ticket_sub_total = $offers = 0;
                     <td width="1%"></td>
                     <td class="ep-ticket-total-amount">
                         <span>
-                            <?php echo $ep_functions->ep_get_event_booking_total( $booking ); ?>
+                            <?php echo wp_kses_post($ep_functions->ep_get_event_booking_total( $booking )); ?>
                         </span>
                     </td>
                 </tr>

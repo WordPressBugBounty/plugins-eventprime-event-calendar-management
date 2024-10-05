@@ -31,13 +31,9 @@ class EP_DBhandler {
 
         if (is_numeric($unique_field_value)) {
             $unique_field_value = (int) $unique_field_value;
-            $query = $wpdb->prepare("SELECT * from $table where $unique_field = %d", $unique_field_value);
+            $result = $wpdb->get_row($wpdb->prepare("SELECT * from $table where $unique_field = %d", $unique_field_value));
         } else {
-            $query = $wpdb->prepare("SELECT * from $table where $unique_field = %s", $unique_field_value);
-        }
-
-        if ($query != null) {
-            $result = $wpdb->get_row($query);
+            $result = $wpdb->get_row($wpdb->prepare("SELECT * from $table where $unique_field = %s", $unique_field_value));
         }
 
         if ($result === null) {
@@ -58,13 +54,9 @@ class EP_DBhandler {
 
         if (is_numeric($unique_field_value)) {
             $unique_field_value = (int) $unique_field_value;
-            $query = $wpdb->prepare("SELECT * from $table WHERE $unique_field = %d", $unique_field_value);
+            $result = $wpdb->get_row($wpdb->prepare("SELECT * from $table WHERE $unique_field = %d", $unique_field_value));
         } else {
-            $query = $wpdb->prepare("SELECT * from $table WHERE $unique_field = %s", $unique_field_value);
-        }
-
-        if ($query != null) {
-            $result = $wpdb->get_row($query);
+            $result = $wpdb->get_row($wpdb->prepare("SELECT * from $table WHERE $unique_field = %s", $unique_field_value));
         }
 
         if ($result === null) {
@@ -86,14 +78,11 @@ class EP_DBhandler {
 
         if (is_numeric($unique_field_value)) {
             $unique_field_value = (int) $unique_field_value;
-            $query = $wpdb->prepare("SELECT * from $table where $unique_field = %d", $unique_field_value);
+            $result = $wpdb->get_row($wpdb->prepare("SELECT * from $table where $unique_field = %d", $unique_field_value),$output_type);
         } else {
-            $query = $wpdb->prepare("SELECT * from $table where $unique_field = %s", $unique_field_value);
+            $result = $wpdb->get_row($wpdb->prepare("SELECT * from $table where $unique_field = %s", $unique_field_value),$output_type);
         }
 
-        if ($query != null) {
-            $result = $wpdb->get_row($query, $output_type);
-        }
 
         if ($result != null) {
             return $result;
@@ -111,13 +100,9 @@ class EP_DBhandler {
 
         if (is_numeric($unique_field_value)) {
             $unique_field_value = (int) $unique_field_value;
-            $query = $wpdb->prepare("SELECT $field from $table where $unique_field = %d", $unique_field_value);
+            $result = $wpdb->get_var($wpdb->prepare("SELECT $field from $table where $unique_field = %d", $unique_field_value));
         } else {
-            $query = $wpdb->prepare("SELECT $field from $table where $unique_field = %s", $unique_field_value);
-        }
-
-        if ($query != null) {
-            $result = $wpdb->get_var($query);
+            $result = $wpdb->get_var($wpdb->prepare("SELECT $field from $table where $unique_field = %s", $unique_field_value));
         }
 
         if (isset($result) && $result != null) {
@@ -295,8 +280,8 @@ class EP_DBhandler {
 			'end_size'           => 1,
 			'mid_size'           => 2,
 			'prev_next'          => true,
-			'prev_text'          => __( '&laquo;', 'eventprime-event-calendar-management' ),
-			'next_text'          => __( '&raquo;', 'eventprime-event-calendar-management' ),
+			'prev_text'          => esc_html__( '&laquo;', 'eventprime-event-calendar-management' ),
+			'next_text'          => esc_html__( '&raquo;', 'eventprime-event-calendar-management' ),
 			'type'               => 'array',
 			'add_args'           => false,
 			'add_fragment'       => '',
@@ -586,7 +571,7 @@ class EP_DBhandler {
                                     $ticket_data['icon'] = isset($ticket['icon']) ? absint($ticket['icon']) : '';
                                     $ticket_data['priority'] = $cat_ticket_priority;
                                     $ticket_data['updated_at'] = date_i18n("Y-m-d H:i:s", time());
-                                    $ticket_data['additional_fees'] = ( isset($ticket['ep_additional_ticket_fee_data']) && !empty($ticket['ep_additional_ticket_fee_data']) ) ? json_encode($ticket['ep_additional_ticket_fee_data']) : '';
+                                    $ticket_data['additional_fees'] = ( isset($ticket['ep_additional_ticket_fee_data']) && !empty($ticket['ep_additional_ticket_fee_data']) ) ? wp_json_encode($ticket['ep_additional_ticket_fee_data']) : '';
                                     $ticket_data['allow_cancellation'] = isset($ticket['allow_cancellation']) ? absint($ticket['allow_cancellation']) : 0;
                                     $ticket_data['show_remaining_tickets'] = isset($ticket['show_remaining_tickets']) ? absint($ticket['show_remaining_tickets']) : 0;
                                     // date
@@ -612,7 +597,7 @@ class EP_DBhandler {
                                             $start_date['event_option'] = $ticket['em_ticket_start_booking_event_option'];
                                         }
                                     }
-                                    $ticket_data['booking_starts'] = json_encode($start_date);
+                                    $ticket_data['booking_starts'] = wp_json_encode($start_date);
                                     // end date
                                     $end_date = [];
                                     if (isset($ticket['em_ticket_ends_booking_type']) && !empty($ticket['em_ticket_ends_booking_type'])) {
@@ -636,7 +621,7 @@ class EP_DBhandler {
                                             $end_date['event_option'] = $ticket['em_ticket_ends_booking_event_option'];
                                         }
                                     }
-                                    $ticket_data['booking_ends'] = json_encode($end_date);
+                                    $ticket_data['booking_ends'] = wp_json_encode($end_date);
 
                                     // visibility
                                     $ticket_data['visibility'] = $ticket_visibility = array();
@@ -653,7 +638,7 @@ class EP_DBhandler {
                                         $ticket_visibility['em_ticket_visibility_user_roles'] = $ticket['em_ticket_visibility_user_roles'];
                                     }
                                     if (!empty($ticket_visibility)) {
-                                        $ticket_data['visibility'] = json_encode($ticket_visibility);
+                                        $ticket_data['visibility'] = wp_json_encode($ticket_visibility);
                                     }
 
                                     $ticket_data['show_ticket_booking_dates'] = (isset($ticket['show_ticket_booking_dates']) ) ? 1 : 0;
@@ -727,7 +712,7 @@ class EP_DBhandler {
                         $ticket_data['capacity'] = isset($ticket['capacity']) ? absint($ticket['capacity']) : 0;
                         $ticket_data['icon'] = isset($ticket['icon']) ? absint($ticket['icon']) : '';
                         $ticket_data['updated_at'] = date_i18n("Y-m-d H:i:s", time());
-                        $ticket_data['additional_fees'] = ( isset($ticket['ep_additional_ticket_fee_data']) && !empty($ticket['ep_additional_ticket_fee_data']) ) ? json_encode($ticket['ep_additional_ticket_fee_data']) : '';
+                        $ticket_data['additional_fees'] = ( isset($ticket['ep_additional_ticket_fee_data']) && !empty($ticket['ep_additional_ticket_fee_data']) ) ? wp_json_encode($ticket['ep_additional_ticket_fee_data']) : '';
                         $ticket_data['allow_cancellation'] = isset($ticket['allow_cancellation']) ? absint($ticket['allow_cancellation']) : 0;
                         $ticket_data['show_remaining_tickets'] = isset($ticket['show_remaining_tickets']) ? absint($ticket['show_remaining_tickets']) : 0;
                         // date
@@ -753,7 +738,7 @@ class EP_DBhandler {
                                 $start_date['event_option'] = $ticket['em_ticket_start_booking_event_option'];
                             }
                         }
-                        $ticket_data['booking_starts'] = json_encode($start_date);
+                        $ticket_data['booking_starts'] = wp_json_encode($start_date);
                         // end date
                         $end_date = [];
                         if (isset($ticket['em_ticket_ends_booking_type']) && !empty($ticket['em_ticket_ends_booking_type'])) {
@@ -777,7 +762,7 @@ class EP_DBhandler {
                                 $end_date['event_option'] = $ticket['em_ticket_ends_booking_event_option'];
                             }
                         }
-                        $ticket_data['booking_ends'] = json_encode($end_date);
+                        $ticket_data['booking_ends'] = wp_json_encode($end_date);
 
                         // visibility
                         $ticket_data['visibility'] = $ticket_visibility = array();
@@ -794,7 +779,7 @@ class EP_DBhandler {
                             $ticket_visibility['em_ticket_visibility_user_roles'] = $ticket['em_ticket_visibility_user_roles'];
                         }
                         if (!empty($ticket_visibility)) {
-                            $ticket_data['visibility'] = json_encode($ticket_visibility);
+                            $ticket_data['visibility'] = wp_json_encode($ticket_visibility);
                         }
 
                         $ticket_data['show_ticket_booking_dates'] = (isset($ticket['show_ticket_booking_dates']) ) ? 1 : 0;
@@ -848,8 +833,8 @@ class EP_DBhandler {
         }
         
         // Save tickets order 
-		if( isset( $_POST['ep_ticket_order_arr'] ) && !empty( $_POST['ep_ticket_order_arr'] ) ) {
-			$ep_ticket_order_arr = sanitize_text_field( $_POST['ep_ticket_order_arr'] ); 
+		if( isset( $post['ep_ticket_order_arr'] ) && !empty( $post['ep_ticket_order_arr'] ) ) {
+			$ep_ticket_order_arr = sanitize_text_field( $post['ep_ticket_order_arr'] ); 
 			$ep_ticket_order_arr_explode = explode( ',', $ep_ticket_order_arr ); 
 
 			$get_existing_individual_ticket_lists = $ep_functions->get_existing_individual_ticket_lists( $post->ID ); 
@@ -1572,7 +1557,7 @@ class EP_DBhandler {
                                     $ticket_data['icon'] = isset($ticket['icon']) ? absint($ticket['icon']) : '';
                                     $ticket_data['priority'] = $cat_ticket_priority;
                                     $ticket_data['updated_at'] = date_i18n("Y-m-d H:i:s", time());
-                                    $ticket_data['additional_fees'] = ( isset($ticket['ep_additional_ticket_fee_data']) && !empty($ticket['ep_additional_ticket_fee_data']) ) ? json_encode($ticket['ep_additional_ticket_fee_data']) : '';
+                                    $ticket_data['additional_fees'] = ( isset($ticket['ep_additional_ticket_fee_data']) && !empty($ticket['ep_additional_ticket_fee_data']) ) ? wp_json_encode($ticket['ep_additional_ticket_fee_data']) : '';
                                     $ticket_data['allow_cancellation'] = isset($ticket['allow_cancellation']) ? absint($ticket['allow_cancellation']) : 0;
                                     $ticket_data['show_remaining_tickets'] = isset($ticket['show_remaining_tickets']) ? absint($ticket['show_remaining_tickets']) : 0;
                                     // date
@@ -1598,7 +1583,7 @@ class EP_DBhandler {
                                             $start_date['event_option'] = $ticket['em_ticket_start_booking_event_option'];
                                         }
                                     }
-                                    $ticket_data['booking_starts'] = json_encode($start_date);
+                                    $ticket_data['booking_starts'] = wp_json_encode($start_date);
                                     // end date
                                     $end_date = [];
                                     if (isset($ticket['em_ticket_ends_booking_type']) && !empty($ticket['em_ticket_ends_booking_type'])) {
@@ -1622,7 +1607,7 @@ class EP_DBhandler {
                                             $end_date['event_option'] = $ticket['em_ticket_ends_booking_event_option'];
                                         }
                                     }
-                                    $ticket_data['booking_ends'] = json_encode($end_date);
+                                    $ticket_data['booking_ends'] = wp_json_encode($end_date);
 
                                     // visibility
                                     $ticket_data['visibility'] = $ticket_visibility = array();
@@ -1639,7 +1624,7 @@ class EP_DBhandler {
                                         $ticket_visibility['em_ticket_visibility_user_roles'] = $ticket['em_ticket_visibility_user_roles'];
                                     }
                                     if (!empty($ticket_visibility)) {
-                                        $ticket_data['visibility'] = json_encode($ticket_visibility);
+                                        $ticket_data['visibility'] = wp_json_encode($ticket_visibility);
                                     }
 
                                     $ticket_data['show_ticket_booking_dates'] = (isset($ticket['show_ticket_booking_dates']) ) ? 1 : 0;
@@ -1713,7 +1698,7 @@ class EP_DBhandler {
                         $ticket_data['capacity'] = isset($ticket['capacity']) ? absint($ticket['capacity']) : 0;
                         $ticket_data['icon'] = isset($ticket['icon']) ? absint($ticket['icon']) : '';
                         $ticket_data['updated_at'] = date_i18n("Y-m-d H:i:s", time());
-                        $ticket_data['additional_fees'] = ( isset($ticket['ep_additional_ticket_fee_data']) && !empty($ticket['ep_additional_ticket_fee_data']) ) ? json_encode($ticket['ep_additional_ticket_fee_data']) : '';
+                        $ticket_data['additional_fees'] = ( isset($ticket['ep_additional_ticket_fee_data']) && !empty($ticket['ep_additional_ticket_fee_data']) ) ? wp_json_encode($ticket['ep_additional_ticket_fee_data']) : '';
                         $ticket_data['allow_cancellation'] = isset($ticket['allow_cancellation']) ? absint($ticket['allow_cancellation']) : 0;
                         $ticket_data['show_remaining_tickets'] = isset($ticket['show_remaining_tickets']) ? absint($ticket['show_remaining_tickets']) : 0;
                         // date
@@ -1739,7 +1724,7 @@ class EP_DBhandler {
                                 $start_date['event_option'] = $ticket['em_ticket_start_booking_event_option'];
                             }
                         }
-                        $ticket_data['booking_starts'] = json_encode($start_date);
+                        $ticket_data['booking_starts'] = wp_json_encode($start_date);
                         // end date
                         $end_date = [];
                         if (isset($ticket['em_ticket_ends_booking_type']) && !empty($ticket['em_ticket_ends_booking_type'])) {
@@ -1763,7 +1748,7 @@ class EP_DBhandler {
                                 $end_date['event_option'] = $ticket['em_ticket_ends_booking_event_option'];
                             }
                         }
-                        $ticket_data['booking_ends'] = json_encode($end_date);
+                        $ticket_data['booking_ends'] = wp_json_encode($end_date);
 
                         // visibility
                         $ticket_data['visibility'] = $ticket_visibility = array();
@@ -1780,7 +1765,7 @@ class EP_DBhandler {
                             $ticket_visibility['em_ticket_visibility_user_roles'] = $ticket['em_ticket_visibility_user_roles'];
                         }
                         if (!empty($ticket_visibility)) {
-                            $ticket_data['visibility'] = json_encode($ticket_visibility);
+                            $ticket_data['visibility'] = wp_json_encode($ticket_visibility);
                         }
 
                         $ticket_data['show_ticket_booking_dates'] = (isset($ticket['show_ticket_booking_dates']) ) ? 1 : 0;
@@ -1834,8 +1819,8 @@ class EP_DBhandler {
         }
         
         // Save tickets order 
-		if( isset( $_POST['ep_ticket_order_arr'] ) && !empty( $_POST['ep_ticket_order_arr'] ) ) {
-			$ep_ticket_order_arr = sanitize_text_field( $_POST['ep_ticket_order_arr'] ); 
+		if( isset( $post['ep_ticket_order_arr'] ) && !empty( $post['ep_ticket_order_arr'] ) ) {
+			$ep_ticket_order_arr = sanitize_text_field( $post['ep_ticket_order_arr'] ); 
 			$ep_ticket_order_arr_explode = explode( ',', $ep_ticket_order_arr ); 
 
 			$get_existing_individual_ticket_lists = $ep_functions->get_existing_individual_ticket_lists( $post->ID ); 
@@ -2181,7 +2166,7 @@ class EP_DBhandler {
         $ticket_data['status'] = 1;
         $ticket_data['created_at'] = date_i18n("Y-m-d H:i:s", time());
         // new
-        $ticket_data['additional_fees'] = ( isset($ticket['ep_additional_ticket_fee_data']) && !empty($ticket['ep_additional_ticket_fee_data']) ) ? json_encode($ticket['ep_additional_ticket_fee_data']) : '';
+        $ticket_data['additional_fees'] = ( isset($ticket['ep_additional_ticket_fee_data']) && !empty($ticket['ep_additional_ticket_fee_data']) ) ? wp_json_encode($ticket['ep_additional_ticket_fee_data']) : '';
         $ticket_data['allow_cancellation'] = isset($ticket['allow_cancellation']) ? absint($ticket['allow_cancellation']) : 0;
         $ticket_data['show_remaining_tickets'] = isset($ticket['show_remaining_tickets']) ? absint($ticket['show_remaining_tickets']) : 0;
         // date
@@ -2207,7 +2192,7 @@ class EP_DBhandler {
                 $start_date['event_option'] = $ticket['em_ticket_start_booking_event_option'];
             }
         }
-        $ticket_data['booking_starts'] = json_encode($start_date);
+        $ticket_data['booking_starts'] = wp_json_encode($start_date);
         // end date
         $end_date = [];
         if (isset($ticket['em_ticket_ends_booking_type']) && !empty($ticket['em_ticket_ends_booking_type'])) {
@@ -2231,7 +2216,7 @@ class EP_DBhandler {
                 $end_date['event_option'] = $ticket['em_ticket_ends_booking_event_option'];
             }
         }
-        $ticket_data['booking_ends'] = json_encode($end_date);
+        $ticket_data['booking_ends'] = wp_json_encode($end_date);
         // visibility
         $ticket_data['visibility'] = $ticket_visibility = array();
         if (isset($ticket['em_tickets_user_visibility']) && !empty($ticket['em_tickets_user_visibility'])) {
@@ -2244,7 +2229,7 @@ class EP_DBhandler {
             $ticket_visibility['em_tickets_visibility_time_restrictions'] = $ticket['em_tickets_visibility_time_restrictions'];
         }
         if (!empty($ticket_visibility)) {
-            $ticket_data['visibility'] = json_encode($ticket_visibility);
+            $ticket_data['visibility'] = wp_json_encode($ticket_visibility);
         }
         $ticket_data['show_ticket_booking_dates'] = (isset($ticket['show_ticket_booking_dates']) ) ? 1 : 0;
         $ticket_data['min_ticket_no'] = isset($ticket['min_ticket_no']) ? absint($ticket['min_ticket_no']) : 0;
@@ -2273,7 +2258,7 @@ class EP_DBhandler {
         $ticket_data['status'] = 1;
         $ticket_data['created_at'] = date_i18n("Y-m-d H:i:s", time());
         // new
-        $ticket_data['additional_fees'] = ( isset($ticket['ep_additional_ticket_fee_data']) && !empty($ticket['ep_additional_ticket_fee_data']) ) ? json_encode($ticket['ep_additional_ticket_fee_data']) : '';
+        $ticket_data['additional_fees'] = ( isset($ticket['ep_additional_ticket_fee_data']) && !empty($ticket['ep_additional_ticket_fee_data']) ) ? wp_json_encode($ticket['ep_additional_ticket_fee_data']) : '';
         $ticket_data['allow_cancellation'] = isset($ticket['allow_cancellation']) ? absint($ticket['allow_cancellation']) : 0;
         $ticket_data['show_remaining_tickets'] = isset($ticket['show_remaining_tickets']) ? absint($ticket['show_remaining_tickets']) : 0;
         // date
@@ -2299,7 +2284,7 @@ class EP_DBhandler {
                 $start_date['event_option'] = $ticket['em_ticket_start_booking_event_option'];
             }
         }
-        $ticket_data['booking_starts'] = json_encode($start_date);
+        $ticket_data['booking_starts'] = wp_json_encode($start_date);
         // end date
         $end_date = [];
         if (isset($ticket['em_ticket_ends_booking_type']) && !empty($ticket['em_ticket_ends_booking_type'])) {
@@ -2323,7 +2308,7 @@ class EP_DBhandler {
                 $end_date['event_option'] = $ticket['em_ticket_ends_booking_event_option'];
             }
         }
-        $ticket_data['booking_ends'] = json_encode($end_date);
+        $ticket_data['booking_ends'] = wp_json_encode($end_date);
         // visibility
         $ticket_data['visibility'] = $ticket_visibility = array();
         if (isset($ticket['em_tickets_user_visibility']) && !empty($ticket['em_tickets_user_visibility'])) {
@@ -2339,7 +2324,7 @@ class EP_DBhandler {
             $ticket_visibility['em_ticket_visibility_user_roles'] = $ticket['em_ticket_visibility_user_roles'];
         }
         if (!empty($ticket_visibility)) {
-            $ticket_data['visibility'] = json_encode($ticket_visibility);
+            $ticket_data['visibility'] = wp_json_encode($ticket_visibility);
         }
         $ticket_data['show_ticket_booking_dates'] = (isset($ticket['show_ticket_booking_dates']) ) ? 1 : 0;
         $ticket_data['min_ticket_no'] = isset($ticket['min_ticket_no']) ? absint($ticket['min_ticket_no']) : 0;
@@ -2687,7 +2672,7 @@ class EP_DBhandler {
         $em_recurrence_yearly_day = isset($post_data['em_recurrence_yearly_day']) ? $post_data['em_recurrence_yearly_day'] : '';
         update_post_meta($post->ID, 'em_recurrence_yearly_day', $em_recurrence_yearly_day);
         $data['em_recurrence_yearly_day'] = $em_recurrence_yearly_day;
-        $current_year = date('Y');
+        $current_year = gmdate('Y');
         if ($em_recurrence_yearly_day == 'day') {
             $em_recurrence_yearly_weekno = isset($post_data['em_recurrence_yearly_weekno']) ? $post_data['em_recurrence_yearly_weekno'] : '';
             $em_recurrence_yearly_fullweekday = isset($post_data['em_recurrence_yearly_fullweekday']) ? $post_data['em_recurrence_yearly_fullweekday'] : '';
@@ -2772,16 +2757,16 @@ class EP_DBhandler {
         $end_date = new DateTime('@' . $data['end_date']);
         $modify_string = '';
         if (!empty($em_recurrence_advanced_dates)) {
-            $m = date('m');
-            $y = date('Y');
+            $m = gmdate('m');
+            $y = gmdate('Y');
             $i = 0;
             $step = absint($data['recurrence_step']);
             $stop_recurr = 0;
             $counter = 1;
             // Last date on condition
             if (!empty($data['last_date_on'])) {
-                $recurr_limit_month = date('m', $data['recurrence_limit_timestamp']);
-                $recurr_limit_year = date('Y', $data['recurrence_limit_timestamp']);
+                $recurr_limit_month = gmdate('m', $data['recurrence_limit_timestamp']);
+                $recurr_limit_year = gmdate('Y', $data['recurrence_limit_timestamp']);
                 while ($stop_recurr == 0) {
                     if ($i > 0) {
                         $m += $step;
@@ -2805,7 +2790,7 @@ class EP_DBhandler {
                             if (strtotime($dates) < $data['start_date'])
                                 continue;
                             $newdates = date_create($dates);
-                            $child_start_date1 = date_create(date("Y-m-d", $data['start_date']));
+                            $child_start_date1 = date_create(gmdate("Y-m-d", $data['start_date']));
                             $start_date_diff = date_diff($child_start_date1, $newdates);
                             $modify_string = $start_date_diff->days > 1 ? '+' . $start_date_diff->days . ' days' : '+' . $start_date_diff->days . ' day';
                             $start_date->modify($modify_string);
@@ -2849,7 +2834,7 @@ class EP_DBhandler {
                             if (strtotime($dates) < $data['start_date'])
                                 continue;
                             $newdates = date_create($dates);
-                            $child_start_date1 = date_create(date("Y-m-d", $data['start_date']));
+                            $child_start_date1 = date_create(gmdate("Y-m-d", $data['start_date']));
                             $start_date_diff = date_diff($child_start_date1, $newdates);
                             $modify_string = $start_date_diff->days > 1 ? '+' . $start_date_diff->days . ' days' : '+' . $start_date_diff->days . ' day';
                             $start_date->modify($modify_string);
@@ -2905,7 +2890,7 @@ class EP_DBhandler {
                     if (strtotime($cdates) < $data['start_date'])
                         continue;
                     $newdates = date_create($cdates);
-                    $child_start_date1 = date_create(date("Y-m-d", $data['start_date']));
+                    $child_start_date1 = date_create(gmdate("Y-m-d", $data['start_date']));
                     $start_date_diff = date_diff($child_start_date1, $newdates);
                     $modify_string = $start_date_diff->days > 1 ? '+' . $start_date_diff->days . ' days' : '+' . $start_date_diff->days . ' day';
                     $start_date->modify($modify_string);
@@ -3152,8 +3137,8 @@ class EP_DBhandler {
 
     public function nthDayInMonth($n, $day, $m = '', $y = '') {
         // day is in range 0 Sunday to 6 Saturday
-        $y = (!empty($y) ? $y : date('Y') );
-        $m = (!empty($m) ? $m : date('m') );
+        $y = (!empty($y) ? $y : gmdate('Y') );
+        $m = (!empty($m) ? $m : gmdate('m') );
         $d = $this->firstDayInMonth($day, $m, $y);
         $weeks = $this->getWeeksInMonth($y, $m, 7); //1 (for monday) to 7 (for sunday)
         $week_status = array();
@@ -3168,10 +3153,10 @@ class EP_DBhandler {
         $w_loop_start = 1;
         while (strtotime($start_date) <= strtotime($end_date)) {
             $timestamp = strtotime($start_date);
-            $day_w_count = date('w', $timestamp);
+            $day_w_count = gmdate('w', $timestamp);
             $week_w_count[$w_loop_start] = $day_w_count;
             $week_date_range[$w_loop_start] = $start_date;
-            $start_date = date("Y-m-d", strtotime("+1 days", strtotime($start_date)));
+            $start_date = gmdate("Y-m-d", strtotime("+1 days", strtotime($start_date)));
             $w_loop_start++;
         }
         if (in_array($day, $week_w_count)) {
@@ -3192,12 +3177,12 @@ class EP_DBhandler {
 
     public function firstDayInMonth($day, $m = '', $y = '') {
         // day is in range 0 Sunday to 6 Saturday
-        $y = (!empty($y) ? $y : date('Y') );
-        $m = (!empty($m) ? $m : date('m') );
-        $fdate = date($y . '-' . $m . '-01');
-        $fd = date('w', strtotime($fdate));
+        $y = (!empty($y) ? $y : gmdate('Y') );
+        $m = (!empty($m) ? $m : gmdate('m') );
+        $fdate = gmdate($y . '-' . $m . '-01');
+        $fd = gmdate('w', strtotime($fdate));
         $od = 1 + ( $day - $fd + 7 ) % 7;
-        $newDate = date($y . '-' . $m . '-' . $od);
+        $newDate = gmdate($y . '-' . $m . '-' . $od);
         return $newDate;
     }
 
@@ -3245,9 +3230,10 @@ class EP_DBhandler {
     public function get_organizers_data( $args = array() ) {
         $ep_functions = new Eventprime_Basic_Functions;
         $defaults = array( 
-            'hide_empty' => false ,
+            'taxonomy'   => 'em_event_organizer', // Specify the taxonomy
+            'hide_empty' => false,
             'meta_query' => array(
-                'relation'=>'OR',
+                'relation' => 'OR',
                 array(
                     'key'     => 'em_status',
                     'value'   => 0,
@@ -3259,8 +3245,9 @@ class EP_DBhandler {
                 )
             )
         );
-        $args       = wp_parse_args( $args, $defaults );
-        $terms      = get_terms('em_event_organizer', $args );
+
+        $args = wp_parse_args( $args, $defaults );
+        $terms = get_terms( $args );
         $organizers = array();
         if( empty( $terms ) || is_wp_error( $terms ) ){
            return $organizers;
@@ -3313,10 +3300,12 @@ class EP_DBhandler {
     public function get_event_types_data( $args = array() ) {
         $ep_functions = new Eventprime_Basic_Functions;
         $defaults = array( 
-            'hide_empty' => false ,
+            'taxonomy'   => 'em_event_type', // Specify the taxonomy
+            'hide_empty' => false,
         );
-        $args        = wp_parse_args( $args, $defaults );
-        $terms       = get_terms( 'em_event_type', $args );
+
+        $args  = wp_parse_args( $args, $defaults );
+        $terms = get_terms( $args );
         $event_types = array();
         if( empty( $terms ) || is_wp_error( $terms ) ){
            return $event_types;
@@ -3377,22 +3366,23 @@ class EP_DBhandler {
     public function get_venues_data( $args = array() ) {
         $ep_functions = new Eventprime_Basic_Functions;
         $defaults = array( 
-            'hide_empty' => false ,
+            'taxonomy'   => 'em_venue', // Specify the taxonomy
+            'hide_empty' => false,
             'meta_query' => array(
-                'relation'=>'OR',
+                'relation' => 'OR',
                 array(
-                  'key'     => 'em_status',
-                  'value'   => 0,
-                  'compare' => '!='
+                    'key'     => 'em_status',
+                    'value'   => 0,
+                    'compare' => '!='
                 ),
                 array(
-                  'key'     => 'em_status',
-                  'compare' => 'NOT EXISTS'
+                    'key'     => 'em_status',
+                    'compare' => 'NOT EXISTS'
                 )
             )
         );
-        $args        = wp_parse_args( $args, $defaults );
-        $terms       = get_terms('em_venue', $args );
+        $args  = wp_parse_args( $args, $defaults );
+        $terms = get_terms( $args );
         $venues = array();
         if( empty( $terms ) || is_wp_error( $terms ) ){
            return $venues;
@@ -3450,7 +3440,7 @@ class EP_DBhandler {
         $args_total = $args;
         unset($args_total['number']);
         unset($args_total['offset']);
-        $total_terms = wp_count_terms( $taxonomy, $args_total );
+        $total_terms = wp_count_terms( $args_total );
         $total_pages = ceil( (int)$total_terms / (int)$terms_per_page );
 
         return array(

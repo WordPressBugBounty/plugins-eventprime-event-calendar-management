@@ -9,7 +9,7 @@
 ?>
 
 <?php foreach ( $args->performers->posts as $performer ) { ?>
-    <div class="ep-box-col-<?php echo $args->cols; ?> ep-col-md-6 ep-mb-3 ep-performer-col-section">
+    <div class="ep-box-col-<?php echo esc_attr($args->cols); ?> ep-col-md-6 ep-mb-3 ep-performer-col-section">
         <div class="ep-box-card-item ep-bg-white">
             <div class="ep-box-card-thumb" >
                 <a href="<?php echo esc_url( $performer->performer_url ); ?>" class="ep-img-link">

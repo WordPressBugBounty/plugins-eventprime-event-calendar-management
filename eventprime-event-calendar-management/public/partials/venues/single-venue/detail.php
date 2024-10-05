@@ -23,7 +23,7 @@ $ep_functions = new Eventprime_Basic_Functions;
                                 <?php esc_html_e('Established', 'eventprime-event-calendar-management'); ?> :  
                             </div>
                             <div class="kf-event-attr-value">
-                                <?php echo date_i18n( get_option('date_format'), $args->venue->em_established ); ?>
+                                <?php echo wp_kses_post( date_i18n( get_option('date_format'), $args->venue->em_established )); ?>
                             </div>
                         </li><?php 
                     }
@@ -83,7 +83,7 @@ $ep_functions = new Eventprime_Basic_Functions;
 
             <div class="ep-single-box-summery ep-single-box-desc"><?php
                 if ( isset( $args->venue->description ) && $args->venue->description !== '' ) {
-                    echo wpautop( wp_kses_post( $args->venue->description ) );
+                    echo wp_kses_post( wpautop( $args->venue->description ) );
                 } else {
                     esc_html_e( 'No description available', 'eventprime-event-calendar-management' );
                 }?>
@@ -134,7 +134,7 @@ $ep_functions = new Eventprime_Basic_Functions;
             
             if ( ! empty( $ep_functions->ep_get_global_settings( 'gmap_api_key' ) ) && ! empty( $args->venue->em_address ) ) { ?>
                 <div class="ep-single-venue-map">
-                    <div class="em-venue-direction" id="ep_venue_load_map_data" data-venue="<?php echo esc_attr( json_encode( $args->venue ) ); ?>">
+                    <div class="em-venue-direction" id="ep_venue_load_map_data" data-venue="<?php echo esc_attr( wp_json_encode( $args->venue ) ); ?>">
                         <div id="em_single_venue_map_canvas" style="height:400px;"></div>
                     </div> 
                 </div><?php 

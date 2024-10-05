@@ -20,7 +20,7 @@
                     </label>
                 </th>
                 <td class="forminp forminp-text">
-                    <input name="booking_refund_email_subject" id="booking_refund_email_subject" class="regular-text" type="text" value="<?php echo isset($global_options->booking_refund_email_subject) ? $global_options->booking_refund_email_subject : __('Your booking now refunded!!!', 'eventprime-event-calendar-management');?>" required>
+                    <input name="booking_refund_email_subject" id="booking_refund_email_subject" class="regular-text" type="text" value="<?php echo isset($global_options->booking_refund_email_subject) ? esc_attr($global_options->booking_refund_email_subject) : esc_html__('Your booking now refunded!!!', 'eventprime-event-calendar-management');?>" required>
                 </td>
             </tr>
             <tr valign="top">
@@ -42,7 +42,7 @@
                     </label>
                 </th>
                 <td class="forminp forminp-text">
-                    <input name="booking_refund_email_cc" class="regular-text" id="booking_refund_email_cc" type="text" value="<?php echo isset($global_options->booking_refund_email_cc) ? $global_options->booking_refund_email_cc : '';?>">
+                    <input name="booking_refund_email_cc" class="regular-text" id="booking_refund_email_cc" type="text" value="<?php echo isset($global_options->booking_refund_email_cc) ? esc_attr($global_options->booking_refund_email_cc) : '';?>">
                 </td>
             </tr>
         </tbody>

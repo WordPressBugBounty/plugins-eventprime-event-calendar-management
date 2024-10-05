@@ -89,206 +89,8 @@ class EventPrime_Bookings {
 
         return $wp_query;
     }
-    /**
-     * Render template on the frontend
-     */
-    public function render_template( $atts = array() ) {
-        $ep_functions = new Eventprime_Basic_Functions;
-        $booking_data = array();$previous_event_url = '';
-        if( isset( $_POST['action'] ) && 'edit_booking' == sanitize_text_field( $_POST['action'] ) ) {
-            $booking_data['ep_nonce_verified'] = false;
-            if( wp_verify_nonce( $_POST['ep_edit_event_booking_nonce'], 'ep_edit_event_booking_action' ) ) {
-                $booking_data['ep_nonce_verified'] = true;
-                if( ! empty( $_POST['booking_id'] ) ) {
-                    $booking_id = absint( $_POST['booking_id'] );
-                    $single_booking = $this->load_booking_detail( $booking_id );
-                    if( ! empty( $single_booking->em_user ) ) {
-                        if( $single_booking->em_user == get_current_user_id() ) {
-                            $booking_data['booking_data'] = $single_booking;
-                            $booking_data = apply_filters( 'ep_booking_edit_booking_data', $booking_data, $_POST );
-                        }
-                    }
-                }
-            }
-            ob_start();
-
-            wp_enqueue_style(
-                'ep-booking-checkout-style',
-                plugin_dir_url(EP_PLUGIN_FILE) . 'public/css/ep-frontend-booking-checkout.css',
-                false, EVENTPRIME_VERSION
-            );
-            wp_enqueue_script(
-                'ep-event-booking-script',
-                plugin_dir_url(EP_PLUGIN_FILE) . 'public/js/ep-event-booking.js',
-                array( 'jquery' ), EVENTPRIME_VERSION
-            );
-            $checkout_text = $ep_functions->ep_global_settings_button_title('Checkout');
-            wp_localize_script(
-                'ep-event-booking-script', 
-                'ep_event_booking', 
-                array(
-                    'ajaxurl'                         => admin_url( 'admin-ajax.php' ),
-                    'confirm_booking_text'            => esc_html__( 'Confirm Booking', 'eventprime-event-calendar-management' ),
-                    'checkout_text'                   => $checkout_text,
-                    'flush_booking_timer_nonce'       => wp_create_nonce( 'flush_event_booking_timer_nonce' ),
-                    'booking_item_expired'            => esc_html__( 'Your cart has expired. Redirecting..', 'eventprime-event-calendar-management' ),
-                    'previous_event_url'              => $previous_event_url,
-                    'event_page_url'                  => esc_url( get_permalink( $ep_functions->ep_get_global_settings( 'event_page' ) ) ),
-                    'is_payment_method_enabled'       => $ep_functions->em_is_payment_gateway_enabled(),
-                    'booking_data'                    => $booking_data,
-                    'enabled_guest_booking'           => $ep_functions->ep_enabled_guest_booking(),
-                    'enabled_woocommerce_integration' => $ep_functions->ep_enabled_woocommerce_integration(),
-                    'enabled_woocommerce_checkout'    => $ep_functions->ep_enabled_woocommerce_checkout(),
-                )
-            );
-
-            $ep_functions->ep_get_template_part( 'bookings/edit-booking', null, (object)$booking_data );
-            return ob_get_clean();
-        } else{
-            if( ! empty( $_POST ) && isset( $_POST['ep_event_booking_data'] ) && ! empty( $_POST['ep_event_booking_data'] ) ) {
-                if( '0' === get_option( 'ep_event_booking_timer_start' ) ) {
-                    delete_option( 'ep_event_booking_timer_start' );
-                    $_POST = array();
-                } else if( FALSE === get_option( 'ep_event_booking_timer_start' ) ) {
-                    add_option( 'ep_event_booking_timer_start', 1 );
-                }
-                $ep_event_booking_data = json_decode( stripslashes( $_POST['ep_event_booking_data'] ) );
-                if( ! empty( $ep_event_booking_data->ticket ) ) {
-                    $booking_data['tickets'] = json_decode( $ep_event_booking_data->ticket );
-                }
-                $ep_event_offer_data = isset( $_POST['ep_event_offer_data'] ) ? json_decode( stripslashes( $_POST['ep_event_offer_data'] ) ) : '';
-                if( ! empty($ep_event_offer_data) ) {
-                    $booking_data['ep_event_offer_data'] = $ep_event_offer_data;
-                }
-                if( ! empty( $ep_event_booking_data->event ) ) {
-                    $event_id = base64_decode( $ep_event_booking_data->event );
-                    $event_controller = EventM_Factory_Service::ep_get_instance( 'EventM_Event_Controller_List' );
-                    $booking_data['event'] = $event_controller->get_single_event( $event_id );
-                    $previous_event_url = $booking_data['event']->event_url;
-                }
-                // add data in booking data
-                $booking_data = apply_filters( 'ep_booking_detail_add_booking_data', $booking_data, $ep_event_booking_data );
-            }
-            $register_fname = $ep_functions->ep_get_global_settings( 'checkout_register_fname' );
-            $register_lname = $ep_functions->ep_get_global_settings( 'checkout_register_lname' );
-            $register_username = $ep_functions->ep_get_global_settings( 'checkout_register_username' );
-            $register_email = $ep_functions->ep_get_global_settings( 'checkout_register_email' );
-            $register_password = $ep_functions->ep_get_global_settings( 'checkout_register_password' );
-            $account_settings = array(
-                'fname_label'    =>  isset($register_fname['label']) && !empty($register_fname['label']) ? $register_fname['label'] : esc_html__('First Name','eventprime-event-calendar-management'),
-                'lname_label'    =>  isset($register_lname['label']) && !empty($register_lname['label']) ? $register_lname['label'] : esc_html__('last Name','eventprime-event-calendar-management'),
-                'username_label' =>  isset($register_username['label']) && !empty($register_username['label']) ? $register_username['label'] : esc_html__('Username','eventprime-event-calendar-management'),
-                'email_label'    =>  isset($register_email['label']) && !empty($register_email['label']) ? $register_email['label'] : esc_html__('Email','eventprime-event-calendar-management'),
-                'password_label' =>  isset($register_password['label']) && !empty($register_password['label']) ? $register_password['label'] : esc_html__('Password','eventprime-event-calendar-management')
-            );
-            $booking_data['account_form'] = (object)$account_settings;
-            
-            $create_account_validation = array(
-                'fname_required'     => sprintf(__("%s is required.", 'eventprime-event-calendar-management'), $booking_data['account_form']->fname_label),
-                'lname_required'     => sprintf(__("%s is required.", 'eventprime-event-calendar-management'), $booking_data['account_form']->lname_label),
-                'email_required'     => sprintf(__("%s is required.", 'eventprime-event-calendar-management'), $booking_data['account_form']->email_label),
-                'username_required'  => sprintf(__("%s is required.", 'eventprime-event-calendar-management'), $booking_data['account_form']->username_label),
-                'password_required'  => sprintf(__("%s is required.", 'eventprime-event-calendar-management'), $booking_data['account_form']->password_label),
-                'email_duplicate'    => sprintf(__("%s is already exists.", 'eventprime-event-calendar-management'), $booking_data['account_form']->email_label),
-                'username_duplicate' => sprintf(__("%s is already exist.", 'eventprime-event-calendar-management'), $booking_data['account_form']->username_label)
-            );
-
-            ob_start();
-
-            wp_enqueue_style(
-                'ep-booking-checkout-style',
-                plugin_dir_url(EP_PLUGIN_FILE) . 'public/css/ep-frontend-booking-checkout.css',
-                false, EVENTPRIME_VERSION
-            );
-            wp_enqueue_script(
-                'ep-event-booking-script',
-                plugin_dir_url(EP_PLUGIN_FILE) . 'public/js/ep-event-booking.js',
-                array( 'jquery' ), EVENTPRIME_VERSION
-            );
-            $checkout_text = $ep_functions->ep_global_settings_button_title('Checkout');
-            $default_payment_processor = $ep_functions->ep_get_global_settings( 'default_payment_processor' );
-            if( empty( $default_payment_processor ) ) {
-                $default_payment_processor = 'paypal_processor';
-            }
-            // check for extensions
-            if( ! empty( $default_payment_processor ) && 'paypal_processor' !== $default_payment_processor ) {
-                $extensions = $ep_functions->ep_get_activate_extensions();
-                if( ! in_array( 'Eventprime_Offline', $extensions ) && ! in_array( 'Eventprime_Event_Stripe', $extensions ) ) {
-                    $default_payment_processor = 'paypal_processor';
-                }
-                // check if other payments options disabled
-                if( empty( $ep_functions->ep_get_global_settings( 'offline_processor' ) ) && empty( $ep_functions->ep_get_global_settings( 'stripe_processor' ) ) ) {
-                    $default_payment_processor = 'paypal_processor';
-                }
-            }
-            wp_localize_script(
-                'ep-event-booking-script', 
-                'ep_event_booking', 
-                array(
-                    'ajaxurl'                         => admin_url( 'admin-ajax.php' ),
-                    'confirm_booking_text'            => esc_html__( 'Confirm Booking', 'eventprime-event-calendar-management' ),
-                    'checkout_text'                   => $checkout_text,
-                    'flush_booking_timer_nonce'       => wp_create_nonce( 'flush_event_booking_timer_nonce' ),
-                    'booking_item_expired'            => esc_html__( 'Your cart has expired. Redirecting..', 'eventprime-event-calendar-management' ),
-                    'previous_event_url'              => $previous_event_url,
-                    'event_page_url'                  => esc_url( get_permalink( $ep_functions->ep_get_global_settings( 'event_page' ) ) ),
-                    'is_payment_method_enabled'       => $ep_functions->em_is_payment_gateway_enabled(),
-                    'booking_data'                    => $booking_data,
-                    'enabled_guest_booking'           => $ep_functions->ep_enabled_guest_booking(),
-                    'enabled_woocommerce_integration' => $ep_functions->ep_enabled_woocommerce_integration(),
-                    'create_account_validation'       => $create_account_validation,
-                    'event_registration_form_nonce'   => wp_create_nonce( 'event-registration-form-nonce' ),
-                    'reload_user_area_nonce'          => wp_create_nonce( 'event-reload-checkout-user-area' ),
-                    'enable_captcha_registration'     => $ep_functions->ep_enabled_reg_captcha(),
-                    'default_payment_processor'       => $default_payment_processor,
-                    'enabled_woocommerce_checkout'    => $ep_functions->ep_enabled_woocommerce_checkout(),
-                )
-            );
-
-            $ep_functions->ep_get_template_part( 'bookings/checkout', null, (object)$booking_data );
-            return ob_get_clean();
-        }
-    }
-
-    /**
-     * Render booking detail template on the frontend
-     */
-    public function render_booking_detail_template( $atts = array() ) {
-        $booking_data = array();
-        if( isset( $_GET['order_id'] ) && ! empty( $_GET['order_id'] ) ) {
-            $order_id = absint( $_GET['order_id'] );
-            $booking_data = $this->load_booking_detail( $order_id );
-        }
-        ob_start();
-
-        wp_enqueue_style(
-            'ep-booking-checkout-style',
-            plugin_dir_url(EP_PLUGIN_FILE) . 'public/css/ep-frontend-booking-checkout.css',
-            false, EVENTPRIME_VERSION
-        );
-
-        wp_enqueue_script(
-            'ep-event-booking-detail-script',
-            plugin_dir_url(EP_PLUGIN_FILE) . 'public/js/ep-event-booking-detail.js',
-            array( 'jquery' ), EVENTPRIME_VERSION
-        );
-        wp_localize_script(
-            'ep-event-booking-detail-script', 
-            'ep_event_booking_detail', 
-            array(
-                'ajaxurl'              => admin_url( 'admin-ajax.php' ),
-                'booking_cancel_nonce' => wp_create_nonce( 'event-booking-cancellation-nonce' ),
-                'booking_print_ticket_nonce' => wp_create_nonce( 'event-booking-print-ticket-nonce' )
-            )
-        );
-
-        // enqueue custom scripts and styles from extension
-        do_action( 'ep_bookingh_detail_enqueue_custom_scripts' );
-
-		ep_get_template_part( 'bookings/booking-detail', null, (object)$booking_data );
-		return ob_get_clean();
-    }
-
+    
+   
     /**
      * Confirm Booking
      * 
@@ -687,32 +489,32 @@ class EventPrime_Bookings {
     public function process_booking_downloadable_csv( $bookings ) {
         $ep_functions = new Eventprime_Basic_Functions;
         $bookings_data = array(); 
-        $bookings_data[0]['id'] =              __('Booking ID', 'eventprime-event-calendar-management');
-        $bookings_data[0]['user_name'] =       __('User Name', 'eventprime-event-calendar-management');
-        $bookings_data[0]['email'] =           __('Email', 'eventprime-event-calendar-management');
-        $bookings_data[0]['event'] =           __('Event Name', 'eventprime-event-calendar-management');
-        $bookings_data[0]['sdate'] =           __('Start Date', 'eventprime-event-calendar-management');
-        $bookings_data[0]['stime'] =           __('Start Time', 'eventprime-event-calendar-management');
-        $bookings_data[0]['edate'] =           __('End Date', 'eventprime-event-calendar-management');
-        $bookings_data[0]['etime'] =           __('End Time', 'eventprime-event-calendar-management');
-        $bookings_data[0]['event_type'] =      __('Event Type', 'eventprime-event-calendar-management');
-        $bookings_data[0]['venue'] =           __('Venue', 'eventprime-event-calendar-management');
-        $bookings_data[0]['address'] =         __('Address', 'eventprime-event-calendar-management');
-        $bookings_data[0]['seat_type'] =       __('Seating Type', 'eventprime-event-calendar-management');
-        $bookings_data[0]['attendees'] =       __('Attendees', 'eventprime-event-calendar-management');
-        $bookings_data[0]['seat'] =            __('Seat No.', 'eventprime-event-calendar-management');
-        $bookings_data[0]['currency'] =        __('Currency', 'eventprime-event-calendar-management');
-        $bookings_data[0]['price'] =           __('Price', 'eventprime-event-calendar-management');
-        $bookings_data[0]['attendees_count'] = __('Ticket Count', 'eventprime-event-calendar-management');
-        $bookings_data[0]['subtotal'] =        __('Subtotal', 'eventprime-event-calendar-management');
-        $bookings_data[0]['event_price'] =     __('Fixed Event Price', 'eventprime-event-calendar-management');
-        $bookings_data[0]['discount'] =        __('Discount', 'eventprime-event-calendar-management');
-        $bookings_data[0]['amount_received'] = __('Amount Received', 'eventprime-event-calendar-management');
-        $bookings_data[0]['gateway'] =         __('Payment Gateway', 'eventprime-event-calendar-management');
-        $bookings_data[0]['booking_status'] =  __('Booking Status', 'eventprime-event-calendar-management');
-        $bookings_data[0]['payment_status'] =  __('Payment Status', 'eventprime-event-calendar-management');
-        $bookings_data[0]['log'] =             __('Transacton Log', 'eventprime-event-calendar-management');
-        $bookings_data[0]['guest'] =           __('Guest Booking Data', 'eventprime-event-calendar-management');
+        $bookings_data[0]['id'] =              esc_html__('Booking ID', 'eventprime-event-calendar-management');
+        $bookings_data[0]['user_name'] =       esc_html__('User Name', 'eventprime-event-calendar-management');
+        $bookings_data[0]['email'] =           esc_html__('Email', 'eventprime-event-calendar-management');
+        $bookings_data[0]['event'] =           esc_html__('Event Name', 'eventprime-event-calendar-management');
+        $bookings_data[0]['sdate'] =           esc_html__('Start Date', 'eventprime-event-calendar-management');
+        $bookings_data[0]['stime'] =           esc_html__('Start Time', 'eventprime-event-calendar-management');
+        $bookings_data[0]['edate'] =           esc_html__('End Date', 'eventprime-event-calendar-management');
+        $bookings_data[0]['etime'] =           esc_html__('End Time', 'eventprime-event-calendar-management');
+        $bookings_data[0]['event_type'] =      esc_html__('Event Type', 'eventprime-event-calendar-management');
+        $bookings_data[0]['venue'] =           esc_html__('Venue', 'eventprime-event-calendar-management');
+        $bookings_data[0]['address'] =         esc_html__('Address', 'eventprime-event-calendar-management');
+        $bookings_data[0]['seat_type'] =       esc_html__('Seating Type', 'eventprime-event-calendar-management');
+        $bookings_data[0]['attendees'] =       esc_html__('Attendees', 'eventprime-event-calendar-management');
+        $bookings_data[0]['seat'] =            esc_html__('Seat No.', 'eventprime-event-calendar-management');
+        $bookings_data[0]['currency'] =        esc_html__('Currency', 'eventprime-event-calendar-management');
+        $bookings_data[0]['price'] =           esc_html__('Price', 'eventprime-event-calendar-management');
+        $bookings_data[0]['attendees_count'] = esc_html__('Ticket Count', 'eventprime-event-calendar-management');
+        $bookings_data[0]['subtotal'] =        esc_html__('Subtotal', 'eventprime-event-calendar-management');
+        $bookings_data[0]['event_price'] =     esc_html__('Fixed Event Price', 'eventprime-event-calendar-management');
+        $bookings_data[0]['discount'] =        esc_html__('Discount', 'eventprime-event-calendar-management');
+        $bookings_data[0]['amount_received'] = esc_html__('Amount Received', 'eventprime-event-calendar-management');
+        $bookings_data[0]['gateway'] =         esc_html__('Payment Gateway', 'eventprime-event-calendar-management');
+        $bookings_data[0]['booking_status'] =  esc_html__('Booking Status', 'eventprime-event-calendar-management');
+        $bookings_data[0]['payment_status'] =  esc_html__('Payment Status', 'eventprime-event-calendar-management');
+        $bookings_data[0]['log'] =             esc_html__('Transacton Log', 'eventprime-event-calendar-management');
+        $bookings_data[0]['guest'] =           esc_html__('Guest Booking Data', 'eventprime-event-calendar-management');
         if( ! empty( $bookings ) ) {
             $row = 1;
             foreach( $bookings as $booking ) {
@@ -725,8 +527,8 @@ class EventPrime_Bookings {
                         $bookings_data[$row]['user_name'] = $user->user_login ;
                         $bookings_data[$row]['email'] = $user->user_email;
                     }else{
-                    $bookings_data[$row]['user_name'] =  __('Guest','eventprime-event-calendar-management');
-                    $bookings_data[$row]['email'] =  __('Guest','eventprime-event-calendar-management');
+                    $bookings_data[$row]['user_name'] =  esc_html__('Guest','eventprime-event-calendar-management');
+                    $bookings_data[$row]['email'] =  esc_html__('Guest','eventprime-event-calendar-management');
                 }
                 
                 $bookings_data[$row]['event'] = $booking->em_name;
@@ -890,7 +692,7 @@ class EventPrime_Bookings {
         }
 
         header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="ep-bookings-'.md5(time().mt_rand(100, 999)).'.csv"');
+        header('Content-Disposition: attachment; filename="ep-bookings-'.md5(time().wp_rand(100, 999)).'.csv"');
         $f = fopen('php://output', 'w');
         foreach ( $bookings_data as $line ) {
             fputcsv( $f, $line );
@@ -1058,7 +860,7 @@ class EventPrime_Bookings {
                                                                     if( empty( $ticket ) ) {
                                                                         $ticket = esc_html__( 'Ticket', 'eventprime-event-calendar-management' ); 
                                                                     }
-                                                                    echo $ticket; echo ' ' . esc_html( $ticket_num );?>
+                                                                    echo esc_html($ticket); echo ' ' . esc_html( $ticket_num );?>
                                                                 </span>
                                                                 <span class="material-icons-round ep-align-bottom ep-bg-light ep-cursor ep-rounded-circle ep-ml-5 ep-event-attendee-handler">expand_more</span>
                                                             </div>

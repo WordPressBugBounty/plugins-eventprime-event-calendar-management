@@ -46,14 +46,14 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                 <div id="ep_existing_tickets_category_list ep-box-col-12">
                     <?php 
                     $existing_cat_data = $ep_functions->get_existing_category_lists( $post->ID );
-                    $ep_ticket_category_data = ( ! empty( $existing_cat_data ) ? json_encode($existing_cat_data) : '' );?>
+                    $ep_ticket_category_data = ( ! empty( $existing_cat_data ) ? wp_json_encode($existing_cat_data) : '' );?>
                     <input type="hidden" name="em_ticket_category_data" id="ep_ticket_category_data" value="<?php echo esc_attr( $ep_ticket_category_data );?>" />
                     <input type="hidden" name="em_ticket_category_delete_ids" id="ep_ticket_category_delete_ids" value="" />
                 
                     <div class="ep-box-row ep-p-3" id="ep_existing_tickets_list">
                         <?php if( !empty( $existing_cat_data ) && count( $existing_cat_data ) > 0 ) {
                             foreach( $existing_cat_data as $key => $cat_data ) {
-                                $cat_row_data = json_encode($cat_data);
+                                $cat_row_data = wp_json_encode($cat_data);
                                 $row_key = $key + 1;
                                 $cat_row_id = 'ep_ticket_cat_section'. $row_key; ?>
                                 <div class="ep-box-col-12 ep-p-3 ep-border ep-rounded ep-mb-3 ep-bg-white ep-shadow-sm ui-state-default ep-cat-list-class" id="<?php echo esc_attr( $cat_row_id );?>" data-cat_row_data="<?php echo esc_attr( $cat_row_data );?>">
@@ -88,7 +88,7 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                                                     $icon_url = wp_get_attachment_url( $ticket->icon );
                                                 }
                                                 $ticket->icon_url = $icon_url;
-                                                $ticket_row_data = json_encode( $ticket );
+                                                $ticket_row_data = wp_json_encode( $ticket );
                                                 $ticket_row_id = '';
                                                 $ticket_row_id = 'ep_cat_' . $row_key . '_ticket' . $tic_row;?>
                                                 <div class="ep-box-row ep-tickets-cate-ticket-row" id="<?php echo esc_attr( $ticket_row_id );?>" data-ticket_row_data="<?php echo esc_attr( $ticket_row_data );?>">
@@ -137,10 +137,10 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                     <input type="hidden" name="ep_ticket_order_arr" id="ep_ticket_order_arr" value="" /> 
                     <?php $get_existing_individual_ticket_lists = $ep_functions->get_existing_individual_ticket_lists( $post->ID );
                     $ep_ticket_data = ( ! empty( $get_existing_individual_ticket_lists ) ? $get_existing_individual_ticket_lists : array() );
-                    //$em_ticket_individual_data = ( ! empty( $get_existing_individual_ticket_lists ) ? json_encode( $get_existing_individual_ticket_lists ) : '' );?>
+                    //$em_ticket_individual_data = ( ! empty( $get_existing_individual_ticket_lists ) ? wp_json_encode( $get_existing_individual_ticket_lists ) : '' );?>
                     <input type="hidden" name="em_ticket_individual_data" id="ep_ticket_individual_data" value="" />
                     <input type="hidden" name="em_ticket_individual_delete_ids" id="ep_ticket_individual_delete_ids" value="" />
-                    <?php echo do_action('ep_ticket_additional_hidden_fields');?>
+                    <?php do_action('ep_ticket_additional_hidden_fields');?>
                     <div class="ep-ticket-category-section">
                         <?php if( !empty( $ep_ticket_data ) ) {
                             
@@ -165,7 +165,7 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                                     $icon_url = wp_get_attachment_url( $ticket->icon );
                                 }
                                 $ticket->icon_url = $icon_url;
-                                $ticket_row_data = json_encode( $ticket );
+                                $ticket_row_data = wp_json_encode( $ticket );
                                 $ticket_row_id = 'ep_event_ticket_row' . $tic_row;?>
                                 <div class="ep-box-row ep-tickets-indi-ticket-row" id="<?php echo esc_attr( $ticket_row_id );?>" data-ticket_row_data="<?php echo esc_attr( $ticket_row_data );?>">
                                     <div class="ep-box-col-12">
@@ -491,7 +491,7 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                                     }?>
                                 </div>
                             </div>
-                            <?php echo do_action('em_ticket_additional_fields');?>
+                            <?php do_action('em_ticket_additional_fields');?>
                         </div>
 
                         <!-- Tabs -->
@@ -516,7 +516,7 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                                                 <select name="em_ticket_visibility_user_roles[]" id="ep_ticket_visibility_user_roles" multiple="multiple" class="ep-form-control ep_user_roles_options">
                                                     <?php foreach( $ep_functions->ep_get_all_user_roles() as $key => $role ){?>
                                                         <option value="<?php echo esc_attr( $key );?>">
-                                                            <?php echo $role;?>
+                                                            <?php echo esc_html($role);?>
                                                         </option><?php
                                                     }?>
                                                 </select>
@@ -717,7 +717,7 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                                                         <select name="em_ticket_offer_user_roles" id="em_ticket_offer_user_roles" multiple="multiple" class="ep-form-control ep_user_roles_options">
                                                             <?php foreach( $ep_functions->ep_get_all_user_roles() as $key => $role ){?>
                                                                 <option value="<?php echo esc_attr( $key );?>">
-                                                                    <?php echo $role;?>
+                                                                    <?php echo esc_html($role);?>
                                                                 </option><?php
                                                             }?>
                                                         </select>

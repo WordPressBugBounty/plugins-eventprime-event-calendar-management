@@ -114,9 +114,9 @@ $ep_functions = new Eventprime_Basic_Functions;
                     $sl = ( ! empty( $em_social_links[$key] ) ? $em_social_links[$key] : '' );?>
                     <div class="ep-form-row ep-form-group ep-mb-3 ep-type-admin-social">
                         <label class="ep-form-label">
-                            <label><?php echo $links; ?></label>
+                            <label><?php echo esc_html($links); ?></label>
                         </label>
-                        <input type="text" class="ep-form-control ep-org-data-input" value="<?php echo esc_attr($sl);?>" name="em_social_links[<?php echo $key;?>]" placeholder="<?php echo $links; ?>" >
+                        <input type="text" class="ep-form-control ep-org-data-input" value="<?php echo esc_attr($sl);?>" name="em_social_links[<?php echo esc_attr($key);?>]" placeholder="<?php echo esc_html($links); ?>" >
                         
                     </div><?php
                 }?>

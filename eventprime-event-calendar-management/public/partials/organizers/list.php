@@ -114,8 +114,8 @@ wp_enqueue_script(
         <?php
         if( isset( $args->organizers ) && !empty( $args->organizers ) ) {?>
             <div class="em_organizers dbfl">
-                <div class="ep-event-organizers-<?php echo $args->display_style;?>-container ep-box-wrap">
-                    <div id="ep-event-organizers-loader-section" class="ep-px-3 ep-box-row ep-box-top ep-organizer-<?php echo $args->display_style;?>-wrap ">
+                <div class="ep-event-organizers-<?php echo esc_attr($args->display_style);?>-container ep-box-wrap">
+                    <div id="ep-event-organizers-loader-section" class="ep-px-3 ep-box-row ep-box-top ep-organizer-<?php echo esc_attr($args->display_style);?>-wrap ">
                         <?php
                         switch ( $args->display_style ) {
                             case 'card':

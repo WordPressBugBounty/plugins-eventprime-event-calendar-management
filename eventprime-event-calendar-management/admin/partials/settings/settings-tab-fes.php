@@ -49,7 +49,7 @@
                     <option value=""><?php esc_html_e( 'Select Status', 'eventprime-event-calendar-management' );?></option>
                     <?php foreach( $options['status_list'] as $key => $status ){?>
                         <option value="<?php echo esc_attr( $key );?>" <?php if( $options['global']->ues_default_status == $key ) { echo 'selected="selected"'; } ?>>
-                            <?php echo $status;?>
+                            <?php echo esc_html($status);?>
                         </option><?php
                     }?>
                 </select>
@@ -66,7 +66,7 @@
                 <select name="frontend_submission_roles" id="frontend_submission_roles" multiple="multiple" class="ep-form-control">
                     <?php foreach( ep_get_all_user_roles() as $key => $role ){?>
                         <option value="<?php echo esc_attr( $key );?>" <?php if( $options['global']->frontend_submission_roles == $key ) { echo 'selected="selected"'; } ?>>
-                            <?php echo $role;?>
+                            <?php echo esc_html($role);?>
                         </option><?php
                     }?>
                 </select>
@@ -92,9 +92,9 @@
             </th>
             <td class="forminp forminp-text">
                 <?php foreach( $options['fes_sections'] as $key => $section ){ ?>
-                    <label for="frontend_submission_sections_<?php echo $key;?>">
-                        <input type="checkbox" name="frontend_submission_sections[<?php echo $key;?>" id="frontend_submission_sections_<?php echo $key;?>">
-                        <?php echo $section;?>
+                    <label for="frontend_submission_sections_<?php echo esc_attr($key);?>">
+                        <input type="checkbox" name="frontend_submission_sections[<?php echo esc_attr($key);?>" id="frontend_submission_sections_<?php echo esc_attr($key);?>">
+                        <?php echo esc_html($section);?>
                     </label><?php
                 }?>
             </td>
@@ -108,9 +108,9 @@
             </th>
             <td class="forminp forminp-text">
                 <?php foreach( $options['fes_required'] as $key => $section ){ ?>
-                    <label for="frontend_submission_required_<?php echo $key;?>">
-                        <input type="checkbox" name="frontend_submission_required[<?php echo $key;?>" id="frontend_submission_required_<?php echo $key;?>">
-                        <?php echo $section;?>
+                    <label for="frontend_submission_required_<?php echo esc_attr($key);?>">
+                        <input type="checkbox" name="frontend_submission_required[<?php echo esc_attr($key);?>" id="frontend_submission_required_<?php echo esc_attr($key);?>">
+                        <?php echo esc_html($section);?>
                     </label><?php
                 }?>
             </td>

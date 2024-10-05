@@ -50,7 +50,7 @@ if( ! empty( $args->current_user ) && ! empty( $args->current_user->ID ) ) {?>
                     </a>
                 </div>
                 <div class="ep-box-col-6 ep-align-right">
-                    <a href="<?php echo wp_logout_url(); ?>">
+                    <a href="<?php echo esc_url(wp_logout_url()); ?>">
                         <?php esc_html_e('Logout', 'eventprime-event-calendar-management'); ?>
                     </a>
                 </div>
@@ -93,7 +93,7 @@ if( ! empty( $args->current_user ) && ! empty( $args->current_user->ID ) ) {?>
                 <div class="ep-form-row ep-form-group ep-mb-3">
                     <div class="ep-register-login">
                         <?php esc_html_e( 'Already have an Account?', 'eventprime-event-calendar-management' ); ?> 
-                        <a href="<?php echo $form_link;?>" id="em_register_login1">
+                        <a href="<?php echo esc_url($form_link);?>" id="em_register_login1">
                             <?php echo esc_html__( 'Please','eventprime-event-calendar-management' ) . ' '. esc_html( $args->login_button_label ); ?>
                         </a>
                     </div>
@@ -189,7 +189,7 @@ if( ! empty( $args->current_user ) && ! empty( $args->current_user->ID ) ) {?>
                     <?php 
                     if( $args->register_google_recaptcha == 1 && !empty($args->google_recaptcha_site_key) ){
                         echo '<div class="ep-form-row ep-form-group ep-mb-3">
-                            <div class="g-recaptcha"  data-sitekey="'.$args->google_recaptcha_site_key.'"></div>
+                            <div class="g-recaptcha"  data-sitekey="'.esc_attr($args->google_recaptcha_site_key).'"></div>
                         </div>'; 
                     } ?>
                     <!-- Register Button Section for blocks and default start -->
@@ -221,7 +221,7 @@ if( ! empty( $args->current_user ) && ! empty( $args->current_user->ID ) ) {?>
                     <div class="ep-form-row ep-form-group ep-mb-3">
                         <div class="ep-register-login">
                             <?php echo wp_kses_post( stripslashes( $args->already_have_account_label ) );  ?> 
-                            <a href="<?php echo $form_link;?>" id="em_register_login1">
+                            <a href="<?php echo esc_url($form_link);?>" id="em_register_login1">
                                 <?php echo esc_html( $args->login_button_label ); ?>
                                 
                             </a>

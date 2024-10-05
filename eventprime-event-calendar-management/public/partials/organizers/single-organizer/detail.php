@@ -27,7 +27,7 @@ defined( 'ABSPATH' ) || exit;
                             foreach( $args->organizer->em_organizer_emails as $key => $val ) {
                                 $args->organizer->em_organizer_emails[$key] = '<a href="mailto:'.$val.'">'.htmlentities( $val ).'</a>';
                             }
-                            echo implode( ', ', $args->organizer->em_organizer_emails ); 
+                            echo wp_kses_post(implode( ', ', $args->organizer->em_organizer_emails )); 
                         } else {
                             esc_html_e( 'Not Available', 'eventprime-event-calendar-management' );
                         } ?>
@@ -40,7 +40,7 @@ defined( 'ABSPATH' ) || exit;
                         </div>
                         <div class="ep-details-box-value">
                         <?php if ( ! empty( $args->organizer->em_organizer_phones ) && count( $args->organizer->em_organizer_phones ) > 0  && ! empty( $args->organizer->em_organizer_phones[0] ) ) {
-                            echo implode( ', ', $args->organizer->em_organizer_phones ); 
+                            echo wp_kses_post(implode( ', ', $args->organizer->em_organizer_phones )); 
                         }else {
                             esc_html_e( 'Not Available', 'eventprime-event-calendar-management' );
                         } ?>
@@ -59,7 +59,7 @@ defined( 'ABSPATH' ) || exit;
                                     $args->organizer->em_organizer_websites[$key] = '<a href="'.$val.'" target="_blank">'.htmlentities( $val ).'</a>';
                                 }
                             }
-                            echo implode( ', ', $args->organizer->em_organizer_websites ); 
+                            echo wp_kses_post(implode( ', ', $args->organizer->em_organizer_websites )); 
                         } else {
                             esc_html_e( 'Not Available', 'eventprime-event-calendar-management' ); 
                         }?>
@@ -105,7 +105,7 @@ defined( 'ABSPATH' ) || exit;
             
             <div class="ep-single-box-summery ep-single-box-desc">
                 <?php if ( isset( $args->organizer->description ) && $args->organizer->description !== '' ) {
-                    echo wpautop( wp_kses_post( $args->organizer->description ) );
+                    echo wp_kses_post(wpautop( $args->organizer->description ) );
                 } else{
                     esc_html_e( 'No description available', 'eventprime-event-calendar-management' );
                 }?>

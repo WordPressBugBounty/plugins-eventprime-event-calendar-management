@@ -67,7 +67,7 @@ $ep_functions = new Eventprime_Basic_Functions;
                                 </label>
                                 <select name="new_event_type_age_group" id="ep_new_event_type_age_group" onchange="fes_age_group_changed(this)" class="ep-form-input ep-input-select ep-form-control">
                                     <?php foreach ($args->ages_groups as $key => $group): ?>
-                                        <option value="<?php echo esc_attr($key); ?>"><?php echo $group; ?></option>
+                                        <option value="<?php echo esc_attr($key); ?>"><?php echo esc_html($group); ?></option>
                                     <?php endforeach; ?>
                                 </select>
                          

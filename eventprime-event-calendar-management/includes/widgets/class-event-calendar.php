@@ -14,9 +14,9 @@ if (!class_exists('EventM_calendar')) {
         public function widget($args, $instance) {
             $basic_functions = new Eventprime_Basic_Functions;
             $title = apply_filters('widget_title', $instance['title']);
-            echo $args['before_widget'];
+            echo wp_kses_post($args['before_widget']);
             if ( ! empty( $title ) )
-                echo $args['before_title'] . $title . $args['after_title'];
+                echo wp_kses_post($args['before_title'] . $title . $args['after_title']);
                 
             wp_enqueue_style(
                 'ep-widgets-style',
@@ -46,7 +46,7 @@ if (!class_exists('EventM_calendar')) {
                         <div class="ep_upcoming_events">
                             <div class="ep_calendar_widget-events-title ep-py-2 ep-fs-5 ep-mt-2"><?php esc_html_e( 'Upcoming Events', 'eventprime-event-calendar-management' ) ?></div>
                             <?php
-                            $start_date = new DateTime( ' ' . date('Y-m-d') );
+                            $start_date = new DateTime( ' ' . gmdate('Y-m-d') );
                             $start_date->setTime( 0,0,0,0 );
                             $event_controller = new Eventprime_Basic_Functions();
                             $query = array(
@@ -63,7 +63,7 @@ if (!class_exists('EventM_calendar')) {
                                 )
                             );
                             $events = $event_controller->get_events_post_data($query);
-                            $today = $basic_functions->ep_date_to_timestamp(date('Y-m-d'));
+                            $today = $basic_functions->ep_date_to_timestamp(gmdate('Y-m-d'));
                             
                             if ( ! empty( $events ) ) {
                                 for ($i = 0; $i < min(5, count($events->posts)); $i++) {
@@ -85,7 +85,7 @@ if (!class_exists('EventM_calendar')) {
                     }?>
                 </form>
             </div><?php
-            echo $args['after_widget'];
+            echo wp_kses_post($args['after_widget']);
         }
 
         /**
@@ -96,7 +96,7 @@ if (!class_exists('EventM_calendar')) {
             if (isset($instance['title'])) {
                 $title = $instance['title'];
             } else {
-                $title = __( 'New Title', 'eventprime-event-calendar-management' );
+                $title = esc_html__( 'New Title', 'eventprime-event-calendar-management' );
             }?>
             <p>
                 <label for="<?php echo esc_attr( $this->get_field_id('title') ); ?>"><?php esc_html_e( 'Title:', 'eventprime-event-calendar-management' ); ?></label> 

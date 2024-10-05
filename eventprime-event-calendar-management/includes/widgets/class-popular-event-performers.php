@@ -20,7 +20,7 @@ if (!class_exists('EventM_Popular_Performer')){
                 false, ''
             );
             $performers_text = $basic_functions->ep_global_settings_button_title('Performers');
-            $popular_event_performers =  sprintf( __( 'Popular Event %s', 'eventprime-event-calendar-management' ), $performers_text );
+            $popular_event_performers =  sprintf( esc_html__( 'Popular Event %s', 'eventprime-event-calendar-management' ), $performers_text );
             $title = ( ! empty( $instance['title'] ) ) ? $instance['title'] : $popular_event_performers;
             $title = apply_filters( 'widget_title', $title, $instance, $this->id_base );
             $number = ( ! empty( $instance['number'] ) ) ? absint( $instance['number'] ) : 5;
@@ -63,7 +63,7 @@ if (!class_exists('EventM_Popular_Performer')){
                     $html .= '<div class="ep-widgets-empty">'.esc_html__( 'No data found.', 'eventprime-event-calendar-management').'</div>';
                 }
             $html .= '</div></div>';
-            echo $html;
+            echo wp_kses_post($html);
         }
 
         public function form($instance) {

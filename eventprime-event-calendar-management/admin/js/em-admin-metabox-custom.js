@@ -680,6 +680,7 @@ jQuery( function( $ ) {
         }
         if( intervalVal == 'yearly' ) {
             $( '#em_show_yearly_options' ).show();
+            $('#em_recurrence_yearly_today').attr('checked', true);
         }
         if( intervalVal == 'advanced' ) {
             $( '#em_show_advanced_options' ).show();

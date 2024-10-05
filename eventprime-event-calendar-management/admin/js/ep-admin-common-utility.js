@@ -93,32 +93,39 @@ jQuery(function ($) {
     });
 
     // print attendee list
-    $( document ).on( 'click', '#ep_print_event_attendees_list', function() {
-        $( '#ep_print_attendee_list_loader' ).addClass( 'is-active' );
-        let event_id = $( '#ep_event_id' ).val();
-        if( event_id ) {
-            let security = $( '#ep_ep_print_event_attendees_nonce' ).val();
+    $(document).on('click', '#ep_print_event_attendees_list', function() {
+        $('#ep_print_attendee_list_loader').addClass('is-active');
+        let event_id = $('#ep_event_id').val();
+        let status_filter = $('#attendee_check_in_filter').val();
+        let user_filter = $('#ep_attendee_page_user_filter').val();
+    
+        if (event_id) {
+            let security = $('#ep_ep_print_event_attendees_nonce').val();
             let data = { 
                 action: 'ep_event_print_all_attendees', 
                 security: security,
                 event_id: event_id,
+                attendee_check_in_filter: status_filter,
+                ep_attendee_page_user_filter: user_filter,
             };
+    
             $.ajax({
-                type    : "POST",
-                url     : ajaxurl,
-                data    : data,
-                success : function( response ) {
+                type: "POST",
+                url: ajaxurl,
+                data: data,
+                success: function(response) {
                     let blob = new Blob([response]);
                     let link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
                     let file_name = 'attendees-' + event_id + '.csv';
                     link.download = file_name;
                     link.click();
-                    $( '#ep_print_attendee_list_loader' ).removeClass( 'is-active' );
+                    $('#ep_print_attendee_list_loader').removeClass('is-active');
                 }
             });
         }
     });
+    
 
 });
 

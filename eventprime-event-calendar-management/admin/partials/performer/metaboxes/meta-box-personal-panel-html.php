@@ -15,12 +15,12 @@ $em_is_featured        = get_post_meta( $post->ID, 'em_is_featured', true );
     <div class="ep-meta-box-section">
   
         <div class="ep-box-row ep-meta-box-data ep-performers-phone">
-     
-            <?php if( empty( $em_performer_phones ) || count( $em_performer_phones ) == 0 ) {?>
-
-                <label class=" ep-box-col-12 ep-meta-box-phone ep-form-label">
+     <label class=" ep-box-col-12 ep-meta-box-phone ep-form-label">
                       <?php esc_html_e('Phone', 'eventprime-event-calendar-management'); ?>
                     </label>
+            <?php if( empty( $em_performer_phones ) || count( $em_performer_phones ) == 0 ) {?>
+
+                
                 <div class="ep-box-col-12 ep-per-phone ep-per-data-field-input">
                     <input type="tel" class="ep-per-data-input ep-mr-2" name="em_performer_phones[]" placeholder="<?php echo esc_attr('Phone', 'eventprime-event-calendar-management');?>"><button type="button" class="ep-per-add-more button button-primary" 
                         data-input="phone" 

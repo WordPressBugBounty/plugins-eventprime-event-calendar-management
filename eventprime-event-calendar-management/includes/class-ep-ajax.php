@@ -165,16 +165,17 @@ class EventM_Ajax_Service {
             if( $form_data['em_payment_type'] == 'basic' ) {
                 $payment_method = isset( $form_data['payment_method'] ) && ! empty( $form_data['payment_method'] ) ? sanitize_text_field( $form_data['payment_method'] ) : '';
                 $method_status = $form_data['method_status'];
+                $nonce = wp_create_nonce('ep_settings_tab');
                 if( ! empty( $method_status ) ) {
                     if( $payment_method == 'paypal_processor' ) {
                         if( empty( $global_settings_data->paypal_client_id ) && $method_status == 1 ) {
-                            $url = add_query_arg( array( 'settings-updated' => false, 'tab'=> 'payments', 'section'=> 'paypal' ), admin_url().'edit.php?post_type=em_event&page=ep-settings' );
+                            $url = add_query_arg( array( 'settings-updated' => false, 'tab'=> 'payments', 'section'=> 'paypal','tab_nonce'=>$nonce ), admin_url().'edit.php?post_type=em_event&page=ep-settings' );
                             wp_send_json_success( array( 'url' => $url ) );
                         }
                     }
                     if( $payment_method == 'stripe_processor' ) {
                         if( ( empty( $global_settings_data->stripe_api_key ) || empty( $global_settings_data->stripe_pub_key ) ) && $method_status == 1 ) {
-                            $url = add_query_arg( array( 'settings-updated' => false, 'tab'=> 'payments', 'section'=> 'stripe' ), admin_url().'edit.php?post_type=em_event&page=ep-settings' );
+                            $url = add_query_arg( array( 'settings-updated' => false, 'tab'=> 'payments', 'section'=> 'stripe','tab_nonce'=>$nonce ), admin_url().'edit.php?post_type=em_event&page=ep-settings' );
                             wp_send_json_success( array( 'url' => $url ) );
                         }
                     }

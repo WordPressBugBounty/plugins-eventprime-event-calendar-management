@@ -65,4 +65,7 @@ $ages_groups = array(
             <p class="emnote emeditor">
                 <?php esc_html_e('Check if you want to make this event type featured.', 'eventprime-event-calendar-management'); ?>
             </p>
-        </div><?php
+        </div>
+     <?php wp_nonce_field( 'em_event_type_nonce_action', 'em_event_type_nonce_field' );
+
+        

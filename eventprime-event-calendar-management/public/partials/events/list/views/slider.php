@@ -29,7 +29,7 @@ $ep_functions = new Eventprime_Basic_Functions;
                 <?php do_action( 'ep_event_view_before_event_title', $event );?>
 
                 <div class="ep-box-title ep-box-card-title ep-text-truncate">
-                    <a href="<?php echo $url; ?>" <?php echo esc_attr( $new_window );?> class="ep-fw-bold ep-fs-3 ep-mt-3 ep-text-dark">
+                    <a href="<?php echo esc_url($url); ?>" <?php echo esc_attr( $new_window );?> class="ep-fw-bold ep-fs-3 ep-mt-3 ep-text-dark">
                         <?php echo esc_html( $event->em_name ); ?>
                     </a>
                 </div><?php
@@ -95,7 +95,7 @@ $ep_functions = new Eventprime_Basic_Functions;
                     <?php do_action( 'ep_event_view_event_icons', $event );?>
                 </div>
                 <?php if ( ! empty( $event->_thumbnail_id ) ) { ?>
-                    <a href="<?php echo $url; ?>" <?php echo esc_attr( $new_window );?> class="ep-img-link">
+                    <a href="<?php echo esc_url($url); ?>" <?php echo esc_attr( $new_window );?> class="ep-img-link">
                         <?php
                         if(is_admin() && defined('ELEMENTOR_VERSION'))
                         {
@@ -116,7 +116,7 @@ $ep_functions = new Eventprime_Basic_Functions;
                         ?>
                     </a><?php
                     } else { ?>
-                    <a href="<?php echo $url; ?>" <?php echo esc_attr( $new_window );?> class="ep-img-link ep-image-default">
+                    <a href="<?php echo esc_url($url); ?>" <?php echo esc_attr( $new_window );?> class="ep-img-link ep-image-default">
                         <img src="<?php echo esc_url( plugin_dir_url(EP_PLUGIN_FILE). 'admin/images/dummy_image.png' ); ?>" alt="<?php echo esc_html( $event->em_name ); ?>" class="em-no-image">
                     </a><?php
                 } ?>

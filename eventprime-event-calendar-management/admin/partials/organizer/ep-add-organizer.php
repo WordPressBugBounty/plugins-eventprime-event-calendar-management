@@ -64,13 +64,13 @@ $ep_functions = new Eventprime_Basic_Functions;
         
         <?php $social_links = $ep_functions->ep_social_sharing_fields();
         foreach( $social_links as $key => $links) { ?>
-            <div class="form-field ep-organizer-admin-social ep-organizer-<?php echo $key;?>">
+            <div class="form-field ep-organizer-admin-social ep-organizer-<?php echo esc_attr($key);?>">
                 <label for="<?php echo esc_attr($key);?>" >
-                    <?php echo $links;?>
+                    <?php echo wp_kses_post($links);?>
                 </label>
-                <input type="url" name="em_social_links[<?php echo $key;?>]" placeholder="<?php echo sprintf( __( 'https://www.%s.com/XYZ/', 'eventprime-event-calendar-management' ), strtolower( $links ) ); ?>" data-key="<?php esc_html_e($key);?>">
+                <input type="url" name="em_social_links[<?php echo esc_attr($key);?>]" placeholder="<?php echo sprintf( esc_html__( 'https://www.%s.com/XYZ/', 'eventprime-event-calendar-management' ), esc_attr(strtolower( $links )) ); ?>" data-key="<?php esc_html_e($key);?>">
                 <p class="emnote emeditor">
-                    <?php echo sprintf( __( 'Enter %s URL of the Organizer, if available. Eg.:https://www.%s.com/XYZ/', 'eventprime-event-calendar-management' ), $links, strtolower( $links ) ); ?>
+                    <?php echo sprintf( esc_html__( 'Enter %s URL of the Organizer, if available. Eg.:https://www.%s.com/XYZ/', 'eventprime-event-calendar-management' ), wp_kses_post($links), esc_attr(strtolower( $links )) ); ?>
                 </p>
             </div>
             <?php
@@ -87,4 +87,4 @@ $ep_functions = new Eventprime_Basic_Functions;
                     <?php esc_html_e( 'Check if you want to make this organizer featured.', 'eventprime-event-calendar-management' ); ?>
                 </p>
             </label>
-        </div>
+        </div><?php wp_nonce_field( 'em_event_organizer_nonce_action', 'em_event_organizer_nonce_field' );

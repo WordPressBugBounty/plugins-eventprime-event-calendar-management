@@ -24,7 +24,7 @@ $ep_functions = new Eventprime_Basic_Functions;
                     <span id="ep-start-date-hidden" class="material-icons ep-text-muted ep-text-small ep-ml-2" style="display: none;">visibility_off</span>
                 </label>
                 <div class="ep-event-start-date">
-                    <input type="text" name="em_start_date" id="em_start_date" class="ep-form-control epDatePicker" autocomplete="off" placeholder="<?php esc_html_e('Start Date', 'eventprime-event-calendar-management'); ?>" value="<?php echo isset($args->event) && !empty($args->event->em_start_date) ? $ep_functions->ep_timestamp_to_date( $args->event->em_start_date )  : '';?>">
+                    <input type="text" name="em_start_date" id="em_start_date" class="ep-form-control epDatePicker" autocomplete="off" placeholder="<?php esc_html_e('Start Date', 'eventprime-event-calendar-management'); ?>" value="<?php echo isset($args->event) && !empty($args->event->em_start_date) ? esc_attr($ep_functions->ep_timestamp_to_date( $args->event->em_start_date ))  : '';?>">
                 </div>
             </div>
 
@@ -33,7 +33,7 @@ $ep_functions = new Eventprime_Basic_Functions;
                     <span id="ep-start-time-hidden" class="material-icons ep-text-muted ep-text-small ep-ml-2" style="display: none;">visibility_off</span>
                 </label>
                 <div class="ep-event-start-time">
-                    <input type="text" id="em_start_time" name="em_start_time" class="ep-form-control epTimePicker" value="<?php echo isset($args->event) && !empty($args->event->em_start_time) ?  $args->event->em_start_time   : '';?>">
+                    <input type="text" id="em_start_time" name="em_start_time" class="ep-form-control epTimePicker" value="<?php echo isset($args->event) && !empty($args->event->em_start_time) ?  esc_attr($args->event->em_start_time)   : '';?>">
                 </div>
             </div>
             
@@ -69,7 +69,7 @@ $ep_functions = new Eventprime_Basic_Functions;
                     <span id="ep-end-date-hidden" class="material-icons ep-text-muted ep-text-small ep-ml-2" style="display: none;">visibility_off</span>
                 </label>
                 <div class="ep-event-end-date">
-                    <input type="text" name="em_end_date" id="em_end_date" class="ep-form-control epDatePicker" autocomplete="off" placeholder="<?php esc_html_e('End Date', 'eventprime-event-calendar-management'); ?>" value="<?php echo isset($args->event) && !empty($args->event->em_end_date) ? $ep_functions->ep_timestamp_to_date( $args->event->em_end_date )  : '';?>">
+                    <input type="text" name="em_end_date" id="em_end_date" class="ep-form-control epDatePicker" autocomplete="off" placeholder="<?php esc_html_e('End Date', 'eventprime-event-calendar-management'); ?>" value="<?php echo isset($args->event) && !empty($args->event->em_end_date) ? esc_attr($ep_functions->ep_timestamp_to_date( $args->event->em_end_date ))  : '';?>">
                 </div>
             </div>
             
@@ -78,7 +78,7 @@ $ep_functions = new Eventprime_Basic_Functions;
                     <span id="ep-end-time-hidden" class="material-icons ep-text-muted ep-text-small ep-ml-2" style="display: none;">visibility_off</span>
                 </label>
                 <div class="ep-event-start-time">
-                    <input type="text" id="em_end_time" name="em_end_time" class="ep-form-control epTimePicker" value="<?php echo isset($args->event) && !empty($args->event->em_end_time) ?  $args->event->em_end_time   : '';?>">                
+                    <input type="text" id="em_end_time" name="em_end_time" class="ep-form-control epTimePicker" value="<?php echo isset($args->event) && !empty($args->event->em_end_time) ?  esc_attr($args->event->em_end_time)   : '';?>">                
                 </div>
             </div>
             
@@ -117,7 +117,7 @@ $ep_functions = new Eventprime_Basic_Functions;
             
             <div class="col-md-12" id="ep-date-custom-note-content" style="<?php if( isset($args->event) && esc_attr( $args->event->em_event_date_placeholder ) == 'custom_note' ) { echo 'display:block;'; } else{ echo 'display:none;';} ?>">
                 <label class="ep-form-label"><?php esc_html_e( 'Date Placeholder Note', 'eventprime-event-calendar-management'); ?></label>
-                <input type="text" class="ep-form-control" name="em_event_date_placeholder_custom_note" value="<?php echo isset($args->event) && isset($args->event->em_event_date_placeholder_custom_note) ? $args->event->em_event_date_placeholder_custom_note : '';?>">
+                <input type="text" class="ep-form-control" name="em_event_date_placeholder_custom_note" value="<?php echo isset($args->event) && isset($args->event->em_event_date_placeholder_custom_note) ? esc_attr($args->event->em_event_date_placeholder_custom_note) : '';?>">
                 <span class="ep-text-muted ep-text-small">
                 <?php printf( esc_html__( 'Since you chose to hide both the dates, this note will be displayed where date usually appears on the frontned. You can use text like %s etc. here.', 'eventprime-event-calendar-management' ), '<strong>To Be Decided</strong>' ); ?></span>
             </div>
@@ -151,12 +151,12 @@ $ep_functions = new Eventprime_Basic_Functions;
             <?php $note_count =1;
             if( isset( $args->event ) && isset( $args->event->em_event_add_more_dates ) && ! empty( $args->event->em_event_add_more_dates ) ) {
                 foreach( $args->event->em_event_add_more_dates as $event_dates ) {?>
-                    <div class=" ep-box-row ep-py-3 ep-mb-3 ep-items-end ep-additional-date-row" id="ep-additional-date-row<?php echo $note_count;?>">
-                        <input type="hidden" name="em_event_add_more_dates[<?php echo $note_count;?>][uid]" value="<?php echo $event_dates['uid'];?>">
+                    <div class=" ep-box-row ep-py-3 ep-mb-3 ep-items-end ep-additional-date-row" id="ep-additional-date-row<?php echo esc_attr($note_count);?>">
+                        <input type="hidden" name="em_event_add_more_dates[<?php echo esc_attr($note_count);?>][uid]" value="<?php echo esc_attr($event_dates['uid']);?>">
                         <div class="ep-box-col-3 ep-meta-box-data">
                             <label class="ep-form-label"><?php esc_html_e( 'Date', 'eventprime-event-calendar-management' ); ?></label>
                             <div class="ep-event-start-time">
-                                <input type="text" name="em_event_add_more_dates[<?php echo $note_count;?>][date]" class="ep-form-control ep-ad-event-date epDatePicker" autocomplete="off" value="<?php echo isset($event_dates['date']) ? $ep_functions->ep_timestamp_to_date( $event_dates['date'] )  : '';?>">                
+                                <input type="text" name="em_event_add_more_dates[<?php echo esc_attr($note_count);?>][date]" class="ep-form-control ep-ad-event-date epDatePicker" autocomplete="off" value="<?php echo isset($event_dates['date']) ? esc_attr($ep_functions->ep_timestamp_to_date( $event_dates['date'] ))  : '';?>">                
                             </div>
                         </div>
 
@@ -164,7 +164,7 @@ $ep_functions = new Eventprime_Basic_Functions;
                             <label class="ep-form-label"><?php esc_html_e( 'Time (Optional)', 'eventprime-event-calendar-management' ); ?>
                             </label>
                             <div class="ep-event-start-time">
-                                <input type="text" name="em_event_add_more_dates[<?php echo $note_count;?>][time]" class="ep-form-control ep-ad-event-time epTimePicker" autocomplete="off" value="<?php echo isset($event_dates['time']) ? $event_dates['time']  : '';?>">                
+                                <input type="text" name="em_event_add_more_dates[<?php echo esc_attr($note_count);?>][time]" class="ep-form-control ep-ad-event-time epTimePicker" autocomplete="off" value="<?php echo isset($event_dates['time']) ? esc_attr($event_dates['time'])  : '';?>">                
                             </div>
                         </div>
 
@@ -172,7 +172,7 @@ $ep_functions = new Eventprime_Basic_Functions;
                             <label class="ep-form-label"><?php esc_html_e( 'Label', 'eventprime-event-calendar-management' ); ?>
                             </label>
                             <div class="ep-event-start-time">
-                                <input type="text" name="em_event_add_more_dates[<?php echo $note_count;?>][label]" placeholder="<?php esc_html_e( 'Label', 'eventprime-event-calendar-management' ); ?>" class="ep-form-control ep-ad-event-label" autocomplete="off" value="<?php echo isset($event_dates['label']) ? $event_dates['label']   : '';?>">                
+                                <input type="text" name="em_event_add_more_dates[<?php echo esc_attr($note_count);?>][label]" placeholder="<?php esc_html_e( 'Label', 'eventprime-event-calendar-management' ); ?>" class="ep-form-control ep-ad-event-label" autocomplete="off" value="<?php echo isset($event_dates['label']) ? esc_attr($event_dates['label'])   : '';?>">                
                             </div>
                         </div>
 

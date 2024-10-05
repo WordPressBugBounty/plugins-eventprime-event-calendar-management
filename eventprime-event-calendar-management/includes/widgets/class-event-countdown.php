@@ -19,12 +19,12 @@ if (!class_exists('EventM_Event_Countdown')):
                 false, ''
             );
             $title = apply_filters('widget_title', $instance['title'], $instance['event_id']);
-            echo $args['before_widget'];
+            echo wp_kses_post($args['before_widget']);
             $event_id = (int) $instance['event_id'];
             $event = $basic_functions->get_single_event($event_id);
             if ( ! empty( $event->id ) ):
                 if ( ! empty( $title ) ){
-                    echo $args['before_title'] . $title . $args['after_title'];
+                    echo wp_kses_post($args['before_title'] . $title . $args['after_title']);
                 }?>
                 <?php if ($event->em_start_date > current_time('timestamp')): ?>
                     <div class="event_title dbfl"><a href="<?php echo esc_url( $event->event_url ); ?>"><?php echo esc_html( $event->name ); ?></a></div> 
@@ -65,14 +65,14 @@ if (!class_exists('EventM_Event_Countdown')):
                     <?php
                 endif;
             endif;
-            echo $args['after_widget'];
+            echo wp_kses_post($args['after_widget']);
         }
 
         public function form($instance) {
             if (isset($instance['title'])) {
                 $title = $instance['title'];
             } else {
-                $title = __( 'New Title', 'eventprime-event-calendar-management' );
+                $title = esc_html__( 'New Title', 'eventprime-event-calendar-management' );
             }
 
             if ( isset( $instance['event_id'] ) ) {
@@ -100,7 +100,7 @@ if (!class_exists('EventM_Event_Countdown')):
                             if ( $event->em_start_date <= current_time('timestamp') )
                                 continue;
                             ?>
-                            <option <?php if ($event_id == $event->id) echo 'selected'; ?> value="<?php echo $event->id ?>"><?php echo esc_attr( $event->name ); ?></option>    
+                            <option <?php if ($event_id == $event->id) echo 'selected'; ?> value="<?php echo esc_attr($event->id); ?>"><?php echo esc_attr( $event->name ); ?></option>    
                             <?php
                         endforeach;
                     endif;

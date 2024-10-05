@@ -60,7 +60,7 @@ $date_format = !empty( $ep_functions->ep_get_global_settings('single_event_date_
                                         ?>
                                     </td>
                                     <td><?php if( isset( $booking->em_order_info ) && ! empty( $booking->em_order_info ) ) {
-                                        echo $ep_functions->ep_price_with_position( $booking->em_order_info['booking_total'] );
+                                        echo wp_kses_post($ep_functions->ep_price_with_position( $booking->em_order_info['booking_total'] ));
                                     }?> </td>
                                     <td>
                                         <a href="<?php echo esc_url( $booking->booking_detail_url );?>" target="_blank">

@@ -26,7 +26,7 @@
                         <div class="ep-event-meta ep-color-before">
                             <?php if ( ! empty( $performer->description ) ) { ?>
                                 <div class="ep-performer-description ep-box-list-desc ep-content-truncate ep-content-truncate-line-3">
-                                    <?php echo wpautop( wp_kses_post( $performer->description ) ); ?>
+                                    <?php echo wp_kses_post( wpautop( $performer->description ) ); ?>
                                 </div>
                             <?php } ?>
                         </div>

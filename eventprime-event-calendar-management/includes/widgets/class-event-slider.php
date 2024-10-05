@@ -6,7 +6,7 @@ if (!defined('ABSPATH')) {
 class EventM_slider extends WP_Widget {
 
     function __construct() {
-        parent::__construct('eventm_slider', __("EventPrime - Event Slider", 'eventprime-event-calendar-management'), array('description' => __("Event Slider to show all the events", 'eventprime-event-calendar-management'))
+        parent::__construct('eventm_slider', esc_html__("EventPrime - Event Slider", 'eventprime-event-calendar-management'), array('description' => esc_html__("Event Slider to show all the events", 'eventprime-event-calendar-management'))
         );
     }
 

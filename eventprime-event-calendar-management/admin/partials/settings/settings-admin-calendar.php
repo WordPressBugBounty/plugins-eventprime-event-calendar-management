@@ -87,7 +87,7 @@
                                             <i class="fa fa-info-circle" aria-hidden="true"></i>
                                             <?php 
                                             printf(
-                                                __('Configure payment gateway from %sGlobal Settings%s before adding booking price here. Payment gateway is not required for 0 booking price.', 'eventprime-event-calendar-management'),
+                                                esc_html__('Configure payment gateway from %sGlobal Settings%s before adding booking price here. Payment gateway is not required for 0 booking price.', 'eventprime-event-calendar-management'),
                                                 '<a href="' . esc_url('edit.php?post_type=em_event&page=ep-settings&tab=payments') . '" target="_blank">',
                                                 '</a>'
                                             );

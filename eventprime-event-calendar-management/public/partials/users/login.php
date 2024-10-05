@@ -56,7 +56,7 @@ if( ! empty( $args->current_user ) && ! empty( $args->current_user->ID ) ) {?>
 
                     </div>
                     <div class="ep-box-col-6 ep-align-right ep-mb-2">
-                        <a href="<?php echo wp_logout_url(); ?>" class="ep-px-2">
+                        <a href="<?php echo esc_url(wp_logout_url()); ?>" class="ep-px-2">
                             <?php esc_html_e('Logout', 'eventprime-event-calendar-management'); ?>
                         </a>
                     </div>
@@ -72,10 +72,7 @@ if( ! empty( $args->current_user ) && ! empty( $args->current_user->ID ) ) {?>
         <script src='https://www.google.com/recaptcha/api.js'></script><?php 
     }
     $redirect_url = $args->redirect_url;
-    if( isset( $_GET['redirect'] ) ) {
-        $redirect_url = sanitize_url( sanitize_text_field( $_GET['redirect'] ) );
-        
-    }?>
+    ?>
     <!-- Login Form Wrapper -->
     <div class="emagic">
         <div id="ep_attendee_login_form_wrapper" class="<?php echo isset($args->block_login_class) ? esc_attr($args->block_login_class) :" "; ?>">
@@ -193,7 +190,7 @@ if( ! empty( $args->current_user ) && ! empty( $args->current_user->ID ) ) {?>
                                 if( !empty( $login_show_registerlink_label ) ) {
                                     echo wp_kses_post( stripslashes( $args->dont_have_account_label ) ); ?> 
                                     <a href="<?php echo esc_url( $form_link );?>"><?php
-                                      echo $login_show_registerlink_label;?>
+                                      echo esc_html($login_show_registerlink_label);?>
                                     </a><?php
                                 } else{
                                     echo wp_kses_post( stripslashes( $args->dont_have_account_label ) ); ?> 

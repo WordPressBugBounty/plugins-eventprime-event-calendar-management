@@ -26,7 +26,7 @@ $ep_functions = new Eventprime_Basic_Functions;
                     <?php if( count( $args->submitted_events ) > 0 ) { ?>
                         <a href="javascript:void(0)" data-tag="ep-event-submitted" class="ep-btn ep-btn-outline-dark ep-tab-active"><?php esc_html_e( 'Submitted', 'eventprime-event-calendar-management');?></a><?php
                     }?>
-                    <?php echo do_action( 'ep_profile_event_tabs', $args->current_user );?>
+                    <?php do_action( 'ep_profile_event_tabs', $args->current_user );?>
                 </div>
             </div>
         </div>

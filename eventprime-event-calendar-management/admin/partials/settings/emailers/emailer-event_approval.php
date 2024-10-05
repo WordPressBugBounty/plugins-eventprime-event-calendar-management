@@ -26,7 +26,7 @@ $sub_options = $global_settings->sub_options;
                     </label>
                 </th>
                 <td class="forminp forminp-text">
-                    <input name="event_approved_email_subject"  class="regular-text" id="event_approved_email_subject" type="text" value="<?php echo isset($global_options->event_approved_email_subject) ? $global_options->event_approved_email_subject : __('Your Submitted Event approved!', 'eventprime-event-calendar-management');?>" required>
+                    <input name="event_approved_email_subject"  class="regular-text" id="event_approved_email_subject" type="text" value="<?php echo isset($global_options->event_approved_email_subject) ? esc_attr($global_options->event_approved_email_subject) : esc_html__('Your Submitted Event approved!', 'eventprime-event-calendar-management');?>" required>
                 </td>
             </tr>
             <tr valign="top">

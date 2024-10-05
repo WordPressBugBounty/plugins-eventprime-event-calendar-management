@@ -1876,7 +1876,7 @@ class TCPDF {
 	 */
 	public function __construct($orientation='P', $unit='mm', $format='A4', $unicode=true, $encoding='UTF-8', $diskcache=false, $pdfa=false) {
 		// set file ID for trailer
-		$serformat = (is_array($format) ? json_encode($format) : $format);
+		$serformat = (is_array($format) ? wp_json_encode($format) : $format);
 		$this->file_id = md5(TCPDF_STATIC::getRandomSeed('TCPDF'.$orientation.$unit.$serformat.$encoding));
 		$this->font_obj_ids = array();
 		$this->page_obj_id = array();
@@ -16414,7 +16414,7 @@ class TCPDF {
 			}
 		}
 		// create a special tag to contain the CSS array (used for table content)
-		$csstagarray = '<cssarray>'.htmlentities(json_encode($css)).'</cssarray>';
+		$csstagarray = '<cssarray>'.htmlentities(wp_json_encode($css)).'</cssarray>';
 		// remove head and style blocks
 		$html = preg_replace('/<head([^\>]*?)>(.*?)<\/head>/is', '', $html);
 		$html = preg_replace('/<style([^\>]*?)>([^\<]*?)<\/style>/is', '', $html);
@@ -17193,7 +17193,7 @@ class TCPDF {
 	 * @public static
 	 */
 	public function serializeTCPDFtagParameters($data) {
-		$encoded = urlencode(json_encode($data));
+		$encoded = urlencode(wp_json_encode($data));
 		return $this->getHashForTCPDFtagParams($encoded).$encoded;
 	}
 

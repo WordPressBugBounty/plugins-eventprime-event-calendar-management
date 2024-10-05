@@ -58,7 +58,7 @@ else{
         <?php do_action( 'ep_add_loader_section' );?>
         <div class="ep-box-wrap">
             <h2>
-                <?php echo apply_filters( 'ep_event_edit_booking_page_title', esc_html__( 'Edit Booking', 'eventprime-event-calendar-management' ) );?>
+                <?php echo esc_html(apply_filters( 'ep_event_edit_booking_page_title', esc_html__( 'Edit Booking', 'eventprime-event-calendar-management' ) ));?>
             </h2>
             
             <div class="ep-box-row ep-mt-5 ep-mb-3">
@@ -115,7 +115,7 @@ else{
                                                                 if( empty( $ticket ) ) {
                                                                     $ticket = esc_html__( 'Ticket', 'eventprime-event-calendar-management' ); 
                                                                 }
-                                                                echo $ticket; echo ' ' . esc_html( $ticket_num );?>
+                                                                echo esc_html($ticket); echo ' ' . esc_html( $ticket_num );?>
                                                             </span>
                                                             <span class="material-icons-round ep-align-bottom ep-bg-light ep-cursor ep-rounded-circle ep-ml-5 ep-event-attendee-handler">expand_more</span>
                                                         </div>

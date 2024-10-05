@@ -26,7 +26,7 @@ $sub_options = $global_settings->sub_options;
                     </label>
                 </th>
                 <td class="forminp forminp-text">
-                    <input name="admin_booking_confirmed_email_subject" class="regular-text" id="admin_booking_confirmed_email_subject" type="text" value="<?php echo isset($global_options->admin_booking_confirmed_email_subject) ? $global_options->admin_booking_confirmed_email_subject : __('New booking...', 'eventprime-event-calendar-management');?>" required>
+                    <input name="admin_booking_confirmed_email_subject" class="regular-text" id="admin_booking_confirmed_email_subject" type="text" value="<?php echo isset($global_options->admin_booking_confirmed_email_subject) ? esc_attr($global_options->admin_booking_confirmed_email_subject) : esc_html__('New booking...', 'eventprime-event-calendar-management');?>" required>
                 </td>
             </tr>
             <tr valign="top">
@@ -48,7 +48,7 @@ $sub_options = $global_settings->sub_options;
                     </label>
                 </th>
                 <td class="forminp forminp-text">
-                    <input name="admin_booking_confirmed_email_cc" class="regular-text" id="admin_booking_confirmed_email_cc" type="text" value="<?php echo isset($global_options->admin_booking_confirmed_email_cc) ? $global_options->admin_booking_confirmed_email_cc : '';?>">
+                    <input name="admin_booking_confirmed_email_cc" class="regular-text" id="admin_booking_confirmed_email_cc" type="text" value="<?php echo isset($global_options->admin_booking_confirmed_email_cc) ? esc_attr($global_options->admin_booking_confirmed_email_cc) : '';?>">
                 </td>
             </tr>
             <tr valign="top">

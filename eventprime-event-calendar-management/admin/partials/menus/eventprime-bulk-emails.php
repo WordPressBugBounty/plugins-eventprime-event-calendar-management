@@ -11,7 +11,7 @@ $events = $ep_functions->get_events_field_data(array( 'id', 'name' ) );
         </div>
         
         <div class="ep-form-section">
-            <form id="ep-email-attendies" action="<?php echo admin_url( 'admin-post.php' ); ?>" class="ep-email-attendies-form" enctype="multipart/form-data">
+            <form id="ep-email-attendies" action="<?php echo esc_url(admin_url( 'admin-post.php' )); ?>" class="ep-email-attendies-form" enctype="multipart/form-data">
                 <table class="form-table">
                     <tr>
                         <th scope="row" class="titledesc">

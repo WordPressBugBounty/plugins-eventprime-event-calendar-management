@@ -27,11 +27,11 @@ $booking_date_time = isset( $booking->em_date ) ? esc_html( $ep_functions->ep_ti
         <div class="ep-box-row ep-my-3 ep-p-2">
             <div class="ep-box-col-12">
                 <div class="ep-booking-title ep-m-0 ep-fs-4">
-                    <?php echo sprintf( __('Booking #%d :- %s', 'eventprime-event-calendar-management'), $booking_id, $event_name);?>
+                    <?php echo sprintf( esc_html__('Booking #%d :- %s', 'eventprime-event-calendar-management'), esc_html($booking_id), esc_html($event_name));?>
                 </div>
                 <div class="ep-payment-method ep-text-muted ep-fs-5">
                     <?php 
-                    echo sprintf( __('Payment via %s', 'eventprime-event-calendar-management'), $payment_method);?>
+                    echo sprintf( esc_html__('Payment via %s', 'eventprime-event-calendar-management'), esc_html($payment_method));?>
                 </div>
             </div>
         </div>
@@ -103,7 +103,7 @@ $booking_date_time = isset( $booking->em_date ) ? esc_html( $ep_functions->ep_ti
                 
                 <div class="ep-box-col-3 ep-boo-status">
                     <div class="ep-gen-date ep-fw-bold"><?php esc_html_e( 'Booking Status:', 'eventprime-event-calendar-management' );?></div>
-                    <div class="ep-booking-status-<?php echo $booking->em_status; ?> ep-booking-status-completed ep-py-2 ep-align-top ">
+                    <div class="ep-booking-status-<?php echo esc_attr($booking->em_status); ?> ep-booking-status-completed ep-py-2 ep-align-top ">
                         <?php
                         $booking_status = '';
                         if( ! empty( $booking->em_status ) ) {
@@ -133,7 +133,7 @@ $booking_date_time = isset( $booking->em_date ) ? esc_html( $ep_functions->ep_ti
                     <?php endif;?>
 
                     <?php if( ! empty( $booking_status ) && $booking_status == 'cancelled' ):?>
-                        <button class="ep-btn" type="button" id="ep_refunded_btn" onclick="ep_booking_refund_status(<?php echo $booking_id;?>,'<?php echo $payment_method;?>','<?php echo 'refunded';?>');"><?php esc_html_e('Mark as Refunded','eventprime-event-calendar-management');?></button>
+                        <button class="ep-btn" type="button" id="ep_refunded_btn" onclick="ep_booking_refund_status(<?php echo esc_html($booking_id);?>,'<?php echo esc_html($payment_method);?>','<?php echo 'refunded';?>');"><?php esc_html_e('Mark as Refunded','eventprime-event-calendar-management');?></button>
                     <?php endif;?>
                 </div>
                 
@@ -142,9 +142,9 @@ $booking_date_time = isset( $booking->em_date ) ? esc_html( $ep_functions->ep_ti
                     <div class="ep-payment-status ep-booking-status ep-py-2 ep-align-top">
                         <?php 
                         if(strtolower($payment_method) == 'offline'){
-                            echo isset($payment_log['offline_status']) ? $payment_log['offline_status'] : '';
+                            echo isset($payment_log['offline_status']) ? esc_html($payment_log['offline_status']) : '';
                         }else{
-                            echo isset($payment_log['payment_status']) ? $payment_log['payment_status'] : '';
+                            echo isset($payment_log['payment_status']) ? esc_html($payment_log['payment_status']) : '';
                         }?>
                         
                         <?php do_action( 'ep_booking_payment_status', $booking_id );?>

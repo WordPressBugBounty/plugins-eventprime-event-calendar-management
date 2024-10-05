@@ -11,7 +11,7 @@
 if( $args->events->max_num_pages > 1 && isset( $args->event_args['load_more'] ) && $args->event_args['load_more'] == 1 ) {?>
     <div class="ep-organizer-upcoming-event-load-more ep-frontend-loadmore ep-box-w-100 ep-my-4 ep-text-center">
         <button 
-            data-max="<?php echo $args->events->max_num_pages;?>" 
+            data-max="<?php echo esc_attr($args->events->max_num_pages);?>" 
             id="ep-loadmore-upcoming-event-organizer" 
             class="ep-btn ep-btn-outline-primary"
             data-id="<?php echo esc_attr( $args->organizer_id );?>"

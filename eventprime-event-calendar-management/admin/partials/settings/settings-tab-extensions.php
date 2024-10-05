@@ -34,7 +34,7 @@ $extensions = $global_settings->ep_setting_extensions_list();
                                             </td>
 
                                             <td class="ep-emailer-setting">
-                                                <a href="<?php echo $extension['url']; ?>" class="button alignright"><?php _e('Manage', 'eventprime-event-calendar-management'); ?></a>
+                                                <a href="<?php echo esc_url($extension['url']); ?>" class="button alignright"><?php esc_html_e('Manage', 'eventprime-event-calendar-management'); ?></a>
                                             </td>
                                         </tr><?php
                                     }

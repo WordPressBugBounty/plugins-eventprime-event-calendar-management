@@ -21,7 +21,7 @@ if( ! empty( $booking->em_booking_fields_data ) && count( $booking->em_booking_f
             </div>
             <div class="ep-p-3"><?php 
                 if( is_array( $booking_fields[$formated_val] ) ) {
-                    echo implode( ', ', $booking_fields[$formated_val] );
+                    echo wp_kses_post(implode( ', ', $booking_fields[$formated_val] ));
                 } else{
                     echo esc_html( $booking_fields[$formated_val] );
                 }?>

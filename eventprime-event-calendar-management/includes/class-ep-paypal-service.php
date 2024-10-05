@@ -94,7 +94,7 @@ class EventM_Paypal_Service {
         $paypal_client_id = $ep_functions->ep_get_global_settings( 'paypal_client_id' );?>
         <div id="ep-paypal-button-container" class="ep-paypal-container" style="display:none;"></div>
         <!-- smart paypal button -->
-        <script src="https://www.paypal.com/sdk/js?currency=<?php echo $currency_code; ?>&client-id=<?php echo esc_attr( $paypal_client_id );?>&vault=true"></script><?php
+        <script src="https://www.paypal.com/sdk/js?currency=<?php echo esc_attr($currency_code); ?>&client-id=<?php echo esc_attr( $paypal_client_id );?>&vault=true"></script><?php
     }
 
     public function show_paypal_form( $args ){
@@ -119,7 +119,7 @@ class EventM_Paypal_Service {
             <form method="post" id="ep_paypal_payment_form" name="ep_paypal_form" action= <?php echo esc_url( $url ); ?>>
                 <input type="hidden" name="cmd" value="_xclick">
                 <input type="hidden" name="business" value="<?php echo esc_attr( $ep_functions->ep_get_global_settings( 'paypal_email' ) ); ?>">
-                <input type="hidden" name="item_name" value="<?php echo $args->event->em_name; ?>">
+                <input type="hidden" name="item_name" value="<?php echo esc_attr($args->event->em_name); ?>">
                 <input type="hidden" name="item_number" id="ep_paypal_item_number" value="">
                 <input type="hidden" name="amount" id="ep_paypal_item_price" value="">
                 <input type="hidden" name="first_name" value="<?php echo esc_attr( $user->display_name ); ?>">

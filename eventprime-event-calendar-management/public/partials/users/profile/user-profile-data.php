@@ -48,7 +48,7 @@ $ep_functions = new Eventprime_Basic_Functions;
                 <?php 
                 $current_timezone = $ep_functions->ep_get_current_user_timezone();
                 if( empty( $current_timezone ) ) {
-                    echo $ep_functions->ep_get_site_timezone();
+                    echo wp_kses_post($ep_functions->ep_get_site_timezone());
                 } else{
                     echo esc_html( $current_timezone );
                 }?>
@@ -67,7 +67,7 @@ $ep_functions = new Eventprime_Basic_Functions;
 
     <?php if ( current_user_can( 'edit_user', $args->current_user->ID ) ) { ?>
         <div class="ep-box-row ep-text-small ep-mb-4 ep-user-profile-edit-profile ep-d-inline-block">
-            <a class="ep-p-0" href="<?php echo admin_url().'profile.php'; ?>">
+            <a class="ep-p-0" href="<?php echo esc_url(admin_url().'profile.php'); ?>">
                 <?php esc_html_e( 'Edit Profile', 'eventprime-event-calendar-management' ); ?>
             </a>
         </div><?php 

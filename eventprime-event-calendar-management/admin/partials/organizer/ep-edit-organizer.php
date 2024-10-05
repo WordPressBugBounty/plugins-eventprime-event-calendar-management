@@ -162,7 +162,7 @@ $em_organizer_phones = get_term_meta( $term->term_id, 'em_organizer_phones', tru
                 <td>
                     <input type="text" class="ep-org-data-social-input" value="<?php echo esc_attr( $sl );?>" name="em_social_links[<?php echo esc_attr( $key );?>]" placeholder="<?php echo esc_attr( $links ); ?>" >
                     <p class="description">
-                        <?php echo sprintf( __( 'Enter %s link', 'eventprime-event-calendar-management' ), $links ); ?>
+                        <?php echo sprintf( esc_html__( 'Enter %s link', 'eventprime-event-calendar-management' ), wp_kses_post($links) ); ?>
                     </p>
                 </td>
             </tr><?php
@@ -183,4 +183,4 @@ $em_organizer_phones = get_term_meta( $term->term_id, 'em_organizer_phones', tru
                     </p>
                 </div>
             </td>
-        </tr>
+        </tr><?php wp_nonce_field( 'em_event_organizer_nonce_action', 'em_event_organizer_nonce_field' );

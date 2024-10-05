@@ -29,7 +29,7 @@ $sub_options = $global_settings->sub_options;
                         <option value=""><?php esc_html_e( 'Select Form', 'eventprime-event-calendar-management' );?></option>
                         <?php foreach( $options['registration_forms_list'] as $key => $rform ) {?>
                             <option value="<?php echo esc_attr( $key );?>" <?php if( $global_options->login_registration_form == $key ){ echo 'selected="selected"';}?>>
-                                <?php echo $rform;?>
+                                <?php echo esc_html($rform);?>
                             </option><?php
                         }?>
                     </select>
@@ -46,7 +46,7 @@ $sub_options = $global_settings->sub_options;
                         <option value=""><?php esc_html_e( 'Select Form', 'eventprime-event-calendar-management' );?></option>
                         <?php foreach( $options['rm_forms'] as $rm_id => $rm_form ) {?>
                             <option value="<?php echo esc_attr( $rm_id );?>" <?php if( $global_options->login_rm_registration_form == $rm_id ){ echo 'selected="selected"';}?>>
-                                <?php echo $rm_form;?>
+                                <?php echo esc_html($rm_form);?>
                             </option><?php
                         }?>
                     </select>

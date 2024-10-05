@@ -9,7 +9,7 @@
 defined( 'ABSPATH' ) || exit;
 get_header(); ?>
 	
-    <section id="<?php echo apply_filters('ep_venue_page_html_id', 'main-content'); ?>" class="<?php echo apply_filters('ep_venue_page_html_class', 'ep-container'); ?>">
+    <section id="<?php echo esc_attr(apply_filters('ep_venue_page_html_id', 'main-content')); ?>" class="<?php echo esc_attr(apply_filters('ep_venue_page_html_class', 'ep-container')); ?>">
 
         <?php do_action('ep_before_main_content'); ?>
 

@@ -24,7 +24,7 @@
                     </div>
                     <?php if ( ! empty( $event_type->description ) ) { ?>
                         <div class="ep-eventtype-description ep-content-truncate ep-content-truncate-line-3">
-                            <?php echo wpautop( wp_kses_post( $event_type->description ) ); ?>
+                            <?php echo wp_kses_post( wpautop($event_type->description ) ); ?>
                         </div>
                     <?php } ?>
                 </div>

@@ -242,7 +242,7 @@ $is_event_expired = $ep_functions->check_event_has_expired( $args->event );
                 <div class="ep-modal-content">
                     <div class="ep-modal-body"> 
                         <div class="ep-box-row">
-                            <input type="hidden" name="ep_event_booking_event_id" id="ep_event_booking_event_id" value="<?php echo base64_encode( $args->event->em_id );?>" />
+                            <input type="hidden" name="ep_event_booking_event_id" id="ep_event_booking_event_id" value="<?php echo esc_attr(base64_encode( $args->event->em_id ));?>" />
                             <?php
                             if( $em_event_seating_type == 'seats' ) {
                                 $active_extension = $ep_functions->ep_get_activate_extensions();
@@ -280,7 +280,7 @@ $is_event_expired = $ep_functions->check_event_has_expired( $args->event );
                                             if( ! empty( $ticket->description ) ) {
                                                 $ticket->description = esc_html( stripslashes( $ticket->description ) );
                                             }?>
-                                            <div class="ep-box-row ep-mb-3 ep-box-w-100 ep-border-bottom <?php echo esc_attr( $ticket_disabled_class );?>" id="ep_single_modal_ticket_<?php echo absint( $ticket->id );?>" data-ticket_id="<?php echo absint( $ticket->id );?>" data-ticket_data='<?php echo json_encode( $ticket );?>'>
+                                            <div class="ep-box-row ep-mb-3 ep-box-w-100 ep-border-bottom <?php echo esc_attr( $ticket_disabled_class );?>" id="ep_single_modal_ticket_<?php echo absint( $ticket->id );?>" data-ticket_id="<?php echo absint( $ticket->id );?>" data-ticket_data='<?php echo wp_json_encode( $ticket );?>'>
                                                 <div class="ep-box-col-12 ep-fs-5 ep-fw-bold ep-d-flex ep-align-items-center ep-event-ticket-modal-ticket-name"> 
                                                     <?php if( ! empty( $ticket->icon ) ) {
                                                         $ticket_icon_url = wp_get_attachment_url( $ticket->icon );?>
@@ -368,7 +368,7 @@ $is_event_expired = $ep_functions->check_event_has_expired( $args->event );
                                                             <span class="ep-fs-5 ep-fw-bold" id="ep_ticket_price_<?php echo absint( $ticket->id );?>" data-row_ticket_price="<?php echo esc_attr( $ticket->price );?>">
                                                                 <?php 
                                                                 if( $ticket->price ) {
-                                                                    echo $ep_functions->ep_price_with_position( $ticket->price );
+                                                                    echo wp_kses_post($ep_functions->ep_price_with_position( $ticket->price ));
                                                                 } else{
                                                                     $ep_functions->ep_show_free_event_price( $ticket->price );
                                                                 }?>
@@ -421,7 +421,7 @@ $is_event_expired = $ep_functions->check_event_has_expired( $args->event );
                                                         <?php 
                                                         $off = 1;
                                                         foreach( $event_offers['show_ticket_offers'][$ticket->id] as $offer ) {?>
-                                                            <div class="ep-text-small ep-d-inline-flex ep-border ep-rounded ep-p-2 ep-flex-column ep-mr-2 ep-box-w-25 ep-position-relative <?php if( ! empty( $offer->em_ticket_offer_type ) && $offer->em_ticket_offer_type == 'volume_based' ){ echo esc_html( 'em_ticket_volumn_based_offer' );}?>" data-offer_data='<?php echo json_encode( $offer );?>' id="ep_single_ticket_offer_<?php echo esc_attr( $ticket->id );?>_<?php echo esc_attr( $offer->uid );?>">
+                                                            <div class="ep-text-small ep-d-inline-flex ep-border ep-rounded ep-p-2 ep-flex-column ep-mr-2 ep-box-w-25 ep-position-relative <?php if( ! empty( $offer->em_ticket_offer_type ) && $offer->em_ticket_offer_type == 'volume_based' ){ echo esc_html( 'em_ticket_volumn_based_offer' );}?>" data-offer_data='<?php echo wp_json_encode( $offer );?>' id="ep_single_ticket_offer_<?php echo esc_attr( $ticket->id );?>_<?php echo esc_attr( $offer->uid );?>">
                                                                 <div class="ep-fw-bold ep-mb-1 ep-text-small"><?php echo esc_html( $offer->em_ticket_offer_name );?></div>
                                                                 <div class="ep-text-small ep-mb-1 ep-content-truncate">
                                                                     <?php if( ! empty( $offer->em_ticket_offer_description ) ) {

@@ -20,7 +20,7 @@ if (!class_exists('EventM_Popular_Venue')){
                 false, ''
             );
             $venues_text = $basic_functions->ep_global_settings_button_title('Venues');
-            $popular_event_venues =  sprintf( __( 'Popular Event %s', 'eventprime-event-calendar-management' ), $venues_text );
+            $popular_event_venues =  sprintf( esc_html__( 'Popular Event %s', 'eventprime-event-calendar-management' ), $venues_text );
             $title = ( ! empty( $instance['title'] ) ) ? $instance['title'] : $popular_event_venues;
             $title = apply_filters( 'widget_title', $title, $instance, $this->id_base );
             $number = ( ! empty( $instance['number'] ) ) ? absint( $instance['number'] ) : 5;
@@ -54,7 +54,7 @@ if (!class_exists('EventM_Popular_Venue')){
                     $html .= '<div class="ep-widgets-empty">'.esc_html__('No data found.','eventprime-event-calendar-management' ).'</div>';
                 }
             $html .= '</div></div>';
-            echo $html;
+            echo wp_kses_post($html);
         }
 
         public function form($instance) {

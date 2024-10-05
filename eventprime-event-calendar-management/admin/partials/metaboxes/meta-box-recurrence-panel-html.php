@@ -5,7 +5,7 @@
 defined( 'ABSPATH' ) || exit;
 if( empty( $post->post_parent ) ) {
     $em_start_date                 = get_post_meta( $post->ID, 'em_start_date', true );
-    $today_date                    = ( ! empty( $em_start_date ) ) ? $ep_functions->ep_get_day_with_position( date( 'j', $em_start_date ) ): $ep_functions->ep_get_day_with_position ( date( 'j' ) );
+    $today_date                    = ( ! empty( $em_start_date ) ) ? $ep_functions->ep_get_day_with_position( gmdate( 'j', $em_start_date ) ): $ep_functions->ep_get_day_with_position ( gmdate( 'j' ) );
     $em_enable_recurrence          = get_post_meta( $post->ID, 'em_enable_recurrence', true );
     $em_recurrence_step            = get_post_meta( $post->ID, 'em_recurrence_step', true );
     $em_recurrence_step            = ( ! empty( $em_recurrence_step ) ? $em_recurrence_step : 1);
@@ -18,7 +18,7 @@ if( empty( $post->post_parent ) ) {
     $em_recurrence_occurrence_time = get_post_meta( $post->ID, 'em_recurrence_occurrence_time', true );
     $em_recurrence_occurrence_time = ( ! empty( $em_recurrence_occurrence_time ) ? $em_recurrence_occurrence_time : 12 );
     $em_selected_weekly_day        = get_post_meta( $post->ID, 'em_selected_weekly_day', true );
-    $em_selected_weekly_day        = ( ! empty( $em_selected_weekly_day ) ? (array)$em_selected_weekly_day : array( date('w') ) );
+    $em_selected_weekly_day        = ( ! empty( $em_selected_weekly_day ) ? (array)$em_selected_weekly_day : array( gmdate('w') ) );
     $em_recurrence_monthly_day     = get_post_meta( $post->ID, 'em_recurrence_monthly_day', true );
     $em_recurrence_monthly_weekno  = get_post_meta( $post->ID, 'em_recurrence_monthly_weekno', true );
     $em_recurrence_monthly_fullweekday  = get_post_meta( $post->ID, 'em_recurrence_monthly_fullweekday', true );
@@ -120,7 +120,7 @@ if( empty( $post->post_parent ) ) {
 
                                     <label for="em_recurrence_monthly_custom_weekname">
                                         <select name="em_recurrence_monthly_fullweekday" id="em_recurrence_monthly_weekname"><?php
-                                            $current_day = ( ( is_null( $em_recurrence_monthly_fullweekday ) || $em_recurrence_monthly_fullweekday == '' ) ? date('w') : $em_recurrence_monthly_fullweekday );
+                                            $current_day = ( ( is_null( $em_recurrence_monthly_fullweekday ) || $em_recurrence_monthly_fullweekday == '' ) ? gmdate('w') : $em_recurrence_monthly_fullweekday );
                                             foreach ( $ep_functions->ep_get_week_day_full() as $wnum => $wname ) {?>
                                                 <option value="<?php echo esc_attr( $wnum ); ?>" 
                                                     <?php if ( $current_day == $wnum ) { echo 'selected="selected"'; } ?> >
@@ -143,8 +143,8 @@ if( empty( $post->post_parent ) ) {
                             <?php esc_html_e( 'Repeat On', 'eventprime-event-calendar-management' ); ?>
                         </div>
                         <div class="ep-box-col-12 ep-meta-box-data ep-mt-3">
-                            <label for="em_recurrence_monthly_today">
-                                <?php $curr_month = date( 'F' );?>
+                            <label for="em_recurrence_yearly_today">
+                                <?php $curr_month = gmdate( 'F' );?>
                                 <input type="radio" name="em_recurrence_yearly_day" id="em_recurrence_yearly_today" value="<?php echo esc_attr( 'date' ); ?>" <?php if( $em_recurrence_yearly_day == 'date' ) { echo 'checked="checked"'; } ?>>
                                 <?php esc_html_e('Yearly on '. $curr_month . ' ' .$today_date, 'eventprime-event-calendar-management'); ?>
                             </label>
@@ -166,7 +166,7 @@ if( empty( $post->post_parent ) ) {
                             <label for="em_recurrence_monthly_custom_weekname">
                                 <select name="em_recurrence_yearly_fullweekday" id="em_recurrence_yearly_weekname">
                                     <?php 
-                                    $current_day = ( ( is_null( $em_recurrence_yearly_fullweekday ) || $em_recurrence_yearly_fullweekday == '' ) ? date( 'w' ) : $em_recurrence_yearly_fullweekday );
+                                    $current_day = ( ( is_null( $em_recurrence_yearly_fullweekday ) || $em_recurrence_yearly_fullweekday == '' ) ? gmdate( 'w' ) : $em_recurrence_yearly_fullweekday );
                                     foreach( $ep_functions->ep_get_week_day_full() as $wnum => $wname ) {?>
                                         <option value="<?php echo esc_attr( $wnum );?>" <?php if( $current_day == $wnum ) {echo 'selected="selected"';}?>>
                                             <?php echo esc_html( $wname );?>
@@ -178,7 +178,7 @@ if( empty( $post->post_parent ) ) {
                             <label for="em_recurrence_monthly_custom_month">
                                 <select name="em_recurrence_yearly_monthday" id="em_recurrence_yearly_month">
                                     <?php 
-                                    $current_month = ( ! empty( $em_recurrence_yearly_monthday ) ? $em_recurrence_yearly_monthday : date( 'n' ) );
+                                    $current_month = ( ! empty( $em_recurrence_yearly_monthday ) ? $em_recurrence_yearly_monthday : gmdate( 'n' ) );
                                     foreach( $ep_functions->ep_get_month_name() as $mnum => $mname ) {?>
                                         <option value="<?php echo esc_attr( $mnum );?>" <?php if( $current_month == $mnum ) {echo 'selected="selected"';}?>>
                                             <?php echo esc_html( $mname );?>
@@ -193,14 +193,14 @@ if( empty( $post->post_parent ) ) {
                 <!-- Advanced days options -->
                 <div id="em_show_advanced_options" <?php if( $em_recurrence_interval != 'advanced' ) { echo 'style="display: none;"'; }?>>
                     <div class="ep-recurrence-advanced-wrapper">
-                        <input type="hidden" name="em_recurrence_advanced_dates" id="ep_recurrence_advanced_dates" value="<?php echo json_encode( $em_recurrence_advanced_dates );?>">
+                        <input type="hidden" name="em_recurrence_advanced_dates" id="ep_recurrence_advanced_dates" value="<?php echo wp_json_encode( $em_recurrence_advanced_dates );?>">
                         <?php foreach( $ep_functions->ep_get_week_number() as $wk => $wnum) { ?>
                             <ul>
-                                <li class="ep-recurrence-week"><?php echo $wnum;?></li>
+                                <li class="ep-recurrence-week"><?php echo esc_html($wnum);?></li>
                                 <?php foreach( $ep_functions->ep_get_week_day_medium() as $wm => $wn) { 
                                     $active_class = ( ! empty( $em_recurrence_advanced_dates ) && in_array( $wm . '-' . $wk, $em_recurrence_advanced_dates) ? 'active' : '' );?>
                                     <li class="ep-recurrence-advanced-week-day <?php echo esc_html( $active_class );?>" id="<?php echo esc_attr( $wm . '-' . $wk );?>" data-week_num="<?php echo esc_attr( $wk );?>" data-day_num="<?php echo esc_attr( $wm );?>" >
-                                        <?php echo $wn;?>
+                                        <?php echo wp_kses_post($wn);?>
                                     </li><?php
                                 }?>
                             </ul><?php
@@ -213,7 +213,7 @@ if( empty( $post->post_parent ) ) {
                     <div class="ep-recurrence-custom-dates ep-box-row ep-mb-3 ep-mt-3 ep-items-end">
                         <div class="ep-box-col-3">
                             <input type="text" name="em_recurrence_custom_dates" class="ep-form-control" id="ep_recurrence_custom_dates" placeholder="<?php esc_html_e( 'Select Date', 'eventprime-event-calendar-management' ); ?>" autocomplete="off">
-                            <input type="hidden" name="em_recurrence_selected_custom_dates" class="ep-form-control" id="ep_recurrence_selected_custom_dates" value="<?php echo htmlspecialchars(json_encode($em_recurrence_selected_custom_dates), ENT_QUOTES, 'UTF-8'); ?>">
+                            <input type="hidden" name="em_recurrence_selected_custom_dates" class="ep-form-control" id="ep_recurrence_selected_custom_dates" value="<?php echo esc_attr(htmlspecialchars(wp_json_encode($em_recurrence_selected_custom_dates), ENT_QUOTES, 'UTF-8')); ?>">
                         </div>
                     </div>
                     <div class="ep_selected_dates_data ep-d-flex ep-flex-wrap">
@@ -242,7 +242,7 @@ if( empty( $post->post_parent ) ) {
                                 <input type="radio" name="em_recurrence_ends" class="ep-form-check-input" id="em_recurrence_ends_on" value="on" <?php if( $em_recurrence_ends == 'on' ) { echo 'checked="checked"'; }?> >
                                 <?php esc_html_e('On', 'eventprime-event-calendar-management'); ?>
                                 <div class="em_event_recurrence_end_date ep-ml-2 ep-box-w-75">
-                                    <input type="text" name="em_recurrence_limit" id="em_recurrence_limit" class="ep-form-control epDatePicker" <?php if( $em_recurrence_ends != 'on' ) { echo 'disabled="disabled"'; }?> placeholder="<?php echo esc_attr( 'End Date', 'eventprime-event-calendar-management' ); ?>" value="<?php echo $ep_functions->ep_timestamp_to_date( esc_attr( $em_recurrence_limit ) );?>" autocomplete="off" >
+                                    <input type="text" name="em_recurrence_limit" id="em_recurrence_limit" class="ep-form-control epDatePicker" <?php if( $em_recurrence_ends != 'on' ) { echo 'disabled="disabled"'; }?> placeholder="<?php echo esc_attr( 'End Date', 'eventprime-event-calendar-management' ); ?>" value="<?php echo esc_html($ep_functions->ep_timestamp_to_date( esc_attr( $em_recurrence_limit ) ));?>" autocomplete="off" >
                                 </div>
                             </label>
                         </div>

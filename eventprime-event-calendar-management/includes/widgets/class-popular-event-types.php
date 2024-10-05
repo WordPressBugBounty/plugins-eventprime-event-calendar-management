@@ -20,7 +20,7 @@ if (!class_exists('EventM_Popular_Type')){
                 false, ''
             );
             $event_types_text = $basic_functions->ep_global_settings_button_title('Event-Types');
-            $popular_event_types =  sprintf( __( 'Popular %s', 'eventprime-event-calendar-management' ), $event_types_text );
+            $popular_event_types =  sprintf( esc_html__( 'Popular %s', 'eventprime-event-calendar-management' ), $event_types_text );
             $title = ( ! empty( $instance['title'] ) ) ? $instance['title'] : $popular_event_types;
             $title = apply_filters( 'widget_title', $title, $instance, $this->id_base );
             $number = ( ! empty( $instance['number'] ) ) ? absint( $instance['number'] ) : 5;
@@ -54,7 +54,7 @@ if (!class_exists('EventM_Popular_Type')){
                     $html .= '<div class="ep-widgets-empty">'.esc_html__( 'No data found.', 'eventprime-event-calendar-management').'</div>';
                 }
             $html .= '</div></div>';
-            echo $html;
+            echo wp_kses_post($html);
         }
 
         public function form($instance) {

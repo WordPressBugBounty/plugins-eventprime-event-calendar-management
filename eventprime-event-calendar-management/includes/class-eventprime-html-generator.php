@@ -274,6 +274,7 @@ class Eventprime_html_Generator {
                 esc_attr_e($event_booking_count);
                 if (!empty($event_booking_count)) {
                     $event_booking_url = admin_url('edit.php?s&post_status=all&post_type=em_booking&event_id=' . esc_attr($event_id));
+                    $event_booking_url = add_query_arg(array('ep_booking_filter_nonce_field' => wp_create_nonce( 'ep_booking_filter_nonce_action' )), $event_booking_url);
                     ?> 
                     <a href="<?php echo esc_url($event_booking_url); ?>" target="__blank">
                         <?php esc_html_e('View', 'eventprime-event-calendar-management'); ?>
@@ -288,6 +289,8 @@ class Eventprime_html_Generator {
                 esc_attr_e($total_booking);
                 if (!empty($total_booking)) {
                     $event_attendee_page_url = admin_url('admin.php?page=ep-event-attendees-list&event_id=' . esc_attr($event_id));
+                    $event_attendee_page_url = add_query_arg(array('ep_attendee_page_filter_nonce_field' => wp_create_nonce( 'ep_attendee_page_filter_nonce_action' )), $event_attendee_page_url);
+                    
                     ?> 
                     <a href="<?php echo esc_url($event_attendee_page_url); ?>" target="__blank">
                         <?php esc_html_e('View', 'eventprime-event-calendar-management'); ?>

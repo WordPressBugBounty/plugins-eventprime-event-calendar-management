@@ -26,7 +26,7 @@ $sub_options = $global_settings->sub_options;
                     </label>
                 </th>
                 <td class="forminp forminp-text">
-                    <input name="booking_confirm_email_subject" class="regular-text" id="booking_confirm_email_subject" type="text" value="<?php echo isset($global_options->booking_confirm_email_subject) ? $global_options->booking_confirm_email_subject : __('Your booking is confirmed!!!', 'eventprime-event-calendar-management');?>" required>
+                    <input name="booking_confirm_email_subject" class="regular-text" id="booking_confirm_email_subject" type="text" value="<?php echo isset($global_options->booking_confirm_email_subject) ? esc_attr($global_options->booking_confirm_email_subject) : esc_html__('Your booking is confirmed!!!', 'eventprime-event-calendar-management');?>" required>
                 </td>
             </tr>
             <tr valign="top">

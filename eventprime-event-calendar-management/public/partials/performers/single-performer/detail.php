@@ -29,7 +29,7 @@ defined( 'ABSPATH' ) || exit;
                                 foreach ( $args->performer->em_performer_emails as $key => $val ) {
                                     $args->performer->em_performer_emails[$key] = '<a href="mailto:' . $val . '">' . htmlentities($val) . '</a>';
                                 }
-                                echo implode( ', ', $args->performer->em_performer_emails );?>
+                                echo wp_kses_post(implode( ', ', $args->performer->em_performer_emails ));?>
                             </div>
                         </li>
                     <?php } ?>
@@ -41,7 +41,7 @@ defined( 'ABSPATH' ) || exit;
                                 <img src="<?php echo esc_url( $image_url );?>" width="30" />
                             </div>
                             <div class="ep-details-box-value"><?php
-                                echo implode( ', ', $args->performer->em_performer_phones );?>
+                                echo wp_kses_post(implode( ', ', $args->performer->em_performer_phones ));?>
                             </div>
                         </li>
                     <?php } ?>
@@ -57,7 +57,7 @@ defined( 'ABSPATH' ) || exit;
                                         $args->performer->em_performer_websites[$key] = '<a href="' . $val . '" target="_blank">' . htmlentities($val) . '</a>';
                                     }
                                 }
-                                echo implode( ', ', $args->performer->em_performer_websites );?>
+                                echo wp_kses_post(implode( ', ', $args->performer->em_performer_websites ));?>
                             </div>
                         </li>
                     <?php } ?>
@@ -103,14 +103,14 @@ defined( 'ABSPATH' ) || exit;
                 <?php
                 if ( isset( $args->performer->description ) && $args->performer->description !== '' ) {
                     $content = apply_filters('ep_performer_description', $args->performer->description);
-                    echo $content;
+                    echo wp_kses_post($content);
                     
                 } else {
                     esc_html_e( 'No description available', 'eventprime-event-calendar-management' );
                 }?>
             </div>
             <!-- single perfomer gallery images -->
-            <?php if ( is_array( $args->performer->em_performer_gallery ) && count( $args->performer->em_performer_gallery ) > 1 ) { ?>
+            <?php if ( isset($args->performer->em_performer_gallery ) && is_array( $args->performer->em_performer_gallery ) && count( $args->performer->em_performer_gallery ) > 1 ) { ?>
                 <div class="em_photo_gallery em-single-perfomer-photo-gallery" >
                     <div class="kf-row-heading">
                         <span class="kf-row-title">

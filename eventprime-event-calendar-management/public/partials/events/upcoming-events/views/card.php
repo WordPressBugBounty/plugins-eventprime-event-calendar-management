@@ -64,7 +64,7 @@ foreach( $args->events->posts as $event ) {
                     <!-- Event Description -->
                     <div class="ep-box-card-desc ep-text-small ep-mb-2">
                         <?php if ( ! empty( $event_data->description ) ) {
-                            echo wp_trim_words( wp_kses_post( $event_data->description ), 20 );
+                            echo wp_kses_post( wp_trim_words( $event_data->description, 20 ));
                         }?>
                     </div>
 

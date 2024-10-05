@@ -1,7 +1,16 @@
 <?php 
 $global_settings = new Eventprime_Global_Settings;
 $global_options = $global_settings->ep_get_settings();
-$active_sub_tab = isset( $_GET['sub_tab'] ) && array_key_exists( $_GET['sub_tab'], $this->ep_get_front_view_settings_sub_tabs() ) ? $_GET['sub_tab'] : 'events';
+// Verify the nonce
+if (isset($_GET['tab_nonce']) && isset( $_GET['sub_tab'] ) && wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['tab_nonce'])), 'ep_settings_tab'))
+{
+    $sub_tab = sanitize_text_field(wp_unslash($_GET['sub_tab']));
+    $active_sub_tab = isset( $_GET['sub_tab'] ) && array_key_exists( $sub_tab, $this->ep_get_front_view_settings_sub_tabs() ) ? $sub_tab : 'events';
+}
+else
+{
+    $active_sub_tab = 'events';
+}
 $sub_options = $global_settings->sub_options;
 ?>
 <div class="ep-setting-tab-content">
@@ -297,7 +306,7 @@ $sub_options = $global_settings->sub_options;
                 </label>
             </th>
             <td class="forminp forminp-text">
-                <input min="1" name="card_view_custom_value" id="card_view_custom_value" class="regular-text" type="number" value="<?php if( isset( $global_options->card_view_custom_value ) && ! empty( $global_options->card_view_custom_value ) ) { echo $global_options->card_view_custom_value; } ;?>">
+                <input min="1" name="card_view_custom_value" id="card_view_custom_value" class="regular-text" type="number" value="<?php if( isset( $global_options->card_view_custom_value ) && ! empty( $global_options->card_view_custom_value ) ) { echo esc_html($global_options->card_view_custom_value); } ;?>">
             </td>
         </tr>
         
@@ -410,7 +419,7 @@ $sub_options = $global_settings->sub_options;
                 </label>
             </th>
             <td class="forminp forminp-text">
-                <input type="number" min="0" name="no_of_event_types_displayed" class="regular-text" id="no_of_event_types_displayed" value="<?php echo (isset( $global_options->no_of_event_types_displayed ) && ! empty( $global_options->no_of_event_types_displayed )) ? $global_options->no_of_event_types_displayed : '5' ; ?>">
+                <input type="number" min="0" name="no_of_event_types_displayed" class="regular-text" id="no_of_event_types_displayed" value="<?php echo (isset( $global_options->no_of_event_types_displayed ) && ! empty( $global_options->no_of_event_types_displayed )) ? esc_attr($global_options->no_of_event_types_displayed) : '5' ; ?>">
                 <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( 'The number of trending event-types to be displayed on the frontend.', 'eventprime-event-calendar-management' );?></div>
             </td>
         </tr>

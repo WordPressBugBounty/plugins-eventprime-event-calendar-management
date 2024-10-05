@@ -64,7 +64,7 @@ $log_in_text = $ep_functions->ep_global_settings_button_title('Log-In');
                     <option value=""><?php esc_html_e( 'Select State', 'eventprime-event-calendar-management' );?></option>
                     <?php foreach( $options['status_list'] as $key => $status ){?>
                         <option value="<?php echo esc_attr( $key );?>" <?php if( $global_options->ues_default_status == $key ) { echo 'selected="selected"'; } ?>>
-                            <?php echo $status;?>
+                            <?php echo esc_html($status);?>
                         </option><?php
                     }?>
                 </select>
@@ -81,9 +81,9 @@ $log_in_text = $ep_functions->ep_global_settings_button_title('Log-In');
                 <select name="frontend_submission_roles[]" id="frontend_submission_roles" multiple="multiple" class="ep-form-control">
                     <?php 
                     $global_fes_user_role_sections = (array)$global_options->frontend_submission_roles;
-                    foreach( $ep_functions->ep_get_all_user_roles() as $key => $role ){ echo $key;?>
+                    foreach( $ep_functions->ep_get_all_user_roles() as $key => $role ){ echo esc_html($key);?>
                         <option value="<?php echo esc_attr( $key );?>" <?php if( in_array( $key, $global_fes_user_role_sections, true ) ) { echo 'selected="selected"'; } ?>>
-                            <?php echo $role;?>
+                            <?php echo esc_html($role);?>
                         </option><?php
                     }?>
                 </select>
@@ -111,9 +111,9 @@ $log_in_text = $ep_functions->ep_global_settings_button_title('Log-In');
                 <?php 
                 $global_fes_sections = (array)$global_options->frontend_submission_sections;
                 foreach( $options['fes_sections'] as $key => $section ){ ?>
-                    <div for="frontend_submission_sections_<?php echo $key;?>" class="ep-mb-2">
-                        <input type="checkbox" name="frontend_submission_sections[<?php echo $key;?>]" id="frontend_submission_sections_<?php echo $key;?>" <?php if( isset( $global_fes_sections[$key] ) && ! empty( $global_fes_sections[$key] ) ) { echo 'checked'; } ?>>
-                        <?php echo $section;?>
+                    <div for="frontend_submission_sections_<?php echo esc_attr($key);?>" class="ep-mb-2">
+                        <input type="checkbox" name="frontend_submission_sections[<?php echo esc_attr($key);?>]" id="frontend_submission_sections_<?php echo esc_attr($key);?>" <?php if( isset( $global_fes_sections[$key] ) && ! empty( $global_fes_sections[$key] ) ) { echo 'checked'; } ?>>
+                        <?php echo esc_html($section);?>
                     </div><?php 
                 }?>
                 <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( 'Choose which sections or features will be included in the form. These sections allow setting additional event properties.', 'eventprime-event-calendar-management' );?></div>
@@ -129,9 +129,9 @@ $log_in_text = $ep_functions->ep_global_settings_button_title('Log-In');
                 <?php 
                 $global_fes_require = (array)$global_options->frontend_submission_required;
                 foreach( $options['fes_required'] as $key => $section ){ ?>
-                    <label for="frontend_submission_required_<?php echo $key;?>">
-                        <input type="checkbox" name="frontend_submission_required[<?php echo $key;?>]" id="frontend_submission_required_<?php echo $key;?>" <?php if( isset( $global_fes_require[$key] ) && ! empty( $global_fes_require[$key] ) ) { echo 'checked'; } ?>>
-                        <?php echo $section;?>
+                    <label for="frontend_submission_required_<?php echo esc_attr($key);?>">
+                        <input type="checkbox" name="frontend_submission_required[<?php echo esc_attr($key);?>]" id="frontend_submission_required_<?php echo esc_attr($key);?>" <?php if( isset( $global_fes_require[$key] ) && ! empty( $global_fes_require[$key] ) ) { echo 'checked'; } ?>>
+                        <?php echo esc_html($section);?>
                     </label><?php
                 }?>
                 <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( 'Choose which fields will be marked mandatory in the form.', 'eventprime-event-calendar-management' );?></div>

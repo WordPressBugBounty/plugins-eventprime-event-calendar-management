@@ -1,7 +1,7 @@
 <?php
 $ep_functions = new Eventprime_Basic_Functions;
 if( isset( $args->events ) && !empty( $args->events ) ) {?>
-        <div class="ep-events ep-box-row ep-event-list-<?php echo $args->display_style;?>-container <?php if( $args->display_style == 'masonry' ) { echo 'masonry-entry'; } ?> ep_events_front_views_<?php echo esc_attr( $args->display_style);?>_<?php echo esc_attr( $args->section_id);?>" id="ep_events_front_views_<?php echo $args->display_style;?>">
+        <div class="ep-events ep-box-row ep-event-list-<?php echo esc_attr($args->display_style);?>-container <?php if( $args->display_style == 'masonry' ) { echo 'masonry-entry'; } ?> ep_events_front_views_<?php echo esc_attr( $args->display_style);?>_<?php echo esc_attr( $args->section_id);?>" id="ep_events_front_views_<?php echo esc_attr($args->display_style);?>">
             <?php
             switch ( $args->display_style ) {
                 case 'card':

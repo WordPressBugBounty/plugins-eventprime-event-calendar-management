@@ -100,4 +100,5 @@ $ages_groups = array(
                     </p>
                 </div>
             </td>
-        </tr><?php
+        </tr>
+        <?php wp_nonce_field( 'em_event_type_nonce_action', 'em_event_type_nonce_field' );
