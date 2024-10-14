@@ -21,7 +21,7 @@ $ep_functions = new Eventprime_Basic_Functions;
                     <strong><?php esc_html_e('How do you wish to handle ticket bookings for this event?', 'eventprime-event-calendar-management'); ?></strong>
                 </div>
                 <div class="ep-box-col-12">
-                    <div class="ep-form-check ep-form-check-inline ep-mb-3">
+                    <div class="ep-form-check ep-form-check-inline ep-mb-3 <?php if ( isset( $args->fes_event_booking_req ) && ! empty( $args->fes_event_booking_req ) ) { echo esc_attr( " ep-d-none" ); } ?>" >
                         <input class="ep-form-check-input" type="radio" name="em_enable_booking" id="ep-bookings-off" value="bookings_off" checked="checked" >
                         <label class="ep-form-check-label" for="ep-bookings-off">
                             <?php esc_html_e('Turn bookings off', 'eventprime-event-calendar-management'); ?>
@@ -31,7 +31,7 @@ $ep_functions = new Eventprime_Basic_Functions;
                         </label>
                     </div>
                     <div class="ep-form-check ep-form-check-inline ep-mb-3">
-                        <input class="ep-form-check-input" type="radio" name="em_enable_booking" id="ep-bookings-on" value="bookings_on" <?php echo isset($args->event->em_enable_booking) && $args->event->em_enable_booking == 'bookings_on' ? 'checked="checked"' : '';?>>
+                        <input class="ep-form-check-input" type="radio" name="em_enable_booking" id="ep-bookings-on" value="bookings_on" <?php echo ( (isset($args->event->em_enable_booking) && $args->event->em_enable_booking == 'bookings_on') || (isset( $args->fes_event_booking_req ) && ! empty( $args->fes_event_booking_req )) ) ? 'checked="checked"' : '';?>>
                         <label class="ep-form-check-label" for="ep-bookings-on">
                             <?php esc_html_e('Turn bookings on', 'eventprime-event-calendar-management'); ?>
                             <div class="ep-text-muted ep-text-small">

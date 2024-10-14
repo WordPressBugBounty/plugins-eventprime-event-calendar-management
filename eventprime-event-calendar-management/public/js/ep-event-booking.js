@@ -1151,7 +1151,7 @@ function loadPaymentSection() {
             if( eventprime.global_settings.stripe_processor == 1 ) {
                 if(sessionStorage.getItem( "allow_process_for_payment_step" )){
                     if(jQuery('#stripe_payment').is(':checked')){
-                        initialize();
+                        // initialize();
                     }
                 }
                 //initialize();

@@ -36,11 +36,11 @@ $ep_functions = new Eventprime_Basic_Functions;
         </div>
         <?php if(isset($args->fes_new_event_organizer) && !empty($args->fes_new_event_organizer)):?>
             <div class="ep-form-row ep-box-row ep-mt-2">
-                <a href="javascript:void(0);" class="ep-fes-add-new ep-mt-2" id="ep-fes-add-event-organizer" onclick="fes_add_new_organizer_show(this)"><?php echo esc_html__('Add New Event', 'eventprime-event-calendar-management').' '.esc_html( $organizer_text );?></a>
+                <a href="javascript:void(0);" class="ep-fes-add-new ep-mt-2 ep-btn ep-btn-outline-secondary ep-box-w-25" id="ep-fes-add-event-organizer" onclick="fes_add_new_organizer_show(this)"><?php echo esc_html__('Add New Event', 'eventprime-event-calendar-management').' '.esc_html( $organizer_text );?></a>
                 <input type="hidden" name="new_organizer" id="ep_new_organizer" value="0"/>
             </div>   
             <div class="ep-form-row ep-box-row ep-mt-2" id="ep-fes-add-event-organizer-child" style="display:none;">
-                <a href="javascript:void(0);" onclick="fes_add_new_organizer_hide(this)"><?php esc_html_e('Hide Details', 'eventprime-event-calendar-management');?></a>
+                <a href="javascript:void(0);" onclick="fes_add_new_organizer_hide(this)" class="ep-btn ep-btn-outline-secondary ep-box-w-25"><?php esc_html_e('Hide Details', 'eventprime-event-calendar-management');?></a>
                 <div class="ep-form-row ep-form-group ep-mb-3">
                     <label for="ep_new_organizer_name" class="ep-form-label">
                         <?php esc_html_e( 'Name', 'eventprime-event-calendar-management' );?>

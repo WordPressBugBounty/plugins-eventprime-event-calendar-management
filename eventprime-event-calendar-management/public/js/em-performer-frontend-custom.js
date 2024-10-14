@@ -75,6 +75,7 @@ jQuery( function( $ ) {
             formData.append( 'hide_past_events',pastevent );
             formData.append( 'post_id',post_id );
             $('.ep-spinner').addClass('ep-is-active');
+            $('#ep-loadmore-upcoming-event-performers').prop('disabled', true);
             $('.ep-register-response').html();
             $.ajax({
                 type : "POST",
@@ -84,6 +85,7 @@ jQuery( function( $ ) {
                 processData: false,       
                 success: function(response) {
                     $('.ep-spinner').removeClass('ep-is-active');
+                    $('#ep-loadmore-upcoming-event-performers').prop('disabled', false);
                     $( '#ep-loadmore-upcoming-event-performers' ).attr( 'data-paged', response.data.paged );
                     if(response.data.paged >= max_page){
                         $('#ep-loadmore-upcoming-event-performers').hide();

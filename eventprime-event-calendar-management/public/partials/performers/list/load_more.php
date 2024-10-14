@@ -8,7 +8,8 @@
  */
 ?>
 <?php
-if( isset($args->performers->max_num_pages) && $args->performers->max_num_pages > 1 && isset( $args->load_more ) && $args->load_more == 1 ) {?>
+if( isset($args->performers->max_num_pages) && $args->performers->max_num_pages > 1 && isset( $args->load_more ) && $args->load_more == 1 ) {
+    ?>
     <div class="ep-performers-load-more ep-frontend-loadmore ep-box-w-100 ep-my-4 ep-text-center">
         <input type="hidden" id="ep-performers-style" value="<?php echo esc_attr($args->display_style);?>"/>
         <input type="hidden" id="ep-performers-limit" value="<?php echo esc_attr($args->limit);?>"/>

@@ -100,6 +100,8 @@ class EventPrime_Bookings {
      */
     public function confirm_booking( $booking_id, $data = array() ) {
         $notifications = new EventM_Notification_Service;
+        $sanitizer  = new EventPrime_sanitizer;
+        $data = $sanitizer->sanitize($data);
         $booking = $this->load_booking_detail( $booking_id );
         if( empty( $booking->em_id ) ) return;
 
@@ -119,6 +121,7 @@ class EventPrime_Bookings {
 
         // update payment log
         $payment_log = apply_filters( 'ep_add_booking_payment_log', $data );
+        
         update_post_meta( $booking->em_id, 'em_payment_log', $payment_log );
 
         do_action( 'ep_after_booking_complete', $booking->em_id, $data );
@@ -287,6 +290,7 @@ class EventPrime_Bookings {
                 $seating_controller = new EventM_Live_Seating_List_Controller();
                 $seating_controller->refund_and_cancelled_seats_handler( $booking_id ); 
             }
+            do_action( 'ep_booking_cancelled', $booking );
             $ep_notify->booking_cancel( $booking_id );
         } else {
             $ep_notify->booking_pending( $booking_id );

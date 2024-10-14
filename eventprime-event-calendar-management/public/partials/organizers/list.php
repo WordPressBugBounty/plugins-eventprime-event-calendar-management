@@ -55,6 +55,19 @@ wp_enqueue_script(
             'name__like' => $ep_search,
         );
 
+        if ( $organizers_data['featured'] == 1 && ( $organizers_data['popular'] == 1 ) ) {
+            $pargs['meta_query'] = array(
+                'relation' => 'AND',
+                array(
+                   'key'       => 'em_is_featured',
+                   'value'     => 1,
+                   'compare'   => '='
+                )
+            );
+            $pargs['orderby'] ='count';
+            $pargs['order'] ='DESC';
+        }
+
         // get featured event organizers
         if( $organizers_data['featured'] == 1 && ( $organizers_data['popular'] == 0 || $organizers_data['popular'] == '' ) ){ 
             $pargs['meta_query'] = array(
@@ -67,9 +80,8 @@ wp_enqueue_script(
             );
         }
         
-        // Get popular event types
+        // Get popular event organizers 
         if( $organizers_data['popular'] == 1 && ( $organizers_data['featured'] == 0 || $organizers_data['featured'] == '' ) ){
-            
             $pargs['orderby'] ='count';
             $pargs['order'] ='DESC';
         }

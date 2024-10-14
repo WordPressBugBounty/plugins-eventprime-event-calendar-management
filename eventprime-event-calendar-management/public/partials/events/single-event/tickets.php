@@ -84,7 +84,9 @@ $is_event_expired = $ep_functions->check_event_has_expired( $args->event );
                                 if( ! empty( $args->event->ticket_price_range ) ) {
                                     $ticket_button_style = '';
                                     $invite_only_event = get_post_meta( $args->event->em_id, 'em_rsvp_invite_only_event', true );
-                                    if( ! empty( $invite_only_event ) ) {
+                                    $event_has_waiting_listers = get_post_meta( $args->event->em_id, 'event_has_waiting_listers', true );
+                                    
+                                    if( ! empty( $invite_only_event ) || ! empty( $event_has_waiting_listers ) ) {
                                         $ticket_button_style = 'style=display:none;';
                                     }?>
                                     <button type="button" id="ep_single_event_ticket_now_btn" class="ep-btn ep-btn-dark ep-box-w-100 ep-mb-2 ep-py-2" ep-modal-open="ep_single_event_page_ticket_modal" <?php echo esc_attr( $ticket_button_style );?>>

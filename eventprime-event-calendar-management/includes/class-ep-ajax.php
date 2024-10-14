@@ -288,6 +288,7 @@ class EventM_Ajax_Service {
     public function save_event_booking() {
         if( ! empty( $_POST['data'] ) ) {
             $ep_functions = new Eventprime_Basic_Functions;
+            $sanitizer = new EventPrime_sanitizer;
             parse_str( wp_unslash( $_POST['data'] ), $data );
             if(isset($_POST['offer_data']))
             {
@@ -437,7 +438,8 @@ class EventM_Ajax_Service {
                 update_post_meta( $new_post_id, 'em_notes', array() );
                 update_post_meta( $new_post_id, 'em_payment_log', array() );
                 update_post_meta( $new_post_id, 'em_booked_seats', array() );
-                update_post_meta( $new_post_id, 'em_attendee_names', $data['ep_booking_attendee_fields'] );
+                $ep_booking_attendee_fields =(isset($data['ep_booking_attendee_fields']))?$sanitizer->sanitize($data['ep_booking_attendee_fields']):array();
+                update_post_meta( $new_post_id, 'em_attendee_names', $ep_booking_attendee_fields );
                 // check for booking fields data
                 $em_booking_fields_data = array();
                 if( ! empty( $data['ep_booking_booking_fields'] ) ) {
@@ -2216,6 +2218,7 @@ class EventM_Ajax_Service {
      * Update booking action
      */
     public function update_event_booking_action() {
+        $sanitizer = new EventPrime_sanitizer;
         parse_str( wp_unslash( $_POST['data'] ), $data );
         $ep_functions = new Eventprime_Basic_Functions;
         if( wp_verify_nonce( $data['ep_update_event_booking_nonce'], 'ep_update_event_booking' ) ) {
@@ -2225,7 +2228,8 @@ class EventM_Ajax_Service {
                 $single_booking = $booking_controller->load_booking_detail( $ep_event_booking_id );
                 if( ! empty( $single_booking ) ) {
                     if( ! empty( $data['ep_booking_attendee_fields'] ) ) {
-                        update_post_meta( $ep_event_booking_id, 'em_attendee_names', $data['ep_booking_attendee_fields'] );
+                        $ep_booking_attendde_field = $sanitizer->sanitize($data['ep_booking_attendee_fields']);
+                        update_post_meta( $ep_event_booking_id, 'em_attendee_names', $ep_booking_attendde_field );
                     }
                 }
                 wp_send_json_success( array( 'message' => esc_html__( 'Booking Updated Successfully.', 'eventprime-event-calendar-management' ), 'redirect_url' => esc_url( $ep_functions->ep_get_custom_page_url( 'profile_page' ) ) ) );
@@ -2585,10 +2589,11 @@ class EventM_Ajax_Service {
     }
     
     public function edit_booking_attendee_data_save(){
+        $sanitizer = new EventPrime_sanitizer;
         parse_str( wp_unslash( $_POST['data'] ), $data );
         
         if( wp_verify_nonce( $_POST['security'], 'ep_booking_attendee_data' ) ) {
-            $attendees_names = isset($data['ep_booking_attendee_fields']) ? $data['ep_booking_attendee_fields'] : array();
+            $attendees_names = isset($data['ep_booking_attendee_fields']) ? $sanitizer->sanitize($data['ep_booking_attendee_fields']) : array();
             if(is_array($attendees_names)){
                 update_post_meta( $_POST['booking_id'], 'em_attendee_names', $attendees_names );
             }

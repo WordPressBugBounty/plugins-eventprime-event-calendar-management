@@ -326,6 +326,7 @@ jQuery( function( $ ) {
     // submit the form
     $( document ).on( 'click', '.ep-frontend-event-form-submit', function(e) {
         e.preventDefault();
+
         let submitBtn = $(this); 
         var required_fields = em_event_fes_object.event_required_fields;
         var validated = true;
@@ -501,6 +502,21 @@ jQuery( function( $ ) {
                 
             }
         }
+
+        let em_enable_booking = $( 'input[name=em_enable_booking]:checked' ).val();
+        if( em_enable_booking == 'bookings_on' ) {
+            if ( $('#ep_ticket_individual_data').val() ) {
+                // let fes_ticket_count = JSON.parse( $('#ep_ticket_individual_data').val() ).length;
+                
+            } else {
+                if (confirm(em_event_fes_object.no_ticket_found_error) == true) {
+                    $( '#ep-bookings-off' ).prop("checked", true);
+                } else {
+                    return false;
+                }
+            }
+        }
+
         $('.ep-event-loader').show();
         submitBtn.prop('disabled', true);
         var form = $( "#ep_frontend_event_form" );

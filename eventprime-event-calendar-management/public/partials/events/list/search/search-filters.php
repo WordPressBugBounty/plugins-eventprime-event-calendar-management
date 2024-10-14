@@ -9,12 +9,16 @@
                 <span class="ep-px-2 ep-py-1 ep-di-inline-block ep-text-small ep-cursor ep-rounded-1 ep-mr-1 ep-mb-1 ep-bg-primary ep-bg-opacity-10 ep-filters-days" id="ep_filter_online" data-key="online"><?php esc_html_e( 'Online', 'eventprime-event-calendar-management');?></span>
             </div>
         </div>
-    <?php } ?>    
-    <div class="ep-box-row ep-mb-3">
-        <div class="ep-box-col-12 ep-fw-bold ep-text-small"><?php esc_html_e( 'Additional Filters', 'eventprime-event-calendar-management');?></div>
-    </div>
+    <?php }
+    
+    if( (isset( $args->date_range ) && $args->date_range == 1) || (isset( $args->event_type ) && $args->event_type == 1) || (isset( $args->venue ) && $args->venue == 1) || (isset( $args->performer ) && $args->performer == 1) || (isset( $args->organizer ) && $args->organizer == 1) ) { ?>
+        <div class="ep-box-row ep-mb-3">
+            <div class="ep-box-col-12 ep-fw-bold ep-text-small"><?php esc_html_e( 'Additional Filters', 'eventprime-event-calendar-management');?></div>
+        </div>
+    <?php    
+    }
 
-    <?php if( isset( $args->date_range ) && $args->date_range == 1 ){ ?>
+    if( isset( $args->date_range ) && $args->date_range == 1 ){ ?>
         <div class="ep-box-row ep-text-small ep-mb-2">
             <div class="ep-box-col-12 ep-text-small ep-mb-2"><span class="ep-text-small ep-fw-bold ep-text-uppercase"><?php esc_html_e('Date Range', 'eventprime-event-calendar-management');?></span></div>
             <div class="ep-box-col-4 ep-text-small">

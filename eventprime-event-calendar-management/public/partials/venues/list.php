@@ -8,7 +8,7 @@
  */
 $ep_functions = new Eventprime_Basic_Functions;
 $db_handler = new EP_DBhandler;
-wp_enqueue_script(
+        wp_enqueue_script(
             'ep-venues-views-js',
             plugin_dir_url( EP_PLUGIN_FILE )  . 'public/js/em-venue-frontend-custom.js',
             array( 'jquery' ), EVENTPRIME_VERSION
@@ -21,6 +21,14 @@ wp_enqueue_script(
                 'ajaxurl'   => admin_url( 'admin-ajax.php' )
             )
         );
+        wp_localize_script(
+            'ep-venues-views-js', 
+            'eventprime', 
+            array(
+                'global_settings' => $ep_functions->ep_get_global_settings('gmap_api_key'),
+            )
+        );
+        
         $venues_data = array();
         $settings                     = new Eventprime_Global_Settings;
         $venues_settings              = $settings->ep_get_settings( 'venues' );
@@ -51,6 +59,18 @@ wp_enqueue_script(
             'name__like' => $ep_search,
         );
 
+        if ( $venues_data['featured'] == 1 && ( $venues_data['popular'] == 1 ) ) {
+            $pargs['meta_query'] = array(
+                'relation' => 'AND',
+                array(
+                   'key'       => 'em_is_featured',
+                   'value'     => 1,
+                   'compare'   => '='
+                )
+            );
+            $pargs['orderby'] ='count';
+            $pargs['order'] ='DESC';
+        }
         
         // Get featured event venues
         if( $venues_data['featured'] == 1 && ( $venues_data['popular'] == 0 || $venues_data['popular'] == '' ) ){ 
@@ -66,7 +86,6 @@ wp_enqueue_script(
         }
         // Get popular event types
         if( $venues_data['popular'] == 1 && ( $venues_data['featured'] == 0 || $venues_data['featured'] == '' ) ){
-            
             $pargs['orderby'] ='count';
             $pargs['order'] ='DESC';
         }

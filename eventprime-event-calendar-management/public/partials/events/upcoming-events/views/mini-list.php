@@ -33,7 +33,7 @@ foreach( $args->events->posts as $event ) {
                             <div class="ep-box-list-item">
                                 <div class="ep-box-title ep-box-list-title">
                                     <div class="ep-fs-5 ep-fw-bold ep-text-dark">
-                                        <a href="<?php echo esc_url( $event_data['event_url'] ); ?>" class="ep-img-link" <?php echo esc_attr( $new_window );?>>
+                                        <a href="<?php echo esc_url( $event_data['event_url'] ); ?>" class="" <?php echo esc_attr( $new_window );?>>
                                             <?php echo esc_html( $event_data['title'] ); ?>
                                         </a>
                                     </div>

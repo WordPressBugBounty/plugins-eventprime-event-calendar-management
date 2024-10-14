@@ -2654,8 +2654,11 @@ class Eventprime_Basic_Functions {
 
         $event_type = new stdClass();
         $meta = get_term_meta($term_id);
+        if(!empty($meta))
+        {
         foreach ($meta as $key => $val) {
             $event_type->{$key} = maybe_unserialize($val[0]);
+        }
         }
         if (empty($term)) {
             $term = get_term($term_id);
@@ -4398,8 +4401,8 @@ class Eventprime_Basic_Functions {
            $events_data['order'] = $atts['order']; 
         }
         // limit will be -1 for calendar views
-        // if($events_data['display_style'] == 'slider' || $events_data['display_style'] == 'month' || $events_data['display_style'] == 'week' || $events_data['display_style'] == 'day' || $events_data['display_style'] == 'listweek' ){
-        if($events_data['display_style'] == 'month' || $events_data['display_style'] == 'week' || $events_data['display_style'] == 'day' || $events_data['display_style'] == 'listweek' ){
+        if($events_data['display_style'] == 'slider' || $events_data['display_style'] == 'month' || $events_data['display_style'] == 'week' || $events_data['display_style'] == 'day' || $events_data['display_style'] == 'listweek' ){
+        // if($events_data['display_style'] == 'month' || $events_data['display_style'] == 'week' || $events_data['display_style'] == 'day' || $events_data['display_style'] == 'listweek' ){
             $events_data['limit'] = -1;
         }
         // set query arguments
@@ -7379,7 +7382,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
         $pargs = $event_types_data;
         $pargs['name__like'] = $ep_search;
                         
-        if( $event_types_data['featured'] == 1 && ( $event_types_data['popular'] == 0 || $event_types_data['popular'] == '' ) ){ 
+        if ( $event_types_data['featured'] == 1 && ( $event_types_data['popular'] == 1 ) ) {
             $pargs['meta_query'] = array(
                 'relation' => 'AND',
                 array(
@@ -7388,8 +7391,27 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
                    'compare'   => '='
                 )
             );
+            $pargs['orderby'] ='count';
+            $pargs['order'] ='DESC';
         }
         
+        if( $event_types_data['featured'] == 1 && ( $event_types_data['popular'] == 0 || $event_types_data['popular'] == '' ) ){ 
+            $pargs['meta_query'] = array(
+                'relation' => 'AND',
+                array(
+                   'key'       => 'em_is_featured',
+                   'value'     => 1,
+                   'compare'   => '='
+                )
+                
+            );
+        }
+        // Get popular event types
+        if( $event_types_data['popular'] == 1 && ( $event_types_data['featured'] == 0 || $event_types_data['featured'] == '' ) ){
+            
+            $pargs['orderby'] ='count';
+            $pargs['order'] ='DESC';
+        }
         
         $terms_per_page = $event_types_data['limit'];
         $offset = ( $paged - 1 ) * $terms_per_page;
@@ -7427,13 +7449,19 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
         $paged     = ( $_POST['paged'] ) ? $_POST['paged'] : 1;
         $paged++;
         $ep_search = isset( $_POST['ep_search'] ) ? sanitize_text_field( $_POST['keyword'] ) : '';
+
+        $offset = (int)( $paged-1 ) * (int)$performers_data['limit'];
         $pargs     = array(
             'orderby'        => $performers_data['orderby'],
             'posts_per_page' => $performers_data['limit'],
-            'offset'         => (int)( $paged-1 ) * (int)$performers_data['limit'],
+            'offset'         => $offset,
             'paged'          => $paged,
             's'              => $ep_search,
         );
+
+        // print_r($pargs); die;
+
+        
         // if featured enabled then get featured performers
         if( $performers_data['featured'] == 1 && $performers_data['popular'] == 0) {
             $pargs['meta_query'] = array(
@@ -7451,6 +7479,15 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
             );
         }
         $performers_data['performers'] = $this->get_performers_post_data( $pargs );
+
+        if( $performers_data['popular'] == 1 && $performers_data['featured'] == 0) {
+            $performers_data['performers'] = $this->get_popular_event_performers($performers_data['limit'], 0, $offset);
+        }
+
+        if( $performers_data['popular'] == 1 && $performers_data['featured'] == 1) {
+            $performers_data['performers'] = $this->get_popular_event_performers($performers_data['limit'], $performers_data['featured'], $offset);
+        }
+        
         $terms_per_page = $performers_data['limit'];
         $offset = ( $paged - 1 ) * $terms_per_page;
         $performers_data['colorbox_start'] = absint($offset%4) + 1;
@@ -7626,7 +7663,19 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
         $pargs = $venues_data;
         $pargs['name__like'] = $ep_search;
         
-
+        if ( $venues_data['featured'] == 1 && ( $venues_data['popular'] == 1 ) ) {
+            $pargs['meta_query'] = array(
+                'relation' => 'AND',
+                array(
+                   'key'       => 'em_is_featured',
+                   'value'     => 1,
+                   'compare'   => '='
+                )
+            );
+            $pargs['orderby'] ='count';
+            $pargs['order'] ='DESC';
+        }
+        
         // Get featured event venues
         if( $venues_data['featured'] == 1 && ( $venues_data['popular'] == 0 || $venues_data['popular'] == '' ) ){ 
             $pargs['meta_query'] = array(
@@ -7636,7 +7685,13 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
                    'value'     => 1,
                    'compare'   => '='
                 )
+                
             );
+        }
+        // Get popular event types
+        if( $venues_data['popular'] == 1 && ( $venues_data['featured'] == 0 || $venues_data['featured'] == '' ) ){
+            $pargs['orderby'] ='count';
+            $pargs['order'] ='DESC';
         }
         
         $terms_per_page = $venues_data['limit'];
@@ -7685,6 +7740,20 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
         $ep_search = isset( $_POST['ep_search'] ) ? sanitize_text_field( $_POST['keyword'] ) : '';
         $pargs = $organizers_data;
         $pargs['name__like'] = $ep_search;
+
+        if ( $organizers_data['featured'] == 1 && ( $organizers_data['popular'] == 1 ) ) {
+            $pargs['meta_query'] = array(
+                'relation' => 'AND',
+                array(
+                   'key'       => 'em_is_featured',
+                   'value'     => 1,
+                   'compare'   => '='
+                )
+            );
+            $pargs['orderby'] ='count';
+            $pargs['order'] ='DESC';
+        }
+
         // get featured event organizers
         if( $organizers_data['featured'] == 1 && ( $organizers_data['popular'] == 0 || $organizers_data['popular'] == '' ) ){ 
             $pargs['meta_query'] = array(
@@ -7695,6 +7764,12 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
                    'compare'   => '='
                 )
             );
+        }
+        
+        // Get popular event types
+        if( $organizers_data['popular'] == 1 && ( $organizers_data['featured'] == 0 || $organizers_data['featured'] == '' ) ){
+            $pargs['orderby'] ='count';
+            $pargs['order'] ='DESC';
         }
                         
         $terms_per_page = $organizers_data['limit'];
@@ -7822,7 +7897,9 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
     public function get_events_loadmore(){
         $order = isset($_POST['order']) ? $_POST['order'] : '';
         $load_more = 1;
-        $events_data = $this->load_event_common_options( $atts = array('order'=>$order), $load_more );
+        // $events_data = $this->load_event_common_options( $atts = array('order'=>$order), $load_more );
+        $atts = json_decode( sanitize_text_field( wp_unslash( $_POST['event_atts'] ) ), true );  
+        $events_data = $this->load_event_common_options( $atts, $load_more );
         ob_start();
         if( $events_data['calendar_view'] == 1 ) {
             // get calendar events
@@ -8416,6 +8493,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
             'posts_per_page' => $event_args['event_limit'],
             'offset'         => (int)( $paged-1 ) * (int)$event_args['event_limit'],
             'paged'          => $paged,
+            'hide_past_events' => $event_args['hide_past_events']
         );
         $performers_data['event_args']  = $event_args;
         
@@ -8495,6 +8573,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
             'posts_per_page' => $event_args['event_limit'],
             'offset'         => (int)( $paged-1 ) * (int)$event_args['event_limit'],
             'paged'          => $paged,
+            'hide_past_events' => $event_args['hide_past_events']
         );
 
         $venues_data['event_args']  = $event_args;
@@ -8619,6 +8698,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
             'posts_per_page' => $event_args['event_limit'],
             'offset'         => (int)( $paged-1 ) * (int)$event_args['event_limit'],
             'paged'          => $paged,
+            'hide_past_events' => $event_args['hide_past_events']
         );
         $organizer_data['event_args']  = $event_args;
         
@@ -9429,7 +9509,7 @@ public function ep_get_events( $fields ) {
         $wp_query->terms = $organizers;
         return $wp_query;
     }
-    public function get_popular_event_performers($posts_per_page = 5, $featured = 0) {
+    public function get_popular_event_performers($posts_per_page = 5, $featured = 0, $offset = 0) {
         $args = array();
         if( $featured == 1 ) {
             $args = array(
@@ -9490,11 +9570,13 @@ public function ep_get_events( $fields ) {
             
         }
         $p_performers = wp_list_sort( $p_performers , 'events', 'DESC',  false );
-        if(count($p_performers) > $posts_per_page){
-            $p_performers = array_slice($p_performers, 0, $posts_per_page);
-        }
         $pp = new stdClass();
+        // $pp->max_num_pages = count($p_performers);
+        if(count($p_performers) > $posts_per_page){
+            $p_performers = array_slice($p_performers, $offset, $posts_per_page);
+        }
         $pp->posts = $p_performers;
+        $pp->max_num_pages = count($performers->posts);
    
         return $pp;
     }
@@ -9806,13 +9888,26 @@ public function ep_get_events( $fields ) {
             plugin_dir_url(EP_PLUGIN_FILE) . 'public/js/moment.min.js',
             array('jquery'), EVENTPRIME_VERSION
         );
+
         $required_fields = new stdClass();
         $fields = $this->ep_get_global_settings( 'frontend_submission_required' );
+
+        // Required fields from global fes settings. 
         if(!empty($fields) && is_array($fields)){
             foreach($fields as $key => $field){
                 $required_fields->$key = $field;
             }
         }
+
+        wp_localize_script(
+            'ep-front-events-fes-js', 
+            'eventprime',
+            array(
+                'global_settings' => $this->ep_get_global_settings( 'datepicker_format' ),
+                'ajaxurl'   => admin_url('admin-ajax.php'),
+            ),
+        );
+
         wp_localize_script(
             'ep-front-events-fes-js', 
             'em_event_fes_object', 
@@ -10168,7 +10263,7 @@ public function ep_get_events( $fields ) {
         $max_num_pages = ceil( (int)$args->total_count / (int)$args->limit );
         if( $max_num_pages > 1 && isset( $args->load_more ) && $args->load_more == 1 ) {
             ?>
-<div class="<?php echo esc_attr($type); ?>-load-more ep-frontend-loadmore ep-box-w-100 ep-my-4 ep-text-center">
+            <div class="<?php echo esc_attr($type); ?>-load-more ep-frontend-loadmore ep-box-w-100 ep-my-4 ep-text-center">
                 <?php
                 foreach($args as $key=>$value)
                 {

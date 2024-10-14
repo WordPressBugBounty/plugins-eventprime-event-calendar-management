@@ -34,6 +34,15 @@ wp_enqueue_style( 'ep-responsive-slides-css' );
                 'ajaxurl'   => admin_url( 'admin-ajax.php' )
             )
         );
+        
+        wp_localize_script(
+            'ep-venues-views-js', 
+            'eventprime', 
+            array(
+                'global_settings' => $ep_functions->ep_get_global_settings('gmap_api_key'),
+            )
+        );
+
         $atts                 = array_change_key_case( (array) $atts, CASE_LOWER );
         if ( !isset( $atts['id'] ) || empty( $atts['id'] ) ) { ?>
             <div class="ep-alert ep-alert-warning ep-mt-3">

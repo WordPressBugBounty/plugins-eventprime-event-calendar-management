@@ -43,6 +43,7 @@ jQuery( function( $ ) {
         var max_page = $(this).data('max');
         var section_id = $(this).data('section_id');
         $('.ep-spinner-'+section_id).addClass('ep-is-active');
+        $('#ep-loadmore-events').prop("disabled", true);
         var paged = $('#ep-events-paged-'+section_id).val();
         var display_style = $('#ep-events-style-'+section_id).val();
         var limit = $('#ep-events-limit-'+section_id).val();
@@ -79,6 +80,7 @@ jQuery( function( $ ) {
             processData: false,       
             success: function(response) {
                 $('.ep-spinner-'+section_id).removeClass('ep-is-active');
+                $('#ep-loadmore-events').prop("disabled", false);
                 $('#ep-events-paged-'+section_id).val(response.data.paged);
                 if(response.data.paged >= max_page){
                     $('.ep-events-load-more-'+section_id).hide();

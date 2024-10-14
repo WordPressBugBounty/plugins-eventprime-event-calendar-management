@@ -54,9 +54,18 @@ wp_enqueue_script(
             'name__like' => $ep_search,
         );
         
-        
-        
-        
+        if ( $event_types_data['featured'] == 1 && ( $event_types_data['popular'] == 1 ) ) {
+            $pargs['meta_query'] = array(
+                'relation' => 'AND',
+                array(
+                   'key'       => 'em_is_featured',
+                   'value'     => 1,
+                   'compare'   => '='
+                )
+            );
+            $pargs['orderby'] ='count';
+            $pargs['order'] ='DESC';
+        }
         
         if( $event_types_data['featured'] == 1 && ( $event_types_data['popular'] == 0 || $event_types_data['popular'] == '' ) ){ 
             $pargs['meta_query'] = array(
@@ -71,11 +80,9 @@ wp_enqueue_script(
         }
         // Get popular event types
         if( $event_types_data['popular'] == 1 && ( $event_types_data['featured'] == 0 || $event_types_data['featured'] == '' ) ){
-            
             $pargs['orderby'] ='count';
             $pargs['order'] ='DESC';
         }
-
         
         $terms_per_page = $pargs['limit'] = $event_types_data['limit'];
         

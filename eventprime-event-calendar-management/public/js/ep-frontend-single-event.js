@@ -1096,6 +1096,10 @@ jQuery( function( $ ) {
                 if( ep_event_rsvp_booking_data ) {
                     booking_data.rsvp_booking_data = ep_event_rsvp_booking_data
                 }
+                // let ep_event_wt_booking_data = sessionStorage.getItem( 'ep_event_wt_booking_data' );
+                // if( ep_event_wt_booking_data ) {
+                //     booking_data.wt_booking_data = ep_event_wt_booking_data
+                // }
                 $( '#ep_event_booking_data' ).val( JSON.stringify( booking_data ) );
 
                 $( '#ep_event_booking_form' ).submit();

@@ -9,8 +9,16 @@
 ?>
 <?php
 $basic_function = new Eventprime_Basic_Functions;
-if( isset( $args->events->max_num_pages ) && $args->events->max_num_pages > 1 && isset( $args->load_more ) && $args->load_more == 1 ) {
-    $show_no_of_events_card = $basic_function->ep_get_global_settings( 'show_no_of_events_card' );
+
+$load_more = isset( $args->load_more ) ? $args->load_more : 0;
+if ( count( $args->event_atts ) > 0 ) {
+    $load_more = $args->event_atts['load_more'];
+}
+// if( isset( $args->events->max_num_pages ) && $args->events->max_num_pages > 1 && isset( $args->load_more ) && $args->load_more == 1 ) {
+if( isset( $args->events->max_num_pages ) && $args->events->max_num_pages > 1 && $load_more == 1 ) {
+    
+    $show_no_of_events_card = ( isset( $args->atts['show'] ) && !empty( $args->atts['show'] ) ) ? $args->atts['show'] : $basic_function->ep_get_global_settings( 'show_no_of_events_card' );
+    
     if( 'custom' == $show_no_of_events_card ) {
         $show_no_of_events_card = $basic_function->ep_get_global_settings( 'card_view_custom_value' );
     }

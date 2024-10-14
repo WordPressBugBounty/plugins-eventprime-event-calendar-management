@@ -54,24 +54,27 @@ wp_enqueue_script(
             's'              => $ep_search,
         );
         // if featured enabled then get featured performers
-        if( $performers_data['featured'] == 1 && $performers_data['popular'] == 0) {
+        if( $performers_data['popular'] == 0 && $performers_data['featured'] == 1 ) {
             $pargs['meta_query'] = array(
                 'relation'     => 'AND',
                 array(
                     'key'      => 'em_display_front',
                     'value'    => 1,
                     'compare'  => '='
-                    ),
+                ),
                 array(
                     'key'   => 'em_is_featured',
                     'value' => 1
                 )
             );
         }
+
         $performers_data['performers'] = $ep_functions->get_performers_post_data( $pargs );
+
         if( $performers_data['popular'] == 1 && $performers_data['featured'] == 0) {
             $performers_data['performers'] = $ep_functions->get_popular_event_performers($performers_data['limit']);
         }
+
         if( $performers_data['popular'] == 1 && $performers_data['featured'] == 1) {
             $performers_data['performers'] = $ep_functions->get_popular_event_performers($performers_data['limit'], $performers_data['featured']);
         }
