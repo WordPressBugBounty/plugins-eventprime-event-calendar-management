@@ -632,6 +632,7 @@ class EventM_Ajax_Service {
             parse_str( wp_unslash( $_POST['data'] ), $data );
             $ep_functions = new Eventprime_Basic_Functions;
             $notifications = new EventM_Notification_Service;
+            $sanitizer = new EventPrime_sanitizer;
             $em_name = htmlspecialchars_decode( sanitize_text_field( $data['em_name'] ) );
             
             if( empty( $em_name ) ) {
@@ -955,6 +956,7 @@ class EventM_Ajax_Service {
             if( ! empty( $em_ticket_category_data ) ) {
                 $cat_priority = 1;
                 foreach( $em_ticket_category_data as $cat ) {
+                    $cat = $sanitizer->sanitize($cat);
                     $cat_id = $cat['id'];
                     $get_field_data = '';
                     if( !empty( $cat_id ) ) {
@@ -986,6 +988,7 @@ class EventM_Ajax_Service {
                     if( isset( $cat['tickets'] ) && ! empty( $cat['tickets'] ) ) {
                         $cat_ticket_priority = 1;
                         foreach( $cat['tickets'] as $ticket ) {
+                            $ticket = $sanitizer->sanitize($ticket);
                             $ticket_data = array();
                             if( isset( $ticket['id'] ) && ! empty( $ticket['id'] && is_int( $ticket['id'] ) ) ) {
                                 $ticket_id = $ticket['id'];
@@ -1227,6 +1230,7 @@ class EventM_Ajax_Service {
                 $em_ticket_individual_data = json_decode( stripslashes( $data['em_ticket_individual_data'] ), true) ;
                 if( isset( $em_ticket_individual_data ) && ! empty( $em_ticket_individual_data ) ) {
                     foreach( $em_ticket_individual_data as $ticket ) {
+                        $ticket = $sanitizer->sanitize($ticket);
                         if( isset( $ticket['id'] ) && ! empty( $ticket['id'] ) && is_int( $ticket['id'] ) ) {
                             $ticket_id = $ticket['id'];
                             $get_ticket_data = $dbhandler->get_all_result($price_options_table,'*',array('id'=>$ticket_id));
@@ -1516,7 +1520,7 @@ class EventM_Ajax_Service {
                 $attachment_id = wp_insert_attachment( $attachment, $upload_dir['path'] . "/" . $filename );
                 if ( ! is_wp_error( $attachment_id ) ) {
                     require_once(ABSPATH . "wp-admin" . '/includes/file.php');
-                    $attachment_data = wp_generate_attachment_metadata( $attachment_id, $uploaded_file['upload_url'] );
+                    $attachment_data = wp_generate_attachment_metadata( $attachment_id, $upload_dir['path'] . "/" . $filename );
                     wp_update_attachment_metadata( $attachment_id,  $attachment_data );
                     $returnData['success'] = array( 'attachment_id' => $attachment_id );
                 }
