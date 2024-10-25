@@ -40,8 +40,13 @@ $booking_data = array();
             <?php if( ! empty( $args->em_id ) ) {
                 $user = wp_get_current_user();
                 $roles = (array) $user->roles;
+                $users = (array) $user->ID;
                 
-                if( (! empty( $user->ID ) || ( isset( $args->em_order_info['guest_booking'] ) && $args->em_order_info['guest_booking'] == 1 ) )  || ( ! empty( $user->ID ) && (isset($options['global']->ep_allow_attendee_check_in) && $options['global']->ep_allow_attendee_check_in == 1)) ) {
+                $ep_booking_conditions = (! empty( $user->ID ) || ( isset( $args->em_order_info['guest_booking'] ) && $args->em_order_info['guest_booking'] == 1 ) ) ? true : false;
+
+                $ep_booking_conditions = apply_filters('ep_filter_booking_conditions', $ep_booking_conditions, $user, $args, $options);
+
+                if( $ep_booking_conditions ) {
 
                     $ep_event_allowed_roles = metadata_exists('post', $args->em_event, 'ep_event_allowed_roles') ? get_post_meta($args->em_event, 'ep_event_allowed_roles', true) : [];
                     $ep_event_allowed_individuals = metadata_exists('post', $args->em_event, 'ep_event_allowed_individuals') ? get_post_meta($args->em_event, 'ep_event_allowed_individuals', true) : [];
@@ -49,27 +54,34 @@ $booking_data = array();
                     $ep_event_allowed_roles = is_array($ep_event_allowed_roles) ? $ep_event_allowed_roles : [];
                     $ep_event_allowed_individuals = is_array($ep_event_allowed_individuals) ? $ep_event_allowed_individuals : [];
 
-                    // $user_is_allowed = false;
+                    $ep_user_roles = array_intersect($ep_event_allowed_roles, $roles);
+                    $ep_user_roles_indi = array_intersect($ep_event_allowed_individuals, $users);
 
                     if( $user->ID != $args->em_user && !($user->ID != $args->em_user && !empty($args->em_order_info['guest_booking'])) && isset($options['global']->ep_allow_attendee_check_in) && $options['global']->ep_allow_attendee_check_in == 1 ) {
-                        $users = (array) $user->ID;
-                        $ep_user_roles = array_intersect($ep_event_allowed_roles, $roles);
-                        $ep_user_roles_indi = array_intersect($ep_event_allowed_individuals, $users);
-
                         if( empty(array_intersect($ep_event_allowed_roles, $roles)) && empty(array_intersect($ep_event_allowed_individuals, $users))){ ?>
                             <div class="ep-alert ep-alert-warning ep-mt-3 ep-fs-6">
                                 <?php esc_html_e( "Don't have permission to check in attendees", 'eventprime-event-calendar-management' );?>
                             </div><?php
                             exit();
                         }
-                    }else if( $user->ID != $args->em_user && empty( $args->em_order_info['guest_booking'] ) ) {
+                    }
+                    $ep_booking_inner_conditions = ( $user->ID != $args->em_user && empty( $args->em_order_info['guest_booking'] )) ? true : false; 
+
+                    $ep_booking_inner_conditions = apply_filters('ep_filter_booking_inner_conditions',$ep_booking_inner_conditions, $args, $user, $ep_user_roles, $ep_user_roles_indi );
+
+                    if( $ep_booking_inner_conditions ) {
                         if( ! in_array( 'administrator', $roles, true ) ) {?>
                             <div class="ep-alert ep-alert-warning ep-mt-3">
                                 <?php esc_html_e( 'No booking found!', 'eventprime-event-calendar-management' );?>
                             </div><?php
                             exit();
                         }
-                    }else if( (empty($args->em_user) || $user->ID != $args->em_user) && !empty($args->em_order_info['guest_booking'])){
+                    }
+                    $ep_guest_order_info = ((empty($args->em_user) || $user->ID != $args->em_user) && !empty($args->em_order_info['guest_booking'])) ? true : false;
+
+                    $ep_guest_order_info = apply_filters('ep_guest_order_info_condition',$ep_guest_order_info, $args, $user, $ep_user_roles, $ep_user_roles_indi );
+
+                    if($ep_guest_order_info){
                         $order_key = get_post_meta($order_id, 'ep_order_key', true);
                         $key = isset($_GET['order_key']) && !empty($_GET['order_key']) ? sanitize_text_field($_GET['order_key']) : '';
                         if(!empty($order_key) && $order_key != $key){

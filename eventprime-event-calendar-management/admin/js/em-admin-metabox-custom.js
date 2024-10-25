@@ -677,6 +677,7 @@ jQuery( function( $ ) {
         }
         if( intervalVal == 'monthly' ) {
             $( '#em_show_monthly_options' ).show();
+            $('#em_recurrence_monthly_today').attr('checked', true);
         }
         if( intervalVal == 'yearly' ) {
             $( '#em_show_yearly_options' ).show();

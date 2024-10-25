@@ -1,4 +1,10 @@
-    <table class="form-table">
+<?php
+$global_settings = new Eventprime_Global_Settings;
+$global_options = $global_settings->ep_get_settings();
+$ep_functions = new Eventprime_Basic_Functions;
+$sub_options = $global_settings->sub_options;
+?>    
+<table class="form-table">
         <tbody>
             <tr valign="top">
                 <th scope="row" class="titledesc">

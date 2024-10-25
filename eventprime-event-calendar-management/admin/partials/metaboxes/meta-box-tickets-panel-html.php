@@ -43,7 +43,7 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                     </button>
                 </div>
                 <!--Existing Tickets-->
-                <div id="ep_existing_tickets_category_list ep-box-col-12">
+                <div id="ep_existing_tickets_category_list" class="ep_existing_tickets_category_list ep-box-col-12">
                     <?php 
                     $existing_cat_data = $ep_functions->get_existing_category_lists( $post->ID );
                     $ep_ticket_category_data = ( ! empty( $existing_cat_data ) ? wp_json_encode($existing_cat_data) : '' );?>

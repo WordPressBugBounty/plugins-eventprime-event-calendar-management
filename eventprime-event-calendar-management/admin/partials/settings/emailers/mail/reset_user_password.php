@@ -28,7 +28,6 @@
                                                             <td valign="top" style="padding:48px">
                                                                 <div style="color:#737373;font-family:'Helvetica Neue',Helvetica,Roboto,Arial,sans-serif;font-size:14px;line-height:150%;text-align:left">
                                                                     <h1 style="color: #0087be;;display:block;font-family:'Helvetica Neue',Helvetica,Roboto,Arial,sans-serif;font-size:18px;font-weight:normal;line-height:130%;margin:16px 0 8px;text-align:center; font-style: italic;">Hello @username,</h1>
-                                                                    <!--<h1 style="color:#557da1;display:block;font-family:'Helvetica Neue',Helvetica,Roboto,Arial,sans-serif;font-size:22px;font-weight:bold;line-height:130%;margin:16px 0 8px;text-align:center;">Thank you for registering for the Event Name</h1>-->
                                                                     <table cellspacing="0" cellpadding="6" style="width:100%;font-family:'Helvetica Neue',Helvetica,Roboto,Arial,sans-serif;color:#737373;border:1px solid #e4e4e4" border="1">
                                                                         <tr>
                                                                             <th>Your New Password is : </th>

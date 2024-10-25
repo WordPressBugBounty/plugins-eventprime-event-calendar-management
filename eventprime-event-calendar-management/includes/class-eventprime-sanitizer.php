@@ -128,7 +128,7 @@ class EventPrime_sanitizer {
             } else {
                 return $input; // If it's not an array or object, return the input as is
             }
-
+            $email_field_array = $this->email_field_keys_array();
             // Loop through the input and sanitize each of the values
             foreach ( $input as $key => $val ) {
                 if (empty($val)) {
@@ -176,7 +176,14 @@ class EventPrime_sanitizer {
                         default:
                             if ( is_email( $val ) ) {
                                 $sanitized_value = sanitize_email( $val );
-                            } else {
+                            } 
+                            elseif(in_array($key,$email_field_array))
+                            {
+                                $sanitized_value = wp_kses_post( $val );
+                            }
+                            else
+                            {
+                                
                                 $sanitized_value = sanitize_text_field( $val );
                             }
                             break;
@@ -192,6 +199,57 @@ class EventPrime_sanitizer {
             }
 
             return $new_input;
+        }
+        
+        public function email_field_keys_array()
+        {
+            $fields = array(
+                'send_booking_cancellation_email',
+                'booking_cancelation_email_subject',
+                'booking_cancelation_email',
+                'booking_cancelation_email_cc',
+                'send_booking_confirm_email',
+                'booking_confirm_email_subject',
+                'booking_confirmed_email',
+                'send_admin_booking_confirm_email',
+                'admin_booking_confirmed_email_subject',
+                'admin_booking_confirmed_email',
+                'admin_booking_confirmed_email_cc',
+                'admin_booking_confirm_email_attendees',
+                'send_booking_pending_email',
+                'booking_pending_email_subject',
+                'booking_pending_email',
+                'booking_pending_email_cc',
+                'send_booking_refund_email',
+                'booking_refund_email_subject',
+                'booking_refund_email',
+                'booking_refund_email_cc',
+                'send_event_approved_email',
+                'event_approved_email_subject',
+                'event_approved_email',
+                'send_event_submitted_email',
+                'event_submitted_email_subject',
+                'event_submitted_email',
+                'event_submitted_email_cc',
+                'registration_email_subject',
+                'registration_email_content',
+                'reset_password_mail_subject',
+                'reset_password_mail',
+                'send_certificate_event_invitation',
+                'certificate_event_invitation_subject',
+                'certificate_event_invitation_email',
+                'send_rsvp_event_invitation',
+                'rsvp_event_invitation_subject',
+                'rsvp_event_invitation_email',
+                'send_event_wt_booking_mail',
+                'event_wt_booking_mail_subject',
+                'event_wt_booking_mail_email',
+                'send_event_wt_reg_mail',
+                'event_wt_reg_mail_subject',
+                'event_wt_reg_mail_email'
+            );
+
+            return $fields;
         }
 
 
