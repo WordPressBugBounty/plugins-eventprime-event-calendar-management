@@ -11,8 +11,7 @@
 $basic_function = new Eventprime_Basic_Functions;
 
 $load_more = isset( $args->load_more ) ? $args->load_more : 0;
-//print_r($args);
-if ( isset($args->event_atts) && !empty($args->event_atts) && count( $args->event_atts ) > 0 ) {
+if ( isset($args->event_atts) && !empty($args->event_atts) && count( $args->event_atts ) > 0 && isset($args->event_atts['load_more'])) {
     $load_more = $args->event_atts['load_more'];
 }
 // if( isset( $args->events->max_num_pages ) && $args->events->max_num_pages > 1 && isset( $args->load_more ) && $args->load_more == 1 ) {

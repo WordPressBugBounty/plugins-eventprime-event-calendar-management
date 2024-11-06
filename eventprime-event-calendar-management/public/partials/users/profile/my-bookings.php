@@ -81,6 +81,7 @@ $ep_functions = new Eventprime_Basic_Functions;
                             }?>
                         </div>
                         <?php do_action( 'ep_booked_event_list_item', $booking->event_data );?>
+                        <?php do_action( 'ep_booked_event_list_item_certificate', $booking );?>
                         <div class="ep-d-flex">
                         <div class="ep-text-end ep-event-action-bt ep-ml-3 ">
                             <a href="<?php echo esc_url( $booking->booking_detail_url );?>" target="_blank">

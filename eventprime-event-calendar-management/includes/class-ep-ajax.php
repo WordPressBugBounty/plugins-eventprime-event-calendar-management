@@ -298,6 +298,12 @@ class EventM_Ajax_Service {
             {
                 $offer_data = array();
             }
+            $result = array( 'success' => 1, 'msg' => '' );
+            $checkpoint = apply_filters('ep_handle_checkout_additional_check',$result, $data);
+            if(isset($checkpoint['success']) && empty($checkpoint['success'])){
+                wp_send_json_error( array( 'error' =>  $checkpoint['msg']) );
+                die();
+            }
             if( wp_verify_nonce( $data['ep_save_event_booking_nonce'], 'ep_save_event_booking' ) ) {
                 
                 if(isset($data['ep_event_booking_ticket_data']))
@@ -635,6 +641,12 @@ class EventM_Ajax_Service {
             $sanitizer = new EventPrime_sanitizer;
             $em_name = htmlspecialchars_decode( sanitize_text_field( $data['em_name'] ) );
             
+            $result = array( 'success' => 1, 'msg' => '' );
+            $checkpoint = apply_filters('ep_handle_frontend_submission_additional_check',$result, $data);
+            if(isset($checkpoint['success']) && empty($checkpoint['success'])){
+                wp_send_json_error( array( 'error' =>  $checkpoint['msg']) );
+                die();
+            }
             if( empty( $em_name ) ) {
                 wp_send_json_error( array( 'error' => esc_html__( 'Event Name cannot be empty.', 'eventprime-event-calendar-management' ) ) );
             }

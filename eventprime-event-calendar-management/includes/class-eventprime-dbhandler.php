@@ -655,6 +655,7 @@ class EP_DBhandler {
                                         $format[] = $ep_activator->get_db_table_field_type('TICKET', $key);
                                     }
                                     $this->update_row('TICKET', 'id', $ticket_id, $ticket_data, $format);
+                                    do_action('ep_update_insert_ticket_additional_data', $ticket_id, $ticket, $post_id);
                                 } else {
                                     $ticket_data = $this->ep_add_tickets_in_category($cat_id, $post_id, $ticket, $cat_ticket_priority);
                                     $format = array();
@@ -662,6 +663,7 @@ class EP_DBhandler {
                                         $format[] = $ep_activator->get_db_table_field_type('TICKET', $key);
                                     }
                                     $result = $this->insert_row('TICKET', $ticket_data, $format);
+                                    do_action('ep_update_insert_ticket_additional_data', $result, $ticket, $post_id);
                                 }
                             } else {
                                 $ticket_data = $this->ep_add_tickets_in_category($cat_id, $post_id, $ticket, $cat_ticket_priority);
@@ -670,6 +672,7 @@ class EP_DBhandler {
                                     $format[] = $ep_activator->get_db_table_field_type('TICKET', $key);
                                 }
                                 $result = $this->insert_row('TICKET', $ticket_data, $format);
+                                do_action('ep_update_insert_ticket_additional_data', $result, $ticket, $post_id);
                             }
                         } else {
                             $ticket_data = $this->ep_add_tickets_in_category($cat_id, $post_id, $ticket, $cat_ticket_priority);
@@ -678,6 +681,7 @@ class EP_DBhandler {
                                 $format[] = $ep_activator->get_db_table_field_type('TICKET', $key);
                             }
                             $result = $this->insert_row('TICKET', $ticket_data, $format);
+                            do_action('ep_update_insert_ticket_additional_data', $result, $ticket, $post_id);
                         }
                         $cat_ticket_priority++;
                     }
@@ -796,6 +800,7 @@ class EP_DBhandler {
                             $arg[] = $ep_activator->get_db_table_field_type('TICKET', $key);
                         }
                         $this->update_row('TICKET', 'id', $ticket_id, $ticket_data, $arg, '%d');
+                        do_action('ep_update_insert_ticket_additional_data', $ticket_id, $ticket, $post_id);
                         }
                         else {
                             $ticket_data = $this->ep_add_individual_tickets($post_id, $ticket);
@@ -804,6 +809,7 @@ class EP_DBhandler {
                             $arg[] = $ep_activator->get_db_table_field_type('TICKET', $key);
                         }
                         $result = $this->insert_row('TICKET', $ticket_data, $arg);
+                        do_action('ep_update_insert_ticket_additional_data', $result, $ticket, $post_id);
                        }
                     } else {
                         $ticket_data = $this->ep_add_individual_tickets($post_id, $ticket);
@@ -812,6 +818,7 @@ class EP_DBhandler {
                             $arg[] = $ep_activator->get_db_table_field_type('TICKET', $key);
                         }
                         $result = $this->insert_row('TICKET', $ticket_data, $arg);
+                        do_action('ep_update_insert_ticket_additional_data', $result, $ticket, $post_id);
                     }
                     $tic++;
                     //error_log($tic);
@@ -846,6 +853,8 @@ class EP_DBhandler {
 
 			update_post_meta( $post_id, 'ep_ticket_order_arr', $ep_ticket_order_arr_explode ); 
 		}
+
+        do_action('ep_after_save_event_tickets_and_category', $post_id, $post);
         
     }
     
@@ -1147,11 +1156,11 @@ class EP_DBhandler {
         
         $post_data['em_gallery_image_ids'] = (isset($post['em_gallery_image_ids'])) ? $post['em_gallery_image_ids'] : '';
         $post_data['em_start_date'] = $em_start_date = (isset($post['em_start_date'])) ? $ep_functions->ep_date_to_timestamp(sanitize_text_field($post['em_start_date'])) : '';
-        $post_data['em_start_time'] = $em_start_time = (isset($post['em_start_time'])) ? $post['em_start_time'] : '';
+        $post_data['em_start_time'] = $em_start_time = (isset($post['em_start_time'])) ? $ep_functions->ep_check_time_format($post['em_start_time']) : '';
         $post_data['em_hide_event_start_time'] = (isset($post['em_hide_event_start_time'])) ? 1 : 0;
         $post_data['em_hide_event_start_date'] = (isset($post['em_hide_event_start_date'])) ? 1 : 0;
         $post_data['em_end_date'] = $em_end_date = (isset($post['em_end_date'])) ? $ep_functions->ep_date_to_timestamp(sanitize_text_field($post['em_end_date'])) : $em_start_date;
-        $post_data['em_end_time'] = $em_end_time = (isset($post['em_end_time'])) ? sanitize_text_field($post['em_end_time']): '';
+        $post_data['em_end_time'] = $em_end_time = (isset($post['em_end_time'])) ? $ep_functions->ep_check_time_format($post['em_end_time']): '';
         $post_data['em_hide_event_end_time'] = (isset($post['em_hide_event_end_time'])) ? 1 : 0;
         $post_data['em_hide_end_date'] = (isset($post['em_hide_end_date'])) ? 1 : 0;
         $post_data['em_all_day'] = $em_all_day = (isset($post['em_all_day'])) ? 1 : 0;

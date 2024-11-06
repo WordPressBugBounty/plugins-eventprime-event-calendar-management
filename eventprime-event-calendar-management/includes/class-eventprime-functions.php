@@ -1719,6 +1719,24 @@ class Eventprime_Basic_Functions {
         return $date_diff;
     }
 
+    public function ep_check_time_format($timeString)
+    {
+        // Define the time string and expected format
+        $format = $this->ep_get_global_settings('time_format');
+        //$format = "H:i:s";
+
+        // Parse the time string
+        $time = DateTime::createFromFormat($format, $timeString);
+
+        // Check if the time format is correct
+        if ($time && $time->format($format) === $timeString) {
+            return $timeString;
+        }
+        else
+        {
+            return '';
+        }
+    }
     public function ep_convert_event_date_time_from_timezone($event, $format = '', $end = 0, $strict = 0) {
         if ($event) {
             $dp_format = $this->ep_get_datepicker_format();
@@ -3146,6 +3164,7 @@ class Eventprime_Basic_Functions {
                             }
                         }
                     }
+                    $applied = apply_filters( "ep_check_event_ticket_applied_offers", $applied, $offer, $ticket, $event_id, $qty ); 
                 }
             }
         }
@@ -5994,6 +6013,9 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
 										}
 										if( empty( $found_role ) ) {
 											$response = array( 'status' => false, 'message' => 'role_not_found', 'reason' => '' );
+                                            if( $em_ticket_for_invalid_user == 'disabled' ) {
+                                                $response = array( 'status' => true, 'message' => 'disabled', 'reason' => 'user_role' );
+                                            }
 										} else{
 											$response['status'] = true;
 										}
@@ -6011,6 +6033,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
 							$response = array( 'status' => false, 'message' => 'require_login', 'reason' => '' );
 						}
 					}
+                    $response = apply_filters( "ep_check_ticket_visibility_response", $response, $ticket, $event ); 
 				}
 			} else{
 				$response['status'] = true;
@@ -8194,7 +8217,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
             $newdata['ep_event_booking_total_discount'] = $total_discount;
             if(isset($newdata['ep_event_booking_total_price']))
             {
-                $newdata['ep_event_booking_total_price'] = $total;
+                $newdata['ep_event_booking_total_price'] = round($total, 2);
             }
             if(isset($newdata['ep_event_booking_total_tickets']))
             {

@@ -140,7 +140,10 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                     //$em_ticket_individual_data = ( ! empty( $get_existing_individual_ticket_lists ) ? wp_json_encode( $get_existing_individual_ticket_lists ) : '' );?>
                     <input type="hidden" name="em_ticket_individual_data" id="ep_ticket_individual_data" value="" />
                     <input type="hidden" name="em_ticket_individual_delete_ids" id="ep_ticket_individual_delete_ids" value="" />
-                    <?php do_action('ep_ticket_additional_hidden_fields');?>
+                    <?php 
+                    do_action('ep_ticket_additional_hidden_fields');
+                    do_action('ep_ticket_additional_hidden_fields_data',$post->ID);
+                    ?>
                     <div class="ep-ticket-category-section">
                         <?php if( !empty( $ep_ticket_data ) ) {
                             
@@ -508,6 +511,7 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                                                     <option value="all_login"><?php esc_html_e( 'Logged In Users', 'eventprime-event-calendar-management');?></option>
                                                     <option value="user_roles"><?php esc_html_e( 'Specific User Roles', 'eventprime-event-calendar-management');?></option>
                                                     <!-- <option value="user-groups">Logged In Users -> Group Members</option> -->
+                                                    <?php do_action("ep_extend_tic_visibility_option"); ?>
                                                 </select>
                                             </div>
 
@@ -521,6 +525,8 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                                                     }?>
                                                 </select>
                                             </div>
+
+                                            <?php do_action("ep_extend_tic_visibility_sub_option"); ?>
 
                                             <div class="ep-box-col-12 ep-mt-3">
                                                 <label><?php esc_html_e( 'For Ineligible Users', 'eventprime-event-calendar-management');?></label>
@@ -690,6 +696,7 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                                                     <option value="seat_based"><?php esc_html_e( 'Admittance Based', 'eventprime-event-calendar-management');?></option>
                                                     <option value="role_based"><?php esc_html_e( 'User Role Based', 'eventprime-event-calendar-management');?></option>
                                                     <option value="volume_based"><?php esc_html_e( 'Volume Based', 'eventprime-event-calendar-management');?></option>
+                                                    <?php do_action("ep_extend_tic_offer_option"); ?> 
                                                 </select>
                                             </div>
                                             
@@ -709,6 +716,7 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                                                                 <label class="ep-form-label"><?php esc_html_e( 'Enter Number', 'eventprime-event-calendar-management');?></label>
                                                                 <input type="number" min="0" class="ep-form-control" name="em_ticket_offer_seat_number" placeholder="<?php esc_html_e( 'Count', 'eventprime-event-calendar-management');?>">
                                                             </div>
+
                                                         </div>
                                                     </div>
                                                 
@@ -727,6 +735,8 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                                                         <label class="ep-form-label"><?php esc_html_e( 'Enter Number', 'eventprime-event-calendar-management');?></label>
                                                         <input type="number" class="ep-form-control" name="em_ticket_offer_volumn_count" placeholder="<?php esc_html_e( 'Minimum Number of Tickets', 'eventprime-event-calendar-management');?>">
                                                     </div>
+
+                                                    <?php do_action("ep_extend_tic_offer_sub_option"); ?>
 
                                                 </div>
                                             </div>

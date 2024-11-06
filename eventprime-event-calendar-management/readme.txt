@@ -3,9 +3,9 @@ Contributors: metagauss
 Donate link: https://theeventprime.com/
 Tags: event calendar, organizer , event manager, tickets, event booking, event bookings, booking manager, bookings manager, event organizer, events organizer, event planner, events planner, paid events, event list, events list, event registration, event registrations
 Requires at least: 4.8
-Tested up to: 6.6
+Tested up to: 6.7
 Requires PHP: 7.2
-Stable tag: 4.0.4.9
+Stable tag: 4.0.5.0
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -666,6 +666,10 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.0.5.0: November 06, 2024 =
+* Multiple bug fixes.
+* UI improvements.
 
 = 4.0.4.9: October 25, 2024 =
 * Fixed: Email template saving issue.
@@ -2018,6 +2022,10 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.0.5.0: November 06, 2024 =
+* Multiple bug fixes.
+* UI improvements.
 
 = 4.0.4.9: October 25, 2024 =
 * Fixed: Email template saving issue.

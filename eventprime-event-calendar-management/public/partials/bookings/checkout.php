@@ -278,7 +278,7 @@ if( $ep_functions->ep_get_global_settings('checkout_reg_google_recaptcha') == 1 
                                             } else{
                                                 $ep_functions->ep_show_free_event_price( $total_price );
                                             }?>
-                                            <input type="hidden" name="ep_event_booking_total_price" value="<?php echo esc_attr( $total_price );?>" />
+                                            <input type="hidden" name="ep_event_booking_total_price" value="<?php echo esc_attr( round($total_price, 2) );?>" />
                                             <input type="hidden" name="ep_event_booking_total_tickets" value="<?php echo absint( $total_tickets );?>" />
                                         </div>
                                     </div>

@@ -178,7 +178,7 @@ class EventM_Notification_Service {
             }
             // Send email to user
             $sent = wp_mail( $to, $subject, $mail_body, $headers, $attachments );
-            if ( count( $attachments ) != 0 ) {
+            if ( isset($attachments) && !empty($attachments) && count( $attachments ) != 0 ) {
                 foreach ( $attachments as $pdf_url ) {
                     wp_delete_file( $pdf_url ); 
                 }

@@ -402,6 +402,14 @@ class EventM_User_Controller {
         {
         $ep_functions = new Eventprime_Basic_Functions;
         $result = array();
+        $checkpoint_args = array(
+          'success' => 1,
+          'msg'     => ''
+        );
+        $checkpoint = apply_filters('ep_handle_login_additional_check',$checkpoint_args, $_POST);
+        if(isset($checkpoint['success']) && empty($checkpoint['success'])){
+            return $checkpoint;
+        }
         $recaptcha = true;  
         if( $ep_functions->ep_get_global_settings('login_google_recaptcha') == 1 ) {
             if( isset( $_POST['g-recaptcha-response'] ) && !empty( $ep_functions->ep_get_global_settings( 'google_recaptcha_secret_key' ) ) ) {
@@ -543,6 +551,11 @@ class EventM_User_Controller {
             $args = $this->get_register_options( new stdClass() );
             $recaptcha = true;  
             $result = array( 'success' => 0, 'msg' => 'Failed.' );
+            $checkpoint_args = array('success' => 1,'msg'     => '');
+            $checkpoint = apply_filters('ep_handle_registration_additional_check',$checkpoint_args, $_POST);
+            if(isset($checkpoint['success']) && empty($checkpoint['success'])){
+                return $checkpoint;
+            }
             if( $ep_functions->ep_get_global_settings( 'register_google_recaptcha') == 1 ) {
                 if( isset( $_POST['g-recaptcha-response'] ) && ! empty( $ep_functions->ep_get_global_settings( 'google_recaptcha_secret_key' ) ) ) {
                 $response = json_decode( file_get_contents( "https://www.google.com/recaptcha/api/siteverify?secret=".$ep_functions->ep_get_global_settings( 'google_recaptcha_secret_key' )."&response=".$_POST['g-recaptcha-response']."&remoteip=".$_SERVER['REMOTE_ADDR'] ), true );

@@ -126,7 +126,7 @@ if( ! empty( $post ) ) {
         )
     );
     // enqueue custom scripts and styles from extension
-                do_action( 'ep_event_detail_enqueue_custom_scripts' );
+    do_action( 'ep_event_detail_enqueue_custom_scripts', $atts ); 
 }
 
 $event_visibility = true;

@@ -3025,6 +3025,10 @@ jQuery( function( $ ) {
         if( em_ticket_template ) {
             ticket_tier_data.ticket_template_id = em_ticket_template;
         }
+        let ep_certificate_template = tickets_data.get( 'ep_certificate_template' );
+        if( ep_certificate_template ) {
+            ticket_tier_data.ep_certificate_template = ep_certificate_template;
+        }
         
         // visibility
         let em_tickets_user_visibility = tickets_data.get( 'em_tickets_user_visibility' );
