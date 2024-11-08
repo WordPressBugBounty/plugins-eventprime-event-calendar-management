@@ -93,7 +93,7 @@ class Eventprime_Event_Calendar_Management_Admin {
     public function enqueue_scripts() {
         wp_register_script( 'em-admin-jscolor', plugin_dir_url( __FILE__ ) . 'js/jscolor.min.js', false, $this->version );
         wp_register_script( 'em-admin-select2-js', plugin_dir_url( __FILE__ ) . 'js/select2.full.min.js', false, $this->version );
-        wp_register_script( 'em-admin-timepicker-js', plugin_dir_url( __FILE__ ) . 'js/jquery.timepicker.min.js', false, $this->version );
+        wp_register_script( 'em-admin-timepicker-js', plugin_dir_url( __FILE__ ) . 'js/jquery.timepicker.min.js', false, $this->version,true );
         wp_register_script( 'ep-toast-js', plugin_dir_url( __FILE__ ) . 'js/jquery.toast.min.js', array( 'jquery' ), $this->version );
         wp_register_script( 'ep-toast-message-js', plugin_dir_url( __FILE__ ) . 'js/toast-message.js', array( 'jquery' ), $this->version );
         wp_register_script( 'eventprime-admin-blocks-js', plugin_dir_url( __FILE__ ) . 'js/blocks/index.js', array( 'wp-blocks', 'wp-editor', 'wp-i18n', 'wp-element', 'wp-components' ), $this->version );
@@ -4151,6 +4151,16 @@ class Eventprime_Event_Calendar_Management_Admin {
             }
         }
         return $query;
+    }
+    
+    public function deregister_acf_timepicker_on_custom_post()
+    {
+        // Check if we're on the edit screen of a specific custom post type
+        global $post;
+        if (isset($post) && $post->post_type == 'em_event') {
+            // Deregister the ACF timepicker script
+            wp_deregister_script('acf-timepicker'); // Replace 'acf-timepicker' with the actual handle used by ACF
+        }
     }
 
 

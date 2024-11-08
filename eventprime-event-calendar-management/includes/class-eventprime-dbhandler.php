@@ -1156,11 +1156,11 @@ class EP_DBhandler {
         
         $post_data['em_gallery_image_ids'] = (isset($post['em_gallery_image_ids'])) ? $post['em_gallery_image_ids'] : '';
         $post_data['em_start_date'] = $em_start_date = (isset($post['em_start_date'])) ? $ep_functions->ep_date_to_timestamp(sanitize_text_field($post['em_start_date'])) : '';
-        $post_data['em_start_time'] = $em_start_time = (isset($post['em_start_time'])) ? $ep_functions->ep_check_time_format($post['em_start_time']) : '';
+        $post_data['em_start_time'] = $em_start_time = (isset($post['em_start_time'])) ? $post['em_start_time'] : '';
         $post_data['em_hide_event_start_time'] = (isset($post['em_hide_event_start_time'])) ? 1 : 0;
         $post_data['em_hide_event_start_date'] = (isset($post['em_hide_event_start_date'])) ? 1 : 0;
         $post_data['em_end_date'] = $em_end_date = (isset($post['em_end_date'])) ? $ep_functions->ep_date_to_timestamp(sanitize_text_field($post['em_end_date'])) : $em_start_date;
-        $post_data['em_end_time'] = $em_end_time = (isset($post['em_end_time'])) ? $ep_functions->ep_check_time_format($post['em_end_time']): '';
+        $post_data['em_end_time'] = $em_end_time = (isset($post['em_end_time'])) ? sanitize_text_field($post['em_end_time']): '';
         $post_data['em_hide_event_end_time'] = (isset($post['em_hide_event_end_time'])) ? 1 : 0;
         $post_data['em_hide_end_date'] = (isset($post['em_hide_end_date'])) ? 1 : 0;
         $post_data['em_all_day'] = $em_all_day = (isset($post['em_all_day'])) ? 1 : 0;

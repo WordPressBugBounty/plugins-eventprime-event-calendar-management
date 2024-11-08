@@ -477,8 +477,8 @@ $booking_data = array();
                                     </div>
                                 </div><?php
                             }?>
-                        </div>
                         <?php do_action( 'ep_booking_detail_attendee_table_btns',$booking_attendees_val, $ticket_id, $args->em_id, $args);?>
+                    </div>
                         <?php
                     }
                     // booking data

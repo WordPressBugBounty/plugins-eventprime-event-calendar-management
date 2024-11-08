@@ -5,7 +5,7 @@ Tags: event calendar, organizer , event manager, tickets, event booking, event b
 Requires at least: 4.8
 Tested up to: 6.7
 Requires PHP: 7.2
-Stable tag: 4.0.5.0
+Stable tag: 4.0.5.1
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -666,6 +666,10 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.0.5.1: November 07, 2024 =
+* Fixed: An issue with the date field's UI while using ACF.
+* UI improvements.
 
 = 4.0.5.0: November 06, 2024 =
 * Multiple bug fixes.
@@ -2022,6 +2026,10 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.0.5.1: November 07, 2024 =
+* Fixed: An issue with the date field's UI while using ACF.
+* UI improvements.
 
 = 4.0.5.0: November 06, 2024 =
 * Multiple bug fixes.
