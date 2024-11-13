@@ -3,8 +3,8 @@ jQuery( function( $ ) {
     $( document ).ready( function() {
         $( ".ep_event_options_panel:first-of-type" ).show();
         var date_format = 'yy-mm-dd';
-        if( eventprime.global_settings.datepicker_format ) {
-            settings_date_format = eventprime.global_settings.datepicker_format;
+        if( eventprime_frontend_submission.datepicker_format ) {
+            settings_date_format = eventprime_frontend_submission.datepicker_format;
             if( settings_date_format ) {
                 settings_date_format = settings_date_format.split( '&' )[0];
                 if( settings_date_format ) {
@@ -354,8 +354,8 @@ jQuery( function( $ ) {
 
         //Modifying Date Format for Moment js 
         var date_format = 'yy-mm-dd';
-        if( eventprime.global_settings.datepicker_format ) {
-            settings_date_format = eventprime.global_settings.datepicker_format;
+        if( eventprime_frontend_submission.datepicker_format ) {
+            settings_date_format = eventprime_frontend_submission.datepicker_format;
             if( settings_date_format ) {
                 settings_date_format = settings_date_format.split( '&' )[0];
                 if( settings_date_format ) {
@@ -527,7 +527,7 @@ jQuery( function( $ ) {
         };
         $.ajax({
             type    : "POST",
-            url     : eventprime.ajaxurl,
+            url     : eventprime_frontend_submission.ajaxurl,
             data    : data,
             success : function( response ) {
                 $('.ep-event-loader').hide();
@@ -1678,7 +1678,7 @@ function upload_file_media(element){
     fd.append('security', em_event_fes_object.fes_nonce);
     jQuery.ajax({
         type: 'POST',
-        url: eventprime.ajaxurl,
+        url: eventprime_frontend_submission.ajaxurl,
         security: em_event_fes_object.fes_nonce,
         data: fd,
         contentType: false,

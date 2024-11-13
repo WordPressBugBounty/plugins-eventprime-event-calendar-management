@@ -170,7 +170,7 @@ jQuery( function( $ ) {
         $("#ep-search-filters").css("animation", "ep-searchfilters-exit 1s forwards normal 1");
         $(".ep-search-filter-overlay").hide();
         let search_keyword = $( '#ep_event_keyword_search' ).val();
-        if( search_keyword ) {
+        if(search_keyword) {
             // sanitize the input first
             let post_data = {
                 action   : 'ep_sanitize_input_field_data',
@@ -189,7 +189,9 @@ jQuery( function( $ ) {
                         // update html
                         event_applied_filters_render_content( param );
                         //event_search_params.push( param );
-                        event_filters_selection_update(event_search_params, param);                         
+                        event_filters_selection_update(event_search_params, param);    
+                        let display_style = $('#ep-events-style').val();
+                        event_applied_filters( display_style, event_search_params );
                     } else{
                         show_toast( 'error', response.data.message );
                         return false;
@@ -197,8 +199,7 @@ jQuery( function( $ ) {
                 }
             });
         }
-        let display_style = $('#ep-events-style').val();
-        event_applied_filters( display_style, event_search_params );
+        
     });
     
     $( document ).on( 'click', '.ep-filters-days', function() {

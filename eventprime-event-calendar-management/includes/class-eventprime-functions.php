@@ -9924,9 +9924,9 @@ public function ep_get_events( $fields ) {
 
         wp_localize_script(
             'ep-front-events-fes-js', 
-            'eventprime',
+            'eventprime_frontend_submission',
             array(
-                'global_settings' => $this->ep_get_global_settings( 'datepicker_format' ),
+                'datepicker_format' => $this->ep_get_global_settings( 'datepicker_format' ),
                 'ajaxurl'   => admin_url('admin-ajax.php'),
             ),
         );
