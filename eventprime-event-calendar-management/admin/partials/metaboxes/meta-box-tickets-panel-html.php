@@ -700,7 +700,7 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                                                 </select>
                                             </div>
                                             
-                                            <div class="ep-box-col-12 ep-mt-3">
+                                            <div class="ep-box-col-6 ep-mt-3">
                                                 <div class="ep-box-row">
                                                     <div class="ep-box-col-12 offer-fields ep-seat-based-offer-wrapper" id="ep_ticket_offer_seat_based">
                                                         <div class="ep-box-row">
@@ -720,7 +720,7 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                                                         </div>
                                                     </div>
                                                 
-                                                    <div class="offer-fields ep-box-col-6" id="ep_ticket_offer_role_based" style="display: none;">
+                                                    <div class="offer-fields ep-box-col-12" id="ep_ticket_offer_role_based" style="display: none;">
                                                         <label class="ep-form-label"><?php esc_html_e( 'Select Roles', 'eventprime-event-calendar-management');?></label>
                                                         <select name="em_ticket_offer_user_roles" id="em_ticket_offer_user_roles" multiple="multiple" class="ep-form-control ep_user_roles_options">
                                                             <?php foreach( $ep_functions->ep_get_all_user_roles() as $key => $role ){?>
@@ -731,7 +731,7 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                                                         </select>
                                                     </div>
 
-                                                    <div class="offer-fields ep-box-col-6" id="ep_ticket_offer_volume_based" style="display: none;">
+                                                    <div class="offer-fields ep-box-col-12" id="ep_ticket_offer_volume_based" style="display: none;">
                                                         <label class="ep-form-label"><?php esc_html_e( 'Enter Number', 'eventprime-event-calendar-management');?></label>
                                                         <input type="number" class="ep-form-control" name="em_ticket_offer_volumn_count" placeholder="<?php esc_html_e( 'Minimum Number of Tickets', 'eventprime-event-calendar-management');?>">
                                                     </div>
