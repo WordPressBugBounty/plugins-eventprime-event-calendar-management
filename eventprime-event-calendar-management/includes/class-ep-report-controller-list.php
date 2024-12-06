@@ -105,7 +105,8 @@ class EventM_Report_Controller_List {
         $bookings =  new stdClass();
         $data = $this->ep_booking_reports_list($filter_args);
         $posts = $data->posts;
-        $bookings->stat = $this->ep_bookings_stat( $posts );
+
+        $bookings->stat = $this->ep_bookings_stat( $posts );        
         $bookings->posts = $posts;
         $bookings->posts_details = $data;
         //Calculate Days
@@ -141,7 +142,15 @@ class EventM_Report_Controller_List {
                             $additional_fees = array();
                             if(isset($ticket->additional_fee)){
                                 foreach($ticket->additional_fee as $fees){
-                                    $additional_fees[] = $fees->label.' ('.$ep_functions->ep_price_with_position($fees->price * $ticket->qty).')';
+                                    if(isset($booking->eventprime_updated_pattern))
+                                    {
+                                        $additional_fees[] = $fees->label.' ('.$ep_functions->ep_price_with_position($fees->price).')';
+                                    }
+                                    else
+                                    {
+                                        $additional_fees[] = $fees->label.' ('.$ep_functions->ep_price_with_position($fees->price * $ticket->qty).')';
+                                    }
+                                    
                                 }
                             }
                             $ticket_sub_total = $ticket_sub_total + $ticket->subtotal;
@@ -161,7 +170,15 @@ class EventM_Report_Controller_List {
                             $additional_fees = array();
                             if(isset($ticket->additional_fee)){
                                 foreach($ticket->additional_fee as $fees){
-                                    $additional_fees[] = $fees->label.' ('.$ep_functions->ep_price_with_position($fees->price * $ticket->qty).')';
+                                    if(isset($booking->eventprime_updated_pattern))
+                                    {
+                                        $additional_fees[] = $fees->label.' ('.$ep_functions->ep_price_with_position($fees->price).')';
+                                    }
+                                    else
+                                    {
+                                        $additional_fees[] = $fees->label.' ('.$ep_functions->ep_price_with_position($fees->price * $ticket->qty).')';
+                                    }
+                                    
                                 }
                             }
                             $ticket_sub_total = $ticket_sub_total + $ticket->subtotal;
@@ -179,7 +196,7 @@ class EventM_Report_Controller_List {
                 if( !empty( $order_info['event_fixed_price'] ) ) {
                     $ticket_sub_total = $ticket_sub_total + $order_info['event_fixed_price'];
                 }
-                if(isset($order_info['coupon_code'])){
+                if( isset($order_info['coupon_code']) || isset($order_info['ep_coupon_data']) || isset($order_info['woo_coupon_data']) ){
                     $coupon_discount = $coupon_discount + $order_info['discount'];
                 }
                 $total_attendees = $total_attendees + $att_count; 

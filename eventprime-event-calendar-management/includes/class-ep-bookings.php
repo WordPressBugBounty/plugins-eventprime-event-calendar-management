@@ -378,7 +378,7 @@ class EventPrime_Bookings {
                 'numberposts' => -1,
                 'orderby'     => 'date',
                 'order'       => 'DESC',
-                'post_status' => 'completed',
+                'post_status' => array('completed','pending'),
                 'meta_query'  => array(
                     array(
                         'key'     => 'em_event', 

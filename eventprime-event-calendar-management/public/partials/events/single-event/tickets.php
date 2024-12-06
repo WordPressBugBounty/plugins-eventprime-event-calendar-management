@@ -243,6 +243,7 @@ $is_event_expired = $ep_functions->check_event_has_expired( $args->event );
             <div class="ep-modal-dialog ep-modal-dialog-centered <?php echo esc_attr( $ep_modal_xl );?>">
                 <div class="ep-modal-content">
                     <div class="ep-modal-body"> 
+                        <?php do_action('ep_add_internal_loader_section','none','ep-ticket-modal-loader'); ?>
                         <div class="ep-box-row">
                             <input type="hidden" name="ep_event_booking_event_id" id="ep_event_booking_event_id" value="<?php echo esc_attr(base64_encode( $args->event->em_id ));?>" />
                             <?php
@@ -376,7 +377,7 @@ $is_event_expired = $ep_functions->check_event_has_expired( $args->event );
                                                                 }?>
                                                             </span>
                                                             <?php if( ! empty( $event_offers['applicable_offers'][$ticket->id] ) && count( $event_offers['applicable_offers'][$ticket->id] ) > 0 && empty( $ticket_sold_out ) ) {?>
-                                                                <em class="ms-2 fw-normal ep-text-dark ep-text-small">
+                                                                <em class="ep-ms-2 fw-normal ep-text-dark ep-text-small">
                                                                     <?php echo absint( count( $event_offers['applicable_offers'][$ticket->id] ) );?> 
                                                                     <?php esc_html_e( 'Offers Applied', 'eventprime-event-calendar-management' );?>
                                                                 </em><?php
@@ -441,7 +442,7 @@ $is_event_expired = $ep_functions->check_event_has_expired( $args->event );
                                                                 if( empty( $event_offers['applicable_offers'][$ticket->id] ) || empty( $event_offers['applicable_offers'][$ticket->id][$offer->uid] ) ) { 
                                                                     $ticket_offer_applied_style .= 'display: none;';
                                                                 }?>
-                                                                <span class="ep-rounded-5 ep-position-absolute ep-bg-white ep-text-warning ep-fs-3 ep-event-offer-applied" style='<?php echo esc_attr( $ticket_offer_applied_style );?>' id="ep_event_offer_<?php echo esc_attr( $ticket->id );?>_<?php echo esc_attr( $off );?>">
+                                                                <span class="ep-rounded-5 ep-position-absolute ep-bg-white ep-text-warning ep-fs-3 ep-event-offer-applied ep-event-offer-applied_<?php echo esc_attr( $ticket->id );?>" style='<?php echo esc_attr( $ticket_offer_applied_style );?>' id="ep_event_offer_<?php echo esc_attr( $ticket->id );?>_<?php echo esc_attr( $offer->uid );?>">
                                                                     <span class="material-icons-outlined ep-align-top">done</span>
                                                                 </span>
                                                             </div><?php
@@ -482,10 +483,14 @@ $is_event_expired = $ep_functions->check_event_has_expired( $args->event );
                                     }?>
                                     <div class="ep-fs-5 ep-fw-bold ep-mt-2 ep-text-truncate" id="ep_event_ticket_modal_right_event_name"> <?php echo esc_html( $args->event->name ); ?> </div>
                                     <?php if( ! empty( $args->event->em_venue ) ) {
-                                        $event_venue = $ep_functions->get_single_venue( $args->event->em_venue );?>
+                                        $event_venue = $ep_functions->get_single_venue( $args->event->em_venue );
+                                        if(!empty($event_venue)){
+                                        ?>
                                         <div class="ep-text-small ep-text-muted" id="ep_event_ticket_modal_right_venue_name">
                                             <span class="material-icons-outlined ep-fs-6 ep-align-middle">place</span> <?php if(isset($event_venue->name)){ echo esc_html( $event_venue->name );}?>
                                         </div><?php
+                                        
+                                        }
                                     }
                                     if( ! empty( $args->event->em_start_date ) && $ep_functions->ep_show_event_date_time( 'em_start_date', $args->event ) ) {?>
                                         <div class="ep-text-small mb-3 text-muted ep-d-flex ep-align-items-center" id="ep_event_ticket_modal_right_date_time">
@@ -548,6 +553,7 @@ $is_event_expired = $ep_functions->check_event_has_expired( $args->event );
                     </div>
                 </div>
             </div>
+            
         </div><?php
     }
 }?>

@@ -566,7 +566,7 @@ class EP_DBhandler {
                                 if (!empty($get_ticket_data)) {
                                     $ticket_data['name'] = addslashes($ticket['name']);
                                     $ticket_data['description'] = isset($ticket['description']) ? addslashes(str_replace('"', "'", $ticket['description'])) : '';
-                                    $ticket_data['price'] = isset($ticket['price']) ? $ticket['price'] : 0;
+                                    $ticket_data['price'] = isset($ticket['price']) ? number_format(floatval($ticket['price']),2,'.','') : 0;
                                     $ticket_data['capacity'] = isset($ticket['capacity']) ? absint($ticket['capacity']) : 0;
                                     $ticket_data['icon'] = isset($ticket['icon']) ? absint($ticket['icon']) : '';
                                     $ticket_data['priority'] = $cat_ticket_priority;
@@ -712,7 +712,7 @@ class EP_DBhandler {
                         $ticket_data = array();
                         $ticket_data['name'] = addslashes($ticket['name']);
                         $ticket_data['description'] = isset($ticket['description']) ? addslashes(str_replace('"', "'", $ticket['description'])) : '';
-                        $ticket_data['price'] = isset($ticket['price']) ? $ticket['price'] : 0;
+                        $ticket_data['price'] = isset($ticket['price']) ? number_format(floatval($ticket['price']),2,'.','') : 0;
                         $ticket_data['capacity'] = isset($ticket['capacity']) ? absint($ticket['capacity']) : 0;
                         $ticket_data['icon'] = isset($ticket['icon']) ? absint($ticket['icon']) : '';
                         $ticket_data['updated_at'] = date_i18n("Y-m-d H:i:s", time());
@@ -1561,7 +1561,7 @@ class EP_DBhandler {
                                 if (!empty($get_ticket_data)) {
                                     $ticket_data['name'] = addslashes($ticket['name']);
                                     $ticket_data['description'] = isset($ticket['description']) ? addslashes(str_replace('"', "'", $ticket['description'])) : '';
-                                    $ticket_data['price'] = isset($ticket['price']) ? $ticket['price'] : 0;
+                                    $ticket_data['price'] = isset($ticket['price']) ? number_format(floatval($ticket['price']),2,'.','') : 0;
                                     $ticket_data['capacity'] = isset($ticket['capacity']) ? absint($ticket['capacity']) : 0;
                                     $ticket_data['icon'] = isset($ticket['icon']) ? absint($ticket['icon']) : '';
                                     $ticket_data['priority'] = $cat_ticket_priority;
@@ -1703,7 +1703,7 @@ class EP_DBhandler {
                         $ticket_data = array();
                         $ticket_data['name'] = addslashes($ticket['name']);
                         $ticket_data['description'] = isset($ticket['description']) ? addslashes(str_replace('"', "'", $ticket['description'])) : '';
-                        $ticket_data['price'] = isset($ticket['price']) ? $ticket['price'] : 0;
+                        $ticket_data['price'] = isset($ticket['price']) ? number_format(floatval($ticket['price']),2,'.','') : 0;
                         $ticket_data['capacity'] = isset($ticket['capacity']) ? absint($ticket['capacity']) : 0;
                         $ticket_data['icon'] = isset($ticket['icon']) ? absint($ticket['icon']) : '';
                         $ticket_data['updated_at'] = date_i18n("Y-m-d H:i:s", time());
@@ -2165,7 +2165,7 @@ class EP_DBhandler {
         $ticket_data['event_id'] = $post_id;
         $ticket_data['name'] = addslashes($ticket['name']);
         $ticket_data['description'] = isset($ticket['description']) ? addslashes(str_replace('"', "'", $ticket['description'])) : '';
-        $ticket_data['price'] = isset($ticket['price']) ? $ticket['price'] : 0;
+        $ticket_data['price'] = isset($ticket['price']) ? number_format(floatval($ticket['price']),2,'.','') : 0;
         $ticket_data['special_price'] = '';
         $ticket_data['capacity'] = isset($ticket['capacity']) ? absint($ticket['capacity']) : 0;
         $ticket_data['is_default'] = 1;
@@ -2257,7 +2257,7 @@ class EP_DBhandler {
         $ticket_data['event_id'] = $post_id;
         $ticket_data['name'] = addslashes($ticket['name']);
         $ticket_data['description'] = isset($ticket['description']) ? addslashes(str_replace('"', "'", $ticket['description'])) : '';
-        $ticket_data['price'] = isset($ticket['price']) ? $ticket['price'] : 0;
+        $ticket_data['price'] = isset($ticket['price']) ? number_format(floatval($ticket['price']),2,'.','') : 0;
         $ticket_data['special_price'] = '';
         $ticket_data['capacity'] = isset($ticket['capacity']) ? absint($ticket['capacity']) : 0;
         $ticket_data['is_default'] = 1;

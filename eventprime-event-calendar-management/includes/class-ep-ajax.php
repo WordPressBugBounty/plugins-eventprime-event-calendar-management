@@ -309,6 +309,7 @@ class EventM_Ajax_Service {
                 if(isset($data['ep_event_booking_ticket_data']))
                 {
                     $ticket_data = json_decode( $data['ep_event_booking_ticket_data'] );
+                    //print_r($ticket_data);
                     if(isset($ticket_data[0]->id))
                     {
                        $ticket_data_object = $ep_functions->ep_get_ticket_data($ticket_data[0]->id);
@@ -334,6 +335,8 @@ class EventM_Ajax_Service {
                     $data['ep_event_booking_event_fixed_price'] = 0;
                 }
                 $current_user = wp_get_current_user();
+                //echo 'data 1';
+                //print_r($data);
                 if( class_exists("Eventprime_Admin_Attendee_Booking")){
                     if(empty( get_option( 'ep_set_admin_aab_'.$current_user->ID )))
                     {
@@ -345,6 +348,16 @@ class EventM_Ajax_Service {
                 {
                     $data = $ep_functions->ep_recalculate_and_verify_the_cart_data($data,$offer_data);
                 }
+                
+                $woocommerce_validate = $ep_functions->ep_validate_woocommerce_product_data($data);
+                if($woocommerce_validate===false)
+                {
+                    wp_send_json_error( array( 'error' => esc_html__( 'WooCommerce Product calculation missed matched.', 'eventprime-event-calendar-management' ) ) );
+                    die;
+                }
+                //var_dump($woocommerce_validate);die;
+                //echo 'data 2';
+                //print_r($data);die;
                 // If Seated Venue then verify if seats in the ticekt data are sold or not.
                 // Check it after ep_recalculate_and_verify_the_cart_data() as $data is set false later. (Refractor it!!!) 
                 $incoming_ticket_data = json_decode( $data['ep_event_booking_ticket_data'] ); 
@@ -437,13 +450,14 @@ class EventM_Ajax_Service {
                 // order info
                 $order_info = array();
                 $order_info['tickets']           = json_decode( $data['ep_event_booking_ticket_data'] );
-                $order_info['event_fixed_price'] = ( ! empty( $data['ep_event_booking_event_fixed_price'] ) ? $data['ep_event_booking_event_fixed_price'] : 0.00 );
-                $order_info['booking_total']     = ( ! empty( $data['ep_event_booking_total_price'] ) ? $data['ep_event_booking_total_price'] : 0.00 );
+                $order_info['event_fixed_price'] = ( ! empty( $data['ep_event_booking_event_fixed_price'] ) ? (float)$data['ep_event_booking_event_fixed_price'] : 0.00 );
+                $order_info['booking_total']     = ( ! empty( $data['ep_event_booking_total_price'] ) ? (float)$data['ep_event_booking_total_price'] : 0.00 );
                 $order_info = apply_filters('ep_update_booking_order_info', $order_info, $data);
                 update_post_meta( $new_post_id, 'em_order_info', $order_info );
                 update_post_meta( $new_post_id, 'em_notes', array() );
                 update_post_meta( $new_post_id, 'em_payment_log', array() );
                 update_post_meta( $new_post_id, 'em_booked_seats', array() );
+                update_post_meta( $new_post_id, 'eventprime_updated_pattern',1);
                 $ep_booking_attendee_fields =(isset($data['ep_booking_attendee_fields']))?$sanitizer->sanitize($data['ep_booking_attendee_fields']):array();
                 update_post_meta( $new_post_id, 'em_attendee_names', $ep_booking_attendee_fields );
                 // check for booking fields data
@@ -470,9 +484,9 @@ class EventM_Ajax_Service {
                 $response->order_id       = $new_post_id;
                 $response->payment_method = $payment_method;
                 $response->post_status    = $post_status;
-                $response->booking_total  = $data['ep_event_booking_total_price'];
-                $response->item_total     = $data['ep_event_booking_total_tickets'];
-                $response->discount_total = (isset($data['ep_event_booking_total_discount']))?$data['ep_event_booking_total_discount']:'';
+                $response->booking_total  = (float)$data['ep_event_booking_total_price'];
+                $response->item_total     = (float)$data['ep_event_booking_total_tickets'];
+                $response->discount_total = (isset($data['ep_event_booking_total_discount']))?(float)$data['ep_event_booking_total_discount']:0;
                 // $redirect                 = esc_url( add_query_arg( array( 'order_id' => $new_post_id ), get_permalink( ep_get_global_settings( 'booking_details_page' ) ) ) );
                 $redirect                 = add_query_arg( array( 'order_id' => $new_post_id ), esc_url( get_permalink( $ep_functions->ep_get_global_settings( 'booking_details_page' ) ) ) );
                 $response->redirect       = apply_filters( 'ep_booking_redirection_url', $redirect, $new_post_id );
@@ -520,6 +534,10 @@ class EventM_Ajax_Service {
         
                 $response = array( 'status' => 'success', 'redirect' => $return_url );
                 wp_send_json_success($response);
+            }
+            else
+            {
+                wp_send_json_error( array( 'error' => esc_html__( 'Something went wrong', 'eventprime-event-calendar-management' ) ) );
             }
         }
     }
@@ -2772,5 +2790,69 @@ class EventM_Ajax_Service {
             wp_send_json_success($ep_functions->get_front_calendar_view_event( $events->posts,$is_admin ));
         }
         die;
+    }
+    
+    public function check_offer_applied()
+    {
+        $ep_functions = new Eventprime_Basic_Functions;
+        $dbhandler = new EP_DBhandler;
+        $all_offers_data = array(
+            'all_offers' => array(),
+            'all_show_offers' => array(),
+            'show_ticket_offers' => array(),
+            'ticket_offers' => array(),
+            'applicable_offers' => array()
+        );
+        $applicable_offer = array();
+        if( wp_verify_nonce( $_POST['security'], 'single-event-data-nonce' ) ) {
+            $ticket_id = ( ! empty( $_POST['ticket_id'] ) ? absint( $_POST['ticket_id'] ) : '' );
+            $qty = ( ! empty( $_POST['qty'] ) ? absint( $_POST['qty'] ) : '' );
+            $ticket =  $dbhandler->get_row('TICKET', $ticket_id);
+            if (isset($ticket) && !empty($ticket) && isset($ticket->offers) && !empty($ticket->offers)) 
+            {
+                $all_offers_data = $ep_functions->get_event_single_offer_data($all_offers_data, $ticket, $ticket->event_id,$qty);
+            }
+            
+            if(isset($all_offers_data['applicable_offers'][$ticket_id]) && !empty($all_offers_data['applicable_offers'][$ticket_id]))
+            {
+                
+                foreach($all_offers_data['applicable_offers'][$ticket_id] as $key=>$offer)
+                {
+                    $applicable_offer[] = $offer;
+                }
+            }
+            
+            
+            wp_send_json_success( array( 'offers' => $applicable_offer ) );
+        } else{
+            wp_send_json_success( array( 'message' => esc_html__( 'Failed security checks.', 'eventprime-event-calendar-management' ) ) );
+        }
+        
+        
+    }
+    
+    public function update_tickets_data()
+    {
+        if( wp_verify_nonce( $_POST['security'], 'single-event-data-nonce' ) ) 
+        {
+            $ep_functions = new Eventprime_Basic_Functions;
+            
+            $ticket_id = ( ! empty( $_POST['ticket_id'] ) ? absint( $_POST['ticket_id'] ) : '' );
+            $qty = ( ! empty( $_POST['qty'] ) ? absint( $_POST['qty'] ) : '' );
+            
+            if (!$ticket_id || $qty < 0) {
+                wp_send_json_error(['message' => 'Invalid ticket ID or quantity.']);
+            }
+            
+            $response = $ep_functions->eventprime_update_cart_response($ticket_id,$qty);
+            if(isset($response['message']))
+            {
+                wp_send_json_error($response);
+            }
+            else
+            {
+                wp_send_json_success($response);
+            }
+        }
     }
 }

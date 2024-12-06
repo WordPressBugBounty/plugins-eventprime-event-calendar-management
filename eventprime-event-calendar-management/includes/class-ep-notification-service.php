@@ -80,7 +80,15 @@ class EventM_Notification_Service {
                     $additional_fees = array();
                     if( isset( $ticket->additional_fee ) ) {
                         foreach( $ticket->additional_fee as $fees ) {
-                            $additional_fees[] = $fees->label.' ('.$ep_functions->ep_price_with_position($fees->price * $ticket->qty).')';
+                            if(isset($booking->eventprime_updated_pattern))
+                            {
+                               $additional_fees[] = $fees->label.' ('.$ep_functions->ep_price_with_position($fees->price).')';
+                            }
+                            else
+                            {
+                               $additional_fees[] = $fees->label.' ('.$ep_functions->ep_price_with_position($fees->price * $ticket->qty).')';
+                            }
+                            
                         }
                     }
                     if( ! empty( $additional_fees ) ) {

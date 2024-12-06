@@ -1068,7 +1068,7 @@ function ep_load_calendar_view(search_param='')
         $( '.epDatePicker' ).datepicker({
             changeYear: true,
             changeMonth: true,
-            dateFormat: 'yy-mm-dd',
+            dateFormat: eventprime.datepicker_format,
             gotoCurrent: true,
             showButtonPanel: true,
         });

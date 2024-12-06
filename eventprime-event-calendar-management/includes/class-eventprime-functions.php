@@ -2856,7 +2856,7 @@ class Eventprime_Basic_Functions {
     /**
      * Update all offer data from single offer
      */
-    public function get_event_single_offer_data($all_offers_data, $ticket, $event_id) {
+    public function get_event_single_offer_data($all_offers_data, $ticket, $event_id, $qty = 0) {
         $ticket_offers = json_decode($ticket->offers);
         if (!empty($ticket_offers)) {
             foreach ($ticket_offers as $to) {
@@ -2867,7 +2867,7 @@ class Eventprime_Basic_Functions {
                 }
                 $all_offers_data['ticket_offers'][$ticket->id][$to->uid] = $to;
             }
-            $offer_applied_data = $this->get_event_offer_applied_data($ticket_offers, $ticket, $event_id);
+            $offer_applied_data = $this->get_event_offer_applied_data($ticket_offers, $ticket, $event_id, $qty);
             if (!empty($offer_applied_data) && count($offer_applied_data) > 0) {
                 foreach ($offer_applied_data as $applied_offer_key => $ep_applied_offer) {
                     $all_offers_data['applicable_offers'][$ticket->id][$applied_offer_key] = $ep_applied_offer;
@@ -2906,6 +2906,7 @@ class Eventprime_Basic_Functions {
 
     public function check_event_offer_applied($offer, $ticket, $event_id, $qty = 0) {
         $applied = 0;
+        $dbhandler = new EP_DBhandler;
         if (!empty($offer)) {
             $current_time = $this->ep_get_current_timestamp();
             $min_date = $max_date = $current_time;
@@ -3120,7 +3121,10 @@ class Eventprime_Basic_Functions {
                             $seat_option = $offer->em_ticket_offer_seat_option;
                             if (!empty($offer->em_ticket_offer_seat_number)) {
                                 $seat_number = $offer->em_ticket_offer_seat_number;
-                                $event_ticket_booking_count = $this->get_event_booking_by_ticket_id($event_id, $ticket->id);
+                                //$event_ticket_booking_count = $this->get_event_booking_by_ticket_id($event_id, $ticket->id);
+                                $all_bookings = $dbhandler->eventprime_get_all_posts('em_booking', 'posts', array( 'pending', 'completed' ), 'ID', 0, 'ASC', -1, 'em_event', $event_id);
+                                $attendees = $this->get_total_booking_number_by_event_id( $event_id );
+                                $event_ticket_booking_count =(isset($all_bookings) && !empty($all_bookings))?count($all_bookings):0;
                                 if ($seat_option == 'first') {
                                     if ($event_ticket_booking_count < $seat_number) {
                                         $offer->em_remaining_ticket_to_offer = $seat_number - $event_ticket_booking_count;
@@ -3128,7 +3132,7 @@ class Eventprime_Basic_Functions {
                                     }
                                 } else {
                                     $ticket_caps = $ticket->capacity;
-                                    $unbooked_tickets = $ticket_caps - $event_ticket_booking_count;
+                                    $unbooked_tickets = $ticket_caps - $attendees;
                                     if (!empty($unbooked_tickets) && $unbooked_tickets <= $seat_number) {
                                         $offer->em_remaining_ticket_to_offer = $unbooked_tickets;
                                         return $offer;
@@ -6811,6 +6815,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
             if ( isset($data['em_status']) && !empty($data['em_status'])) {
                 update_term_meta( $term_id, 'em_status', 1 );
             }
+            do_action('em_after_organizer_created', $term_id, $data);
         }
         return $term_id;
     }
@@ -8161,22 +8166,59 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
         {
             $ticket->qty = $minimum_ticket_qty;
         }
-
-        $ticket_offers = json_decode( $ticket_data[0]->offers );
-        $offer_applied_data = $this->get_event_offer_applied_data( $ticket_offers, $ticket_data[0], $ticket_data[0]->event_id,$ticket->qty );
-
-        $offer_amount = $this->ep_calculate_offer_price($ticket_data[0]->price,$ticket->qty,$offer_applied_data);
-        $ticket->offer = $offer_amount; // Set to the desired new offer
-        $ticket->additional_fee = json_decode($ticket_data[0]->additional_fees);
-        if(empty($ticket->additional_fee))
-        {
-            $ticket->additional_fee = array();
-        }
-        $ticket->subtotal = ($ticket_data[0]->price * $ticket->qty) + $this->calculateAdditionalFees($ticket->additional_fee,$ticket->qty) - $offer_amount;
-
+        $ticket_response = (object)$this->eventprime_update_cart_response($ticket->id,$ticket->qty);
+//        $ticket_offers = json_decode( $ticket_data[0]->offers );
+//        $offer_applied_data = $this->get_event_offer_applied_data( $ticket_offers, $ticket_data[0], $ticket_data[0]->event_id,$ticket->qty );
+//
+//        $offer_amount = $this->ep_calculate_offer_price($ticket_data[0]->price,$ticket->qty,$offer_applied_data);
+//        $ticket->offer = $offer_amount; // Set to the desired new offer
+//        $ticket->additional_fee = json_decode($ticket_data[0]->additional_fees);
+//        if(empty($ticket->additional_fee))
+//        {
+//            $ticket->additional_fee = array();
+//        }
+//        $ticket->subtotal = ($ticket_data[0]->price * $ticket->qty) + $this->calculateAdditionalFees($ticket->additional_fee,$ticket->qty) - $offer_amount;
+          $ticket->subtotal = $ticket_response->subtotal;
+          $ticket->qty = $ticket_response->qty;
+          $ticket->offer = $ticket_response->offer;
+          $ticket->additional_fee = $ticket_response->additional_fee;
         return array($ticket,$ticket->subtotal,$ticket->qty,$ticket->offer);
 
     }
+    
+    public function ep_validate_woocommerce_product_data($newdata)
+    {
+        if(isset($newdata['woocommerce_products_variation_id']) && !empty($newdata['woocommerce_products_variation_id']) && isset($newdata['woocommerce_products_qty']))
+        {
+            $i = 0;
+            $previous_product_total = $newdata['ep_wc_product_total'];
+            $product_total = 0;
+            foreach($newdata['woocommerce_products_variation_id'] as $product)
+            {
+                $variable_product = wc_get_product($product);
+                $qty = $newdata['woocommerce_products_qty'][$i];
+                $price = $variable_product->get_price() * $qty;
+                $product_total += $price;
+                $i++;
+            }
+
+            if($product_total!=$previous_product_total)
+            {
+                $data = array($product_total,$previous_product_total);
+                return $data;
+            }
+            else
+            {
+                return true;
+            }
+
+        }
+        else
+        {
+            return true;
+        }
+    }
+    
     public function ep_recalculate_and_verify_the_cart_data($data,$offer)
     {   
 
@@ -8213,6 +8255,14 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
                 $total = $total - $discount;
                 $total_discount += $discount;
             }
+            
+            
+            
+            
+            
+           //print_r($data);             
+           //print_r($newdata);die;
+            
 
             $newdata['ep_event_booking_total_discount'] = $total_discount;
             if(isset($newdata['ep_event_booking_total_price']))
@@ -8224,7 +8274,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
                 $newdata['ep_event_booking_total_tickets'] = $qty;
             }
             // If WooCommerce Integration enabled for the event. 
-            if ( isset($event->em_enable_product) && $event->em_enable_product == 1 ) { 
+            if ( isset($event->em_enable_product) && $event->em_enable_product == 1) { 
                 $newdata['ep_event_booking_total_price'] += $newdata['ep_wc_product_total']; 
             }
         }
@@ -9020,7 +9070,25 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
         return $response;
     }
 
-
+    public function ep_calculate_order_total_additional_fees_v2($tickets)
+    {
+        $additional_fees = 0;
+        if( ! empty( $tickets ) && count( $tickets ) > 0 ) {
+            foreach( $tickets as $ticket ) {
+                $tic_qty = $ticket->qty;
+                if( ! empty( $ticket->additional_fee ) ) {
+                    foreach( $ticket->additional_fee as $af ) {
+                        $price = $af->price;
+                        if( $price ) {
+                            $additional_fees += $price;
+                        }
+                    }
+                }
+            }
+        }
+        return $this->ep_price_with_position( $additional_fees );
+    }
+    
     public function ep_calculate_order_total_additional_fees( $tickets ){
         $additional_fees = 0;
         if( ! empty( $tickets ) && count( $tickets ) > 0 ) {
@@ -10659,8 +10727,129 @@ public function ep_get_events( $fields ) {
         return $allowed_html;
        
     }
+    
+    public function eventprime_update_cart_response($ticket_id,$qty)
+    {
+        $dbhandler = new EP_DBhandler;
+        $all_offers_data = array(
+            'all_offers' => array(),
+            'all_show_offers' => array(),
+            'show_ticket_offers' => array(),
+            'ticket_offers' => array(),
+            'applicable_offers' => array()
+        );
+        $response = array();
+        $additional_fees = array();
+        $additional_fee_total = 0; // Initialize this at the beginning of additional fees handling
+        $applicable_offer = array();
+        $ticket =  $dbhandler->get_row('TICKET', $ticket_id);
+        if (empty($ticket)) {
+            $response['message'] = esc_html__( 'Ticket data not found.', 'eventprime-event-calendar-management' );
+        }
+            
+        if (isset($ticket) && !empty($ticket) && isset($ticket->offers) && !empty($ticket->offers)) 
+        {
+            $all_offers_data = $this->get_event_single_offer_data($all_offers_data, $ticket, $ticket->event_id,$qty);
+        }
+            
+        if(isset($all_offers_data['applicable_offers'][$ticket_id]) && !empty($all_offers_data['applicable_offers'][$ticket_id]))
+        {
 
+            foreach($all_offers_data['applicable_offers'][$ticket_id] as $key=>$offer)
+            {
+                $applicable_offer[] = $offer;
+            }
+        }
+            
+        $row_ticket_price = floatval($ticket->price);
+        $ticket_price_subtotal = $row_ticket_price * $qty;
 
+        // Apply offers if applicable
+        $offer_applied = $applicable_offer;
+        $total_offer_discount_val = 0;
+        $offer_text = '';
+    
+        $applied_offer_uid = array();
+        $applied_offer_obj = array();
+        if (!empty($offer_applied)) {
+            foreach ($offer_applied as $offer) {
+                //print_r($offer);
+                $applied_offer_uid[] = $offer->uid;
+                $applied_offer_obj[] = $offer;
+                if ($offer->em_ticket_offer_discount_type === 'percentage') {
+                    $discount_val = ($offer->em_ticket_offer_discount / 100) * $ticket_price_subtotal;
+                } else {
+                    $discount_val = $offer->em_ticket_offer_discount * $qty;
+                }
+                $total_offer_discount_val += $discount_val;
+            }
+            
+            if($ticket_price_subtotal < $total_offer_discount_val)
+            {
+                $total_offer_discount_val = $ticket_price_subtotal;
+            }
+            
+            $ticket_price_subtotal -= $total_offer_discount_val;
+            $count = count($offer_applied);
+            $offer_text = sprintf(
+                /* translators: %d: Number of offers applied */
+                _n('%d offer applied', '%d offers applied', $count, 'eventprime-event-calendar-management'),
+                $count
+            );
+        }
+            
+        // Handle multiple offers max discount
+        $max_discount_val = isset($ticket->multiple_offers_max_discount) ? floatval($ticket->multiple_offers_max_discount) : 0;
+        if ($max_discount_val > 0 && $total_offer_discount_val > $max_discount_val) {
+            // Apply maximum discount limit
+            $total_offer_discount_val = $max_discount_val;
+            $ticket_price_subtotal = ($row_ticket_price * $qty) - $max_discount_val;
+            $offer_text = esc_html__( 'Max Offer Applied', 'eventprime-event-calendar-management' );
+        }
 
+        if ($ticket_price_subtotal < 0) {
+            $ticket_price_subtotal = 0;
+        }
+            
+        // Handle additional fees
+        if (!empty($ticket->additional_fees)) {
+            $additional_fees_data = json_decode($ticket->additional_fees, true);
+            if (is_array($additional_fees_data)) {
+                foreach ($additional_fees_data as $fee) {
+                    $fee_amount = floatval($fee['price']) * $qty;
+                    $additional_fee_total += $fee_amount;
+
+                    $additional_fees[] = [
+                        'label' => sanitize_text_field($fee['label']),
+                        'price' => (float)$fee_amount,
+                    ];
+                }
+            }
+        }
+
+        // Add additional fees to the subtotal
+        $ticket_price_subtotal += $additional_fee_total;
+        
+        $formatted_subtotal = (float)$ticket_price_subtotal;
+        $total_offer_discount_text =  (float)$total_offer_discount_val;
+        
+        
+        // Prepare response data
+        $response['id'] = $ticket_id;
+        $response['category_id'] = $ticket->category_id;
+        $response['name'] = $ticket->name;
+        $response['price'] = (float)$row_ticket_price;
+        $response['qty'] = (int)$qty;
+        $response['offer'] = $total_offer_discount_text;
+        $response['additional_fee'] = $additional_fees;
+        $response['subtotal'] = (float)$formatted_subtotal;
+        $response['offer_text'] = $offer_text;
+        $response['total_offer_discount_text'] = (float)$total_offer_discount_text;
+        $response['formatted_subtotal'] = (float)$formatted_subtotal;
+        $response['applied_offer_uid'] = $applied_offer_uid;
+        $response['applied_offer_obj'] = $applied_offer_obj;
+
+        return $response;
+    }
     
 }

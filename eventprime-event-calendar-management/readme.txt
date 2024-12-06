@@ -5,7 +5,7 @@ Tags: event calendar, organizer , event manager, tickets, event booking, event b
 Requires at least: 4.8
 Tested up to: 6.7
 Requires PHP: 7.2
-Stable tag: 4.0.5.3
+Stable tag: 4.0.6.0
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -667,8 +667,18 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 == Changelog ==
 
-= 4.0.5.3: November 29, 2024 =
-* UI improvements.
+= 4.0.6.0: December 06, 2024 =
+* Added: Security patch.
+* Revamped: Offers calculation process during ticket purchasing.
+* Fixed: Issues in the event checkout process.
+* Fixed: Discount Coupons extension bugs.
+* Fixed: WooCommerce Integration extension compatibility issues.
+* Fixed: Conflict with the Divi theme in WooCommerce Integration.
+* Fixed: Bugs in the Offline Payments extension.
+* Fixed: WooCommerce checkout process errors.
+* Fixed: Minor UI Fixes in Invoice extensions.
+* Fixed: Multiple bug fixes to improve plugin stability.
+* Improved: General UI for better usability.
 
 = 4.0.5.2: November 12, 2024 =
 * Fixed: Issue with event search functionality returning incorrect results.
@@ -2034,8 +2044,18 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 == Upgrade Notice ==
 
-= 4.0.5.3: November 29, 2024 =
-* UI improvements.
+= 4.0.6.0: December 06, 2024 =
+* Added: Security patch.
+* Revamped: Offers calculation process during ticket purchasing.
+* Fixed: Issues in the event checkout process.
+* Fixed: Discount Coupons extension bugs.
+* Fixed: WooCommerce Integration extension compatibility issues.
+* Fixed: Conflict with the Divi theme in WooCommerce Integration.
+* Fixed: Bugs in the Offline Payments extension.
+* Fixed: WooCommerce checkout process errors.
+* Fixed: Minor UI Fixes in Invoice extensions.
+* Fixed: Multiple bug fixes to improve plugin stability.
+* Improved: General UI for better usability.
 
 = 4.0.5.2: November 12, 2024 =
 * Fixed: Issue with event search functionality returning incorrect results.

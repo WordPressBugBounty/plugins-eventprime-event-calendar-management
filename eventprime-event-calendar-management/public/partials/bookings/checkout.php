@@ -1,5 +1,5 @@
 <?php
-$booking_data = array();$previous_event_url = '';
+$booking_data = array();$booking_ticket_data = array();$previous_event_url = '';
 $ep_functions = new Eventprime_Basic_Functions;
 if( ! empty( $_POST ) && isset( $_POST['ep_event_booking_data'] ) && ! empty( $_POST['ep_event_booking_data'] ) ) {
     if( '0' === get_option( 'ep_event_booking_timer_start' ) ) {
@@ -8,10 +8,46 @@ if( ! empty( $_POST ) && isset( $_POST['ep_event_booking_data'] ) && ! empty( $_
     } else if( FALSE === get_option( 'ep_event_booking_timer_start' ) ) {
         add_option( 'ep_event_booking_timer_start', 1 );
     }
+    $ep_event_offer_data = [];
     $ep_event_booking_data = json_decode( stripslashes( $_POST['ep_event_booking_data'] ) );
+    
     if( ! empty( $ep_event_booking_data->ticket ) ) {
         $booking_data['tickets'] = json_decode( $ep_event_booking_data->ticket );
     }
+    if(!empty($booking_data['tickets']))
+    {
+        $desire_field = array('offer_text','total_offer_discount_text','formatted_subtotal','applied_offer_uid','applied_offer_obj');
+        foreach($booking_data['tickets'] as $ticket)
+        {
+            $response = (object)$ep_functions->eventprime_update_cart_response($ticket->id, $ticket->qty);
+            $newticket = new stdClass();
+            // Loop through the response to match and filter the data
+            foreach ($response as $key => $value) {
+                // Map the response fields to the new object based on matching criteria
+                if (!in_array($key, $desire_field)) {
+                    $newticket->$key = $value; // Copy the value from the response to the new object
+                }
+                elseif($key=='applied_offer_obj')
+                {
+                    if(is_array($value))
+                    {
+                        foreach($value as $val)
+                        {
+                            $ep_event_offer_data[] = (object)$val;
+                        }
+                    }
+                    
+                }
+            }
+            
+            $booking_ticket_data[] = $newticket;
+        }
+
+    }
+
+    $booking_data['tickets'] = $booking_ticket_data;
+    $booking_data['ep_event_offer_data'] = $ep_event_offer_data;
+    
     $ep_event_offer_data = isset( $_POST['ep_event_offer_data'] ) ? json_decode( stripslashes( $_POST['ep_event_offer_data'] ) ) : '';
     if( ! empty($ep_event_offer_data) ) {
         $booking_data['ep_event_offer_data'] = $ep_event_offer_data;
@@ -24,6 +60,7 @@ if( ! empty( $_POST ) && isset( $_POST['ep_event_booking_data'] ) && ! empty( $_
     // add data in booking data
     $booking_data = apply_filters( 'ep_booking_detail_add_booking_data', $booking_data, $ep_event_booking_data );
 }
+
 $register_fname = $ep_functions->ep_get_global_settings( 'checkout_register_fname' );
 $register_lname = $ep_functions->ep_get_global_settings( 'checkout_register_lname' );
 $register_username = $ep_functions->ep_get_global_settings( 'checkout_register_username' );
@@ -215,10 +252,11 @@ if( $ep_functions->ep_get_global_settings('checkout_reg_google_recaptcha') == 1 
                                                 </div>
                                                 <?php if( ! empty( $tickets->additional_fee ) && count( $tickets->additional_fee ) > 0 ) {
                                                     foreach( $tickets->additional_fee as $fee ) { 
-                                                        $add_price = $fee->price * $tickets->qty;
+                                                        //print_r($fee);
+                                                        $add_price = $fee['price'];
                                                         $total_price += $add_price;?>
                                                         <div class="ep-box-col-6 ep-text-muted">
-                                                            <?php echo esc_html( $fee->label );?>
+                                                            <?php echo esc_html( $fee['label'] );?>
                                                         </div>
                                                         <div class="ep-box-col-6 ep-text-end ep-text-muted">
                                                             <?php echo esc_html( $ep_functions->ep_price_with_position( $add_price ) );?>
@@ -266,24 +304,18 @@ if( $ep_functions->ep_get_global_settings('checkout_reg_google_recaptcha') == 1 
 
                                 <!-- Total Price -->
                                 <li class="ep-list-group-item ep-bg-light" id="ep-booking-total" aria-current="true">
+                                    <input type="hidden" name="ep_event_booking_sub_total_price" value="<?php echo esc_attr( round($total_price, 2) );?>" />
                                     <div class="ep-box-row ep-py-2 ep-fs-5">
                                         <div class="ep-box-col-6 ep-fw-bold ep-ticket-total-section">
                                             <?php esc_html_e( 'Total', 'eventprime-event-calendar-management' );?>
                                         </div>
                                         <div class="ep-box-col-6 ep-text-end ep-fw-bold ep-ticket-total-price-section">
-                                            <?php 
+                                            <?php
                                             $total_price = apply_filters( 'ep_event_booking_total_price', $total_price, $args->event->id );
-                                            if( $total_price ) {
-                                                echo esc_html( $ep_functions->ep_price_with_position( $total_price ) );
-                                            } else{
-                                                $ep_functions->ep_show_free_event_price( $total_price );
-                                            }?>
-                                            <input type="hidden" name="ep_event_booking_total_price" value="<?php echo esc_attr( round($total_price, 2) );?>" />
-                                            <input type="hidden" name="ep_event_booking_total_tickets" value="<?php echo absint( $total_tickets );?>" />
+                                            do_action( 'ep_event_booking_event_total', $total_price,$total_tickets,$args->event->id,array()); ?>
                                         </div>
                                     </div>
                                 </li>
-                                
                                 <?php do_action( 'ep_event_booking_after_ticket_total', $args ); ?>
                             </ul> 
                             

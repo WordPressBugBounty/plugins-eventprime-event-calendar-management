@@ -149,6 +149,7 @@ class EventPrime_sanitizer {
                     }
                 } else {
                     // Sanitize scalar values based on the key
+                    
                     switch ( $key ) {
                         case 'login':
                         case 'uname':
@@ -183,7 +184,7 @@ class EventPrime_sanitizer {
                             }
                             else
                             {
-                                
+                                $val = html_entity_decode($val, ENT_QUOTES, 'UTF-8');
                                 $sanitized_value = sanitize_text_field( $val );
                             }
                             break;

@@ -1921,6 +1921,17 @@ class Eventprime_Event_Calendar_Management_Public {
         </div><?php
     }
     
+    public function ep_add_internal_loader_section($default = 'none',$class='' )
+    {
+        $style = 'style=display:none;';
+        if( $default == 'show' ) {
+            $style = 'style=display:flex;';
+        }?>
+                <div class="ep-loader <?php echo esc_attr($class);?>" role="alert" aria-live="polite" <?php echo esc_attr( $style );?>>
+            
+        </div><?php
+    }
+    
      /**
 	 * Custom Style
 	 */
@@ -2088,6 +2099,13 @@ class Eventprime_Event_Calendar_Management_Public {
         $ep_functions = new Eventprime_Basic_Functions(); 
         $login_page = $ep_functions->ep_get_global_settings( 'login_page' );
         return esc_url( get_permalink( $login_page ) );
+    }
+    
+    public function eventprime_checkout_total_html_block($total_price,$total_tickets,$event_id,$extra)
+    {
+        $html_generator = new Eventprime_html_Generator;
+        $html_generator->eventprime_checkout_total_html($total_price,$total_tickets,$event_id,$extra);   
+        
     }
 
 

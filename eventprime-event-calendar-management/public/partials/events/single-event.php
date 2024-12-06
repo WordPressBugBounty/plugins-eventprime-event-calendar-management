@@ -14,7 +14,7 @@ $atts                = array_change_key_case( (array) $atts, CASE_LOWER );
 $event_id            = absint( $atts['id'] );
 $post                = get_post( $event_id );
 $events_data         = array();
-if( ! empty( $post ) ) {
+if( ! empty( $post ) && $post->post_type=='em_event') {
     $events_data['post'] = $post;
     $events_data['event'] = $ep_functions->get_single_event_detail( $post->ID );
     $args = (object)$events_data;

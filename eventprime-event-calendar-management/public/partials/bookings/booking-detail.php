@@ -257,7 +257,14 @@ $booking_data = array();
                                         <span><?php echo esc_html( $ep_functions->ep_get_booking_tickets_total_price( $args->em_order_info['tickets'] ) );?></span>
                                     </div>
                                     <?php $additional_fees = 0;
-                                    $additional_fees = $ep_functions->ep_calculate_order_total_additional_fees( $args->em_order_info['tickets'] );
+                                    if(isset($args->eventprime_updated_pattern))
+                                    {
+                                        $additional_fees = $ep_functions->ep_calculate_order_total_additional_fees_v2( $args->em_order_info['tickets'] );
+                                    }
+                                    else
+                                    {
+                                        $additional_fees = $ep_functions->ep_calculate_order_total_additional_fees( $args->em_order_info['tickets'] );
+                                    }
                                     if( ! empty( $additional_fees ) ) {?>
                                         <div class="ep-text-small">
                                             <span class="ep-mr-2"><?php esc_html_e( 'Additional Fees', 'eventprime-event-calendar-management' );?>:</span>

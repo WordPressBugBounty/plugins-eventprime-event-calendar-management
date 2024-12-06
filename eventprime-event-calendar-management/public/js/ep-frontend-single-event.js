@@ -181,7 +181,8 @@ jQuery( function( $ ) {
             }
             $( '#ep_event_ticket_qty_' + parent_id ).val( qty );
             // update price
-            ep_update_tickets_data( 'minus', parent_id );
+            //ep_update_tickets_data( 'minus', parent_id );
+            ep_update_cart_ticket_data( 'minus', parent_id );
         });
 
         // increment ticket quentity
@@ -197,7 +198,8 @@ jQuery( function( $ ) {
             }
             $( '#ep_event_ticket_qty_' + parent_id ).val( qty );
             // update price
-            ep_update_tickets_data( 'plus', parent_id );
+            //ep_update_tickets_data( 'plus', parent_id );
+            ep_update_cart_ticket_data( 'plus', parent_id );
         });
 
         // check for event gallery images
@@ -351,10 +353,205 @@ jQuery( function( $ ) {
             }
         });
     } */
+    
+    
+    function generateTicketHTML_single_Ticket(ticketData) {
+        let additionalFeesHTML = '';
+        let offerHtml = '';
+        if (ticketData.additional_fee && ticketData.additional_fee.length > 0) {
+            ticketData.additional_fee.forEach((fee, index) => {
+                additionalFeesHTML += `
+                    <div class="ep-box-col-6 ep-text-small">${fee.label}</div>
+                    <div class="ep-box-col-6 ep-text-end ep-text-small" id="ep_additional_price_${ticketData.id}_${index}">${ep_format_price_with_position(fee.price)}</div>
+                `;
+            });
+        }
+        
+        if(ticketData.offer && ticketData.offer > 0)
+        {
+            offerHtml += ` 
+            <div class="ep-box-col-6 ep-text-small">
+                    <em id="ep_single_ticket${ticketData.id}_offer_text">${ticketData.offer_text}</em>
+                </div>
+                <div class="ep-box-col-6 ep-text-end ep-text-small" id="ep_single_ticket${ticketData.id}_offer_value">- ${ep_format_price_with_position(ticketData.offer)}</div>
+            `;
+        }
+        
+        
 
-    function ep_update_tickets_data( action, ticket_id ) {
+        return `
+            <div class="ep-box-col-6">
+                    <span id="ep_single_ticket${ticketData.id}_name">${ticketData.name}</span> x 
+                    <span class="ep-text-muted" id="ep_single_ticket${ticketData.id}_qty">${ticketData.qty}</span>
+                </div>
+                <div class="ep-box-col-6 ep-text-end" id="ep_single_ticket${ticketData.id}_price">${ep_format_price_with_position(ticketData.price)}</div>
+                <!-- Additional Fees Section -->
+                ${additionalFeesHTML}
+                ${offerHtml}
+                <div class="ep-box-col-6 ep-fw-bold mt-2">${em_front_event_object.em_event_data.subtotal_text}</div>
+                <div class="ep-box-col-6 ep-text-end ep-fw-bold mt-2 ep-ticket-subtotal-row" id="ep_single_ticket${ticketData.id}_subtotal" data-row_subtotal="${ticketData.subtotal}">
+                    ${ep_format_price_with_position(ticketData.subtotal)}
+                </div>
+            
+        `;
+    }
+
+    function generateTicketHTML(ticketData) {
+    const singleTicketDetailId = 'single_ticket_detail' + ticketData.id;
+    const existingRow = $('#ep_event_booking_ticket #' + singleTicketDetailId);
+
+    // If the ticket row already exists, update the existing values
+    if (existingRow.length > 0) {
+        let ticket_data = generateTicketHTML_single_Ticket(ticketData);
+        $(existingRow).html(ticket_data);
+    } else {
+        // Generate new ticket row
+        let ticData = '<div class="ep-box-row ep-text-small ep-my-2 ep-rounded ep-p-2 ep-single-modal-ticket-row" id="' + singleTicketDetailId + '">';
+        ticData += generateTicketHTML_single_Ticket(ticketData);
+        ticData += '</div>';
+
+        // Append the new ticket row
+        $('#ep_event_booking_ticket').append(ticData);
+    }
+}
+
+    function debounce(func, delay) {
+        let timerId;
+        return function (...args) {
+            if (timerId) {
+                clearTimeout(timerId); // Clear any ongoing timer
+            }
+            timerId = setTimeout(() => {
+                func.apply(this, args); // Call the function after the delay
+            }, delay);
+        };
+    }
+    
+    // Update cart ticket data with debounce
+    const ep_update_cart_ticket_data = debounce(function (action, ticket_id)
+    {
+        if (ticket_id) {
+            let ep_added_ticket_option = $( '#ep_event_booking_ticket' ).attr( 'data-ticket_options' );
+            let ep_added_offer_option = $('#ep_event_offer_data').val();
+            if( !ep_added_ticket_option ) {
+                ep_added_ticket_option = [];
+            } else{
+                ep_added_ticket_option = JSON.parse( ep_added_ticket_option );
+            }
+            
+            if( !ep_added_offer_option ) {
+                ep_added_offer_option = [];
+            } else{
+                ep_added_offer_option = JSON.parse( ep_added_offer_option );
+            }
+            
+            
+            let qty = $('#ep_event_ticket_qty_' + ticket_id).val();
+            if (qty < 0) qty = 0;
+            
+            
+            if (qty == 0) 
+            {
+                // Remove ticket logic without AJAX request
+                const ticketIndex = ep_added_ticket_option.findIndex(
+                    (ticket) => ticket.id === parseInt(ticket_id)
+                );
+                if (ticketIndex > -1) {
+                    ep_added_ticket_option.splice(ticketIndex, 1); // Remove ticket from data
+                }
+
+                // Remove ticket from UI
+                $('#single_ticket_detail' + ticket_id).remove();
+
+                // Update ticket options in DOM
+                $('#ep_event_booking_ticket').attr('data-ticket_options', JSON.stringify(ep_added_ticket_option));
+
+                // Recalculate total
+                calculate_tickets_total();
+                if( ep_added_ticket_option.length > 0 ) {
+                    $( '#ep_single_event_checkout_btn' ).removeAttr( 'disabled' );
+                } else{
+                    $( '#ep_single_event_checkout_btn' ).attr( 'disabled', 'disabled' );
+                }
+
+                return; // Exit the function since no server request is needed
+            }
+
+            
+
+            // Show loading indicator
+            //$('#ep_single_event_before_checkout_error_msg').html('Loading...');
+            $('#ep-event-ticket-checkout-modal .ep-loader').show();
+             $('#ep-event-ticket-checkout-modal .ep-loader').parent('.ep-modal-body').addClass('ep-loader-active');
+            let data = { 
+                action: 'ep_update_tickets_data', // Action name
+                ticket_id: ticket_id,
+                qty: qty,
+                security: em_front_event_object.em_event_data.single_event_nonce
+            };
+        
+            $.ajax({
+                type        : "POST",
+                url         : eventprime.ajaxurl,
+                data        : data,
+                success     : function( response ) {
+                    if( response.success == true ) {     
+                        const data = response.data;
+                        const single_ticket_detail_id = 'single_ticket_detail' + data.id;
+                        if(response.data)
+                        {
+                            const ticketIndex = ep_added_ticket_option.findIndex(
+                            (ticket) => ticket.id === data.id
+                            );
+                            if (ticketIndex > -1) {
+                                // Update existing ticket
+                                ep_added_ticket_option[ticketIndex] = response.data;
+                            } else {
+                                // Add new ticket
+                                ep_added_ticket_option.push(response.data);
+                            }
+                        }
+                        $('.ep-event-offer-applied_'+ data.id).hide();
+                        data.applied_offer_uid.forEach((offeruid, index) => {
+                            //console.log(offeruid);
+                            $('#ep_event_offer_'+ data.id+'_'+ offeruid).show();
+                        });
+                        
+                        const ticketHTML = generateTicketHTML(data);
+                        // Append the HTML to the container
+                        $('#ep_event_booking_ticket').append(ticketHTML);
+                        $('#ep_single_event_checkout_btn').prop('disabled', false);
+                        
+                    
+                    }
+                    else {
+                        if (response && response.data && response.data.message) {
+                            $('#ep_single_event_before_checkout_error_msg').html(response.data.message);
+                        } else {
+                            $('#ep_single_event_before_checkout_error_msg').html('Error updating tickets.');
+                        }
+                    }
+                    calculate_tickets_total();
+                    $( '#ep_event_booking_ticket' ).attr( 'data-ticket_options', JSON.stringify( ep_added_ticket_option ) );
+                    $('#ep_single_event_before_checkout_error_msg').html('');
+                    $('#ep-event-ticket-checkout-modal .ep-loader').parent('.ep-modal-body').removeClass('ep-loader-active');
+                    $('#ep-event-ticket-checkout-modal .ep-loader').hide();
+                    
+                }
+            });
+            
+            if( ep_added_ticket_option.length > 0 ) {
+                $( '#ep_single_event_checkout_btn' ).removeAttr( 'disabled' );
+            } else{
+                $( '#ep_single_event_checkout_btn' ).attr( 'disabled', 'disabled' );
+            }
+            
+        }
+    }, 300); // 300ms debounce delay
+    
+   async function ep_update_tickets_data( action, ticket_id ) {
         if( ticket_id ) {
-            booking_ticket_options_data = 0;
+            var booking_ticket_options_data = 0;
             $( '#ep_single_event_before_checkout_error_msg' ).html( '' );
             let row_ticket_price = $( '#ep_ticket_price_' + ticket_id ).data( 'row_ticket_price' );
             let qty = $( '#ep_event_ticket_qty_' + ticket_id ).val();
@@ -366,11 +563,12 @@ jQuery( function( $ ) {
                 ep_added_ticket_option = JSON.parse( ep_added_ticket_option );
             }
             let additional_fee_data = [], total_offer_discount_val = 0, total_offer_discount_text = '', offer_applied_text = '', offer_amount = 0;
-            if( qty > 0 ) {
+            if( qty > 0) {
                 let ticket_price = row_ticket_price * qty;
                 let ticket_price_subtotal = parseFloat( ticket_price );
                 let tickets_data = $( '#ep_single_modal_ticket_' + ticket_id ).data( 'ticket_data' );
-                let offer_applied = get_applied_offer_data( ticket_id, qty );
+                /* let offer_applied = get_applied_offer_data( ticket_id, qty );*/
+                let offer_applied = await update_applied_offer_data(ticket_id, qty);
                 $('#ep_event_offer_data').val( JSON.stringify(offer_applied));
                 if( offer_applied.length > 0 ) {
                     offer_applied_text = offer_applied.length;
@@ -527,6 +725,7 @@ jQuery( function( $ ) {
                         }
                     });
                     booking_ticket_options_data = ep_added_ticket_option.length;
+                    
                     $( '#ep_event_booking_ticket' ).attr( 'data-ticket_options', JSON.stringify( ep_added_ticket_option ) );
                 }
             }
@@ -629,6 +828,61 @@ jQuery( function( $ ) {
         return applied_offer_data;
     }
 
+    function update_applied_offer_data_old(ticket_id,qty)
+    {
+        var offers = [];
+         let data = { 
+            action  : 'ep_check_offer_applied', 
+            security: em_front_event_object.em_event_data.single_event_nonce,
+            ticket_id: ticket_id,
+            qty: qty
+        };
+        $.ajax({
+            type        : "POST",
+            url         : eventprime.ajaxurl,
+            data        : data,
+            success     : function( response ) {
+                if( response.success == true ) {
+                    offers =  response.data.offers;
+                }
+            }
+        });
+        
+        return offers;
+    }
+    
+    async function update_applied_offer_data(ticket_id, qty) {
+        let data = { 
+            action: 'ep_check_offer_applied', 
+            security: em_front_event_object.em_event_data.single_event_nonce,
+            ticket_id: ticket_id,
+            qty: qty
+        };
+
+        // Return a Promise to handle the asynchronous AJAX request
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                type: "POST",
+                url: eventprime.ajaxurl,
+                data: data,
+                success: function(response) {
+                    if (response.success) {
+                        resolve(response.data.offers);
+                    } else {
+                        resolve([]); // Return an empty array if the response is not successful
+                    }
+                },
+                error: function() {
+                    reject("AJAX request failed");
+                }
+            });
+        });
+    }
+
+
+
+
+    
     // reload signle page for upcoming date click
     $( document ).on( 'click', 'input[name="em_single_event_ticket_date"]', function() {
         let no_load = $( this ).data( 'no_load' );

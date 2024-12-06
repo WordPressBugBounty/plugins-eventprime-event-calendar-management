@@ -2510,6 +2510,12 @@ jQuery( function( $ ) {
             $( '#' + eleiddata + ' .ep-ticket-offer-edit' ).attr( 'data-parent_id', eleiddata );
             $( '#' + eleiddata + ' .ep-ticket-offer-delete' ).attr( 'data-parent_id', eleiddata );
         });
+        
+        let offer_list_count = $( '#ep_existing_offers_list .ep-offer-list-class' ).length;
+        if(offer_list_count==0)
+        {
+            $( '#ep_ticket_offers_wrapper').hide();
+        }
     });
 
     // sort ticket offers
@@ -2734,7 +2740,7 @@ jQuery( function( $ ) {
             let daysOptionVal = $('#ep_ticket_start_booking_days_option').val();
             let eventOptionVal = $('#ep_ticket_start_booking_event_option').val();
 
-            let relStartDateObj; 
+            var relStartDateObj; 
             if ( eventOptionVal == 'event_start' ) {
                 let evStartDate = $('#em_start_date').val(); 
                 let evStartTime = $('#em_start_time').val(); 
@@ -2746,9 +2752,9 @@ jQuery( function( $ ) {
             }
 
             if ( daysOptionVal == 'before' ) {
-                relStartDateObj.setDate( relStartDateObj.getDate() -  daysVal)
+                relStartDateObj.setDate( relStartDateObj.getDate() -  daysVal);
             } else if ( daysOptionVal == 'after' ) {
-                relStartDateObj.setDate( relStartDateObj.getDate() +  daysVal)
+                relStartDateObj.setDate( relStartDateObj.getDate() +  daysVal);
             }
             ticketAvailStartTimeStamp = relStartDateObj.getTime();             
         } else {

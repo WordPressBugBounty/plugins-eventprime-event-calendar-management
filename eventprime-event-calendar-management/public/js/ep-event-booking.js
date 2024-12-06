@@ -461,6 +461,7 @@ jQuery( function( $ ) {
                         $( this ).addClass( 'step2' );
                     }
                     let booking_price = $( 'input[name=ep_event_booking_total_price]' ).val();
+                    console.log(booking_price);
                     if( parseFloat( booking_price, 10 )  > 0 ) {
                         $( this ).hide();
                     } else{
@@ -981,7 +982,7 @@ function loadPaymentSection() {
         ep_currency = 'USD';
     }
     var booking_price = jQuery( 'input[name=ep_event_booking_total_price]' ).val();
-    
+    console.log(booking_price);
     if( booking_price > 0 ) {
         jQuery( '#ep_event_booking_payment_section' ).show( 500 );
         if( !ep_event_booking.is_payment_method_enabled && booking_price > 0 ) {
@@ -1003,32 +1004,35 @@ function loadPaymentSection() {
                             var items = [];
                             var random_order_id = Math.random().toString( 36 ).substring( 2, 7 );
                             jQuery.each( booking_tickets, function(idx, data ) {
-                                let price = data.price;
+                                let price = data.price
+                                console.log(data);
                                 //total_price = parseFloat( total_price ) + parseFloat( price );
                                 if( data.additional_fee && data.additional_fee.length > 0 ) {
                                     jQuery.each( data.additional_fee, function( idx, add_data ) {
                                         let add_price = add_data.price;
                                         if( add_price > 0 ) {
-                                            price = parseFloat( price ) + parseFloat( add_price );
+                                            price = parseFloat( price ) + (parseFloat( add_price )/parseInt(data.qty));
                                             //total_price = parseFloat( total_price ) + parseFloat( price );
                                         }
                                     });
                                 }
                                 if( data.offer ) {
                                     total_discount = parseFloat( total_discount ) + parseFloat( data.offer );
+                                    console.log(data.offer );
+                                    console.log(total_discount);
                                 }
                                 let item_data = {
                                     "name": data.name,
                                     "description": data.name,
                                     "unit_amount": {
                                         "currency_code": ep_currency,
-                                        "value": price
+                                        "value": parseFloat(price)
                                     },
                                     "discount": {
                                         "currency_code": ep_currency,
-                                        "value": data.offer
+                                        "value": parseFloat(data.offer)
                                     },
-                                    "quantity": data.qty
+                                    "quantity": parseInt(data.qty)
                                 }
                                 items.push( item_data );
                             });
@@ -1039,7 +1043,7 @@ function loadPaymentSection() {
                                     "description": "Event Fees",
                                     "unit_amount": {
                                         "currency_code": ep_currency,
-                                        "value": ep_event_booking.booking_data.event.em_fixed_event_price
+                                        "value": parseFloat(ep_event_booking.booking_data.event.em_fixed_event_price)
                                     },
                                     "quantity": 1
                                 }
@@ -1075,7 +1079,7 @@ function loadPaymentSection() {
                                     }
                                 }
                             }
-                            total_discount = total_discount.toFixed(2);
+                            total_discount = parseFloat(total_discount).toFixed(2);
                             booking_price = parseFloat( booking_price ).toFixed(2);
 
                             var order_id = 0;
@@ -1120,11 +1124,11 @@ function loadPaymentSection() {
                                                     breakdown: {
                                                         item_total: {
                                                             currency_code: ep_currency,
-                                                            value: (parseFloat(booking_total) + parseFloat(discount_total)),
+                                                            value: (parseFloat(booking_total) + parseFloat(total_discount)),
                                                         },
                                                         discount: {
                                                             currency_code: ep_currency,
-                                                            value: discount_total,
+                                                            value: parseFloat(total_discount),
                                                         },
                                                     },
                                                 },
@@ -1397,9 +1401,18 @@ function paypalPaymentOnApprove( orderData, order_id ) {
         url     : eventprime.ajaxurl,
         data    : data,
         success : function( response ) {
-            if( response.data.redirect ) {
-                location.href = response.data.redirect;
+            if(response.success == true)
+            {
+                if( response.data.redirect ) {
+                    location.href = response.data.redirect;
+                }
             }
+            else
+            {
+                jQuery('.ep-event-loader').hide();
+                show_toast( 'error', response.data.error );
+            }
+            
         }
     });
 }

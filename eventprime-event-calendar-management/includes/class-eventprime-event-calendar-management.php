@@ -447,6 +447,8 @@ class Eventprime_Event_Calendar_Management {
                 $this->loader->add_action( 'ep_dequeue_event_scripts', $plugin_public, 'ep_dequeue_event_scripts' , 10 );
                 // loader
                 $this->loader->add_action( 'ep_add_loader_section', $plugin_public, 'ep_add_loader_section' , 10 );
+                $this->loader->add_action( 'ep_add_internal_loader_section', $plugin_public, 'ep_add_internal_loader_section' ,10, 2 );
+                
                 $this->loader->add_action( 'wp_head', $plugin_public, 'ep_custom_styles' , 100 );
                 // after update parent event status
                 //$this->loader->add_action( 'ep_update_parent_event_status', $plugin_public, 'ep_update_parent_event_status' , 10, 2 );
@@ -464,7 +466,7 @@ class Eventprime_Event_Calendar_Management {
 
                 // Redirect to Login page upon Logging out 
                 $this->loader->add_filter( 'logout_redirect', $plugin_public, 'ep_handle_logout_redirect', 10, 0 );
-                
+                $this->loader->add_action('ep_event_booking_event_total',$plugin_public,'eventprime_checkout_total_html_block',10,4);
 	}
         
         private function add_ajax_request() {
@@ -523,7 +525,9 @@ class Eventprime_Event_Calendar_Management {
                 'delete_user_fes_event'             => false, 
                 'cancel_current_booking_process'    => true,
                 'edit_booking_attendee_data_save'   => false,
-                'get_calendar_event'                => true        
+                'get_calendar_event'                => true,
+                'check_offer_applied'               => true,
+                'update_tickets_data'               => true,
 
             );
 

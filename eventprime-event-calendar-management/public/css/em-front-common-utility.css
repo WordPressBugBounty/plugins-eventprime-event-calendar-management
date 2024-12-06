@@ -2308,6 +2308,7 @@ body.ep-modal-open-body {
 }
 
 .emagic .ep-form-select {
+    --ep-form-select-bg-img: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
     display: block;
     width: 100%;
     padding: 0.375rem 2.25rem 0.375rem 0.75rem;
@@ -2322,11 +2323,16 @@ body.ep-modal-open-body {
     background-size: 16px 12px;
     border: 1px solid #ced4da;
     border-radius: 0.375rem;
+    background-image: var(--ep-form-select-bg-img), var(--ep-form-select-bg-icon, none);
+    background-repeat: no-repeat;
+    background-position: right .75rem center;
+    background-size: 16px 12px;
     transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
 }
+
 
 .ep-input-group {
     position: relative;
@@ -2560,8 +2566,8 @@ body.ep-modal-open-body {
     animation: rotation 1s linear infinite;
     margin: 50px auto;
     position: absolute;
-    top: 50%;
-    left: 50%;
+    top: 30%;
+    left: 40%;
     z-index: 9999999;
 }
 
@@ -2594,6 +2600,18 @@ body.ep-modal-open-body {
     100% {
         transform: rotate(360deg)
     }
+}
+
+/* Change the parent .parent if it has a .child inside */
+
+.ep-modal-body.ep-loader-active:after {
+    content: "";
+    background-color: transparent;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0px;
+    left: 0px;
 }
 
 /* New Loader--*/
