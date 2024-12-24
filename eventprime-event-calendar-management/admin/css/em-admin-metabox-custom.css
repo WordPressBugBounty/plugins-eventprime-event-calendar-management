@@ -73,6 +73,10 @@ ul.ep_event_metabox_tabs li.social_options a::before{
     content: "\f237";
 }
 
+ul.ep_event_metabox_tabs li.ep_event_restrictions a::before{
+    content: "\f160";
+}
+
 ul.ep_event_metabox_tabs li.results_options a::before{
     content: "\f488";
 }

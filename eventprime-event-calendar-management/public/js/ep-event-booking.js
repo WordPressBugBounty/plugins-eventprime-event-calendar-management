@@ -345,7 +345,7 @@ jQuery( function( $ ) {
                             }
                             sessionStorage.setItem( "allow_process_for_payment_step", 0 );
                             $( this ).hide();
-                            let guest_button = '<button type="button" class="ep-btn ep-btn-warning ep-box-w-100 ep-mb-2 step1" id="ep_guest_booking_checkout_button" data-active_step="1">'+ep_event_booking.checkout_text+'</button>';
+                            let guest_button = '<button type="button" class="ep-btn ep-btn-warning ep-box-w-100 ep-mb-2 step1" id="ep_guest_booking_checkout_button" data-active_step="1">'+ep_event_booking.checkout_text+'</button><div id="ep_guest_booking_checkout_error" class="ep_guest_booking_checkout_error"></div>';
                             $( guest_button ).insertAfter( '#ep_event_booking_checkout_btn' );
                         } else{
                             sessionStorage.setItem( "allow_process_for_payment_step", 1 );

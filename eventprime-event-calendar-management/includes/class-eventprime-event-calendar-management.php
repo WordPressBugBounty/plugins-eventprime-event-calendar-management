@@ -454,9 +454,6 @@ class Eventprime_Event_Calendar_Management {
                 //$this->loader->add_action( 'ep_update_parent_event_status', $plugin_public, 'ep_update_parent_event_status' , 10, 2 );
                 // after save event data
                 //$this->loader->add_action( 'ep_after_save_event_data', $plugin_public, 'ep_update_event_data_after_save' , 10, 2 );
-
-                // add statisticts in the event
-                //$this->loader->add_action( 'ep_event_stats_list', $plugin_public, 'ep_add_event_statisticts_data' , 10, 1 );
                 // calendar icon
                 $this->loader->add_action( 'ep_event_view_calendar_icon', $plugin_public, 'ep_event_add_calendar_icon' , 10, 2 );
                 $this->loader->add_action( 'transition_post_status', $plugin_public, 'ep_frontend_event_publish', 10, 3);

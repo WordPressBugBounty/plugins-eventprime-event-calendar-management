@@ -231,41 +231,54 @@ class Eventprime_html_Generator {
         $field .= '</div>';
         return $field;
     }
+    
+    /**
+     * Add event data like no. of booking, no. of attendees
+     */
+    public function ep_add_event_statisticts_data_old( $post ) {
+        $event_id = $post->ID;
+        // get total bookings data
+        $booking_controller = new EventPrime_Bookings;
+        $ep_functions = new Eventprime_Basic_Functions;
+        $event_bookings = $booking_controller->get_event_bookings_by_event_id( $event_id );
+        $event_booking_count = count( $event_bookings );?>
+        <div class="ep-event-summary-data-list">
+            <label><?php esc_html_e( 'Total Bookings:', 'eventprime-event-calendar-management' );?></label>
+            <label>
+                <?php esc_attr_e( $event_booking_count );
+                if( ! empty( $event_booking_count ) ) {
+                    $event_booking_url = admin_url( 'edit.php?s&post_status=all&post_type=em_booking&event_id=' . esc_attr( $event_id ) );?> 
+                    <a href="<?php echo esc_url( $event_booking_url );?>" target="__blank">
+                        <?php esc_html_e( 'View', 'eventprime-event-calendar-management' );?>
+                    </a><?php
+                }?>
+            </label>
+        </div><?php
+        // get total attendees
+        $total_booking_numbers = $ep_functions->get_total_booking_number_by_event_id( $event_id );?>
+        <div class="ep-event-summary-data-list">
+            <label><?php esc_html_e( 'Total Attendees:', 'eventprime-event-calendar-management' );?></label>
+            <label>
+                <?php esc_attr_e( $total_booking_numbers );
+                if( ! empty( $total_booking_numbers ) ) {
+                    $event_attendee_page_url = admin_url( 'admin.php?page=ep-event-attendees-list&event_id=' . esc_attr( $event_id ) );?> 
+                    <a href="<?php echo esc_url( $event_attendee_page_url );?>" target="__blank">
+                        <?php esc_html_e( 'View', 'eventprime-event-calendar-management' );?>
+                    </a><?php
+                }?>
+            </label>
+        </div><?php
+    }
 
     public function ep_add_event_statisticts_data($post) {
         $event_id = $post->ID;
-        $dbhandler = new EP_DBhandler;
+        // get total bookings data
+        $booking_controller = new EventPrime_Bookings;
         $ep_functions = new Eventprime_Basic_Functions;
-        $all_bookings = $dbhandler->eventprime_get_all_posts('em_booking', 'posts', array('completed','pending'), 'ID', 0, 'ASC', -1, 'em_event', $post->ID);
-        $total_booking = 0;
-        $event_booking_count = 0;
-        $total_booking_numbers = 0;
-        if (!empty($all_bookings)) {
-            $event_booking_count = count($all_bookings);
-            foreach ($all_bookings as $booking) {
-                $booking_data = $ep_functions->load_booking_detail($booking->ID, false, $booking);
-                if (!empty($booking_data)) {
-                    if (isset($booking_data->em_order_info['tickets']) && !empty($booking_data->em_order_info['tickets'])) {
-                        $booked_tickets = $booking_data->em_order_info['tickets'];
-                        foreach ($booked_tickets as $ticket) {
-                            if (!empty($ticket->id) && !empty($ticket->qty)) {
-                                $total_booking += $ticket->qty;
-                            }
-                        }
-                    } else if (isset($booking_data->em_order_info['order_item_data']) && !empty($booking_data->em_order_info['order_item_data'])) {
-                        $booked_tickets = $booking_data->em_order_info['order_item_data'];
-                        foreach ($booked_tickets as $ticket) {
-                            if (isset($ticket->quantity)) {
-                                $total_booking += $ticket->quantity;
-                            } else if (isset($ticket->qty)) {
-                                $total_booking += $ticket->qty;
-                            }
-                        }
-                    }
-                }
-            }
-        } 
-        
+        $booking_status = $ep_functions->eventprime_get_event_booking_stats_by_event_id($event_id);
+        $event_booking_count = $booking_status['total_booking'];
+         // get total attendees
+        $total_booking = $booking_status['total_attendees']; 
         ?>
         <div class="ep-event-summary-data-list">
             <label><?php esc_html_e('Total Bookings:', 'eventprime-event-calendar-management'); ?></label>

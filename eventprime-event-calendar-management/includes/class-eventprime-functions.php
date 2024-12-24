@@ -8278,6 +8278,22 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
                 $newdata['ep_event_booking_total_price'] += $newdata['ep_wc_product_total']; 
             }
         }
+        if(is_user_logged_in())
+        {
+            $user_id = get_current_user_id();
+        }
+        elseif(isset($data['ep_booking_guest_booking_field']) && isset($data['ep_booking_guest_booking_field']['ep_gb_email']) && !empty($data['ep_booking_guest_booking_field']['ep_gb_email']))
+        {
+            $user_id = $data['ep_booking_guest_booking_field']['ep_gb_email'];
+        }
+        $is_able_to_purchase = $this->ep_check_event_restrictions($event,$user_id);
+        if($is_able_to_purchase!==true)
+        {
+            if($is_able_to_purchase[0]===false || $newdata['ep_event_booking_total_tickets'] > $is_able_to_purchase[0])
+            {
+                return false;
+            }  
+        }
 
         $validate  = $this->ep_validate_cart_data($data,$newdata);
         if($validate===true)
@@ -10209,25 +10225,70 @@ public function ep_get_events( $fields ) {
         }
         return $seat_availibility;
     }
+    
+    public function eventprime_get_event_booking_stats_by_event_id($event_id,$all_bookings='')
+    {
+        $total_booking = 0;
+        $total_attendees = 0;
+        if( ! empty( $event_id ) ) 
+        {
+            if($all_bookings=='')
+            {
+                $booking_controller = new EventPrime_Bookings;
+                $all_bookings = $booking_controller->get_event_bookings_by_event_id( $event_id );
+            }
+            $total_booking = !empty($all_bookings)?count( $all_bookings ):0;
+            if( ! empty( $all_bookings ) ) {
+                foreach( $all_bookings as $booking ) {
+                        $booking_data = get_post_meta($booking->ID,'em_order_info',true);
+                        if( ! empty( $booking_data ) ) {
+                                if( isset( $booking_data['tickets'] ) && ! empty( $booking_data['tickets'] ) ) {
+                                        $booked_tickets = $booking_data['tickets'];
+                                        foreach( $booked_tickets as $ticket ) {
+                                                if( ! empty( $ticket->id ) && ! empty( $ticket->qty ) ) {
+                                                        $total_attendees += $ticket->qty;
+                                                }
+                                        }
+                                } else if( isset( $booking_data['order_item_data'] ) && ! empty( $booking_data['order_item_data'] ) ) {
+                                        $booked_tickets = $booking_data['order_item_data'];
+                                        foreach( $booked_tickets as $ticket ) {
+                                                if( isset( $ticket->quantity ) ) {
+                                                        $total_attendees += $ticket->quantity;
+                                                } else if( isset( $ticket->qty ) ) {
+                                                        $total_attendees += $ticket->qty;
+                                                }
+                                        }
+                                }
+                        }
+                }
+        }
+        }
+        return array('total_booking'=>$total_booking,'total_attendees'=>$total_attendees);
+    }
+            
 
-    public function get_total_booking_number_by_event_id( $event_id ) {
+    public function get_total_booking_number_by_event_id( $event_id) {
 		$total_booking = 0;
 		if( ! empty( $event_id ) ) {
-			$booking_controller = new EventPrime_Bookings;
-			$all_bookings = $booking_controller->get_event_bookings_by_event_id( $event_id );
+                        
+                            $booking_controller = new EventPrime_Bookings;
+                            $all_bookings = $booking_controller->get_event_bookings_by_event_id( $event_id );
+                        
 			if( ! empty( $all_bookings ) ) {
 				foreach( $all_bookings as $booking ) {
-					$booking_data = $booking_controller->load_booking_detail( $booking->ID, false );
+					//$booking_data = $booking_controller->load_booking_detail( $booking->ID, false );
+                                        $booking_data = get_post_meta($booking->ID,'em_order_info',true);
+                                        //print_r($booking_data);
 					if( ! empty( $booking_data ) ) {
-						if( isset( $booking_data->em_order_info['tickets'] ) && ! empty( $booking_data->em_order_info['tickets'] ) ) {
-							$booked_tickets = $booking_data->em_order_info['tickets'];
+						if( isset( $booking_data['tickets'] ) && ! empty( $booking_data['tickets'] ) ) {
+							$booked_tickets = $booking_data['tickets'];
 							foreach( $booked_tickets as $ticket ) {
 								if( ! empty( $ticket->id ) && ! empty( $ticket->qty ) ) {
 									$total_booking += $ticket->qty;
 								}
 							}
-						} else if( isset( $booking_data->em_order_info['order_item_data'] ) && ! empty( $booking_data->em_order_info['order_item_data'] ) ) {
-							$booked_tickets = $booking_data->em_order_info['order_item_data'];
+						} else if( isset( $booking_data['order_item_data'] ) && ! empty( $booking_data['order_item_data'] ) ) {
+							$booked_tickets = $booking_data['order_item_data'];
 							foreach( $booked_tickets as $ticket ) {
 								if( isset( $ticket->quantity ) ) {
 									$total_booking += $ticket->quantity;
@@ -10851,5 +10912,205 @@ public function ep_get_events( $fields ) {
 
         return $response;
     }
+    
+    public function ep_check_event_restrictions($event,$user_id = '')
+    {
+        $max_tickets_limit_per_user = isset($event->em_event_max_tickets_per_user)?$event->em_event_max_tickets_per_user:0;
+        $max_tickets_limit_per_order = isset($event->em_event_max_tickets_per_order)?$event->em_event_max_tickets_per_order:0;
+        $max_ticket_reached_message = ( isset($event->em_event_max_tickets_reached_message) && ! empty($event->em_event_max_tickets_reached_message))?$event->em_event_max_tickets_reached_message:esc_html__('You have already reached the maximum ticket limit for this event and cannot purchase additional tickets.','eventprime-event-calendar-management');
+        $return = array(true,'');
+        if($max_tickets_limit_per_user > 0)
+        {
+            $event_id= $event->em_id;
+            $bookings_by_user = 0;
+            if(is_user_logged_in())
+            {
+                $user_id = get_current_user_id();
+            }
+
+            if(!empty($user_id))
+            {
+                $bookings= $this->eventprime_check_event_booking_by_user($event_id, $user_id);
+                $bookings_by_user = $bookings['total_attendees'];
+            }
+            //print_r($bookings_by_user);die;
+            if($max_tickets_limit_per_user > $bookings_by_user)
+            {
+               $max_tickets = $max_tickets_limit_per_user - $bookings_by_user;
+               $message = sprintf(esc_html__('You can only purchase up to %d more tickets for this event. Please click the Cancel button to return to the event page and update your ticket selection.', 'eventprime-event-calendar-management'),$max_tickets);
+               $return = array($max_tickets,$message);
+            }
+            else
+            {
+                $return = array(false,$max_ticket_reached_message);
+            }
+        }
+        
+        //if(!is_bool($return[0]))
+        if($max_tickets_limit_per_order > 0)
+        {
+            if(!is_bool($return[0]))
+            {
+                if($return[0] > $max_tickets_limit_per_order)
+                {
+                    $max_tickets = $max_tickets_limit_per_order;
+                    $message = sprintf(esc_html__('A maximum of %d tickets are allowed per order for this event.', 'eventprime-event-calendar-management'),$max_tickets);
+                    $return = array($max_tickets,$message);
+                }
+                
+            }
+            elseif($return[0]!==false)
+            {
+                $max_tickets = $max_tickets_limit_per_order;
+                $message = sprintf(esc_html__('A maximum of %d tickets are allowed per order for this event.', 'eventprime-event-calendar-management'),$max_tickets);
+                $return = array($max_tickets,$message);
+            }
+            
+
+        }
+        
+        return $return;
+    }
+    
+    public function eventprime_check_event_booking_by_user_old( $event_id, $user_id ){
+        $count = array();
+        if( ! empty( $event_id ) && ! empty( $user_id ) ) {
+            $meta_query = array(
+                'relation' => 'AND',
+                array(
+                    'key'     => 'em_event', 
+                    'value'   => $event_id, 
+                    'compare' => '=', 
+                    'type'    => 'NUMERIC,'
+                ),
+            );
+            if(is_email($user_id))
+            {
+                $meta_query[] = array(
+                    'key'     => 'em_order_info', 
+                    'value'   => serialize(['ep_gb_email' => $user_id]), 
+                    'compare' => 'LIKE',
+                );
+            }
+            else
+            {
+                $meta_query[] = array(
+                    'key'     => 'em_user', 
+                    'value'   => $user_id, 
+                    'compare' => '=', 
+                    'type'    => 'NUMERIC,'
+                );
+            }
+            $args = array(
+                'numberposts' => -1,
+                'orderby'     => 'date',
+                'order'       => 'DESC',
+                'post_status' => 'any',
+                'meta_query'  => $meta_query,
+                'post_type'   => 'em_booking'
+            );
+            $bookings = get_posts( $args );
+            $count = $this->eventprime_get_event_booking_stats_by_event_id($event_id,$bookings);
+            $count['bookings'] = $bookings;
+        }
+        return $count;
+    }
+    
+    public function eventprime_check_event_booking_by_user($event_id, $user_identifier) 
+    {
+        if (empty($event_id) || empty($user_identifier)) {
+            return []; // Return empty array if required parameters are missing
+        }
+
+        // Initialize the meta query
+        $meta_query = [
+            'relation' => 'AND',
+            [
+                'key'     => 'em_event',
+                'value'   => $event_id,
+                'compare' => '=',
+                'type'    => 'NUMERIC',
+            ],
+        ];
+
+        $additional_meta_query = [];
+
+        // Check if input is an email or user ID
+        if (is_email($user_identifier)) {
+            // Check if email is associated with a registered user
+            $user = get_user_by('email', $user_identifier);
+
+            if ($user) {
+                // Combine user ID and guest email in the meta query
+                $additional_meta_query = [
+                    'relation' => 'OR',
+                    [
+                        'key'     => 'em_user',
+                        'value'   => $user->ID,
+                        'compare' => '=',
+                        'type'    => 'NUMERIC',
+                    ],
+                    [
+                        'key'     => 'em_order_info',
+                        'value'   => '"ep_gb_email";s:' . strlen($user_identifier) . ':"' . $user_identifier . '"',
+                        'compare' => 'LIKE',
+                    ],
+                ];
+            } else {
+                // Only match guest bookings with the email
+                $additional_meta_query = [
+                    [
+                        'key'     => 'em_order_info',
+                        'value'   => '"ep_gb_email";s:' . strlen($user_identifier) . ':"' . $user_identifier . '"',
+                        'compare' => 'LIKE',
+                    ],
+                ];
+            }
+        } else {
+                // If input is a user ID, match user bookings only
+                $user_email = '';
+                $user = get_userdata($user_identifier);
+                if ($user) {
+                    $user_email = $user->user_email;
+                }
+            // Combine user ID and guest email in the meta query
+                $additional_meta_query = [
+                    'relation' => 'OR',
+                    [
+                        'key'     => 'em_user',
+                        'value'   => $user->ID,
+                        'compare' => '=',
+                        'type'    => 'NUMERIC',
+                    ],
+                    [
+                        'key'     => 'em_order_info',
+                        'value'   => '"ep_gb_email";s:' . strlen($user_email) . ':"' . $user_email . '"',
+                        'compare' => 'LIKE',
+                    ],
+                ];
+        }
+
+        // Merge additional meta query
+        $meta_query[] = $additional_meta_query;
+
+        // WP_Query Arguments
+        $args = [
+            'numberposts' => -1,
+            'orderby'     => 'date',
+            'order'       => 'DESC',
+            'post_status' => array('completed','pending'),
+            'meta_query'  => $meta_query,
+            'post_type'   => 'em_booking',
+        ];
+
+        // Fetch bookings
+        $bookings = get_posts($args);
+
+        // Get event booking stats
+        $count = $this->eventprime_get_event_booking_stats_by_event_id($event_id, $bookings);
+        return $count;
+    }
+
+
     
 }

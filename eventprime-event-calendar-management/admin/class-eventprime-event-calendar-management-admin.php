@@ -1326,6 +1326,12 @@ class Eventprime_Event_Calendar_Management_Admin {
 					'class'    => array( 'ep_event_other_settings' ),
 					'priority' => 200,
 				),
+                                'restrictions'  => array(
+                                                        'label'    => esc_html__( 'Restrictions', 'eventprime-event-calendar-management' ),
+                                                        'target'   => 'ep_event_restrictions_data',
+                                                        'class'    => array( 'ep_event_restrictions' ),
+                                                        'priority' => 100,
+                                                ),
 			)
         );
         // Sort tabs based on priority.
@@ -1348,6 +1354,7 @@ class Eventprime_Event_Calendar_Management_Admin {
         include 'partials/metaboxes/meta-box-social-panel-html.php';
         include 'partials/metaboxes/meta-box-results-panel-html.php';
         include 'partials/metaboxes/meta-box-bookings-panel-html.php';
+        include 'partials/metaboxes/meta-box-restrictions-panel-html.php';
         do_action( 'ep_event_tab_content' );
     }
 

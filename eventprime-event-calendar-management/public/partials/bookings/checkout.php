@@ -58,6 +58,9 @@ if( ! empty( $_POST ) && isset( $_POST['ep_event_booking_data'] ) && ! empty( $_
         $previous_event_url = $booking_data['event']->event_url;
     }
     // add data in booking data
+    $is_able_to_purchase = $ep_functions->ep_check_event_restrictions( $booking_data['event'] );
+    $max_ticket_reached_message = ( ! empty($booking_data['event']->em_event_max_tickets_reached_message))?$booking_data['event']->em_event_max_tickets_reached_message:esc_html__('You have already reached the maximum ticket limit for this event and cannot purchase additional tickets.','eventprime-event-calendar-management');
+
     $booking_data = apply_filters( 'ep_booking_detail_add_booking_data', $booking_data, $ep_event_booking_data );
 }
 
@@ -320,11 +323,30 @@ if( $ep_functions->ep_get_global_settings('checkout_reg_google_recaptcha') == 1 
                             </ul> 
                             
                             <?php do_action( 'ep_event_booking_after_ticket_info_box', $args ); ?>
-
+                            <?php
+                            //print_r($is_able_to_purchase);
+                            $show_button = true;
+                            if($is_able_to_purchase[0]===false || $total_tickets > $is_able_to_purchase[0])
+                            {
+                                $show_button = false;
+                                
+                                ?>
+                            <div class="ep-btn-light ep-text-danger ep-box-w-100 ep-mb-2 ep-py-2">
+                                <?php
+                                echo esc_html($is_able_to_purchase[1]);
+//                              ?>
+                            </div>
+                            <?php
+                            }
+                            //var_dump($show_button);
+                            ?>
                             <div class="ep-my-3">
-                                <?php do_action( 'ep_event_booking_before_checkout_button', $args ); ?>
+                                
+                                <?php 
+                                $args->show_checkout_button = $show_button;
+                                do_action( 'ep_event_booking_before_checkout_button', $args ); ?>
                                 <?php wp_nonce_field( 'ep_save_event_booking', 'ep_save_event_booking_nonce' );?>
-                                <?php if(isset($args->event) && (!isset($args->event->enable_event_wc_checkout) || empty($args->event->enable_event_wc_checkout))){?>
+                                <?php if(isset($args->event) && $show_button==true && (!isset($args->event->enable_event_wc_checkout) || empty($args->event->enable_event_wc_checkout))){?>
                                 <button type="button" class="ep-btn ep-btn-warning ep-box-w-100 ep-mb-2 step1" id="ep_event_booking_checkout_btn" data-active_step="1">
                                     <?php echo esc_html( $checkout_text ); ?>
                                 </button>

@@ -5,7 +5,7 @@ Tags: event calendar, organizer , event manager, tickets, event booking, event b
 Requires at least: 4.8
 Tested up to: 6.7
 Requires PHP: 7.2
-Stable tag: 4.0.6.0
+Stable tag: 4.0.7.0
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -666,6 +666,11 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.0.7.0: December 24, 2024 =
+* New Feature: Introducing Event Restrictions Settings!
+* New Feature: Maximum Tickets Per User.
+* New Feature: Maximum Tickets Per Order Across All Tickets.
 
 = 4.0.6.0: December 06, 2024 =
 * Added: Security patch.
@@ -2043,6 +2048,11 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.0.7.0: December 24, 2024 =
+* New Feature: Introducing Event Restrictions Settings!
+* New Feature: Maximum Tickets Per User.
+* New Feature: Maximum Tickets Per Order Across All Tickets.
 
 = 4.0.6.0: December 06, 2024 =
 * Added: Security patch.

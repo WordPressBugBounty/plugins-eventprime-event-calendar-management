@@ -1979,43 +1979,7 @@ class Eventprime_Event_Calendar_Management_Public {
         }
     }
     
-    /**
-     * Add event data like no. of booking, no. of attendees
-     */
-    public function ep_add_event_statisticts_data( $post ) {
-        $event_id = $post->ID;
-        // get total bookings data
-        $booking_controller = new EventPrime_Bookings;
-        $ep_functions = new Eventprime_Basic_Functions;
-        $event_bookings = $booking_controller->get_event_bookings_by_event_id( $event_id );
-        $event_booking_count = count( $event_bookings );?>
-        <div class="ep-event-summary-data-list">
-            <label><?php esc_html_e( 'Total Bookings:', 'eventprime-event-calendar-management' );?></label>
-            <label>
-                <?php esc_attr_e( $event_booking_count );
-                if( ! empty( $event_booking_count ) ) {
-                    $event_booking_url = admin_url( 'edit.php?s&post_status=all&post_type=em_booking&event_id=' . esc_attr( $event_id ) );?> 
-                    <a href="<?php echo esc_url( $event_booking_url );?>" target="__blank">
-                        <?php esc_html_e( 'View', 'eventprime-event-calendar-management' );?>
-                    </a><?php
-                }?>
-            </label>
-        </div><?php
-        // get total attendees
-        $total_booking_numbers = $ep_functions->get_total_booking_number_by_event_id( $event_id );?>
-        <div class="ep-event-summary-data-list">
-            <label><?php esc_html_e( 'Total Attendees:', 'eventprime-event-calendar-management' );?></label>
-            <label>
-                <?php esc_attr_e( $total_booking_numbers );
-                if( ! empty( $total_booking_numbers ) ) {
-                    $event_attendee_page_url = admin_url( 'admin.php?page=ep-event-attendees-list&event_id=' . esc_attr( $event_id ) );?> 
-                    <a href="<?php echo esc_url( $event_attendee_page_url );?>" target="__blank">
-                        <?php esc_html_e( 'View', 'eventprime-event-calendar-management' );?>
-                    </a><?php
-                }?>
-            </label>
-        </div><?php
-    }
+    
     
     /**
      * Add calendar icon

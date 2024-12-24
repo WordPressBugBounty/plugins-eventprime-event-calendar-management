@@ -1259,6 +1259,11 @@ class EP_DBhandler {
         // add other settings meta box
         $post_data['em_event_text_color'] = (isset($post['em_event_text_color'])) ? sanitize_text_field($post['em_event_text_color']) : '';
         $post_data['em_audience_notice'] = (isset($post['em_audience_notice'])) ? sanitize_textarea_field($post['em_audience_notice']) : '';
+        
+        // add restrictions settings meta box
+        $post_data['em_event_max_tickets_per_user'] = (isset($post['em_event_max_tickets_per_user'])) ? sanitize_text_field($post['em_event_max_tickets_per_user']) : '';
+        $post_data['em_event_max_tickets_per_order'] = (isset($post['em_event_max_tickets_per_order'])) ? sanitize_text_field($post['em_event_max_tickets_per_order']) : '';
+        $post_data['em_event_max_tickets_reached_message'] = (isset($post['em_event_max_tickets_reached_message'])) ? sanitize_textarea_field($post['em_event_max_tickets_reached_message']) : '';
         // save social info
         $em_social_links = array();
         if (isset($post['em_social_links']) && count($post['em_social_links']) > 0) {

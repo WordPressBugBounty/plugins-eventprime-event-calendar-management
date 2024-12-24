@@ -1323,11 +1323,15 @@ jQuery( function( $ ) {
     // go to checkout
     $( document ).on( 'click', '#ep_single_event_checkout_btn', function() {
         let ep_event_booking_ticket = $( '#ep_event_booking_ticket' ).attr( 'data-ticket_options' );
+        $('#ep_single_event_before_checkout_error_msg').html('');
+                    
         if( ep_event_booking_ticket ) {
             // check for allowed quantity of tickets
             var ticket_error = 0;
+            var tickets_count = 0;
             $.each( JSON.parse( ep_event_booking_ticket ), function( idx, tic_data ){
                 let ticid = tic_data.id;
+                tickets_count = tickets_count + tic_data.qty;
                 $( '#em_ticket_qty_error_' + ticid ).html( ' ' );
                 let min_allowed = $( '#ep_event_ticket_qty_' + ticid ).data( 'min_allowed' );
                 if( tic_data.qty < min_allowed ) {
@@ -1335,7 +1339,16 @@ jQuery( function( $ ) {
                     $( '#em_ticket_qty_error_' + ticid ).html( 'Minimum allowed quantity of this ticket is ' + min_allowed );
                     return false;
                 }
+                let per_order_max_ticket_allowed = $('#ep_allowed_max_total_ticket_per_order').val();
+                
+                if(per_order_max_ticket_allowed !== undefined && per_order_max_ticket_allowed !== null && parseInt(per_order_max_ticket_allowed) < tickets_count)
+                {
+                    ticket_error = 1;
+                    $('#ep_single_event_before_checkout_error_msg').html(em_front_event_object.em_event_data.max_tickets_per_order_msg);
+                    return false;
+                }
             });
+            
             if( ticket_error == 0 ) {
                 let booking_event_id = $( '#ep_event_booking_event_id' ).val();
                 let ep_event_offer_data = $( '#ep_event_offer_data' ).val();

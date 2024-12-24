@@ -9,6 +9,10 @@ $add_details_and_checkout_text = $ep_functions->ep_global_settings_button_title(
 $sold_out_text = $ep_functions->ep_global_settings_button_title('Sold Out');
 $booking_allowed = ( ! empty( $args->event->em_enable_booking ) && $args->event->em_enable_booking == 'bookings_on' ? 1 : 0 );
 $is_event_expired = $ep_functions->check_event_has_expired( $args->event );
+$is_able_to_purchase = $ep_functions->ep_check_event_restrictions( $args->event );
+$max_ticket_reached_message = ( isset($args->event->em_event_max_tickets_reached_message) && ! empty($args->event->em_event_max_tickets_reached_message))?$args->event->em_event_max_tickets_reached_message:esc_html__('You have already reached the maximum ticket limit for this event and cannot purchase additional tickets.','eventprime-event-calendar-management');
+$max_ticket_per_order = $is_able_to_purchase[0];
+
 ?>
 <div class="ep-box-col-4 ep-position-relative" id="ep-sl-right-area">
     <?php do_action( 'ep_event_detail_before_ticket_block', $args->event );
@@ -80,7 +84,16 @@ $is_event_expired = $ep_functions->check_event_has_expired( $args->event );
                                 <div class="ep-btn-light ep-text-danger ep-box-w-100 ep-mb-2 ep-py-2">
                                     <?php echo esc_html( $sold_out_text ); ?>
                                 </div><?php
-                            } else{
+                            }
+                            else if($is_able_to_purchase[0]===false)
+                            {
+                                ?>
+                            <div class="ep-btn-light ep-text-danger ep-box-w-100 ep-mb-2 ep-py-2">
+                                    <?php echo esc_html( $is_able_to_purchase[1] ); ?>
+                                </div><?php
+                                
+                            }
+                            else{
                                 if( ! empty( $args->event->ticket_price_range ) ) {
                                     $ticket_button_style = '';
                                     $invite_only_event = get_post_meta( $args->event->em_id, 'em_rsvp_invite_only_event', true );
@@ -345,6 +358,11 @@ $is_event_expired = $ep_functions->check_event_has_expired( $args->event );
                                                         if( ! empty( $remaining_caps ) && $remaining_caps < $max_caps ) {
                                                             $max_caps = $remaining_caps;
                                                         }
+                                                        if(is_numeric($is_able_to_purchase) && $is_able_to_purchase > 0 && $max_caps > $is_able_to_purchase)
+                                                        {
+                                                            //var_dump($is_able_to_purchase);
+                                                            $max_caps = $remaining_caps = $is_able_to_purchase;
+                                                        }
                                                         if( $ticket->show_remaining_tickets == 1 ) {?>
                                                             <div class="ep-text-small ep-text-white ep-mt-2 ep-event-ticket-modal-ticket-left">
                                                                 <span class="ep-bg-danger ep-py-1 ep-px-2 ep-rounded-1 ep-text-smalll">
@@ -540,6 +558,9 @@ $is_event_expired = $ep_functions->check_event_has_expired( $args->event );
                                                         echo esc_html( $checkout_text );
                                                     }?>
                                                 </button>
+                                                    <?php if($max_ticket_per_order!==true){?>
+                                                    <input type="hidden" name="ep_allowed_max_total_ticket_per_order" id="ep_allowed_max_total_ticket_per_order" value="<?php echo esc_attr($max_ticket_per_order);?>" />
+                                                    <?php }?>
                                                 <?php do_action('ep_after_event_ticket_book_button', $args->event->em_id);?>
                                             </form><?php
                                         }?>

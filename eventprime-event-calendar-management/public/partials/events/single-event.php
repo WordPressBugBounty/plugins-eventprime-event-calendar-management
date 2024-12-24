@@ -56,6 +56,8 @@ if( ! empty( $post ) && $post->post_type=='em_event') {
         array( 'jquery' ), $this->version
     );
     // localized script array
+    $max_tickets = $is_able_to_purchase = $ep_functions->ep_check_event_restrictions( $args->event );
+    //$max_tickets = isset($args->event->em_event_max_tickets_per_order)?$args->event->em_event_max_tickets_per_order:0;
     $localized_script = array(
         'event'              => $events_data['event'],
         'subtotal_text'      => esc_html__( 'Subtotal', 'eventprime-event-calendar-management' ),
@@ -79,6 +81,7 @@ if( ! empty( $post ) && $post->post_type=='em_event') {
         'ticket_disable_role' => esc_html__( 'You are not authorised to book this ticket.', 'eventprime-event-calendar-management' ),
         'no_ticket_message'  => esc_html__( 'You need to select ticket(s) first.', 'eventprime-event-calendar-management' ),
         'free_text'          => esc_html__( 'Free', 'eventprime-event-calendar-management' ),
+        'max_tickets_per_order_msg' => $max_tickets[1],
     );
     // check for child events
     $events_data['event']->child_other_events = array();
