@@ -33,7 +33,8 @@ class EventM_Report_Controller_List {
             'numberposts' => -1,
             'orderby'     => 'date',
             'order'       => 'DESC',
-            'post_status' => 'completed',
+            // 'post_status' => 'completed',
+            'post_status' => array('completed','pending'),
             'posts_per_page'=> 10,
             'offset'      => (int) ( $paged-1 ) * 10,
             'paged'       => $paged,
@@ -101,13 +102,41 @@ class EventM_Report_Controller_List {
             $start_date = gmdate( 'd-m-Y', strtotime( '-6 days' ) );
             $end_date  = gmdate( 'd-m-Y' );
         }
+
+        $args = array(
+            'numberposts' => -1,
+            'orderby'     => 'date',
+            'order'       => 'DESC',
+            'post_status' => array('completed','pending'),
+            'date_query' => array(
+                array(
+                    'after'  => array(
+                        'year'   => date('Y', strtotime($start_date)),
+                        'month'  => date('m', strtotime($start_date)),
+                        'day'    => date('d', strtotime($start_date)),
+                    ),
+                    'before'     => array(
+                        'year'   => date('Y', strtotime($end_date)),
+                        'month'  => date('m', strtotime($end_date)),
+                        'day'    => date('d', strtotime($end_date)),
+                    ),
+                    'inclusive'  => true,
+                ),
+            ),
+            'meta_query'=> array('relation'=>'AND'),
+            'post_type'   => 'em_booking'
+        );
         
         $bookings =  new stdClass();
+        $posts = get_posts( $args );
         $data = $this->ep_booking_reports_list($filter_args);
-        $posts = $data->posts;
+        // $posts = $data->posts;
 
         $bookings->stat = $this->ep_bookings_stat( $posts );        
-        $bookings->posts = $posts;
+
+        $data = $this->ep_booking_reports_list($filter_args);
+
+        $bookings->posts = $data->posts;
         $bookings->posts_details = $data;
         //Calculate Days
         $days_count = 7;
@@ -115,7 +144,8 @@ class EventM_Report_Controller_List {
         $to = date_create( $end_date );
         if( ! empty( $from ) && ! empty( $to ) ) {
             $diff = date_diff( $to, $from );
-            $days_count = $diff->format('%a');
+            // $days_count = $diff->format('%a');
+            $days_count = $diff->format('%a') + 1;
         }
         $bookings->stat->days_count = $days_count;
         $bookings->chart = $this->ep_bookings_chart( $days_count, $start_date, $end_date, $filter_args );
@@ -272,7 +302,13 @@ class EventM_Report_Controller_List {
         if( ! empty( $data ) ) {
             if( isset( $data['ep_filter_date'] ) && ! empty( $data['ep_filter_date'] ) ) {
                 $date_range = sanitize_text_field( $data['ep_filter_date'] );
+                if ( preg_match( '/\(([^)]+)\)/', $date_range, $matches ) ) {
+                    $date_range = $matches[1];
+                }
                 $dates = explode( ' - ', $date_range );
+                if ( count($dates) == 1 ) {
+                    $dates[1] = $dates[0];
+                }
                 $start = isset( $dates[0] ) && ! empty( $dates[0] ) ? $dates[0] : '';
                 $end = isset( $dates[1] ) && ! empty( $dates[1] ) ? $dates[1] : '';
                 $start_date = gmdate( 'Y-m-d', strtotime( $start ) );

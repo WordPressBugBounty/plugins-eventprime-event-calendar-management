@@ -131,7 +131,7 @@ $booking_data = array();
                                         </span><?php
                                     } else {?>
                                         <span class="ep-text-white ep-small ep-rounded-1 ep-py-1 ep-px-2 ep-bg-warning ep-ml-1 ep-align-top">
-                                            <?php esc_html_e( $ep_functions->get_status()[ $args->em_status ], 'eventprime-event-calendar-management' );?>
+                                            <?php echo esc_html( $ep_functions->ep_get_booking_status()[ $args->em_status ] ); ?>
                                         </span><?php
                                     }?>
                                 </div>
@@ -307,7 +307,7 @@ $booking_data = array();
                                             </span><?php
                                         } else {?>
                                             <span class="ep-text-success">
-                                                <?php esc_html_e( $ep_functions->get_status()[ $args->em_status ], 'eventprime-event-calendar-management' );?>
+                                                <?php echo esc_html( $ep_functions->ep_get_booking_status()[ $args->em_status ] ); ?>
                                             </span><?php
                                         }?>
                                     </div>

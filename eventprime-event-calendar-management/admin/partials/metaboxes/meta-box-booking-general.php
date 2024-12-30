@@ -19,7 +19,8 @@ if( ! empty( $booking->em_payment_method ) ) {
 }
 $event_date = isset( $booking->em_date ) ? $booking->em_date : '';
 $payment_log = isset( $booking->em_payment_log ) ? $booking->em_payment_log : array();
-$status = $ep_functions->get_status();
+// $status = $ep_functions->get_status();
+$status = $ep_functions->ep_get_booking_status();
 $booking_date_time = isset( $booking->em_date ) ? esc_html( $ep_functions->ep_timestamp_to_datetime( $booking->em_date ) ) : '';
 ?>
 <div class="emagic">

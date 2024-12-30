@@ -6,22 +6,30 @@ if( isset( $bookings_data->posts_details->posts ) && ! empty( $bookings_data->po
         $event_title = $booking->post_title;
         //$booking = $booking_controller->load_booking_detail( $booking->ID );?>
         <tr>
-            <td><?php echo esc_html( $booking->em_id );?></td>
+            <td>
+                <?php 
+                $booking_url = get_edit_post_link( $booking->em_id );
+                // echo $booking_url;
+                // echo esc_html( $booking->em_id );
+                ?>
+                <a style="text-decoration: none;" class="row-title" href="<?php echo esc_url($booking_url); ?>" target="_blank"><?php echo esc_html( $booking->em_id ); 
+                    if( isset( $booking->em_guest_booking ) && $booking->em_guest_booking == 1 ) {?>
+                        <sup class="ep_gb_guest_identifier">guest</sup><?php
+                    } 
+                    if( isset( $booking->wc_order_id ) && ! empty( $booking->wc_order_id ) ) {?>
+                        <sup class="ep_woo_identifier"><?php echo esc_html('Woo','eventprime-event-calendar-management');?></sup><?php
+                    }
+                    if( isset( $booking->is_rsvp_booking ) && $booking->is_rsvp_booking == 1 ) {?>
+                        <span class="ep_rsvp_booking_identifier" style="color: #50575e;"> - RSVP</span><?php
+                    }?>
+                </a>
+            </td>
             <td><?php echo esc_html( $event_title );?></td>
             <td>
                 <?php 
-                $booking_date_time = isset( $booking->em_date ) ? esc_html( $ep_functions->ep_timestamp_to_datetime( $booking->em_date ) ) : '';
+                $booking_date_time = isset( $booking->em_date ) ? esc_html( $ep_functions->ep_timestamp_to_datetime( $booking->em_date, 'dS M Y H:i A', 1 ) ) : '--';
                 echo esc_html($booking_date_time);
-                if( isset( $booking->event_data->em_start_date ) ) {?>
-                    <span>
-                        <?php echo esc_html( $ep_functions->ep_timestamp_to_date( $booking->event_data->em_start_date, 'dS M Y', 1 ) );
-                            if( ! empty( $booking->event_data->em_start_time ) ) {
-                            echo ', ' . esc_html( $booking->event_data->em_start_time );
-                        }?>
-                    </span><?php
-                }else{
-                    echo '--';
-                }?>
+                ?>
             </td>
             <td><?php
                 if( ! empty( $booking->em_status ) ) {
@@ -54,12 +62,12 @@ if( isset( $bookings_data->posts_details->posts ) && ! empty( $bookings_data->po
                     $booking_status = $booking->post_data->post_status;
                     if( ! empty( $booking_status ) ) {?>
                         <span class="ep-booking-status ep-status-<?php echo esc_attr( $booking_status );?>">
-                            <?php esc_html_e( $ep_functions->get_status()[$booking_status], 'eventprime-event-calendar-management' );?>
+                            <?php echo esc_html( $ep_functions->ep_get_booking_status()[$booking_status] ); ?>
                         </span><?php
                     } else{
                         echo '--';
                     }
-                }?>
+                } ?>
             </td>
             <td><?php
                 if( ! empty( $booking->em_payment_method ) ) {

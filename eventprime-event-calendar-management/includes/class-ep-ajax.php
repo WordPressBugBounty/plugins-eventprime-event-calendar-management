@@ -404,7 +404,7 @@ class EventM_Ajax_Service {
                     $payment_method = 'none';
                 }
                 
-                $post_status = 'pending';
+                $post_status = 'failed';
                             
                 if ( class_exists("Eventprime_Admin_Attendee_Booking") && !empty( get_option( 'ep_set_admin_aab_'.$current_user->ID )) ) {
                     $post_status = 'completed'; 
@@ -2332,21 +2332,32 @@ class EventM_Ajax_Service {
                                         } else{
                                             if( isset( $attendee_data['name'] ) ) {
                                                 if( ! empty( $em_event_checkout_attendee_fields['em_event_checkout_name_first_name'] ) ) {
-                                                    $bookings_data[$row]['first_name']  = $attendee_data['name']['first_name'];
+                                                    $bookings_data[$row]['first_name']  = isset($attendee_data['name']['first_name']) ? $attendee_data['name']['first_name'] : '---';
                                                 }
                                                 if( ! empty( $em_event_checkout_attendee_fields['em_event_checkout_name_middle_name'] ) ) {
-                                                    $bookings_data[$row]['middle_name'] = $attendee_data['name']['middle_name'];
+                                                    $bookings_data[$row]['middle_name'] = isset($attendee_data['name']['middle_name']) ? $attendee_data['name']['middle_name'] : '---';
                                                 }
                                                 if( ! empty( $em_event_checkout_attendee_fields['em_event_checkout_name_last_name'] ) ) {
-                                                    $bookings_data[$row]['last_name']   = $attendee_data['name']['last_name'];
+                                                    $bookings_data[$row]['last_name']   = isset($attendee_data['name']['last_name']) ? $attendee_data['name']['last_name'] : '---';
+                                                }
+                                            } else { 
+                                                if( ! empty( $em_event_checkout_attendee_fields['em_event_checkout_name_first_name'] ) ) { 
+                                                    $bookings_data[$row]['first_name']  = '---';
+                                                }
+                                                if( ! empty( $em_event_checkout_attendee_fields['em_event_checkout_name_middle_name'] ) ) { 
+                                                    $bookings_data[$row]['middle_name']  = '---';
+                                                } 
+                                                if( ! empty( $em_event_checkout_attendee_fields['em_event_checkout_name_last_name'] ) ) { 
+                                                    $bookings_data[$row]['last_name']  = '---';
                                                 }
                                             }
                                             foreach( $attendee_fileds_data as $fields ) {
                                                 $checkout_field_val = '';
-                                                if( ! empty( $attendee_data[$fields] ) ) {
+                                                $label_val = '';
+                                                if( isset($attendee_data[$fields]) && ! empty( $attendee_data[$fields] ) ) {
                                                     $label_val = $attendee_data[$fields]['label'];
                                                     $input_name = $ep_functions->ep_get_slug_from_string( $label_val );
-                                                    if( ! empty( $attendee_data[$fields][$input_name] ) ) {
+                                                    if( isset($attendee_data[$fields][$input_name]) && ! empty( $attendee_data[$fields][$input_name] ) ) {
                                                         $input_val = $attendee_data[$fields][$input_name];
                                                         if( is_array( $input_val ) ) {
                                                             $checkout_field_val = esc_html( implode( ', ', $input_val ) );
@@ -2354,8 +2365,17 @@ class EventM_Ajax_Service {
                                                             $checkout_field_val = esc_html( $attendee_data[$fields][$input_name] );
                                                         }
                                                     }
+                                                } else {
+                                                    $label_result = $ep_functions->get_checkout_field_label_by_id( $fields ); 
+                                                    if ( !empty($label_result) ) {
+                                                        $label_val = $label_result->label; 
+                                                    }
                                                 }
-                                                $bookings_data[$row][$label_val] = $checkout_field_val;
+                                                if ( empty($checkout_field_val) ) {
+                                                    $bookings_data[$row][$label_val] = "---";    
+                                                } else {
+                                                    $bookings_data[$row][$label_val] = $checkout_field_val;
+                                                }
                                             }
                                         }
 

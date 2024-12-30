@@ -10,6 +10,226 @@ class EventM_Notification_Service {
     /**
      * Send booking confirmation email
      */
+    
+    public function ep_filter_email_content( $message, $data ) {
+		$matches    = $this->getInbetweenStrings( '{{', '}}', $message );
+		$result     = $matches[1];
+
+		foreach ( $result as $field ) {
+                    $search = '{{' . $field . '}}';
+                    $value = $this->findFieldValue($data, $field);
+                    $message = str_replace( $search, $value, $message );
+		}
+		return $message;
+	}
+
+    public function getInbetweenStrings( $start, $end, $str ) {
+     $matches = array();
+            $regex    = "/$start([a-zA-Z0-9_]*)$end/";
+            preg_match_all( $regex, $str, $matches );
+            return $matches;
+    }
+    
+    public function ep_filter_organizer_data($organizers, $field) {
+        $fieldKey = str_replace('organizer_', '', $field);
+        $values = [];
+
+        if (!empty($organizers) && is_array($organizers)) {
+            foreach ($organizers as $organizer) {
+                switch ($fieldKey) {
+                    case 'name':
+                        if (!empty($organizer->name)) {
+                            $values[] = $organizer->name;
+                        }
+                        break;
+
+                    case 'description':
+                        if (!empty($organizer->description)) {
+                            $values[] = $organizer->description;
+                        }
+                        break;
+
+                    case 'url':
+                        if (!empty($organizer->organizer_url)) {
+                            $values[] = $organizer->organizer_url;
+                        }
+                        break;
+
+                    case 'image':
+                        if (!empty($organizer->image_url)) {
+                            $values[] = '<img src="' . $organizer->image_url . '" alt="' . ($organizer->name ?? 'Organizer Image') . '" style="width:50px;height:50px;border-radius:50%;">';
+                        }
+                        break;
+
+                    case 'phone':
+                        if (!empty($organizer->em_organizer_phones)) {
+                            $values[] = implode(', ', $organizer->em_organizer_phones);
+                        }
+                        break;
+
+                    case 'email':
+                        if (!empty($organizer->em_organizer_emails)) {
+                            $values[] = implode(', ', $organizer->em_organizer_emails);
+                        }
+                        break;
+
+                    case 'websites':
+                        if (!empty($organizer->em_organizer_websites)) {
+                            $values[] = implode(', ', $organizer->em_organizer_websites);
+                        }
+                        break;
+
+                    case 'social_links':
+                        if (!empty($organizer->em_social_links)) {
+                            $socialLinks = [];
+                            foreach ($organizer->em_social_links as $platform => $link) {
+                                $socialLinks[] = ucfirst($platform) . ': ' . $link;
+                            }
+                            $values[] = implode(' | ', $socialLinks);
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+        }
+
+        // Join values with a separator for fields like name, phone, etc.
+        if ($fieldKey === 'image') {
+            // Return concatenated image HTML for 'image' field
+            return implode(' ', $values);
+        } else {
+            // Return concatenated values for text-based fields
+            return implode(', ', $values);
+        }
+    }
+
+    public function ep_filter_event_type_data($eventtype, $field) {
+        $fieldKey = str_replace('event_type_', '', $field);
+
+        if (!empty($eventtype)) {
+            switch ($fieldKey) {
+                case 'name':
+                    return $eventtype->name ?? '';
+                case 'description':
+                    return $eventtype->description ?? '';
+                case 'url':
+                    return $eventtype->event_type_url ?? '';
+                case 'image':
+                    if (!empty($eventtype->image_url)) {
+                        return '<img src="' . $eventtype->image_url . '" alt="' . ($eventtype->name ?? 'Event Type Image') . '" style="width:50px;height:50px;border-radius:50%;">';
+                    }
+                    return '';
+                case 'color':
+                    return $eventtype->em_color ?? '';
+                case 'text_color':
+                    return $eventtype->em_type_text_color ?? '';
+                default:
+                    return '';
+            }
+        }
+
+        return '';
+    }
+
+    public function ep_filter_venue_data($venue, $field) {
+        $fieldKey = str_replace('venue_', '', $field);
+
+        if (!empty($venue)) {
+            switch ($fieldKey) {
+                case 'name':
+                    return $venue->name ?? '';
+                case 'description':
+                    return $venue->description ?? '';
+                case 'address':
+                    return implode(', ', array_filter([
+                        $venue->em_address ?? '',
+                        $venue->em_locality ?? '',
+                        $venue->em_state ?? '',
+                        $venue->em_country ?? '',
+                        $venue->em_postal_code ?? ''
+                    ]));
+                case 'url':
+                    return $venue->venue_url ?? '';
+                case 'image':
+                    if (!empty($venue->image_url)) {
+                        return '<img src="' . $venue->image_url . '" alt="' . ($venue->name ?? 'Venue Image') . '" style="width:50px;height:50px;border-radius:50%;">';
+                    }
+                    return '';
+                case 'latitude':
+                    return $venue->em_lat ?? '';
+                case 'longitude':
+                    return $venue->em_lng ?? '';
+                case 'social_links':
+                    if (!empty($venue->em_social_links)) {
+                        $socialLinks = [];
+                        foreach ($venue->em_social_links as $platform => $link) {
+                            if (!empty($link)) {
+                                $socialLinks[] = ucfirst($platform) . ': ' . $link;
+                            }
+                        }
+                        return implode(' | ', $socialLinks);
+                    }
+                    return '';
+                default:
+                    return '';
+            }
+        }
+
+        return '';
+    }
+
+    
+    public function findFieldValue($data, $field) 
+    {
+        // Check if $data is an object or array
+        if(strpos($field,"organizer")!==false && isset($data->organizer_details) && !empty($data->organizer_details))
+        {
+            return $this->ep_filter_organizer_data($data->organizer_details,$field);
+        }
+        elseif(strpos($field,"event_type")!==false && isset($data->event_type_details) && !empty($data->event_type_details))
+        {
+            return $this->ep_filter_event_type_data($data->event_type_details,$field);
+        }
+        elseif(strpos($field,"venue")!==false && isset($data->venue_details) && !empty($data->venue_details))
+        {
+            return $this->ep_filter_venue_data($data->venue_details,$field);
+        }
+        elseif (is_object($data)) {
+            // Direct match
+            if (isset($data->$field)) {
+                return $data->$field;
+            }
+            // Search nested objects
+            foreach ($data as $key => $value) {
+                if (is_object($value) || is_array($value)) {
+                    $result = $this->findFieldValue($value, $field);
+                    if ($result !== '') {
+                        return $result; // Return the first occurrence
+                    }
+                }
+            }
+        } elseif (is_array($data)) {
+            // Direct match
+            if (isset($data[$field])) {
+                return $data[$field];
+            }
+            // Search nested arrays
+            foreach ($data as $key => $value) {
+                if (is_object($value) || is_array($value)) {
+                    $result = $this->findFieldValue($value, $field);
+                    if ($result !== '') {
+                        return $result; // Return the first occurrence
+                    }
+                }
+            }
+        }
+
+        // Return empty string if not found
+        return '';
+    }
+    
     public function booking_confirmed( $booking_id ) {
         $booking_controller = new EventPrime_Bookings;
         $ep_functions = new Eventprime_Basic_Functions;
@@ -34,8 +254,7 @@ class EventM_Notification_Service {
             $user_first_name = get_user_meta( $user_id, 'first_name', true );
             $user_last_name = get_user_meta( $user_id, 'last_name', true );
             $booking_user_phone = get_user_meta($user_id, 'phone', true);
-        }
-        if( empty( $user_id ) && $ep_functions->ep_enabled_guest_booking() ) {
+        } else {
             $booking_user_email = $to = isset($order_info['user_email']) ? $order_info['user_email'] :'';
             $booking_user_name = isset($order_info['user_name']) ? $order_info['user_name'] : '';
             $booking_user_phone = (isset($order_info['user_phone']) && !empty($order_info['user_phone']) ? $order_info['user_phone'] : 'N/A');
@@ -185,6 +404,7 @@ class EventM_Notification_Service {
                 $attachments = apply_filters( 'event_magic_booking_confirmed_notification_attachments', $attachments, $booking );
             }
             // Send email to user
+            $mail_body = $this->ep_filter_email_content($mail_body, $booking);
             $sent = wp_mail( $to, $subject, $mail_body, $headers, $attachments );
             if ( isset($attachments) && !empty($attachments) && count( $attachments ) != 0 ) {
                 foreach ( $attachments as $pdf_url ) {
@@ -268,11 +488,10 @@ class EventM_Notification_Service {
                     }
                 }
             }
-        
+            $mail_body = $this->ep_filter_email_content($mail_body, $booking);
             wp_mail( $to, $subject, $mail_body, $headers);
         }
     }
-    
     /**
      * Send payment refund email
      */
@@ -295,8 +514,7 @@ class EventM_Notification_Service {
             $user = get_userdata( $user_id );
             $booking_user_email = $to = $user->user_email;
             $booking_user_name = $user->display_name;
-        }
-        if(empty($user_id) && $ep_functions->ep_enabled_guest_booking()){
+        } else {
             $booking_user_email = $to = isset( $order_info['user_email'] ) ? $order_info['user_email'] : '';
         }
         $from = get_bloginfo('name') . '<' . get_bloginfo('admin_email') . '>';
@@ -362,6 +580,7 @@ class EventM_Notification_Service {
             $mail_body = $lastFootUpdate . '</tfoot>' . $lastFoot[1];
 
             // Send to user
+            $mail_body = $this->ep_filter_email_content($mail_body, $booking);
             $sent = wp_mail( $to, $subject, $mail_body, $headers );
         }
 
@@ -381,7 +600,6 @@ class EventM_Notification_Service {
             $to = $admin_email; 
             $subject = sprintf(esc_html__( 'Booking Refund on Booking ID# %d', 'eventprime-event-calendar-management'), $booking_id );        
             $body = sprintf(esc_html__( 'A refund of %s has been issued to booking #%d for %s', 'eventprime-event-calendar-management'), $ep_functions->ep_price_with_position( $ticket_sub_total ), $booking_id, $booking->em_name );
-        
             wp_mail( $to, $subject, $body, $headers );
         }
     }
@@ -407,8 +625,7 @@ class EventM_Notification_Service {
             $user = get_userdata($user_id);
             $booking_user_email = $to = $user->user_email;
             $booking_user_name = $user->display_name;
-        }
-        if(empty($user_id) && $ep_functions->ep_enabled_guest_booking()){
+        } else {
             $booking_user_email = $to = isset($order_info['user_email']) ? $order_info['user_email'] :'';
         }
         $from = get_bloginfo('name') . '<' . get_bloginfo('admin_email') . '>';
@@ -475,6 +692,7 @@ class EventM_Notification_Service {
             $mail_body = $lastFootUpdate . '</tfoot>' . $lastFoot[1];
 
             //Send to user
+            $mail_body = $this->ep_filter_email_content($mail_body, $booking);
             $sent = wp_mail( $to, $subject, $mail_body, $headers );
         }
 
@@ -493,7 +711,6 @@ class EventM_Notification_Service {
             $to = get_option('admin_email');
             $subject = esc_html__( 'Booking Pending', 'eventprime-event-calendar-management' );        
             $body = sprintf( esc_html__( 'User %s has Booking Pending with Booking ID #%d.', 'eventprime-event-calendar-management' ), $booking_user_email, $booking_id );
-            
             wp_mail( $to, $subject, $body, $headers );
         }
     }
@@ -520,8 +737,7 @@ class EventM_Notification_Service {
             $user = get_userdata($user_id);
             $booking_user_email = $to = $user->user_email;
             $booking_user_name = $user->display_name;
-        }
-        if(empty($user_id) && $ep_functions->ep_enabled_guest_booking()){
+        } else {
             $booking_user_email = $to = isset($order_info['user_email']) ? $order_info['user_email'] :'';
         }
         $from = get_bloginfo('name') . '<' . get_bloginfo('admin_email') . '>';
@@ -584,6 +800,7 @@ class EventM_Notification_Service {
             $mail_body = $lastFootUpdate . '</tfoot>' . $lastFoot[1];
 
             // Send to user
+            $mail_body = $this->ep_filter_email_content($mail_body, $booking);
             $sent = wp_mail( $to, $subject, $mail_body, $headers);
         }
 
@@ -607,6 +824,7 @@ class EventM_Notification_Service {
             $mail_body = str_replace( "(User Email)", $booking_user_email, $mail_body );
             $to = $admin_email;
             $subject = esc_html__( 'Booking Cancellation', 'eventprime-event-calendar-management' );
+            $mail_body = $this->ep_filter_email_content($mail_body, $booking);
             wp_mail( $to, $subject, $mail_body ); 
         }
     }

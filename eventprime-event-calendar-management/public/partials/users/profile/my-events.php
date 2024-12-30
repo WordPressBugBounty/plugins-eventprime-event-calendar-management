@@ -89,7 +89,7 @@ $ep_functions = new Eventprime_Basic_Functions;
                     <div class="">
                         <div class="ep-mb-1">
                             <span class="ep-bg-success ep-p-1 ep-text-white ep-rounded-1 ep-text-small">
-                                <?php esc_html_e( $ep_functions->get_status()[$event->post_status], 'eventprime-event-calendar-management');?>
+                                <?php echo esc_html( $ep_functions->ep_get_booking_status()[$event->post_status] ); ?>
                             </span>
                         </div>
                     </div>

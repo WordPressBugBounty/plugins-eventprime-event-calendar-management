@@ -96,6 +96,15 @@ $ep_functions = new Eventprime_Basic_Functions;
                                                             } if( ! empty( $em_event_checkout_attendee_fields['em_event_checkout_name_last_name'] ) ) {?>
                                                                 <td><?php echo ( ! empty( $attendee_data['name']['last_name'] ) ? esc_html( $attendee_data['name']['last_name'] ) : '----' );?></td><?php
                                                             }
+                                                        } else { 
+                                                            if( ! empty( $em_event_checkout_attendee_fields['em_event_checkout_name_first_name'] ) ) {?>
+                                                                <td>----</td><?php
+                                                            }
+                                                            if( ! empty( $em_event_checkout_attendee_fields['em_event_checkout_name_middle_name'] ) ) {?>
+                                                                <td>----</td><?php
+                                                            } if( ! empty( $em_event_checkout_attendee_fields['em_event_checkout_name_last_name'] ) ) {?>
+                                                                <td>----</td><?php
+                                                            }
                                                         }
                                                         foreach( $attendee_fileds_data as $fields ) {?>
                                                             <td><?php

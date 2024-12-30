@@ -11,29 +11,56 @@ jQuery(function($){
     }
     //Modifying Date Formate for Date Picker Range
     var lates = 'DD-MM-YYYY';
-    
     var date = new Date();
-    
-    var start = moment(date.setDate(date.getDate() - 6));
-    var end = moment(date.setDate(date.getDate() + 7));
+
+    var start = moment(date.setDate(date.getDate() - 6)); 
+    // var end = moment(date.setDate(date.getDate() + 7));
+    var end = moment(date.setDate(date.getDate() + 6)); 
+
+    let ranges = {
+        'Today': [moment(), moment()],
+        'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+        'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+        'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+        'This Month': [moment().startOf('month'), moment().endOf('month')],
+        'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+    };
+
     cb(start,end);
-    function cb(start, end) {
-        jQuery('#ep-reports-datepicker-div input').val(start.format(lates) + ' - ' + end.format(lates));
+    function cb(start, end, label) {
+        // jQuery('#ep-reports-datepicker-div input').val(start.format(lates) + ' - ' + end.format(lates));
+
+        let selectedRange = null;
+        for (const [key, value] of Object.entries(ranges)) {
+            if (start.isSame(value[0], 'day') && end.isSame(value[1], 'day')) {
+                selectedRange = key; 
+                break;
+            }
+        }
+
+        let displayText;
+        if (start.isSame(end, 'day')) {
+            // displayText = `${selectedRange || label || 'Custom'} (${start.format('MMM D, YYYY')})`;
+            displayText = `${selectedRange || label || 'Custom'} (${start.format(lates)})`;
+        } else {
+            const formattedStart = start.format(lates);
+            const formattedEnd = end.format(lates);
+            displayText = `${selectedRange || label || 'Custom'} (${formattedStart} - ${formattedEnd})`;
+        }
+        
+        jQuery('#ep-reports-datepicker-div input').val(displayText);
     }
 
     jQuery('#ep-reports-datepicker-div').daterangepicker({
-        startDate: start,
-        endDate: end,
-        maxDate: new Date(),
-        ranges: {
-            'Today': [moment(), moment()],
-            'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-            'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-            'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-            'This Month': [moment().startOf('month'), moment().endOf('month')],
-            'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
-        }
-    }, cb);
+            startDate: start,
+            endDate: end,
+            locale: {
+                format: lates,
+            },
+            maxDate: new Date(),
+            ranges: ranges,
+        }, cb
+    );
 
     $( document ).on( 'click', '#ep_booking_filter', function() {
         let dates = $('#ep-reports-datepicker').val();
@@ -93,11 +120,13 @@ jQuery(function($){
 });
 function drawBookingsChart(arrData) {
     var data = new google.visualization.DataTable();
-    data.addColumn('date',   'Time of Day');
+    // data.addColumn('date',   'Time of Day');
+    data.addColumn('string',   'Time of Day');
     data.addColumn('number', 'Booking');
   
     const arrDataMap = arrData.map((val, key) => {
-        return [new Date(val.date), val.booking];
+        // return [new Date(val.date), val.booking];
+        return [moment(val.date).format('DD-MM-YYYY'), val.booking];
     });
     data.addRows(arrDataMap);
 

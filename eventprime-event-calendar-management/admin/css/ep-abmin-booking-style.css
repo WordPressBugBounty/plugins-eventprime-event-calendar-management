@@ -67,6 +67,10 @@ span.ep-booking-status.ep-status-pending {
     color: #7d6e01;
     background: #f5f2e5;
 }
+span.ep-booking-status.ep-status-failed {
+    color: red;
+    background: #f5f2e5;
+}
 .ep-status-cancelled {
     background: red;
     border-color: red;

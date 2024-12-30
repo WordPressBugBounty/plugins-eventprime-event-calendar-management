@@ -126,6 +126,31 @@ jQuery(function ($) {
         }
     });
     
+    $('.ep_field_list').on('change', function () {
+        
+        const value = $(this).val();
+        //alert(value);
+        if (!value) {
+            return; // Do nothing if no value is selected
+        }
+
+        // Check if TinyMCE editor is active
+        if (typeof tinyMCE !== 'undefined' && tinyMCE.activeEditor && !tinyMCE.activeEditor.isHidden()) {
+            tinyMCE.activeEditor.execCommand('mceInsertContent', false, value);
+        } else {
+            // Fallback for Text mode editor
+            const textarea = document.getElementById('booking_confirmed_email');
+            if (textarea) {
+                const cursorPos = textarea.selectionStart;
+                const textBefore = textarea.value.substring(0, cursorPos);
+                const textAfter = textarea.value.substring(cursorPos, textarea.value.length);
+                textarea.value = textBefore + value + textAfter;
+            }
+        }
+
+        // Reset dropdown to default after insertion
+        $(this).val('');
+    });
 
 });
 

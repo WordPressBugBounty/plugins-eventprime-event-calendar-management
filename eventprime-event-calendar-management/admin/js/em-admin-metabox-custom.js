@@ -913,9 +913,32 @@ jQuery( function( $ ) {
     }
     
     /** Checkout fields */
+    if ( $('#em_event_checkout_name_popup').is(':checked') ) {
+        let isAnyNameSubFieldIncluded = false;
+		$('.ep-name-sub-fields').each((indx, element) => {
+			if ( $(element).is(':checked') ) {
+				isAnyNameSubFieldIncluded = true; 
+			}
+		})
+        if ( !isAnyNameSubFieldIncluded ) {
+            $('#em_event_checkout_name_first_name_popup').prop('checked', true)
+        }
+        $( '.ep-event-checkout-field-name-sub-row' ).show( 1000 );
+    } else{
+        $( '.ep-event-checkout-field-name-sub-row' ).hide( 1000 );
+    }
     // show/hide name sub fields
     $( document ).on( 'click', '#em_event_checkout_name_popup', function() {
         if( $( this ).prop( 'checked' ) == true ) {
+            let isAnyNameSubFieldIncluded = false;
+            $('.ep-name-sub-fields').each((indx, element) => {
+                if ( $(element).is(':checked') ) {
+                    isAnyNameSubFieldIncluded = true; 
+                }
+            })
+            if ( !isAnyNameSubFieldIncluded ) {
+                $('#em_event_checkout_name_first_name_popup').prop('checked', true)
+            }
             $( '.ep-event-checkout-field-name-sub-row' ).show( 1000 );
         } else{
             $( '.ep-event-checkout-field-name-sub-row' ).hide( 1000 );

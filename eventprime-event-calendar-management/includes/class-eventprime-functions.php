@@ -186,7 +186,19 @@ class Eventprime_Basic_Functions {
 		'draft'     => 'Draft',
 		'refunded'  => 'Refunded',
 		'publish'   => 'Published',
-	);
+	    );
+        
+        return $status;
+    }
+
+    public function ep_get_booking_status() {
+        $status = array(
+            'completed' => esc_html__('Completed', 'eventprime-event-calendar-management'),
+            'cancelled' => esc_html__('Cancelled', 'eventprime-event-calendar-management'),
+            'pending'   => esc_html__('Pending', 'eventprime-event-calendar-management'),
+            'refunded'  => esc_html__('Refunded', 'eventprime-event-calendar-management'),
+            'failed'    => esc_html__('Failed', 'eventprime-event-calendar-management'), 
+        );
         
         return $status;
     }
@@ -9050,7 +9062,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
         $dbhandler = new EP_DBhandler;
         $table_name = 'CHECKOUT_FIELDS';
         $get_field_label = $dbhandler->get_row($table_name, $id,'id');
-	return $get_field_label;
+	    return $get_field_label;
     }
     
     public function get_ticket_name_by_id( $id ) {
@@ -10776,6 +10788,9 @@ public function ep_get_events( $fields ) {
             'option' => array( // For select elements
                 'value' => array(),
                 'selected' => array(),
+            ),
+            'optgroup'=>array(
+                'label' => array(),
             ),
             'select' => array( // Allowing select inputs
                 'name' => array(),

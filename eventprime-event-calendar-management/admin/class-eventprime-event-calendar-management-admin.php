@@ -2606,11 +2606,22 @@ class Eventprime_Event_Calendar_Management_Admin {
             'exclude_from_search'       => false,
             'post_type'                 => array( 'em_booking' ),
         );
+        $args_failed   = array(
+            'label'                     => _x( 'Failed', 'Failed', 'z' ),
+            /* translators: %s is the number of pending bookings */
+            'label_count'               => _n_noop( 'Failed (%s)', 'Failed (%s)', 'z' ),
+            'public'                    => true,
+            'show_in_admin_all_list'    => true,
+            'show_in_admin_status_list' => true,
+            'exclude_from_search'       => false,
+            'post_type'                 => array( 'em_booking' ),
+        );
 
         register_post_status( 'completed', $args_completed );
         register_post_status( 'cancelled', $args_cancelled );
         register_post_status( 'refunded', $args_refunded );
         register_post_status( 'pending', $args_pending );
+        register_post_status( 'failed', $args_failed );
         remove_post_type_support( 'em_booking', 'editor' );
         remove_post_type_support( 'em_booking', 'title' );
     }
@@ -2781,10 +2792,17 @@ class Eventprime_Event_Calendar_Management_Admin {
                     </span>
                     <?php
                 }
+                if ( $booking->em_status == 'failed' ) {
+                    ?>
+                    <span class="ep-booking-status ep-status-failed">
+                    <?php esc_html_e( 'Failed', 'eventprime-event-calendar-management' ); ?>
+                    </span>
+                    <?php
+                }
             } else {
                 $booking_status = $booking->post_data->post_status;
                 if ( !empty( $booking_status ) ) {
-                    $status = $ep_functions->get_status;
+                    $status = $ep_functions->ep_get_booking_status();
                     ?>
                     <span class="ep-booking-status ep-status-<?php echo esc_attr( $booking_status ); ?>">
                         <?php echo esc_html( $status[ $booking_status ] ); ?>
@@ -4169,6 +4187,8 @@ class Eventprime_Event_Calendar_Management_Admin {
             wp_deregister_script('acf-timepicker'); // Replace 'acf-timepicker' with the actual handle used by ACF
         }
     }
+    
+    
 
 
 

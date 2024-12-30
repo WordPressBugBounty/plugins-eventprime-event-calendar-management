@@ -1000,4 +1000,34 @@ class Eventprime_Global_Settings{
         return $array;
     }
     
+    public function ep_fields_list_for_email() {
+        echo '<select name="ep_field_list" class="ep_field_list" onchange="ep_insert_field_in_email(this.value)">';
+        echo '<option value="">' . esc_html__( 'Select A Field', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '<optgroup label="' . esc_attr__( 'Organizer Fields', 'eventprime-event-calendar-management' ) . '" >';
+        echo '<option value="{{organizer_name}}">' . esc_html__( 'Name', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '<option value="{{organizer_description}}">' . esc_html__( 'Description', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '<option value="{{organizer_url}}">' . esc_html__( 'URL', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '<option value="{{organizer_image}}">' . esc_html__( 'Image', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '<option value="{{organizer_phone}}">' . esc_html__( 'phones', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '<option value="{{organizer_email}}">' . esc_html__( 'emails', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '<option value="{{organizer_websites}}">' . esc_html__( 'Websites', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '<option value="{{organizer_social_links}}">' . esc_html__( 'social Links', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '</optgroup>';
+        echo '<optgroup label="' . esc_attr__( 'Event Type Fields', 'eventprime-event-calendar-management' ) . '" >';
+        echo '<option value="{{event_type_name}}">' . esc_html__( 'Name', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '<option value="{{event_type_description}}">' . esc_html__( 'Description', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '<option value="{{event_type_url}}">' . esc_html__( 'URL', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '<option value="{{event_type_image}}">' . esc_html__( 'Image', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '</optgroup>';
+        echo '<optgroup label="' . esc_attr__( 'Venue Fields', 'eventprime-event-calendar-management' ) . '" >';
+        echo '<option value="{{venue_name}}">' . esc_html__( 'Name', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '<option value="{{venue_description}}">' . esc_html__( 'Description', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '<option value="{{venue_url}}">' . esc_html__( 'URL', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '<option value="{{venue_image}}">' . esc_html__( 'Image', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '<option value="{{venue_address}}">' . esc_html__( 'Address', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '</optgroup>';
+        
+        echo '</select>';
+    }
+    
 }

@@ -37,6 +37,8 @@ $sub_options = $global_settings->sub_options;
                 </th>
                 <td class="forminp forminp-text">
                     <?php 
+                    
+                    add_action( 'media_buttons', array( $this, 'ep_fields_list_for_email' ) );
                     $content = isset($global_options->booking_confirmed_email) ? $global_options->booking_confirmed_email : '';
                     wp_editor( $content, 'booking_confirmed_email' );?>
                 </td>
