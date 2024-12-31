@@ -73,7 +73,7 @@ $ep_functions = new Eventprime_Basic_Functions;
                                         if( ! empty( $ticket_id ) ) {
                                             $ticket_name = $ep_functions->get_ticket_name_by_id( $ticket_id );
                                         }
-                                        if( ! empty( $ticket_attendees ) && count( $ticket_attendees ) > 0 ) {
+                                        if( ! empty( $ticket_attendees ) && is_array($ticket_attendees) && count( $ticket_attendees ) > 0 ) {
                                             $att_count = 1;
                                             foreach( $ticket_attendees as $attendee_data ) {
                                                 $filter_attendee = apply_filters('attendee_check_in_filter',$attendee_data, $booking_id, $ticket_id, $att_count);

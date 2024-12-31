@@ -10,18 +10,27 @@ class EventM_Notification_Service {
     /**
      * Send booking confirmation email
      */
-    
+        
     public function ep_filter_email_content( $message, $data ) {
-		$matches    = $this->getInbetweenStrings( '{{', '}}', $message );
-		$result     = $matches[1];
-
-		foreach ( $result as $field ) {
+            $matches    = $this->getInbetweenStrings( '{{', '}}', $message );
+            $result     = isset($matches[1])?$matches[1]:[];
+            if(!empty($result))
+            {
+                foreach ( $result as $field ) {
                     $search = '{{' . $field . '}}';
                     $value = $this->findFieldValue($data, $field);
-                    $message = str_replace( $search, $value, $message );
-		}
-		return $message;
-	}
+                    if(!empty($value) && is_string($value))
+                    {
+                        $message = str_replace( $search, $value, $message );
+                    }
+                    else
+                    {
+                        $message = str_replace( $search,'', $message );
+                    }
+                }
+            }
+            return $message;
+    }    
 
     public function getInbetweenStrings( $start, $end, $str ) {
      $matches = array();

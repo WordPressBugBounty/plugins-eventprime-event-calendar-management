@@ -420,6 +420,7 @@ class EventM_Ajax_Service {
                         $user_data->fname = isset($data['ep_rg_field_first_name']) ? sanitize_text_field($data['ep_rg_field_first_name']) : '';
                         $user_data->lname = isset($data['ep_rg_field_last_name']) ? sanitize_text_field($data['ep_rg_field_last_name']) : '';
                         $user_data->password = sanitize_text_field($data['ep_rg_field_password']);
+                        unset($data['ep_rg_field_password']);
                         $user = get_user_by( 'email', $user_data->email );
                         if(!empty($user)){
                             $user_id = $user->ID;
