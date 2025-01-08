@@ -1653,8 +1653,23 @@ class Eventprime_Basic_Functions {
                     return false;
                 }
             }
-            if ( isset($global_options->stripe_api_key) ) {
-                $global_options->stripe_api_key = ''; 
+            $exclude_fields = [
+                "stripe_api_key",
+                "ep_mailchimp_api_key",
+                "zoom_api_key",
+                "zoom_api_secret_key",
+                "zoom_client_id",
+                "zoom_client_secret",
+                "admin_mobile_number",
+                "twilio_auth_token",
+                "twilio_service_id",
+                "twilio_number",
+                "zapier_api_key",
+            ];
+            foreach($exclude_fields as $field) {
+                if ( isset($global_options->{$field}) ) {
+                    $global_options->{$field} = ''; 
+                }
             }
             return $global_options;
         }
