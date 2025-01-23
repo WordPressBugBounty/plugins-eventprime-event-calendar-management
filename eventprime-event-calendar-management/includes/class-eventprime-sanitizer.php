@@ -159,7 +159,7 @@ class EventPrime_sanitizer {
                             $sanitized_value = sanitize_email( $val );
                             break;
                         case 'key':
-                            $sanitized_value = sanitize_text_field( $val );
+                            $sanitized_value = sanitize_text_field( wp_strip_all_tags($val) );
                             break;
                         case 'nonce':
                         case '_wpnonce':
@@ -185,7 +185,7 @@ class EventPrime_sanitizer {
                             else
                             {
                                 $val = html_entity_decode($val, ENT_QUOTES, 'UTF-8');
-                                $sanitized_value = sanitize_text_field( $val );
+                                $sanitized_value = sanitize_text_field( wp_strip_all_tags($val) );
                             }
                             break;
                     }

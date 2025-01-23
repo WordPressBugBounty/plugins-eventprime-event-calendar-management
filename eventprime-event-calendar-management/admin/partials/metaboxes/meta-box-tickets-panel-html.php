@@ -6,6 +6,7 @@ defined( 'ABSPATH' ) || exit;
 $ep_functions = new Eventprime_Basic_Functions;
 $em_enable_booking = get_post_meta( $post->ID, 'em_enable_booking', true );
 $extensions = $ep_functions->ep_get_activate_extensions();
+$sanitizer = new EventPrime_sanitizer();
 $show_tickets = $show_message = '';
 $event_has_ticket = 0;
 $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data );?>
@@ -53,6 +54,7 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                     <div class="ep-box-row ep-p-3" id="ep_existing_tickets_list">
                         <?php if( !empty( $existing_cat_data ) && count( $existing_cat_data ) > 0 ) {
                             foreach( $existing_cat_data as $key => $cat_data ) {
+                                $cat_data = $sanitizer->sanitize($cat_data);
                                 $cat_row_data = wp_json_encode($cat_data);
                                 $row_key = $key + 1;
                                 $cat_row_id = 'ep_ticket_cat_section'. $row_key; ?>
@@ -83,6 +85,7 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                                         if( !empty( $existing_cat_ticket_data ) ) {
                                             $tic_row = 1;$event_has_ticket = 1;
                                             foreach( $existing_cat_ticket_data as $ticket ) {
+                                                $ticket = $sanitizer->sanitize($ticket);
                                                 $icon_url = '';
                                                 if( ! empty( $ticket->icon ) ) {
                                                     $icon_url = wp_get_attachment_url( $ticket->icon );
@@ -163,6 +166,7 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                             
                             $tic_row = 1;$event_has_ticket = 1;
                             foreach( $ep_ticket_data as $ticket ) {
+                                $ticket = $sanitizer->sanitize($ticket);
                                 $icon_url = '';
                                 if( ! empty( $ticket->icon ) ) {
                                     $icon_url = wp_get_attachment_url( $ticket->icon );

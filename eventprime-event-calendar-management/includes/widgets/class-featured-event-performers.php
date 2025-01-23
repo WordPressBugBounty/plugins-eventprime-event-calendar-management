@@ -40,7 +40,7 @@ if (!class_exists('EventM_Featured_Performer')){
                             if ( ! empty( $thumbnail_id ) ):
                                 $html .= '<a href="'.esc_url( $performer->performer_url ).'"><img src="'.wp_get_attachment_image_src( $thumbnail_id, 'large' )[0].'" alt="'.__( 'Event Venue Image', 'eventprime-event-calendar-management' ).'"></a>';
                             else:
-                                $html .= '<a href="'.esc_url( $performer->performer_url ).'"><img src="'.EP_BASE_URL .'includes/assets/css/images/dummy_image.png" alt="'.__('Dummy Image','eventprime-event-calendar-management').'" ></a>';
+                                $html .= '<a href="'.esc_url( $performer->performer_url ).'"><img src="'.plugin_dir_url(EP_PLUGIN_FILE) .'admin/images/dummy_image.png' . 'alt="'.__('Dummy Image','eventprime-event-calendar-management').'" ></a>';
                             endif;
                             $html .= '</div>';
                             $html .= '<div class="ep-fdata"><div class="ep-fname"><a href="'.esc_url( $performer->performer_url ).'">'.esc_attr( $performer->name ).'</a></div>';              

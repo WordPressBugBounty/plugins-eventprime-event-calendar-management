@@ -1,4 +1,24 @@
 jQuery(document).ready(function(e){
+
+	$ = jQuery;
+	$(".emagic").prepend("<a>");
+    var epColorRgbValue = $('.emagic, #primary.content-area .entry-content, .entry-content .emagic').find('a').css('color');
+
+    /*-- Theme Color Global--*/ 
+    var epColorRgb = epColorRgbValue;
+    var avoid = "rgb";
+    if( epColorRgb ) {
+        var eprgbRemover = epColorRgb.replace(avoid, '');
+        var emColor = eprgbRemover.substring(eprgbRemover.indexOf('(') + 1, eprgbRemover.indexOf(')'));
+        $(':root').css('--themeColor', emColor );
+    }
+
+    let ep_font_size = eventprime.global_settings.ep_frontend_font_size;
+    if( !ep_font_size ) {
+        ep_font_size = 14;
+    }
+    $(':root').css('--themefontsize', ep_font_size + 'px' );
+
 	// For Event calendar widget 
 	if ( jQuery( "#ep_calendar_block" ).length > 0) {
 		// Send ajax request to get all the event start dates
@@ -26,6 +46,14 @@ function em_show_calendar( dates ) {
 		onHover: function () {},
 		onSelect: function (dateText, inst) {
 			let gotDate = $.inArray( dateText, dates );
+			if(gotDate >=0){
+                localStorage.setItem("ep_calendar_active", true);
+                localStorage.setItem("ep_calendar_date", dateText);
+                var page_url = blocks_obj.event_page_url;
+				console.log(page_url)
+                window.location.href = page_url;	// ***** Redirect to date view for calendar 
+            }
+			/*
 			if ( gotDate >= 0 ) {
 				// Accessing only first element to avoid conflict if duplicate element exists on page
 				$( '#em_start_date:first' ).val( dateText );
@@ -34,6 +62,7 @@ function em_show_calendar( dates ) {
 				search_url = em_add_param_to_url("date=" + dateText, search_url);
 				location.href = search_url;
 			}
+			*/
 		},
 		beforeShowDay: function ( date ) {
 			setTimeout(em_change_dp_css, 10);
@@ -52,6 +81,7 @@ function em_show_calendar( dates ) {
 			return [true, ""];
 		}, changeMonth: true, changeYear: true, dateFormat: "yy-mm-dd"
 	});
+    em_generate_calendar_html();
 	em_change_dp_css();
  }
 
@@ -75,4 +105,14 @@ function em_add_param_to_url( param, url ) {
 	let _url = url;
 	_url += (_url.split('?')[1] ? '&' : '?') + param;
 	return _url;
+}
+
+function em_generate_calendar_html(){
+    jQuery('.em-cal-state-highlight').each(function(){
+        if(jQuery(this).find('span').length){
+            
+        } else{
+            jQuery(this).append('<span class="ep-calendar-block-dots"></span>');
+        }
+    });
 }

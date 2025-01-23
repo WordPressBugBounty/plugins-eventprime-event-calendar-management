@@ -37,54 +37,57 @@ if (!class_exists('EventM_calendar')) {
             $events_page_id = $basic_functions->ep_get_global_settings("events_page");
             wp_enqueue_style('jquery-style', 'https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css', array(), EVENTPRIME_VERSION);
             ?>
-            <div class="ep_widget_container">
-                <div id="ep_calendar_widget"></div>
-                <form name="em_calendar_event_form" method="get" action="<?php echo esc_url( get_permalink( $events_page_id ) ); ?>">
-                    <input type="hidden" name="ep-search" value="1" />
-                    <input type="hidden" name="date" id="em_start_date" value="" />
-                    <?php if( $basic_functions->ep_get_global_settings( 'shortcode_hide_upcoming_events' ) == 0 ) {?>
-                        <div class="ep_upcoming_events">
-                            <div class="ep_calendar_widget-events-title ep-py-2 ep-fs-5 ep-mt-2"><?php esc_html_e( 'Upcoming Events', 'eventprime-event-calendar-management' ) ?></div>
-                            <?php
-                            $start_date = new DateTime( ' ' . gmdate('Y-m-d') );
-                            $start_date->setTime( 0,0,0,0 );
-                            $event_controller = new Eventprime_Basic_Functions();
-                            $query = array(
-                                'meta_query'  => array( 
-                                    'relation' => 'AND',
-                                    array(
+            <div class="emagic">
+                <div class="ep_widget_container">
+                    <div id="ep_calendar_widget"></div>
+                    <form name="em_calendar_event_form" method="get" action="<?php echo esc_url( get_permalink( $events_page_id ) ); ?>">
+                        <input type="hidden" name="ep-search" value="1" />
+                        <input type="hidden" name="date" id="em_start_date" value="" />
+                        <?php if( $basic_functions->ep_get_global_settings( 'shortcode_hide_upcoming_events' ) == 0 ) {?>
+                            <div class="ep_upcoming_events">
+                                <div class="ep_calendar_widget-events-title ep-py-2 ep-fs-5 ep-mt-2"><?php esc_html_e( 'Upcoming Events', 'eventprime-event-calendar-management' ) ?></div>
+                                <?php
+                                $start_date = new DateTime( ' ' . gmdate('Y-m-d') );
+                                $start_date->setTime( 0,0,0,0 );
+                                $event_controller = new Eventprime_Basic_Functions();
+                                $query = array(
+                                    'meta_query'  => array( 
+                                        'relation' => 'AND',
                                         array(
-                                            'key'     => 'em_start_date',
-                                            'value'   =>  $start_date->getTimestamp(),
-                                            'compare' => '>',
-                                            'type'=>'NUMERIC'
+                                            array(
+                                                'key'     => 'em_start_date',
+                                                'value'   =>  $start_date->getTimestamp(),
+                                                'compare' => '>',
+                                                'type'=>'NUMERIC'
+                                            )
                                         )
                                     )
-                                )
-                            );
-                            $events = $event_controller->get_events_post_data($query);
-                            $today = $basic_functions->ep_date_to_timestamp(gmdate('Y-m-d'));
-                            
-                            if ( ! empty( $events ) ) {
-                                for ($i = 0; $i < min(5, count($events->posts)); $i++) {
-                                    $event= $events->posts[$i]; 
-                                    $event_end_date = $basic_functions->ep_timestamp_to_date( $event->em_end_date );
-                                    if( ! empty( $event->em_end_time ) ) {
-                                        $event_end_date .= ' ' . $event->em_end_time;
+                                );
+                                $events = $event_controller->get_events_post_data($query);
+                                $today = $basic_functions->ep_date_to_timestamp(gmdate('Y-m-d'));
+                                
+                                if ( ! empty( $events ) ) {
+                                    for ($i = 0; $i < min(5, count($events->posts)); $i++) {
+                                        $event= $events->posts[$i]; 
+                                        $event_end_date = $basic_functions->ep_timestamp_to_date( $event->em_end_date );
+                                        if( ! empty( $event->em_end_time ) ) {
+                                            $event_end_date .= ' ' . $event->em_end_time;
+                                        }
+                                        $event_end_date_timestamp = $basic_functions->ep_datetime_to_timestamp( $event_end_date );?>
+                                        <div class="ep-upcoming-event ep-box-w-100"><a href="<?php echo esc_url( $event->event_url ); ?>">
+                                        <?php echo esc_attr( $event->name ); ?></a>
+                                            <?php if ($today >= $event->em_start_date && $today <= $event_end_date_timestamp): ?>
+                                                <span class="ep-live-event"><?php esc_html_e( 'Live', 'eventprime-event-calendar-management' ); ?></span>
+                                            <?php endif; ?>
+                                        </div><?php
                                     }
-                                    $event_end_date_timestamp = $basic_functions->ep_datetime_to_timestamp( $event_end_date );?>
-                                    <div class="ep-upcoming-event ep-box-w-100"><a href="<?php echo esc_url( $event->event_url ); ?>">
-                                    <?php echo esc_attr( $event->name ); ?></a>
-                                        <?php if ($today >= $event->em_start_date && $today <= $event_end_date_timestamp): ?>
-                                            <span class="ep-live-event"><?php esc_html_e( 'Live', 'eventprime-event-calendar-management' ); ?></span>
-                                        <?php endif; ?>
-                                    </div><?php
-                                }
-                            }?>
-                        </div><?php
-                    }?>
-                </form>
-            </div><?php
+                                }?>
+                            </div><?php
+                        }?>
+                    </form>
+                </div>
+            </div>
+            <?php
             echo wp_kses_post($args['after_widget']);
         }
 

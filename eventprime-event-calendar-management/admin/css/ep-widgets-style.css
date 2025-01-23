@@ -48,7 +48,9 @@
 }
 
 .em-cal-state-highlight a {
-
+    /* background: #1bff00 !important; */
+    background: rgba(var(--themeColor), 1) !important;
+    color: #fff !important;
 }
 
 

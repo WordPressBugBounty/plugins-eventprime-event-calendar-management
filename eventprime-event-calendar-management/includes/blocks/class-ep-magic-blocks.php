@@ -54,6 +54,31 @@ if ( ! defined( 'ABSPATH' ) ) {
 		function event_prime_square_card_block($atts){
 			$events = new Eventprime_Event_Calendar_Management_Public($this->event_prime, $this->version);
 			$atts = array_change_key_case( (array) $atts, CASE_LOWER );
+            if ( isset($atts['ep_block_all_views']) && !empty($atts['ep_block_all_views']) ) {
+                switch($atts['ep_block_all_views']) {
+                    case 'calendar':
+                        $atts['view'] = 'month';
+                        break;
+                    case 'square':
+                        $atts['view'] = 'square_grid';
+                        break;
+                    case 'column':
+                        $atts['view'] = 'rows';
+                        break;
+                    case 'staggered':
+                        $atts['view'] = 'staggered_grid';
+                        break;
+                    case 'slider':
+                        $atts['view'] = 'slider';
+                        break;
+                    default:
+                        $atts['view'] = 'square_grid';
+                        break;
+                }
+            }
+            if (isset($atts['block_square_card_fetch_events']) && !empty($atts['block_square_card_fetch_events'])) {
+                $atts['show'] = $atts['block_square_card_fetch_events'];
+            }
 			return $events->load_events( $atts );
 		}
 		function event_prime_booking_details_block($atts){
@@ -377,6 +402,11 @@ if ( ! defined( 'ABSPATH' ) ) {
             wp_enqueue_script('jquery-ui-datepicker', array('jquery'));
             $events_page_id = $basic_functions->ep_get_global_settings("events_page");
             wp_enqueue_style(
+                'ep-blocks-style',
+                plugin_dir_url(EP_PLUGIN_FILE) . 'admin/css/ep-blocks-style.css',
+                false, ''
+            );
+            wp_enqueue_style(
                 'em-front-jquery-ui',
                 plugin_dir_url(EP_PLUGIN_FILE) . 'admin/css/jquery-ui.min.css',
                 false, ''
@@ -386,46 +416,53 @@ if ( ! defined( 'ABSPATH' ) ) {
                 plugin_dir_url(EP_PLUGIN_FILE) . 'admin/js/ep-blocks-public.js',
                 false, ''
             );
+            $data_array = array(
+                'ajax_url'=> admin_url('admin-ajax.php'),
+                'event_page_url' => $basic_functions->ep_get_custom_page_url( 'events_page')
+            );
+            wp_localize_script( 'ep-blocks-scripts', 'blocks_obj', $data_array );
             $html = '';
             ob_start();
             ?>
-            <div class="ep_widget_container">
-                <a></a>
-                <div id="ep_calendar_block"></div>
-                <form name="em_calendar_event_form" method="get" action="<?php echo esc_url(get_permalink( $events_page_id )); ?>">
-                    <input type="hidden" name="ep-search" value="1" />
-                    <input type="hidden" name="date" id="em_start_date" value="" />
-                    <div class="ep_upcoming_events">
-                        <div class="ep_calendar_widget-events-title"><?php esc_html_e( 'Upcoming Events', 'eventprime-event-calendar-management' ) ?></div>
-                        <?php
-                        $event_controller = new Eventprime_Basic_Functions();
-                        $query = array('meta_query'  => array(
-                            'relation' => 'AND',
-                                array(
+            <div class="emagic">
+                <div class="ep_widget_container">
+                    <a></a>
+                    <div id="ep_calendar_block"></div>
+                    <form name="em_calendar_event_form" method="get" action="<?php echo esc_url(get_permalink( $events_page_id )); ?>">
+                        <input type="hidden" name="ep-search" value="1" />
+                        <input type="hidden" name="date" id="em_start_date" value="" />
+                        <div class="ep_upcoming_events">
+                            <div class="ep_calendar_widget-events-title"><?php esc_html_e( 'Upcoming Events', 'eventprime-event-calendar-management' ) ?></div>
+                            <?php
+                            $event_controller = new Eventprime_Basic_Functions();
+                            $query = array('meta_query'  => array(
+                                'relation' => 'AND',
                                     array(
-                                        'key'     => 'em_start_date_time',
-                                        'value'   =>  current_time( 'timestamp' ),
-                                        'compare' => '>',
-                                        'type'=>'NUMERIC'
+                                        array(
+                                            'key'     => 'em_start_date_time',
+                                            'value'   =>  current_time( 'timestamp' ),
+                                            'compare' => '>',
+                                            'type'=>'NUMERIC'
+                                        )
                                     )
                                 )
-                            )
-                        );
-                        $events = $event_controller->get_events_post_data( $query );
-                        $today = current_time('timestamp');
-                        if ( ! empty( $events ) ) {
-                            for ( $i = 0; $i < min( 5, count( $events->posts ) ); $i++ ) {
-                                $event= $events->posts[$i];?>
-                                <div class="ep-upcoming-event ep-box-w-100">
-                                    <a href="<?php echo esc_url( $event->event_url ); ?>"><?php echo esc_attr( $event->name ); ?></a>
-                                    <?php if ( $today > $event->em_start_date && $today <$event->em_end_date ){ ?>
-                                        <span class="ep-live-event"><?php esc_html_e( 'Live', 'eventprime-event-calendar-management' ); ?></span>
-                                    <?php } ?>
-                                </div><?php
-                            }
-                        }?>
-                    </div>
-                </form>
+                            );
+                            $events = $event_controller->get_events_post_data( $query );
+                            $today = current_time('timestamp');
+                            if ( ! empty( $events ) ) {
+                                for ( $i = 0; $i < min( 5, count( $events->posts ) ); $i++ ) {
+                                    $event= $events->posts[$i];?>
+                                    <div class="ep-upcoming-event ep-box-w-100">
+                                        <a href="<?php echo esc_url( $event->event_url ); ?>"><?php echo esc_attr( $event->name ); ?></a>
+                                        <?php if ( $today > $event->em_start_date && $today <$event->em_end_date ){ ?>
+                                            <span class="ep-live-event"><?php esc_html_e( 'Live', 'eventprime-event-calendar-management' ); ?></span>
+                                        <?php } ?>
+                                    </div><?php
+                                }
+                            }?>
+                        </div>
+                    </form>
+                </div>
             </div>
             <?php
             $html = ob_get_contents();
@@ -445,6 +482,10 @@ if ( ! defined( 'ABSPATH' ) ) {
                 false, ''
             );
             $event_id = isset( $atts['eid'] ) ? $atts['eid'] : 0;
+            $ep_events_list = $this->ep_events_list();
+            if (empty($event_id) && !empty($ep_events_list)) {
+                $event_id = isset($ep_events_list[0]['id']) ? $ep_events_list[0]['id'] : 0;
+            }
             $event_controller = new Eventprime_Basic_Functions();
             $event = $event_controller->get_single_event( $event_id );
             if ( ! empty( $event->id ) ){
@@ -648,7 +689,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                                     <a href="<?php echo esc_url( $performer->performer_url ); ?>"><img src="<?php echo esc_url(wp_get_attachment_image_src( $thumbnail_id, 'large' )[0]); ?>" alt="<?php esc_html_e( 'Event Performer Image', 'eventprime-event-calendar-management' ); ?>"></a>
                                 <?php
                                 }else{ ?>
-                                    <a href="<?php echo esc_url( $performer->performer_url ); ?>"><img src="<?php echo esc_url( EP_BASE_URL .'includes/assets/css/images/dummy_image.png' ); ?>" alt="<?php esc_html_e('Dummy Image','eventprime-event-calendar-management'); ?>" ></a>
+                                    <a href="<?php echo esc_url( $performer->performer_url ); ?>"><img src="<?php echo esc_url( plugin_dir_url(EP_PLUGIN_FILE) .'admin/images/dummy_image.png' ); ?>" alt="<?php esc_html_e('Dummy Image','eventprime-event-calendar-management'); ?>" ></a>
                                 <?php
                                 } ?>
                             </div>
@@ -702,7 +743,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                             <?php if ( ! empty( $thumbnail_id ) ){ ?>
                                 <a href="<?php echo esc_url( $type->event_type_url ); ?>"><img src="<?php echo esc_url(wp_get_attachment_image_src( $thumbnail_id, 'large' )[0]); ?>" alt="<?php esc_html_e( 'Event Type Image', 'eventprime-event-calendar-management' ); ?>"></a>
                             <?php }else{ ?>
-                                <a href="<?php echo esc_url( $type->event_type_url ); ?>"><img src="<?php echo esc_url( EP_BASE_URL .'includes/assets/css/images/dummy_image.png' ); ?>" alt="<?php esc_html_e( 'Dummy Image', 'eventprime-event-calendar-management' ); ?>" ></a>
+                                <a href="<?php echo esc_url( $type->event_type_url ); ?>"><img src="<?php echo esc_url( plugin_dir_url(EP_PLUGIN_FILE) .'admin/images/dummy_image.png' ); ?>" alt="<?php esc_html_e( 'Dummy Image', 'eventprime-event-calendar-management' ); ?>" ></a>
                             <?php } ?>
                             </div>
                             <div class="ep-fdata"><div class="ep-fname ep-mt-2"><a href="<?php echo esc_url( $type->event_type_url ); ?>"><?php echo esc_attr( $type->name ); ?></a></div>
@@ -751,7 +792,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                             if ( ! empty( $thumbnail_id ) ) { ?>
                                 <a href="<?php echo esc_url( $venue->venue_url ); ?>"><img src="<?php echo esc_url(wp_get_attachment_image_src( $thumbnail_id, 'large' )[0]); ?>" alt="<?php esc_html_e( 'Event Venue Image', 'eventprime-event-calendar-management' ); ?>"></a>
                             <?php }else{ ?>
-                                <a href="<?php echo esc_url( $venue->venue_url ); ?>"><img src="<?php echo esc_url( EP_BASE_URL .'includes/assets/css/images/dummy_image.png' ); ?>" alt="<?php esc_html_e( 'Dummy Image', 'eventprime-event-calendar-management' ); ?>" ></a>
+                                <a href="<?php echo esc_url( $venue->venue_url ); ?>"><img src="<?php echo esc_url( plugin_dir_url(EP_PLUGIN_FILE) .'admin/images/dummy_image.png' ); ?>" alt="<?php esc_html_e( 'Dummy Image', 'eventprime-event-calendar-management' ); ?>" ></a>
                             <?php } ?>
                             </div>
                             <div class="ep-fdata"><div class="ep-fname"><a href="<?php echo esc_url( $venue->venue_url ); ?>"><?php echo esc_attr( $venue->name ); ?></a></div>
@@ -799,7 +840,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                             <?php if ( ! empty( $thumbnail_id ) ){ ?>
                                 <a href="<?php echo esc_url( $organizer->organizer_url ); ?>"><img src="<?php echo esc_url(wp_get_attachment_image_src( $thumbnail_id, 'large' )[0]); ?>" alt="<?php esc_html_e( 'Event Organizer Image', 'eventprime-event-calendar-management' ); ?>"></a>
                             <?php }else{ ?>
-                                <a href="<?php echo esc_url( $organizer->organizer_url ); ?>"><img src="<?php echo esc_url( EP_BASE_URL .'includes/assets/css/images/dummy_image.png' ); ?>" alt="<?php esc_html_e( 'Dummy Image', 'eventprime-event-calendar-management' ); ?>" ></a>
+                                <a href="<?php echo esc_url( $organizer->organizer_url ); ?>"><img src="<?php echo esc_url( plugin_dir_url(EP_PLUGIN_FILE) .'admin/images/dummy_image.png' ); ?>" alt="<?php esc_html_e( 'Dummy Image', 'eventprime-event-calendar-management' ); ?>" ></a>
                             <?php } ?>
                             </div>
                             <div class="ep-fdata"><div class="ep-fname ep-mt-2"><a href="<?php echo esc_url( $organizer->organizer_url ); ?>"><?php echo esc_attr( $organizer->name ); ?></a></div>
@@ -849,7 +890,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                                 if ( ! empty( $thumbnail_id ) ){ ?>
                                     <a href="<?php echo esc_url( $performer->performer_url ); ?>"><img src="<?php echo esc_url(wp_get_attachment_image_src( $thumbnail_id, 'large' )[0]); ?>" alt="<?php esc_html_e( 'Event Venue Image', 'eventprime-event-calendar-management' ); ?>"></a>
                                 <?php }else{ ?>
-                                    <a href="<?php echo esc_url( $performer->performer_url ); ?>"><img src="<?php echo esc_url( EP_BASE_URL .'includes/assets/css/images/dummy_image.png' ); ?>" alt="<?php esc_html_e( 'Dummy Image', 'eventprime-event-calendar-management' ); ?>" ></a>
+                                    <a href="<?php echo esc_url( $performer->performer_url ); ?>"><img src="<?php echo esc_url( plugin_dir_url(EP_PLUGIN_FILE) .'admin/images/dummy_image.png' ); ?>" alt="<?php esc_html_e( 'Dummy Image', 'eventprime-event-calendar-management' ); ?>" ></a>
                                <?php } ?>
                                </div>
                                 <div class="ep-fdata"><div class="ep-fname ep-mt-2"><a href="<?php echo esc_url( $performer->performer_url ); ?>"><?php echo esc_attr( $performer->name );?></a></div>
@@ -907,7 +948,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                             if ( ! empty( $thumbnail_id ) ){ ?>
                                 <a href="<?php echo esc_url( $type->event_type_url ); ?>"><img src="<?php echo esc_url(wp_get_attachment_image_src( $thumbnail_id, 'large' )[0]);?>" alt="<?php esc_html_e( 'Event Type Image', 'eventprime-event-calendar-management' );?>" width="80px" height="80px"></a>
                             <?php }else{ ?>
-                                <a href="<?php echo esc_url( $type->event_type_url ); ?>"><img src="<?php echo esc_url( EP_BASE_URL .'includes/assets/css/images/dummy_image.png' );?>" alt="<?php esc_html_e( 'Dummy Image', 'eventprime-event-calendar-management' );?>" ></a>
+                                <a href="<?php echo esc_url( $type->event_type_url ); ?>"><img src="<?php echo esc_url( plugin_dir_url(EP_PLUGIN_FILE) .'admin/images/dummy_image.png' );?>" alt="<?php esc_html_e( 'Dummy Image', 'eventprime-event-calendar-management' );?>" ></a>
                             <?php } ?>
                             </div>
                             <div class="ep-fdata"><div class="ep-fname ep-mt-2"><a href="<?php echo esc_url( $type->event_type_url );?>"><?php echo esc_attr( $type->name );?></a></div>
@@ -956,7 +997,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                                 if ( ! empty( $thumbnail_id ) ){ ?>
                                     <a href="<?php echo esc_url( $venue->venue_url ); ?>"><img src="<?php echo esc_url(wp_get_attachment_image_src( $thumbnail_id[0], 'large' )[0]); ?>" alt="<?php esc_html_e( 'Event Venue Image', 'eventprime-event-calendar-management' ); ?>"></a>
                                 <?php }else { ?>
-                                    <a href="<?php echo esc_url( $venue->venue_url );?>"><img src="<?php echo esc_url( EP_BASE_URL .'includes/assets/css/images/dummy_image.png' );?>" alt="<?php esc_html_e( 'Dummy Image', 'eventprime-event-calendar-management' );?>" ></a>
+                                    <a href="<?php echo esc_url( $venue->venue_url );?>"><img src="<?php echo esc_url( plugin_dir_url(EP_PLUGIN_FILE) .'admin/images/dummy_image.png' );?>" alt="<?php esc_html_e( 'Dummy Image', 'eventprime-event-calendar-management' );?>" ></a>
                                 <?php } ?>
                                 </div>
                                 <div class="ep-fdata"><div class="ep-fname ep-mt-2"><a href="<?php echo esc_url( $venue->venue_url ); ?>"><?php echo esc_attr( $venue->name );?></a></div>

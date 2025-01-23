@@ -203,11 +203,17 @@ function ep_event_download_attendees( event_id ){
             url: ep_frontend.ajaxurl,
             data: {action: 'ep_export_submittion_attendees', security  : ep_frontend._nonce, event_id: event_id},
             success: function (response) {
-                var link = document.createElement('a');
-                link.download = "attendees.csv";
-                link.href = 'data:application/csv;charset=utf-8,' + encodeURIComponent(response);
-                link.click();
-            }
+                if( response.success == false ) {
+                    show_toast( 'error', response.data.error );
+                    return false;
+                }
+                else{
+                    var link = document.createElement('a');
+                    link.download = "attendees.csv";
+                    link.href = 'data:application/csv;charset=utf-8,' + encodeURIComponent(response);
+                    link.click();
+                }
+        }
         });
     }
 }

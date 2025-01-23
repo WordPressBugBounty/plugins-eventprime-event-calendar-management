@@ -1903,8 +1903,22 @@ class EventM_Ajax_Service {
     public function export_submittion_attendees(){
         check_ajax_referer( 'ep-frontend-nonce', 'security' );
         $ep_functions = new Eventprime_Basic_Functions;
+        $export_attendee = false;
         if( isset( $_POST['event_id'] ) && ! empty( $_POST['event_id'] ) ) {
             $event_id = $_POST['event_id'];
+            $current_user_id = get_current_user_id();
+            // Get the post object
+            $single_event = get_post($event_id);
+            // Check if the post exists and the current user is the author
+            if ($single_event && (int) $single_event->post_author === $current_user_id) {
+                $export_attendee =  true; // The current user is the post owner
+            }
+            
+            if($export_attendee==false)
+            {
+                wp_send_json_error( array( 'error' => esc_html__( "You do not have permission to download the attendees CSV file for this event.", 'eventprime-event-calendar-management' ) ) );
+            }
+            
             $bookings = array();
             $data = new stdClass();
             $booking_args = array(
@@ -1937,7 +1951,7 @@ class EventM_Ajax_Service {
                 $csv->price =  $ticket_sub_total + $other_order_info['event_fixed_price'];
                 $csv->no_tickets =  $ticket_qty;
                 $csv->amount_total =  $other_order_info['booking_total'];
-                $event = $ep_functions->get_single_event( $booking->em_event );
+                $event = $ep_functions->get_single_event( $booking->em_event,$single_event );
                 if( ! empty( $event->id ) ){
                     $csv->event_name = $event->name;
                 }

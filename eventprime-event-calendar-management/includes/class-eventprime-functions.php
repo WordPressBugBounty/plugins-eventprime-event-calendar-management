@@ -4434,11 +4434,17 @@ class Eventprime_Basic_Functions {
         if( ( $events_data['display_style'] == 'card' || $events_data['display_style'] == 'square_grid' || $events_data['display_style'] == 'masonry' || $events_data['display_style'] == 'staggered_grid' || $events_data['display_style'] == 'list'|| $events_data['display_style'] == 'rows' ) && $events_settings->show_no_of_events_card == 'all' ){
             $events_data['limit'] = -1;
         }
-        if( ( $events_data['display_style'] == 'card' || $events_data['display_style'] == 'square_grid' || $events_data['display_style'] == 'masonry' || $events_data['display_style'] == 'staggered_grid' || $events_data['display_style'] == 'list'|| $events_data['display_style'] == 'rows' ) && $events_settings->show_no_of_events_card == 'custom' ){
-            if( ! empty( $atts['block_square_card_fetch_events'] ) ) {
-                $events_data['limit'] = $atts['block_square_card_fetch_events'];
-            }
+        // if( ( $events_data['display_style'] == 'card' || $events_data['display_style'] == 'square_grid' || $events_data['display_style'] == 'masonry' || $events_data['display_style'] == 'staggered_grid' || $events_data['display_style'] == 'list'|| $events_data['display_style'] == 'rows' ) && $events_settings->show_no_of_events_card == 'custom' ){
+        //     if( ! empty( $atts['block_square_card_fetch_events'] ) ) {
+        //         $events_data['limit'] = $atts['block_square_card_fetch_events'];
+        //     }
+        // }
+
+        // block limit should have higher priority than $events_settings->show_no_of_events_card 
+        if( isset($atts['block_square_card_fetch_events']) && !empty( $atts['block_square_card_fetch_events'] ) ) {
+            $events_data['limit'] = $atts['block_square_card_fetch_events'];
         }
+
         if( isset( $_POST['limit'] ) && ! empty( $_POST['limit'] ) ) {
             $events_data['limit'] = $_POST['limit'];
         }
@@ -5972,7 +5978,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
 		return $offer_date;
 	}
 
-        public function get_events_post_data( $args = array() ) {
+    public function get_events_post_data( $args = array() ) {
         $default = array(
             'post_status' => 'publish',
             'order'       => 'ASC',
@@ -5985,8 +5991,8 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
         $args = wp_parse_args( $args, $default );
         $posts = get_posts( $args );
         if( empty( $posts ) )
-           return array();
-       
+            return array();
+        
         $events = array();
         foreach( $posts as $post ) {
             if( empty( $post ) || empty( $post->ID ) ) continue;
@@ -9410,7 +9416,7 @@ public function ep_get_events( $fields ) {
         }
         public function get_featured_event_performers( $args = array(), $number = -1 ) {
         $default = array(
-            'post_type'        => $this->post_type,
+            'post_type'        => 'em_performer',
             'post_status'      => 'publish',
             'numberposts'      => $number,
             'meta_query'       => array(    
@@ -9694,14 +9700,16 @@ public function ep_get_events( $fields ) {
         }
         
         $p_performers = array();
-        foreach($performers->posts as $performer){
-            if(isset($event_count[$performer->id])){
-                $performer->events= $event_count[$performer->id];
-                $p_performers[] = $performer;
-            } else{
-                $performer->events=0;
+        if ( !empty($performers->posts) ) {
+            foreach($performers->posts as $performer){
+                if(isset($event_count[$performer->id])){
+                    $performer->events= $event_count[$performer->id];
+                    $p_performers[] = $performer;
+                } else{
+                    $performer->events=0;
+                }
+                
             }
-            
         }
         $p_performers = wp_list_sort( $p_performers , 'events', 'DESC',  false );
         $pp = new stdClass();

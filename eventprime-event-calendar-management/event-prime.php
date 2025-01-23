@@ -16,7 +16,7 @@
  * Plugin Name:       EventPrime – Modern Events Calendar, Bookings and Tickets
  * Plugin URI:        https://theeventprime.com
  * Description:       Beginner-friendly Events Calendar plugin to create free as well as paid Events. Includes Event Types, Event Sites & Performers too.
- * Version:           4.0.7.3
+ * Version:           4.0.7.4
  * Author:            EventPrime Event Calendar
  * Author URI:        https://theeventprime.com/
  * License:           GPL-2.0+
@@ -35,7 +35,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'EVENTPRIME_VERSION', '4.0.7.3' );
+define( 'EVENTPRIME_VERSION', '4.0.7.4' );
 define('EM_DB_VERSION',4.0);
 if( ! defined( 'EP_PLUGIN_FILE' ) ) {
     define( 'EP_PLUGIN_FILE', __FILE__ );

@@ -1,5 +1,24 @@
 jQuery(document).ready(function(e){
-   // For Event calendar widget 
+    $ = jQuery;
+    $(".emagic").prepend("<a>");
+    var epColorRgbValue = $('.emagic, #primary.content-area .entry-content, .entry-content .emagic').find('a').css('color');
+
+    /*-- Theme Color Global--*/ 
+    var epColorRgb = epColorRgbValue;
+    var avoid = "rgb";
+    if( epColorRgb ) {
+        var eprgbRemover = epColorRgb.replace(avoid, '');
+        var emColor = eprgbRemover.substring(eprgbRemover.indexOf('(') + 1, eprgbRemover.indexOf(')'));
+        $(':root').css('--themeColor', emColor );
+    }
+
+    let ep_font_size = eventprime.global_settings.ep_frontend_font_size;
+    if( !ep_font_size ) {
+        ep_font_size = 14;
+    }
+    $(':root').css('--themefontsize', ep_font_size + 'px' );
+   
+    // For Event calendar widget 
     if (jQuery("#ep_calendar_widget").length > 0) {
         // Send ajax request to get all the event start dates
         jQuery.ajax({
@@ -39,7 +58,7 @@ function em_show_calendar(dates) {
                 localStorage.setItem("ep_calendar_active", true);
                 localStorage.setItem("ep_calendar_date", dateText);
                 var page_url = widgets_obj.event_page_url;
-                window.location.href = page_url;
+                window.location.href = page_url;	// ***** Redirect to date view for calendar 
             }
             /*if (gotDate >= 0)
             {

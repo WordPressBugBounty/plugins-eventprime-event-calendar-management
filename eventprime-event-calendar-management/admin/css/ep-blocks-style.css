@@ -45,12 +45,22 @@
 }
 
 .em-cal-state-highlight a {
-    background: #1bff00 !important;
+    /* background: #1bff00 !important; */
+    background: rgba(var(--themeColor), 1) !important;
     color: #fff !important;
 }
 
 /*--Calendar Blocks--*/
-
+.ep_widget_container #ep_calendar_block table.ui-datepicker-calendar .em-cal-state-highlight {
+    position: relative;
+}
+.ep_widget_container #ep_calendar_block table.ui-datepicker-calendar .em-cal-state-highlight .ep-calendar-block-dots {
+    background-color: rgba(var(--themeColor), 1);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin: 0px auto;
+}
 
 .ep_block_container #ep_calendar_block .ui-datepicker-inline.ui-datepicker {
     padding: 0px;
