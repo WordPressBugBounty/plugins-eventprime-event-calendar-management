@@ -378,7 +378,7 @@ class EventM_Notification_Service {
                                     $at_val = '---';
                                     foreach( $booking_attendees_val as $baval ) {
                                         if( isset( $baval[$formated_val] ) && ! empty( $baval[$formated_val] ) ) {
-                                            $at_val = $baval[$formated_val];
+                                            $at_val = is_array($baval[$formated_val]) ? implode(", ", $baval[$formated_val]) : $baval[$formated_val];
                                             break;
                                         }
                                     }
@@ -470,7 +470,7 @@ class EventM_Notification_Service {
                                         $at_val = '---';
                                         foreach( $booking_attendees_val as $baval ) {
                                             if( isset( $baval[$formated_val] ) && ! empty( $baval[$formated_val] ) ) {
-                                                $at_val = $baval[$formated_val];
+                                                $at_val = is_array($baval[$formated_val]) ? implode(", ", $baval[$formated_val]) : $baval[$formated_val]; 
                                                 break;
                                             }
                                         }
@@ -572,7 +572,7 @@ class EventM_Notification_Service {
                             $at_val = '---';
                             foreach( $booking_attendees_val as $baval ) {
                                 if( isset( $baval[$formated_val] ) && ! empty( $baval[$formated_val] ) ) {
-                                    $at_val = $baval[$formated_val];
+                                    $at_val = is_array($baval[$formated_val]) ? implode(", ", $baval[$formated_val]) : $baval[$formated_val]; 
                                     break;
                                 }
                             }
@@ -683,7 +683,7 @@ class EventM_Notification_Service {
                             $at_val = '---';
                             foreach( $booking_attendees_val as $baval ) {
                                 if( isset( $baval[$formated_val] ) && ! empty( $baval[$formated_val] ) ) {
-                                    $at_val = $baval[$formated_val];
+                                    $at_val = is_array($baval[$formated_val]) ? implode(", ", $baval[$formated_val]) : $baval[$formated_val]; 
                                     break;
                                 }
                             }
@@ -791,7 +791,7 @@ class EventM_Notification_Service {
                             $at_val = '---';
                             foreach( $booking_attendees_val as $baval ) {
                                 if( isset( $baval[$formated_val] ) && ! empty( $baval[$formated_val] ) ) {
-                                    $at_val = $baval[$formated_val];
+                                    $at_val = is_array($baval[$formated_val]) ? implode(", ", $baval[$formated_val]) : $baval[$formated_val]; 
                                     break;
                                 }
                             }

@@ -127,16 +127,27 @@ class EventM_Report_Controller_List {
             'post_type'   => 'em_booking'
         );
         
+        if(!empty($filter_args)){
+            if( isset( $filter_args->event_id ) && ! empty( $filter_args->event_id ) && $filter_args->event_id != 'all' ) {
+                $args['meta_query'][] = array(
+                    'key'     => 'em_event', 
+                    'value'   => $filter_args->event_id, 
+                    'compare' => '=', 
+                    'type'    => 'NUMERIC,'
+                );
+            }
+        }
+        
         $bookings =  new stdClass();
         $posts = get_posts( $args );
-        $data = $this->ep_booking_reports_list($filter_args);
         // $posts = $data->posts;
 
         $bookings->stat = $this->ep_bookings_stat( $posts );        
 
         $data = $this->ep_booking_reports_list($filter_args);
 
-        $bookings->posts = $data->posts;
+        // $bookings->posts = $data->posts;
+        $bookings->posts = $posts;
         $bookings->posts_details = $data;
         //Calculate Days
         $days_count = 7;

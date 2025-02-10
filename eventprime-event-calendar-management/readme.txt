@@ -5,7 +5,7 @@ Tags: event calendar, organizer , event manager, tickets, event booking, event b
 Requires at least: 4.8
 Tested up to: 6.7
 Requires PHP: 7.2
-Stable tag: 4.0.7.4
+Stable tag: 4.0.8.0
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -666,6 +666,15 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.0.8.0: February 10, 2025 =
+* New: Introduced the Layout Template option – Now, you can create event-specific templates, allowing more customization for individual events.
+* New: Added the ability to create a new Event Type, Organizer, and Venue directly from the event creation page, streamlining event setup.
+* New: Introduced an option to choose your own custom theme for all EventPrime pages, giving more control over the look and feel of your events.
+* New: Added an option to show or hide Event Types on the Calendar View, allowing better control over event visibility.
+* Added: Security enhancements and fixes for improved protection.
+* Fixed: Multiple bug fixes to enhance stability and performance.
+* Improved: UI refinements for a better user experience.
 
 = 4.0.7.4: January 21, 2025 =
 * Added: Security fixes.
@@ -2064,6 +2073,15 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.0.8.0: February 10, 2025 =
+* New: Introduced the Layout Template option – Now, you can create event-specific templates, allowing more customization for individual events.
+* New: Added the ability to create a new Event Type, Organizer, and Venue directly from the event creation page, streamlining event setup.
+* New: Introduced an option to choose your own custom theme for all EventPrime pages, giving more control over the look and feel of your events.
+* New: Added an option to show or hide Event Types on the Calendar View, allowing better control over event visibility.
+* Added: Security enhancements and fixes for improved protection.
+* Fixed: Multiple bug fixes to enhance stability and performance.
+* Improved: UI refinements for a better user experience.
 
 = 4.0.7.4: January 21, 2025 =
 * Added: Security fixes.

@@ -47,10 +47,15 @@ class Eventprime_Event_Calendar_Management_Public {
 	 * @param      string    $plugin_name       The name of the plugin.
 	 * @param      string    $version    The version of this plugin.
 	 */
+        
+        private $ep_theme;
+        
+        
 	public function __construct( $plugin_name, $version ) {
 
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
+                
 
 	}
 
@@ -240,6 +245,7 @@ class Eventprime_Event_Calendar_Management_Public {
         return $html;
     }
     
+    //maybe deprecated
     public function ep_get_template_part($slug, $name = null, $data = array(), $ext_path = null) {
         $file = '';
         if (isset($name)) {
@@ -282,24 +288,10 @@ class Eventprime_Event_Calendar_Management_Public {
 
     public function load_single_event($atts)
     {
-        $event = get_query_var('event');
-        if(!$event){
-            if(!empty(filter_input(INPUT_GET, 'event',FILTER_SANITIZE_FULL_SPECIAL_CHARS))){
-                $event = rtrim(filter_input(INPUT_GET, 'event',FILTER_SANITIZE_FULL_SPECIAL_CHARS),'/\\');
-                
-            }
-        }
-        
-        if($event)
-        {
-            $ep_basic_functions = new Eventprime_Basic_Functions;
-            $atts['id'] = $ep_basic_functions->ep_get_id_by_slug($event,'em_event');
-        }
-        
         $atts = array_change_key_case( (array) $atts, CASE_LOWER );
 	if(isset($atts['id']))
         {
-            $template = 'events/single-event';
+            $template = 'eventprime-event';
             return $this->eventprime_get_template_html($template, $atts);
         }
         else
@@ -323,41 +315,41 @@ class Eventprime_Event_Calendar_Management_Public {
         if(!$event){
             if(!empty(filter_input(INPUT_GET, 'event'))){
                 $event = rtrim(filter_input(INPUT_GET, 'event'),'/\\');
-                
             }
         }
-        
-        if($event)
-        {
-            $ep_basic_functions = new Eventprime_Basic_Functions;
-            $atts['id'] = $ep_basic_functions->ep_get_id_by_slug($event,'em_event');
-        }
-        
-        
-        
         $atts = array_change_key_case((array) $atts, CASE_LOWER);
         if (isset($_GET['event']) && !empty($_GET['event']) || isset($atts['id']) && !empty($atts['id']) && !isset($atts['view'])) {
             if (!empty($atts['id'])) {
                 if (strpos($atts['id'], ',') !== false) {
                     $atts['id'] = explode(',', $atts['id']);
                     
-                   $template = 'events/list';
+                   $template = 'eventprime-events';
                 }
                 else
                 {
                    $event_id = absint($atts['id']);
                    $atts['id'] = $event_id;
-                   $template = 'events/single-event';
+                   $template = 'eventprime-event';
                 }
                 
             }
+            
         }
         else 
         {
-            $template = 'events/list';
+            $template = 'eventprime-events';
         }
         
+        if(!empty(filter_input(INPUT_GET, 'event'))){
+            $event = rtrim(filter_input(INPUT_GET, 'event'),'/\\');
+            $atts['id'] = $event;
+            $template = 'eventprime-event';
+        }
         
+        if(is_admin())
+        {
+            return '';
+        }
         
         return $this->eventprime_get_template_html($template, $atts);
     }
@@ -375,11 +367,11 @@ class Eventprime_Event_Calendar_Management_Public {
         {
             $ep_basic_functions = new Eventprime_Basic_Functions;
             $atts['id'] = $ep_basic_functions->ep_get_id_by_slug($organizer,'em_event_organizer');
-            $template = 'organizers/single-organizer';
+            $template = 'eventprime-organizer';
         }
         else 
         {
-            $template = 'organizers/list';
+            $template = 'eventprime-organizers';
         }
         return $this->eventprime_get_template_html($template, $atts);
     }
@@ -398,32 +390,32 @@ class Eventprime_Event_Calendar_Management_Public {
         {
             $ep_basic_functions = new Eventprime_Basic_Functions;
             $atts['id'] = $ep_basic_functions->ep_get_id_by_slug($venue,'em_venue');
-            $template = 'venues/single-venue';
+            $template = 'eventprime-venue';
         }
         else 
         {
-            $template = 'venues/list';
+            $template = 'eventprime-venues';
         }
         return $this->eventprime_get_template_html($template, $atts);
     }
     
     public function load_single_venue($atts) {
         $atts = array_change_key_case( (array) $atts, CASE_LOWER );
-        $template = 'venues/single-venue';
+        $template = 'eventprime-venue';
         return $this->eventprime_get_template_html($template, $atts);
     }
     
     public function load_single_event_organizer($atts)
     {
         $atts = array_change_key_case( (array) $atts, CASE_LOWER );
-        $template = 'organizers/single-organizer';
+        $template = 'eventprime-organizer';
         return $this->eventprime_get_template_html($template, $atts);
     }
     
     public function load_single_performer($atts)
     {
         $atts = array_change_key_case( (array) $atts, CASE_LOWER );
-        $template = 'performers/single-performer';
+        $template = 'eventprime-performer';
         return $this->eventprime_get_template_html($template, $atts);
     }
     
@@ -440,12 +432,13 @@ class Eventprime_Event_Calendar_Management_Public {
         {
             $ep_basic_functions = new Eventprime_Basic_Functions;
             $atts['id'] = $ep_basic_functions->ep_get_id_by_slug($performer,'em_performer');
-            $template = 'performers/single-performer';
+            $template = 'eventprime-performer';
         }
         else 
         {
-            $template = 'performers/list';
+            $template = 'eventprime-performers';
         }
+        
         return $this->eventprime_get_template_html($template, $atts);
     }
     
@@ -462,11 +455,11 @@ class Eventprime_Event_Calendar_Management_Public {
         {
             $ep_basic_functions = new Eventprime_Basic_Functions;
             $atts['id'] = $ep_basic_functions->ep_get_id_by_slug($event_type,'em_event_type');
-            $template = 'event_types/single-event-type';
+            $template = 'eventprime-event-type';
         }
         else 
         {
-            $template = 'event_types/list';
+            $template = 'eventprime-event-types';
         }
         return $this->eventprime_get_template_html($template, $atts);
     }
@@ -474,7 +467,7 @@ class Eventprime_Event_Calendar_Management_Public {
     public function load_single_event_type($atts)
     {
         $atts = array_change_key_case( (array) $atts, CASE_LOWER );
-        $template = 'event_types/single-event-type';
+        $template = 'eventprime-event-type';
         return $this->eventprime_get_template_html($template, $atts);
     }
     
@@ -485,11 +478,11 @@ class Eventprime_Event_Calendar_Management_Public {
             {
                 $order_id = isset( $_GET['order_id'] ) ? absint( $_GET['order_id'] ) : '';
                 $atts['id'] = $order_id;
-                $template = 'bookings/edit-booking';
+                $template = 'eventprime-edit-booking';
             }
             else 
             {
-                $template = 'bookings/checkout';
+                $template = 'eventprime-checkout';
             }
             return $this->eventprime_get_template_html($template, $atts);
         
@@ -499,7 +492,7 @@ class Eventprime_Event_Calendar_Management_Public {
     public function load_event_booking_details($atts)
     {
         $atts = array_change_key_case( (array) $atts, CASE_LOWER );
-        $template = 'bookings/booking-detail';
+        $template = 'eventprime-booking-detail';
         return $this->eventprime_get_template_html($template, $atts);
     }
     
@@ -626,7 +619,7 @@ class Eventprime_Event_Calendar_Management_Public {
             $args = $this->get_register_options( $args );
 
             if ( ! is_user_logged_in() ) {
-                $template = 'users/login';
+                $template = 'eventprime-login';
             }else{
                 $args->current_user = wp_get_current_user();
                 $args->upcoming_bookings = ( ! empty( $args->current_user->ID ) ) ? $ep_functions->get_user_wise_upcoming_bookings( $args->current_user->ID ) : array();
@@ -634,7 +627,7 @@ class Eventprime_Event_Calendar_Management_Public {
                 $args->wishlisted_events = ( ! empty( $args->current_user->ID ) ) ? $ep_functions->get_user_wishlisted_events( $args->current_user->ID ) : array();
                 $args->submitted_events  = ( ! empty( $args->current_user->ID ) ) ? $ep_functions->get_user_submitted_events( $args->current_user->ID ) : array();
                 $args->booking_events  = ( ! empty( $args->all_bookings ) ) ? $ep_functions->ep_get_bookings_events( $args->all_bookings ) : array();
-                $template = 'users/profile';
+                $template = 'eventprime-profile';
                 //print_r($args->all_bookings);die;
             }
             return $this->eventprime_get_template_html($template, $args);
@@ -646,7 +639,7 @@ class Eventprime_Event_Calendar_Management_Public {
             $args->event_id = isset($_GET['event_id']) && !empty($_GET['event_id']) ? absint( sanitize_text_field($_GET['event_id']) ) : 0;
             $fes_data     = $this->get_event_submission_options( $args );
             $fes_data     = apply_filters( 'ep_filter_frontend_event_submission_options', $fes_data, $atts );
-            $template = 'events/frontend-submission/form';
+            $template = 'eventprime-frontend-submission-form';
             return $this->eventprime_get_template_html($template, $args);
         }
         
@@ -870,7 +863,7 @@ class Eventprime_Event_Calendar_Management_Public {
         $args = $this->get_login_options( $args );
 
         $args->current_user = wp_get_current_user();
-        $template = 'users/login';
+        $template = 'eventprime-login';
         return $this->eventprime_get_template_html($template, $args);
     }
 	
@@ -935,7 +928,7 @@ class Eventprime_Event_Calendar_Management_Public {
 
         $args = $this->get_register_options( $args );
         $args->current_user = wp_get_current_user();
-        $template = 'users/register';
+        $template = 'eventprime-register';
         return $this->eventprime_get_template_html($template, $args);
     }
         
@@ -1656,10 +1649,10 @@ class Eventprime_Event_Calendar_Management_Public {
                         } else { ?>
                             <span class="ep-fw-bold ep-ml-1"><?php
                                 echo ' ';
-                                if( ! empty( $event->ticket_price_range['price'] ) ){
+                                if( isset($event->ticket_price_range['price']) && ! empty( $event->ticket_price_range['price'] ) ){
                                     echo esc_html( $ep_functions->ep_price_with_position( $event->ticket_price_range['price'] ) );
                                 } else{
-                                    $ep_functions->ep_show_free_event_price( $event->ticket_price_range['price'] );
+                                    $ep_functions->ep_show_free_event_price(0);
                                 } ?>
                             </span><?php
                         }
@@ -1692,10 +1685,10 @@ class Eventprime_Event_Calendar_Management_Public {
                         } else { ?>
                             <span class="ep-fw-bold ep-lh-0 ep-ml-1"><?php
                                 echo ' ';
-                                if( ! empty( $event->ticket_price_range['price'] ) ) {
+                                if( isset($event->ticket_price_range['price'] ) && ! empty( $event->ticket_price_range['price'] ) ) {
                                     echo esc_html( $ep_functions->ep_price_with_position( $event->ticket_price_range['price'] ) );
                                 } else{
-                                    $ep_functions->ep_show_free_event_price( $event->ticket_price_range['price'] );
+                                    $ep_functions->ep_show_free_event_price(0 );
                                 } ?>
                             </span><?php
                         } ?>
@@ -2018,7 +2011,7 @@ class Eventprime_Event_Calendar_Management_Public {
         $enable_seo_urls = $ep_functions->ep_get_global_settings( 'enable_seo_urls' );
         $permalink = $wp_rewrite->permalink_structure;
         if( isset( $enable_seo_urls ) && ! empty( $enable_seo_urls ) && !empty($permalink)){
-            
+            /*
             // em_event post type
             $event_slug = $ep_functions->ep_get_seo_page_url('event');
             $event_page_url = basename(get_permalink($ep_functions->ep_get_global_settings('events_page')));
@@ -2028,7 +2021,7 @@ class Eventprime_Event_Calendar_Management_Public {
             $performer_slug = $ep_functions->ep_get_seo_page_url('performer');
             $performer_page_url = basename(get_permalink($ep_functions->ep_get_global_settings('performers_page')));
             add_rewrite_rule("$performer_slug/([^/]+)/?$",'index.php?pagename='.$performer_page_url.'&performer=$matches[1]','top');
-            
+            */
             //em_event_organizer taxonomy
             $organizer_slug = $ep_functions->ep_get_seo_page_url('organizer');
             $organizer_page_url = basename(get_permalink($ep_functions->ep_get_global_settings('event_organizers')));
@@ -2051,8 +2044,8 @@ class Eventprime_Event_Calendar_Management_Public {
 
     public function ep_filter_query_vars($query_vars)
     {
-        $query_vars[] = 'event';
-        $query_vars[] = 'performer';
+        //$query_vars[] = 'event';
+        //$query_vars[] = 'performer';
         $query_vars[] = 'organizer';
         $query_vars[] = 'event_type';
         $query_vars[] = 'venue';
@@ -2070,6 +2063,21 @@ class Eventprime_Event_Calendar_Management_Public {
         $html_generator = new Eventprime_html_Generator;
         $html_generator->eventprime_checkout_total_html($total_price,$total_tickets,$event_id,$extra);   
         
+    }
+    
+    public function ep_remove_post_navigation($output)
+    {
+        if (is_singular('em_event')) {
+            return ''; // Remove post navigation for 'em_event'
+        }
+        return $output;
+    }
+    
+    public function ep_remove_post_navigation_action()
+    {
+        if (is_singular('em_event')) {
+            remove_action('wp_footer', 'the_post_navigation', 10);
+        }
     }
 
 

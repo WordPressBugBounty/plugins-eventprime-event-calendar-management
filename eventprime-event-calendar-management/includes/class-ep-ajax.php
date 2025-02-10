@@ -101,7 +101,7 @@ class EventM_Ajax_Service {
             $save_data['option_data'] = '';
             $option_data = ( ! empty( $data['ep_checkout_field_option_value'] ) ? $data['ep_checkout_field_option_value'] : '' );
             // set selected value
-            if( ! empty( $data['ep_checkout_field_option_value_selected'] ) ) {
+            if( isset( $data['ep_checkout_field_option_value_selected'] ) ) {
                 $option_index = $data['ep_checkout_field_option_value_selected'];
                 $option_data[$option_index]['selected'] = 1;
             }
@@ -115,6 +115,10 @@ class EventM_Ajax_Service {
                 $save_data['created_at'] = date_i18n( "Y-m-d H:i:s", time() );
                 $field_id = $dbhandler->insert_row($table_name, $save_data);
                 $response['message'] = esc_html__( 'Field Saved Successfully.', 'eventprime-event-calendar-management' );
+                // format created_at to display after saving it in DB 
+                $wp_saved_format = get_option('date_format').' '.get_option('time_format');
+                $format = !empty($wp_saved_format) ? $wp_saved_format : "Y-m-d H:i:s"; 
+                $save_data['created_at'] = date_i18n( $format, time() );
             } else{
                 $field_id = absint( $data['em_checkout_field_id'] );
                 $save_data['updated_at'] = date_i18n( "Y-m-d H:i:s", time() );
@@ -1937,11 +1941,17 @@ class EventM_Ajax_Service {
             $csv = new stdClass();
             foreach ( $bookings as $booking ) {
                 $user = get_user_by( 'id', $booking->em_user );
+                $other_order_info = $booking->em_order_info;
                 $csv = new stdClass();
                 $csv->ID = $booking->em_id;
-                $csv->user_display_name = $user->display_name;
-                $csv->user_email = $user->user_email;
-                $other_order_info = $booking->em_order_info;
+                $csv->user_display_name = (isset($user) && !empty($user)) ? $user->display_name : 
+                ( 
+                    (!empty($other_order_info) && isset($other_order_info['user_name']) && !empty($other_order_info['user_name'])) ? $other_order_info['user_name'] : '' 
+                );
+                $csv->user_email = (isset($user) && !empty($user)) ? $user->user_email : 
+                ( 
+                    (!empty($other_order_info) && isset($other_order_info['user_email']) && !empty($other_order_info['user_email'])) ? $other_order_info['user_email'] : '' 
+                );
                 $ticket_sub_total = 0;
                 $ticket_qty = 0;
                 foreach( $other_order_info['tickets'] as $ticket ){
@@ -1986,7 +1996,7 @@ class EventM_Ajax_Service {
                             $at_val = '---';
                             foreach( $booking_attendees_val as $baval ) {
                             if( isset( $baval[$formated_val] ) && ! empty( $baval[$formated_val] ) ) {
-                                    $at_val = $baval[$formated_val];
+                                    $at_val = is_array($baval[$formated_val]) ? implode(',',$baval[$formated_val]) : $baval[$formated_val];
                                     break;
                                 }
                             }
@@ -2814,6 +2824,14 @@ class EventM_Ajax_Service {
                 }
                 $params['meta_query'][] = $filter_venues_ids;
             }
+            
+            // individual events argument
+        $events_data['i_events'] = '';
+        if( isset( $atts['individual_events'] ) && ! empty( $atts['individual_events'] ) ){
+            $events_data['i_events'] = $atts['individual_events'];
+            $params['meta_query'] = $ep_functions->individual_events_shortcode_argument( $params['meta_query'],  $events_data['i_events'] );
+        }
+        
 
             $params = apply_filters( 'ep_events_render_attribute_data', $params, $atts ); 
         // }

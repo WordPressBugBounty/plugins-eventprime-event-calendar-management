@@ -6,7 +6,15 @@
  * and open the template in the editor.
  */
 
+
+
 class Eventprime_Basic_Functions {
+    
+    //private $global_settings;
+    
+    public function __construct() {
+        //$this->global_settings = get_option('em_global_settings');
+    }
 
     public function eventprime_check_is_ep_dashboard_page() {
         $page = false;
@@ -1642,7 +1650,14 @@ class Eventprime_Basic_Functions {
 
     public function ep_get_global_settings($meta = null) {
         // Load global setting array from options table
-        $global_options = get_option('em_global_settings');
+        if(!isset($this->global_settings) || empty($this->global_settings))
+        {
+            $global_options = get_option('em_global_settings');
+        }
+        else
+        {
+             $global_options = $this->global_settings;
+        }
         // Check if option exists 
         if (!empty($global_options)) {
             if ($meta !== null) {
@@ -2618,22 +2633,47 @@ class Eventprime_Basic_Functions {
         }
         return $all_tickets;
     }
-
-    public function get_single_venue($term_id, $term = null) {
-        
-        if(is_array($term_id) && isset($term_id[0]))
-        {
-            $term_id = $term_id[0];
-        }
-        if (empty($term_id) || $term_id==0)
+    
+    public function ep_get_term($term_id) {
+        // Validate the term ID
+        $term_id = $this->ep_get_filter_taxonomy_id($term_id);
+        if (empty($term_id))
         {
             return;
         }
+        $term_id = absint($term_id);
+        if (empty($term_id)) {
+            return null;
+        }
 
-        // if(!is_array($term_id) && empty(term_exists($term_id)))
-        // {
-        //     return;
-        // }
+        // Generate a cache key specific to the term ID
+        $cache_key = "ep_term_{$term_id}";
+
+        // Check if the name is already cached
+        $cached_name = get_transient($cache_key);
+        if ($cached_name !== false) {
+            return $cached_name;
+        }
+
+        // Fetch the term object
+        $term = get_term($term_id);
+        if (is_wp_error($term) || empty($term)) {
+            return null; // Return null if the term doesn't exist or there's an error
+        }
+
+        // Cache the term name for 1 hour (3600 seconds)
+        set_transient($cache_key, $term, HOUR_IN_SECONDS);
+        
+        return $term;
+    }
+
+
+    public function get_single_venue($term_id, $term = null) {
+        $term_id = $this->ep_get_filter_taxonomy_id($term_id);
+        if (empty($term_id))
+        {
+            return;
+        } 
         $venue = new stdClass();
         $meta = get_term_meta($term_id);
         //print_r($meta);die;
@@ -2692,32 +2732,58 @@ class Eventprime_Basic_Functions {
 
         return $venue;
     }
+    
+    public function ep_get_filter_taxonomy_id($term_id)
+    {
+        $termid = '';
+        if(!empty($term_id) && is_array($term_id))
+        {
+            foreach($term_id as $val)
+            {
+                if($val!==0)
+                {
+                    $termid = $val;
+                }
+            }
+        }
+        else
+        {
+            $termid = $term_id;
+        }
+        return $termid;
+    }
 
     public function get_single_event_type($term_id, $term = null) {
+        
+        $term_id = $this->ep_get_filter_taxonomy_id($term_id);
         if (empty($term_id))
+        {
             return;
-
+        }
+        //print_r($termid);die;
         $event_type = new stdClass();
         $meta = get_term_meta($term_id);
         if(!empty($meta))
         {
-        foreach ($meta as $key => $val) {
-            $event_type->{$key} = maybe_unserialize($val[0]);
+            foreach ($meta as $key => $val) {
+                $event_type->{$key} = maybe_unserialize($val[0]);
+            }
         }
-        }
+        
         if (empty($term)) {
             $term = get_term($term_id);
         }
         if (empty($term))
+        {
             return;
-
-        $event_type->id = $term->term_id;
+        }
+        $event_type->id = $term_id;
         $event_type->name = htmlspecialchars_decode($term->name);
         $event_type->slug = $term->slug;
         $event_type->description = $term->description;
         $event_type->count = $term->count;
-        $event_type->event_type_url = $this->ep_get_custom_page_url('event_types', $term->term_id, 'event_type', 'term');
-        $event_type->image_url = $this->get_event_type_image_url($term->term_id);
+        $event_type->event_type_url = $this->ep_get_custom_page_url('event_types', $term_id, 'event_type', 'term');
+        $event_type->image_url = $this->get_event_type_image_url($term_id);
         return $event_type;
     }
 
@@ -2872,7 +2938,7 @@ class Eventprime_Basic_Functions {
             if (!empty($all_tickets) && count($all_tickets) > 0) {
                 foreach ($all_tickets as $ticket) {
                     if (!empty($ticket->offers)) {
-                        $all_offers_data = $this->get_event_single_offer_data($all_offers_data, $ticket, $event->em_id);
+                        $all_offers_data = $this->get_event_single_offer_data($all_offers_data, $ticket, $event->em_id,0,$event);
                     }
                 }
             }
@@ -2883,7 +2949,7 @@ class Eventprime_Basic_Functions {
     /**
      * Update all offer data from single offer
      */
-    public function get_event_single_offer_data($all_offers_data, $ticket, $event_id, $qty = 0) {
+    public function get_event_single_offer_data($all_offers_data, $ticket, $event_id, $qty = 0,$event=null) {
         $ticket_offers = json_decode($ticket->offers);
         if (!empty($ticket_offers)) {
             foreach ($ticket_offers as $to) {
@@ -2894,7 +2960,7 @@ class Eventprime_Basic_Functions {
                 }
                 $all_offers_data['ticket_offers'][$ticket->id][$to->uid] = $to;
             }
-            $offer_applied_data = $this->get_event_offer_applied_data($ticket_offers, $ticket, $event_id, $qty);
+            $offer_applied_data = $this->get_event_offer_applied_data($ticket_offers, $ticket, $event_id, $qty,$event);
             if (!empty($offer_applied_data) && count($offer_applied_data) > 0) {
                 foreach ($offer_applied_data as $applied_offer_key => $ep_applied_offer) {
                     $all_offers_data['applicable_offers'][$ticket->id][$applied_offer_key] = $ep_applied_offer;
@@ -2904,12 +2970,12 @@ class Eventprime_Basic_Functions {
         return $all_offers_data;
     }
 
-    public function get_event_offer_applied_data($offers, $ticket, $event_id, $qty = 0) {
+    public function get_event_offer_applied_data($offers, $ticket, $event_id, $qty = 0,$event=null) {
         $offer_data = array();
         if (!empty($offers)) {
             $i = 1;
             foreach ($offers as $offer) {
-                $applied_status = $this->check_event_offer_applied($offer, $ticket, $event_id, $qty);
+                $applied_status = $this->check_event_offer_applied($offer, $ticket, $event_id, $qty,$event);
                 if (!empty($applied_status)) {
                     if (is_object($applied_status)) { //offer data updated from method
                         $offer_data[$offer->uid] = $applied_status;
@@ -2931,17 +2997,17 @@ class Eventprime_Basic_Functions {
         return $offer_data;
     }
 
-    public function check_event_offer_applied($offer, $ticket, $event_id, $qty = 0) {
+    public function check_event_offer_applied($offer, $ticket, $event_id, $qty = 0, $event = null) {
         $applied = 0;
         $dbhandler = new EP_DBhandler;
         if (!empty($offer)) {
             $current_time = $this->ep_get_current_timestamp();
             $min_date = $max_date = $current_time;
-            $event_start_date = get_post_meta($event_id, 'em_start_date', true);
-            $event_start_time = get_post_meta($event_id, 'em_start_time', true);
-            $event_end_date = get_post_meta($event_id, 'em_end_date', true);
-            $event_end_time = get_post_meta($event_id, 'em_end_time', true);
-            $event_add_more_dates = get_post_meta($event_id, 'em_event_add_more_dates', true);
+            $event_start_date = (!empty($event) && isset($event->em_start_date))? $event->em_start_date : get_post_meta($event_id, 'em_start_date', true);
+            $event_start_time = (!empty($event) && isset($event->em_start_time))? $event->em_start_time : get_post_meta($event_id, 'em_start_time', true);
+            $event_end_date = (!empty($event) && isset($event->em_end_date))? $event->em_end_date : get_post_meta($event_id, 'em_end_date', true);
+            $event_end_time = (!empty($event) && isset($event->em_end_time))? $event->em_end_time : get_post_meta($event_id, 'em_end_time', true);
+            $event_add_more_dates = (!empty($event) && isset($event->em_event_add_more_dates))? $event->em_event_add_more_dates : get_post_meta($event_id, 'em_event_add_more_dates', true);
             // offer start date
             $offer_start_booking_type = $offer->em_offer_start_booking_type;
             if ($offer_start_booking_type == 'custom_date') {
@@ -3149,8 +3215,15 @@ class Eventprime_Basic_Functions {
                             if (!empty($offer->em_ticket_offer_seat_number)) {
                                 $seat_number = $offer->em_ticket_offer_seat_number;
                                 //$event_ticket_booking_count = $this->get_event_booking_by_ticket_id($event_id, $ticket->id);
-                                $all_bookings = $dbhandler->eventprime_get_all_posts('em_booking', 'posts', array( 'pending', 'completed' ), 'ID', 0, 'ASC', -1, 'em_event', $event_id);
-                                $attendees = $this->get_total_booking_number_by_event_id( $event_id );
+                                if(!empty($event) && isset($event->all_bookings))
+                                {
+                                    $all_bookings = $event->all_bookings;
+                                }
+                                else
+                                {
+                                    $all_bookings = $dbhandler->eventprime_get_all_posts('em_booking', 'posts', array( 'pending', 'completed' ), 'ID', 0, 'ASC', -1, 'em_event', $event_id);
+                                }
+                                $attendees = $this->get_total_booking_number_by_event_id( $event_id, $all_bookings );
                                 $event_ticket_booking_count =(isset($all_bookings) && !empty($all_bookings))?count($all_bookings):0;
                                 if ($seat_option == 'first') {
                                     if ($event_ticket_booking_count < $seat_number) {
@@ -3389,8 +3462,9 @@ class Eventprime_Basic_Functions {
             $event->solo_tickets = $this->get_event_solo_ticket($event->id);
             $event->ticket_price_range = $this->get_ticket_price_range($event->ticket_categories, $event->solo_tickets);
             $event->all_tickets_data = $this->get_event_all_tickets($event);
-            // $event->venue_details = (!empty($event->em_venue) ) ? $this->get_single_venue($event->em_venue) : array();
+            //$event->venue_details = (!empty($event->em_venue) ) ? $this->get_single_venue($event->em_venue) : array();
             //$event->venue_details = (!empty($event->em_venue) ) ? $this->get_single_venue($event->em_venue[0]) : array();
+            //print_r($event->em_event_type);die;
             $event->event_type_details = (!empty($event->em_event_type) ) ? $this->get_single_event_type($event->em_event_type) : array();
             //print_r($event->em_organizer);die;
             $event->organizer_details = (!empty($event->em_organizer) ) ? $this->ep_get_event_organizer($event->em_organizer) : array();
@@ -3408,13 +3482,14 @@ class Eventprime_Basic_Functions {
             $event->em_event_checkout_attendee_fields = $this->get_event_checkout_fields($event);
             $event->em_event_checkout_booking_fields = $this->get_event_checkout_booking_fields($event);
             $event->event_in_user_wishlist = $this->check_event_in_user_wishlist($event->id);
+            $event->all_bookings = $this->get_event_bookings_by_event_id( $event->id, true );
         }
         return $event;
     }
     
     
     
-    public function get_upcoming_single_event($post_id, $post = null, $restrictions = array())
+    public function get_upcoming_single_event($post_id, $post = null, $type=array())
     {
          if (empty($post_id))
             return;
@@ -3446,11 +3521,23 @@ class Eventprime_Basic_Functions {
             $event->ticket_price_range = $this->get_ticket_price_range($event->ticket_categories, $event->solo_tickets);
             $event->all_tickets_data = $this->get_event_all_tickets($event);
             // $event->venue_details = (!empty($event->em_venue) ) ? $this->get_single_venue($event->em_venue) : array();
-            $event->venue_details = (!empty($event->em_venue) ) ? $this->get_single_venue($event->em_venue[0]) : array();
-            $event->event_type_details = (!empty($event->em_event_type) ) ? $this->get_single_event_type($event->em_event_type) : array();
+            if(!empty($type) && in_array('em_venue',$type))
+            {
+                $event->venue_details = (!empty($event->em_venue) ) ? $this->ep_get_term($event->em_venue) : array();
+            }
+            if(!empty($type) && in_array('em_event_type',$type))
+            {
+                $event->event_type_details = (!empty($event->em_event_type) ) ? $this->ep_get_term($event->em_event_type) : array();
+            }
             //print_r($event->em_organizer);die;
-            $event->organizer_details = (!empty($event->em_organizer) ) ? $this->ep_get_event_organizer($event->em_organizer) : array();
-            $event->performer_details = (!empty($event->em_performer) ) ? $this->get_ep_event_performer($event->em_performer) : array();
+            if(!empty($type) && in_array('em_organizer',$type))
+            {
+                $event->organizer_details = (!empty($event->em_organizer) ) ? $this->ep_get_term($event->em_organizer) : array();
+            }
+            if(!empty($type) && in_array('em_performer',$type))
+            {
+                $event->performer_details = (!empty($event->em_performer) ) ? $this->get_ep_event_performer($event->em_performer) : array();
+            }
             $event->image_url = $this->get_event_image_url($event->id);
             $event->placeholder_image_url = plugin_dir_url(__FILE__) . '../admin/partials/images/dummy_image.png';
             
@@ -3462,7 +3549,6 @@ class Eventprime_Basic_Functions {
         }
         return $event;
     }
-    
     
     public function ep_get_event_organizer($ids)
     {
@@ -4409,6 +4495,27 @@ class Eventprime_Basic_Functions {
 
         return $output;
     }
+    
+    public function check_published_em_event() {
+        // Define query arguments
+        $args = [
+            'post_type'      => 'em_event',
+            'post_status'    => 'publish',
+            'posts_per_page' => 1, // Fetch only one post to check existence
+            'fields'         => 'ids', // Return only post IDs for efficiency
+        ];
+
+        // Query the posts
+        $query = new WP_Query($args);
+
+        // Check if there are any posts
+        if ($query->have_posts()) {
+            return true; // At least one published em_event post exists
+        } else {
+            return false; // No published em_event posts found
+        }
+    }
+
 
     /** 
      * Load common option for event views
@@ -4588,9 +4695,23 @@ class Eventprime_Basic_Functions {
             }
         }
         // render atts data from extensions
+        
         $params = apply_filters( 'ep_events_render_attribute_data', $params, $atts ); 
         // multi query
-        $posts = $this->get_multiple_events_post_data( $params );
+        if( $events_data['display_style'] == 'card' || $events_data['display_style'] == 'square_grid' || $events_data['display_style'] == 'masonry' || $events_data['display_style'] == 'staggered_grid' || $events_data['display_style'] == 'list'|| $events_data['display_style'] == 'rows' || $events_data['display_style'] == 'slider' )
+        {
+             $posts = $this->get_multiple_events_post_data( $params );
+        }
+        elseif($this->check_published_em_event())
+        {
+            $posts = array(1);
+        }
+        else
+        {
+            $posts = array();
+        }
+       
+        
         $events_data['params'] = $params;
         $events_data['atts'] = $atts;
         // filter for events
@@ -4598,13 +4719,20 @@ class Eventprime_Basic_Functions {
         // get event views
         $events_data['event_views'] = ( ! empty( $this->ep_get_global_settings( 'front_switch_view_option' ) ) ? $this->ep_get_global_settings( 'front_switch_view_option' ) : array() );
         // get event types
-        $events_data['event_types'] = $this->ep_get_event_types( array( 'id', 'name', 'em_color', 'em_type_text_color' ), 1 );
+        
+        //$events_data['event_types'] = $this->ep_get_event_types( array( 'id', 'name', 'em_color', 'em_type_text_color' ), 1 );
+       //echo '<pre>'; print_r($events_data['event_types']);
+        if($this->ep_get_global_settings('show_event_types_on_calendar')==1)
+        {
+             $events_data['event_types'] =  $this->ep_get_terms_with_meta('em_event_type',array( 'id', 'name', 'em_color', 'em_type_text_color' ));
+        }
+       //print_r($events_data['event_types']);die;
         // get performaers
-        $events_data['performers']  = $this->ep_get_performers( array( 'id', 'name' ) );
+       // $events_data['performers']  = $this->ep_get_performers( array( 'id', 'name' ) );
         // get organizers
-        $events_data['organizers']  = $this->ep_get_organizers( array( 'id', 'name' ) );
+       // $events_data['organizers']  = $this->ep_get_organizers( array( 'id', 'name' ) );
         // get organizers
-        $events_data['venues']      = $this->ep_get_venues( array( 'id', 'name', 'address', 'image' ), 1 );
+       // $events_data['venues']      = $this->ep_get_venues( array( 'id', 'name', 'address', 'image' ), 1 );
         // filters and filter elements condition
         $events_data['show_event_filter'] = 1;
         if( $this->ep_get_global_settings( 'disable_filter_options' ) == 1 ) {
@@ -4677,6 +4805,104 @@ class Eventprime_Basic_Functions {
             $events_data['load_more'] = $_POST['block_square_disable_load_more_button'] ;
         }
         return $events_data;
+    }
+    
+    public function ep_get_terms_with_meta($taxonomy, $meta_fields = []) {
+        // Validate taxonomy
+        if (!taxonomy_exists($taxonomy)) {
+            return new WP_Error('invalid_taxonomy', 'The provided taxonomy does not exist.');
+        }
+        
+
+        // Get all terms for the taxonomy
+        $terms = get_terms([
+            'taxonomy'   => $taxonomy,
+            'hide_empty' => false,
+            'number'     => 0, // Fetch all terms
+        ]);
+
+        if (is_wp_error($terms)) {
+            return $terms;
+        }
+
+        $results = [];
+
+        foreach ($terms as $term) {
+            $term_array = [];
+            // Retrieve all term meta
+            $term_id = $term->term_id;
+            $meta = get_term_meta($term_id);
+            if (!empty($meta)) {
+                foreach ($meta as $key => $val) {
+                    $term_array[$key] = maybe_unserialize($val[0]);
+                }
+            }
+            
+            // Map term data to array
+            $term_array['id'] = $term_id;
+            $term_array['name'] = htmlspecialchars_decode($term->name);
+            $term_array['slug'] = $term->slug;
+            $term_array['description'] = $term->description;
+            $term_array['count'] = $term->count;
+            if($taxonomy=='em_event_type')
+            {
+                $term_array['event_type_url'] = $this->ep_get_custom_page_url('event_types', $term_id, 'event_type', 'term',$taxonomy);
+                $term_array['image_url'] = $this->get_event_type_image_url($term_id);
+            }
+            elseif($taxonomy=='em_venue')
+            {
+                $term_array['venue_url'] = $this->ep_get_custom_page_url('venues_page', $term_id, 'venue', 'term',$taxonomy);
+                $term_array['image_url'] = plugin_dir_url(EP_PLUGIN_FILE) . 'admin/partials/images/dummy_image.png';
+                $term_array['em_address'] = $term_array['em_address'] ?? '';
+                $term_array['other_image_url'] = [];
+
+                if (!empty($term_array['em_gallery_images'])) {
+                    $gallery_images = maybe_unserialize($term_array['em_gallery_images']);
+                    if (is_array($gallery_images) && count($gallery_images) > 0) {
+                        $img_url = wp_get_attachment_image_src($gallery_images[0], 'large');
+                        if (!empty($img_url) && isset($img_url[0])) {
+                            $term_array['image_url'] = $img_url[0];
+                        }
+
+                        // Other images
+                        if (count($gallery_images) > 1) {
+                            for ($i = 1; $i < count($gallery_images); $i++) {
+                                $term_array['other_image_url'][] = wp_get_attachment_image_src($gallery_images[$i], 'large')[0];
+                            }
+                        }
+                    }
+                }
+            }
+            elseif($taxonomy=='em_organizer')
+            {
+                $term_array['organizer_url'] = $this->ep_get_custom_page_url('event_organizers', $term_id, 'organizer', 'term',$taxonomy);
+                $term_array['image_url'] = $this->get_event_organizer_image_url($term_id);
+            }
+             
+            if(!empty($meta_fields))
+            {
+                $term_data = [];
+                foreach($meta_fields as $field)
+                {
+                    if(isset($term_array[$field]))
+                    {
+                        $term_data[$field] = $term_array[$field];
+                    }
+                    else
+                    {
+                        $term_data[$field] = '';
+                    }
+                }
+                
+                $results[$term->term_id] = $term_data;
+            }
+            else
+            {
+                $results[$term->term_id] = $term_array;
+            }
+        }
+
+        return $results;
     }
     
     public function create_filter_query( $event_search_params, $args ){
@@ -4896,7 +5122,81 @@ class Eventprime_Basic_Functions {
         }
     }
     
-    public function individual_events_shortcode_argument( $meta_query, $individual_events = '' ){
+    public function individual_events_shortcode_argument( $meta_query, $individual_events = '' ) {
+        if( $individual_events == 'yesterday' ) {
+            $yesterday_dt = new DateTime('yesterday');
+            $yesterday_dt->setTime(0, 0, 0); // Set to start of the day
+            $yesterday_ts = $yesterday_dt->getTimestamp();
+
+            $today_dt = new DateTime('today');
+            $today_dt->setTime(0, 0, 0);
+            $today_ts = $today_dt->getTimestamp();
+
+            $meta_query[] = array(
+                'key'     => 'em_start_date',
+                'value'   => array($yesterday_ts, $today_ts),
+                'compare' => 'BETWEEN',
+                'type'    => 'NUMERIC'
+            );
+        }
+
+        if( $individual_events == 'today' ) {
+            $today_dt = new DateTime('today');
+            $today_dt->setTime(0, 0, 0);
+            $today_ts = $today_dt->getTimestamp();
+
+            $tomorrow_dt = new DateTime('tomorrow');
+            $tomorrow_dt->setTime(0, 0, 0);
+            $tomorrow_ts = $tomorrow_dt->getTimestamp();
+
+            $meta_query[] = array(
+                'key'     => 'em_start_date',
+                'value'   => array($today_ts, $tomorrow_ts),
+                'compare' => 'BETWEEN',
+                'type'    => 'NUMERIC'
+            );
+        }
+
+        if( $individual_events == 'tomorrow' ) {
+            $tomorrow_dt = new DateTime('tomorrow');
+            $tomorrow_dt->setTime(0, 0, 0);
+            $tomorrow_ts = $tomorrow_dt->getTimestamp();
+
+            $day_after_tomorrow_dt = new DateTime('tomorrow');
+            $day_after_tomorrow_dt->modify('+1 day');
+            $day_after_tomorrow_dt->setTime(0, 0, 0);
+            $day_after_tomorrow_ts = $day_after_tomorrow_dt->getTimestamp();
+
+            $meta_query[] = array(
+                'key'     => 'em_start_date',
+                'value'   => array($tomorrow_ts, $day_after_tomorrow_ts),
+                'compare' => 'BETWEEN',
+                'type'    => 'NUMERIC'
+            );
+        }
+
+        if( $individual_events == 'this month' ) {
+            $this_month_dt = new DateTime('first day of this month');
+            $this_month_dt->setTime(0, 0, 0);
+            $this_month_ts = $this_month_dt->getTimestamp();
+
+            $next_month_dt = new DateTime('first day of next month');
+            $next_month_dt->setTime(0, 0, 0);
+            $next_month_ts = $next_month_dt->getTimestamp();
+
+            $meta_query[] = array(
+                'key'     => 'em_start_date',
+                'value'   => array($this_month_ts, $next_month_ts),
+                'compare' => 'BETWEEN',
+                'type'    => 'NUMERIC'
+            );
+        }
+
+        return $meta_query;
+    }
+
+    
+    public function individual_events_shortcode_argument_old( $meta_query, $individual_events = '' ){
         if( $individual_events == 'yesterday' ){
             $yesterday_dt = new DateTime('yesterday');
             $yesterday_ts = strtotime( $yesterday_dt->format('Y-m-d H:i:s') );
@@ -4978,101 +5278,7 @@ class Eventprime_Basic_Functions {
      * Get multiple event data query
      */
     
-    public function get_multiple_events_post_data_new( $args = array() ) {
-        $default = array(
-            'post_status' => 'publish',
-            'order'       => 'ASC',
-            'post_type'   => 'em_event',
-            'numberposts' => -1,
-            'offset'      => 0,
-            'meta_key'    => 'em_start_date_time',
-            'orderby'     => 'meta_value',
-        );
-        $args = wp_parse_args( $args, $default );
-        $wp_query = new WP_Query($args);
-        $posts = $wp_query->posts;
-        
-        if( empty( $posts ) )
-           return array();
-        $events = $event_ids = array();
-        foreach( $posts as $post ) {
-            if( empty( $post ) || empty( $post->ID ) ) continue;
-            $event_ids[] = $post->ID;
-            $event = new stdClass();
-            // set all metas
-            $meta = get_post_meta( $post->ID );
-            foreach ( $meta as $key => $val ) {
-                $event->{$key} = maybe_unserialize( $val[0] );
-            }
-            $event->id                 = $post->ID;
-            $event->name               = $post->post_title;
-            $event->slug               = $post->post_name;
-            $event->description        = wp_kses_post( $post->post_content );
-            $event->post_status        = $post->post_status;
-            $event->post_parent        = $post->post_parent;
-            $event->fstart_date        = ( ! empty( $event->em_start_date ) ) ? $this->ep_timestamp_to_date( $event->em_start_date, 'd M', 1 ) : '';
-            $event->fend_date          = ( ! empty( $event->em_end_date ) ) ? $this->ep_timestamp_to_date( $event->em_end_date, 'd M', 1 ) : '';
-            if( ! empty( $event->em_start_date ) && ! empty( $this->ep_get_global_settings( 'enable_event_time_to_user_timezone' ) ) ){
-                $event->fstart_date = $this->ep_convert_event_date_time_from_timezone( $event, 'd M', 0, 1 );
-                $event->fend_date   = $this->ep_convert_event_date_time_from_timezone( $event, 'd M', 1, 1 );
-            }
-            $event->start_end_diff     = $this->ep_get_event_date_time_diff( $event );
-            $event->event_url          = $this->ep_get_custom_page_url( 'events_page', $event->id, 'event' );
-            $event->all_tickets_data   = array();
-            /* $event->venue_details      = ( ! empty( $event->em_venue ) ) ? EventM_Factory_Service::ep_get_venue_by_id( $event->em_venue ) : array();
-            $event->event_type_details = ( ! empty( $event->em_event_type ) ) ? EventM_Factory_Service::ep_get_event_type_by_id( $event->em_event_type ) : array();
-            $event->organizer_details  = ( ! empty( $event->em_organizer ) ) ? EventM_Factory_Service::get_organizers_by_id( $event->em_organizer ) : array();
-            $event->performer_details  = ( ! empty( $event->em_performer) ) ? EventM_Factory_Service::get_performers_by_id( $event->em_performer ) : array(); */
-            $event->image_url          = $this->get_event_image_url( $event->id );
-            $event->placeholder_image_url = plugin_dir_path(EP_PLUGIN_FILE) . 'public/partials/images/dummy_image.png';
-            //$other_events            = EventM_Factory_Service::ep_get_child_events( $post->ID );
-            $event->child_events       = array();
-            /* if( ! empty( $other_events ) && count( $other_events ) > 0 ) {
-                $other_event_data    = EventM_Factory_Service::load_event_full_data( $other_events );
-                $event->child_events = $other_event_data;
-            } */
-            $event->qr_code          = $this->get_event_qr_code( $event );
-            $event->event_in_user_wishlist = $this->check_event_in_user_wishlist( $event->id );
-            $events[$post->ID] = $event;
-        }
-        // get all event ticket category data
-        $event_ticket_categories = $this->get_multiple_events_ticket_category( $event_ids );
-        if( ! empty( $event_ticket_categories ) ) {
-            foreach( $event_ticket_categories as $category_data ) {
-                if( ! empty( $category_data->event_id ) ) {
-                    $events[$category_data->event_id]->ticket_categories[] = $category_data;
-                    if( ! empty( $category_data->tickets ) ) {
-                        $event_cat_tickets = $category_data->tickets;
-                        if( ! empty( $event_cat_tickets ) && count( $event_cat_tickets ) > 0 ) {
-                            foreach( $event_cat_tickets as $tickets_ev ) {
-                                $events[$category_data->event_id]->all_tickets_data[] = $tickets_ev;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        // get individual tickets
-        $event_solo_tickets = $this->get_multiple_events_solo_ticket( $event_ids );
-        if( ! empty( $event_solo_tickets ) ) {
-            foreach( $event_solo_tickets as $ticket_data ) {
-                if( ! empty( $ticket_data->event_id ) ) {
-                    $events[$ticket_data->event_id]->solo_tickets[] = $ticket_data;
-                    $events[$ticket_data->event_id]->all_tickets_data[] = $ticket_data;
-                }
-            }
-        }
-        $all_checkout_fields = $this->ep_get_checkout_fields_data();
-       
-        //$wp_query = new WP_Query( $args );
-        $wp_query->posts = $events;
-        ////wp_reset_postdata();
-        return $wp_query;
-    }
-    
-    
-    
-    public function get_multiple_events_post_data( $args = array() ) {
+     public function get_multiple_events_post_data( $args = array() ) {
         $default = array(
             'post_status' => 'publish',
             'order'       => 'ASC',
@@ -5348,7 +5554,12 @@ class Eventprime_Basic_Functions {
             if (!$file) {
                 if (!empty($ext_path)) {
                     $file = $ext_path . "/views/" . $template;
-                } else {
+                } 
+                elseif(strpos($slug,'.php'))
+                {
+                    $file = $slug;
+                }
+                else {
                     
                     $file = plugin_dir_path(EP_PLUGIN_FILE) . "/public/partials/" . $template;
                 }
@@ -5363,7 +5574,12 @@ class Eventprime_Basic_Functions {
             if (!$file) {
                 if (!empty($ext_path)) {
                     $file = $ext_path . "/views/" . $template;
-                } else {
+                }
+                elseif(strpos($slug,'.php'))
+                {
+                    $file = $slug;
+                }
+                else {
                     
                     $file = plugin_dir_path(EP_PLUGIN_FILE) . "public/partials/" . $template;
                 }
@@ -5452,7 +5668,7 @@ class Eventprime_Basic_Functions {
                         $popup_html .= '</div>';
                     $popup_html .= '</div>';
                     $popup_html .= '<a href="'.esc_url( $ev['event_url'] ).'" class="ep-event-modal-head" '.esc_attr( $new_window ).'>';
-                        $popup_html .= '<div class="ep_event_popup_title">';
+                        $popup_html .= '<div class="ep_event_popup_title ep-text-break">';
                             $popup_html .= esc_html( $ev['title'] );
                         $popup_html .= '</div>';
                     $popup_html .= '</a>';
@@ -5499,6 +5715,110 @@ class Eventprime_Basic_Functions {
         }
         return $cal_events;
     }
+    
+    public function get_event_data_to_upcoming_views( $event ) {
+        $ev = array();
+        if( ! empty( $event ) && ! empty( $event->id ) ) {
+            $ev['title'] = ( ! empty( $event->em_name ) ? $event->em_name : $event->name );
+            $ev['id']    = $event->id;
+            $ev['start'] = $ev['end'] = $ev['start_time'] = $ev['end_time'] = $ev['bg_color'] = $ev['type_text_color'] = $ev['address'] = $ev['image'] = $ev['date_custom_note'] = $ev['event_day'] = '';
+            $ev['bg_color'] = 'rgb( 34,113,177 )';
+            if( ! empty( $event->em_start_date ) ) {
+                $start_date       = $this->ep_timestamp_to_date( $event->em_start_date, 'Y-m-d', 1 );
+                $ev['start']      = $start_date;
+                if( ! empty( $event->em_start_time ) && $this->ep_show_event_date_time( 'em_start_time', $event ) ) {
+                    $st_time = gmdate( "H:i", strtotime( $event->em_start_time ) );
+                    $st_time = explode( ' ', $st_time )[0];
+                    $ev['start'] .= ' '. $st_time;
+                }
+                $ev['start_time'] = ( ! empty( $event->em_start_time ) ? $event->em_start_time : '' );
+            }
+            if( ! empty( $event->em_end_date ) ) {
+                $end_date   = $this->ep_timestamp_to_date( $event->em_end_date, 'Y-m-d', 1 );
+                $ev['end']  = $end_date;
+                if( ! empty( $event->em_start_date ) && $event->em_start_date == $event->em_end_date ) {
+                    $ev['event_day']  = gmdate( 'l', $event->em_start_date );
+                }
+                if( $this->ep_show_event_date_time( 'em_end_time', $event ) ) {
+                    if( ! empty( $event->em_end_time ) ) {
+                        $end_time = gmdate( "H:i", strtotime( $event->em_end_time ) );
+                        $end_time = explode( ' ', $end_time )[0];
+                        $ev['end'] .= ' '. $end_time;
+                    } else{
+                        if( $this->ep_is_multidate_event( $event ) ) {
+                            $ev['end'] .= ' 11:59';
+                        }
+                    }
+                } else{
+                    if( empty( $event->em_hide_event_start_time ) ) {
+                        if( $this->ep_is_multidate_event( $event ) ) {
+                            $ev['end'] .= ' 11:59';
+                        }
+                    }
+                    if( ! empty( $event->em_hide_event_start_time ) && ! empty( $event->em_hide_event_end_time ) ) {
+                        if( $this->ep_is_multidate_event( $event ) ) {
+                            if( ! empty( $event->em_end_time ) ) {
+                                $end_time = gmdate( "H:i", strtotime( $event->em_end_time ) );
+                                $end_time = explode( ' ', $end_time )[0];
+                                $ev['end'] .= ' '. $end_time;
+                            }else{
+                                $ev['end'] .= ' 11:59';
+                            }
+                        }
+                    }
+                }
+                if( ! empty( $event->em_end_time ) ) {
+                    $ev['end_time'] = $event->em_end_time;
+                }
+            }
+            // event type
+            if( ! empty( $event->em_event_type ) ) {
+                $single_et             =  $event->event_type_details;
+                $ev['bg_color']        = ( ! empty( $single_et->em_color ) ) ? $this->ep_hex2rgba( $single_et->em_color ) : 'rgb( 34,113,177 )';
+                $ev['type_text_color'] = ( !empty( $single_et->em_type_text_color ) ) ? $single_et->em_type_text_color : '#000000';
+            }
+            // venue
+            if( ! empty( $event->em_venue ) ) {
+                $single_venue  = $event->venue_details;
+                $ev['venue_name'] = ( ! empty( $single_venue->name ) ) ? $single_venue->name : '';
+                $ev['address'] = ( ! empty( $single_venue->em_address ) && ! empty( $single_venue->em_display_address_on_frontend ) ) ? $single_venue->em_address : '';
+            }
+            // image
+            $featured_img_url = get_the_post_thumbnail_url( $event->id );
+            if( ! empty( $featured_img_url ) ) {
+                $ev['image'] = $featured_img_url;
+            }
+           
+            // if hide start date then check for custom note
+            if( ! $this->ep_show_event_date_time( 'em_start_date', $event ) ) {
+                if( isset( $event->em_event_date_placeholder ) && $event->em_event_date_placeholder != 'custom_note' ) {
+                    $ev['date_custom_note'] = $event->em_event_date_placeholder;
+                } else{
+                    $ev['date_custom_note'] = ( ! empty( $event->em_event_date_placeholder_custom_note) ? $event->em_event_date_placeholder_custom_note : '' );
+                }
+            }
+            $ev['event_type'] = ( ! empty( $event->em_event_type ) ? $event->em_event_type : '' );
+            $ev['venue'] = ( ! empty( $event->em_venue ) ? $event->em_venue : '' );
+            $ev['performer'] = ( ! empty( $event->em_performer ) ? $event->em_performer : array() );
+            $ev['organizer'] = ( ! empty( $event->em_organizer ) ? $event->em_organizer : array() );
+            $ev['booking_enable'] = $event->em_enable_booking;
+            /* $ev['thumbnail_id'] = get_post_thumbnail_id( $event->id );
+            $ev['status'] = get_post_status( $event->id ); */
+            $ev['all_day'] = ( ! empty( $event->em_all_day ) ? $event->em_all_day : 0 );
+            $ev['event_end_date'] = $this->ep_timestamp_to_date( $event->em_end_date );
+            $ev['event_start_date'] = $this->ep_timestamp_to_date( $event->em_start_date );
+            $ev['event_id'] = $event->id;
+            $ev['event_title'] = ( ! empty( $event->em_name ) ? $event->em_name : $event->name );
+            // event text color
+            if( ! empty( $event->em_event_text_color ) ) {
+                $ev['type_text_color'] = $event->em_event_text_color;
+            }
+            // open event in new tab
+            $ev['open_event_in_new_tab'] = absint( $this->ep_get_global_settings( 'open_detail_page_in_new_tab' ) );
+        }
+        return $ev;
+    }
+    
     
      public function get_event_data_to_views( $event ) {
         $ev = array();
@@ -5761,7 +6081,14 @@ public function ep_is_event_sold_out( $event )
 {
         $total_caps = $total_bookings = 0;
         if( ! empty( $event ) && ! $this->check_event_has_expired( $event ) && ! empty( $event->all_tickets_data ) ) {
-                $all_event_bookings = $this->get_event_booking_by_event_id( $event->id, true );
+                if(isset($event->all_bookings))
+                {
+                    $all_event_bookings = $this->get_event_booking_by_event_id( $event->id, true,$event->all_bookings );
+                }
+                else
+                {
+                    $all_event_bookings = $this->get_event_booking_by_event_id( $event->id, true );
+                }
                 $booked_tickets_data = $all_event_bookings['tickets'];
                 foreach( $event->all_tickets_data as $ticket ) {
                         // ticket total capacity
@@ -5778,11 +6105,14 @@ public function ep_is_event_sold_out( $event )
 }
 
 
-public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) {
+public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$all_bookings = null) {
 		$bookings = array();
 		if( ! empty( $event_id ) ) {
 			$booking_controller = new EventPrime_Bookings;
-			$all_bookings = $booking_controller->get_event_bookings_by_event_id( $event_id );
+                        if(empty($all_bookings))
+                        {
+                            $all_bookings = $booking_controller->get_event_bookings_by_event_id( $event_id );
+                        }
 			if( ! empty( $all_bookings ) ) {
 				foreach( $all_bookings as $booking ) {
 					$booking_data = $booking_controller->load_booking_detail( $booking->ID, false );
@@ -5978,7 +6308,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
 		return $offer_date;
 	}
 
-    public function get_events_post_data( $args = array() ) {
+        public function get_events_post_data( $args = array(), $fetch_single_event_details = true) {
         $default = array(
             'post_status' => 'publish',
             'order'       => 'ASC',
@@ -5996,7 +6326,16 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
         $events = array();
         foreach( $posts as $post ) {
             if( empty( $post ) || empty( $post->ID ) ) continue;
-            $event = $this->get_single_event( $post->ID, $post );
+            
+            if($fetch_single_event_details)
+            {
+                $event = $this->get_single_event( $post->ID, $post );
+            }
+            else
+            {
+                $event = $post;
+            }
+            
             if( ! empty( $event ) ) {
                 $events[] = $event;
             }
@@ -6466,7 +6805,14 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
         $booking_status = '';
         if( ! empty( $tickets ) ) {
             // get all event bookings
-            $all_event_bookings = $this->get_event_booking_by_event_id( $event->em_id, true );
+            if(isset($event->all_bookings))
+            {
+                $all_event_bookings = $this->get_event_booking_by_event_id( $event->em_id, true,$event->all_bookings );
+            }
+            else
+            {
+                $all_event_bookings = $this->get_event_booking_by_event_id( $event->em_id, true );
+            }
             $booked_tickets_data = $all_event_bookings['tickets'];
             $min_start = $max_end = ''; $price = $start_check_off = $total_caps = $total_bookings = 0;
             $buy_ticket_text = $this->ep_global_settings_button_title('Buy Tickets');
@@ -7417,6 +7763,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
         $event_types_data = array();
         $settings                            = new Eventprime_Global_Settings;
         $db_handler = new EP_DBhandler;
+        $ep_requests = new EP_Requests;
         $event_types_settings                = $settings->ep_get_settings( 'event_types' );
 
         $event_types_data['display_style']   = isset( $_POST['display_style'] ) ? $_POST["display_style"] : $event_types_settings->type_display_view;
@@ -7483,14 +7830,16 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
         $event_types_data['event_types'] = $event_types['terms'];
        
         ob_start();
+        $themepath = $ep_requests->eventprime_get_ep_theme('event-types-list-load-tpl');
         
-        $this->ep_get_template_part( 'event_types/list-load', null, (object)$event_types_data );
+        $this->ep_get_template_part( $themepath, null, (object)$event_types_data );
         $data['html'] = ob_get_clean();
         $data['paged'] = $paged;
         return $data;
     }
     
     public function get_event_performer_loadmore(){
+        $ep_requests = new EP_Requests;
         $settings                           = new Eventprime_Global_Settings;
         $performers_settings                = $settings->ep_get_settings( 'performers' );
         $performers_data                    = array();
@@ -7558,7 +7907,9 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
             plugin_dir_url( EP_PLUGIN_FILE ) . 'public/css/ep-frontend-views.css',
             false, EVENTPRIME_VERSION
         );
-        $this->ep_get_template_part( 'performers/list-load', null, (object)$performers_data );
+        $themepath = $ep_requests->eventprime_get_ep_theme('performers-list-load-tpl');
+        
+        $this->ep_get_template_part($themepath, null, (object)$performers_data );
         $data['html'] = ob_get_clean();
         $data['paged'] = $paged;
         return $data;
@@ -7769,8 +8120,10 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
             plugin_dir_url( EP_PLUGIN_FILE ) . 'public/css/ep-frontend-views.css',
             false, EVENTPRIME_VERSION
         );
-		$this->ep_get_template_part( 'venues/list-load', null, (object)$venues_data );
-	    $data['html'] = ob_get_clean();
+        $ep_requests = new EP_Requests;
+        $themepath = $ep_requests->eventprime_get_ep_theme('venues-list-load-tpl');
+        $this->ep_get_template_part( $themepath, null, (object)$venues_data );
+	$data['html'] = ob_get_clean();
         $data['paged'] = $paged;
         return $data;
     }
@@ -7842,8 +8195,10 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
         $organizers_data['organizers'] = $organizers['terms'];
 
         ob_start();
+        $ep_requests = new EP_Requests;
+        $themepath = $ep_requests->eventprime_get_ep_theme('organizers-list-load-tpl');
         
-        $this->ep_get_template_part( 'organizers/list-load', null, (object)$organizers_data );
+        $this->ep_get_template_part( $themepath, null, (object)$organizers_data );
         $data['html'] = ob_get_clean();
         $data['paged'] = $paged;
         return $data;
@@ -7958,6 +8313,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
     public function get_events_loadmore(){
         $order = isset($_POST['order']) ? $_POST['order'] : '';
         $load_more = 1;
+        $ep_requests     = new EP_Requests;
         // $events_data = $this->load_event_common_options( $atts = array('order'=>$order), $load_more );
         $atts = json_decode( sanitize_text_field( wp_unslash( $_POST['event_atts'] ) ), true );  
         $events_data = $this->load_event_common_options( $atts, $load_more );
@@ -7983,7 +8339,9 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
                 )
             );
         }
-        $this->ep_get_template_part( 'events/list-load', null, (object)$events_data );
+        $themepath = $ep_requests->eventprime_get_ep_theme('events-list-load-tpl');
+
+        $this->ep_get_template_part( $themepath, null, (object)$events_data );
 	    $data['html'] = ob_get_clean();
         $data['paged'] = $events_data['paged'];
         return $data;
@@ -8086,7 +8444,9 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
                     'em_event_data' => $localized_script,
                 )
             );
-            $this->ep_get_template_part( 'events/single-event-page-load-other', null, (object)$events_data );
+            $ep_requests = new EP_Requests;
+            $themepath = $ep_requests->eventprime_get_ep_theme('single-event-page-load-other-tpl');
+            $this->ep_get_template_part( $themepath, null, (object)$events_data );
             return ob_get_clean();
         }
     }
@@ -8169,7 +8529,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
         {
             $ticket->qty = $minimum_ticket_qty;
         }
-        $offer_applied_data = $this-get_event_offer_applied_data( $ticket_offers, $ticket_data[0], $ticket_data[0]->event_id,$ticket->qty );
+        $offer_applied_data = $this->get_event_offer_applied_data( $ticket_offers, $ticket_data[0], $ticket_data[0]->event_id,$ticket->qty );
     
         $offer_amount = $this->ep_calculate_offer_price($ticket_data[0]->price,$ticket->qty,$offer);
         $ticket->offer = $offer_amount; // Set to the desired new offer
@@ -8595,10 +8955,62 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
         return $wp_query;
     }
 
+    public function get_upcoming_events_for_performer_new( $performer_id, $args = array() ) {
+        // Fetch the global setting for hiding past events if not explicitly provided.
+        $hide_past_events = isset($args['hide_past_events']) 
+            ? $args['hide_past_events'] 
+            : $this->ep_get_global_settings('single_performer_hide_past_events');
+
+        // Initialize the meta query.
+        $meta_query = array(
+            'relation' => 'AND',
+            array(
+                'key'     => 'em_performer',
+                'value'   => '"' . intval($performer_id) . '"', // Target specific performer IDs in serialized data.
+                'compare' => 'LIKE'
+            )
+        );
+
+        // Add condition to hide past events.
+        if (!empty($hide_past_events)) {
+            $meta_query[] = array(
+                'key'     => 'em_start_date_time',
+                'value'   => current_time('timestamp'),
+                'compare' => '>=',
+                'type'    => 'NUMERIC', // Ensure numeric comparison for timestamps.
+            );
+        }
+
+        // Build the query arguments.
+        $query_args = array(
+            'post_status' => 'publish',
+            'post_type'      => 'em_event',
+            'posts_per_page' => isset($args['posts_per_page']) ? $args['posts_per_page'] : 10, // Limit the number of posts.
+            'meta_key'       => 'em_start_date_time',
+            'orderby'        => 'meta_value_num', // Use numeric ordering for timestamp fields.
+            'order'          => 'ASC',
+            'meta_query'     => $meta_query,
+            'fields'         => isset($args['fields']) ? $args['fields'] : '', // Allow field-specific queries.
+        );
+
+        // Allow modifications to the query arguments via a filter.
+        $query_args = apply_filters('ep_performers_render_argument', $query_args, $args);
+
+        // Merge custom arguments provided with defaults.
+        $query_args = wp_parse_args($args, $query_args);
+
+        // Execute the query.
+        $wp_query = new WP_Query($query_args);
+        $wp_query->performer_id = $performer_id;
+
+        return $wp_query;
+    }
+
     
     public function get_eventupcoming_performer_loadmore(){
         $settings            = new Eventprime_Global_Settings;
         $performers_settings = $settings->ep_get_settings( 'performers' );
+        $ep_requests = new EP_Requests;
         $event_args  = $performers_data = array();
         $event_args['event_style']   = isset( $_POST['event_style'] ) ? $_POST["event_style"] : $performers_settings->single_performer_event_display_view;
         $event_args['event_limit']   = isset( $_POST['event_limit'] ) ? (empty($_POST["event_limit"]) ? 10 : $_POST["event_limit"]) : (empty($performers_settings->single_performer_event_limit) ? 10 : $performers_settings->single_performer_event_limit );
@@ -8628,7 +9040,9 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
             plugin_dir_url( EP_PLUGIN_FILE ) . 'public/css/ep-frontend-views.css',
             false, EVENTPRIME_VERSION
         );
-        $this->ep_get_template_part( 'performers/single-performer/event-list-load', null, (object)$performers_data );
+        
+        $themepath = $ep_requests->eventprime_get_ep_theme('upcoming-events-list-load-tpl');
+        $this->ep_get_template_part( $themepath, null, (object)$performers_data );
         $data['html'] = ob_get_clean();
         $data['paged'] = $paged;
         return $data;
@@ -8676,8 +9090,9 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
     
      public function get_eventupcoming_venue_loadmore(){
         $settings        = new Eventprime_Global_Settings;
+        $ep_requests     = new EP_Requests;
         $venues_settings = $settings->ep_get_settings( 'venues' );
-        
+        //print_r($_POST);
         $event_args  = array();
         $venues_data                 = array();
         $event_args['event_style']   = isset( $_POST['event_style'] ) ? $_POST["event_style"] : $venues_settings->single_venue_event_display_view;
@@ -8686,30 +9101,27 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
         $event_args['load_more']     = isset( $_POST['load_more'] ) ? $_POST['load_more'] : $venues_settings->single_venue_event_load_more;
         $event_args['hide_past_events'] = isset( $_POST['hide_past_events'] ) ? $_POST['hide_past_events'] : $venues_settings->single_venue_hide_past_events;
         $event_args['post_id'] = isset( $_POST['post_id'] ) ? $_POST['post_id'] : 0;
-        
+         
         // set query arguments
-        $paged     = ( $_POST['paged'] ) ? $_POST['paged'] : 1;
+        $paged     = (int)( $_POST['paged'] ) ? $_POST['paged'] : 1;
         $paged++;
         $pargs     = array(
             'orderby'        => 'em_start_date_time',
             'posts_per_page' => $event_args['event_limit'],
             'offset'         => (int)( $paged-1 ) * (int)$event_args['event_limit'],
             'paged'          => $paged,
-            'hide_past_events' => $event_args['hide_past_events']
+            'hide_past_events' => $event_args['hide_past_events'],
+            'post_status' => 'publish',
         );
 
         $venues_data['event_args']  = $event_args;
         $pargs['post_status'] = !empty( $event_args['hide_past_events'] ) == 1 ? 'publish' : 'any';
-        $venues_data['events'] = $this->get_upcoming_events_for_venue( $event_args['post_id'] , $pargs);
-        
+        //$venues_data['events'] = $this->get_upcoming_events_for_venue( $event_args['post_id'] , $pargs);
+        $venues_data['events'] = $ep_requests->get_upcoming_events_for_taxonomy('em_venue', $event_args['post_id'], $event_args['hide_past_events'], $event_args['event_limit'], $paged, $pargs);
         ob_start();
-        wp_enqueue_style(
-            'ep-performer-views-css',
-            plugin_dir_url( EP_PLUGIN_FILE ) . 'public/css/ep-frontend-views.css',
-            false, EVENTPRIME_VERSION
-        );
-        $this->ep_get_template_part( 'venues/single-venue/event-list-load', null, (object)$venues_data );
-	    
+	$themepath = $ep_requests->eventprime_get_ep_theme('upcoming-events-list-load-tpl');
+        $this->ep_get_template_part( $themepath, null, (object)$venues_data );
+            
         $data['html'] = ob_get_clean();
         $data['paged'] = $paged;
         return $data;
@@ -8718,7 +9130,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
      public function get_eventupcoming_organizer_loadmore(){
         $settings                           = new Eventprime_Global_Settings;
         $organizers_settings                = $settings->ep_get_settings( 'organizers' );
-        
+        $ep_requests = new EP_Requests;
         $event_args  = array();
         $organizer_data                  = array();
         $event_args['event_style']   = isset( $_POST['event_style'] ) ? $_POST["event_style"] : $organizers_settings->single_organizer_event_display_view;
@@ -8738,11 +9150,12 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
             'offset'         => (int)( $paged - 1 ) * (int)$event_args['event_limit'],
             'paged'          => $paged,
             'hide_past_events'=> $event_args['hide_past_events'],
+            'post_status' => 'publish',
         );
         $organizer_data['event_args']  = $event_args;
         
         $pargs['post_status'] = !empty( $event_args['hide_past_events'] ) == 1 ? 'publish' : 'any';
-        $organizer_data['events'] = $this->get_upcoming_events_for_organizer( $event_args['post_id'] , $pargs);
+        $organizer_data['events'] = $ep_requests->get_upcoming_events_for_taxonomy('em_event_organizer', $event_args['post_id'], $event_args['hide_past_events'], $event_args['event_limit'], $paged, $pargs);
         
         ob_start();
         wp_enqueue_style(
@@ -8750,8 +9163,10 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
             plugin_dir_url( EP_PLUGIN_FILE ) . 'public/css/ep-frontend-views.css',
             false, EVENTPRIME_VERSION
         );
-        $this->ep_get_template_part( 'organizers/single-organizer/event-list-load', null, (object)$organizer_data );
-	    $data['html'] = ob_get_clean();
+        $themepath = $ep_requests->eventprime_get_ep_theme('upcoming-events-list-load-tpl');
+
+        $this->ep_get_template_part( $themepath, null, (object)$organizer_data );
+        $data['html'] = ob_get_clean();
         $data['paged'] = $paged;
         return $data;
     }
@@ -8802,9 +9217,12 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
     public function get_eventupcoming_eventtype_loadmore(){
         $settings = new Eventprime_Global_Settings;
         $event_type_settings = $settings->ep_get_settings( 'event_types' );
-        
+        $ep_requests = new EP_Requests;
         $event_args  = array();
         $organizer_data                  = array();
+        $single_type_event_orderby = $this->ep_get_global_settings( 'single_type_event_orderby' );
+        $single_type_event_order = $this->ep_get_global_settings( 'single_type_event_order' );
+            
         $event_args['event_style']   = isset( $_POST['event_style'] ) ? $_POST["event_style"] : $event_type_settings->single_type_event_display_view;
         $event_args['event_limit']   = isset( $_POST['event_limit'] ) ? (empty($_POST["event_limit"]) ? 10 : $_POST["event_limit"]) : (empty($event_type_settings->single_type_event_limit) ? 10 : $event_type_settings->single_type_event_limit );
         $event_args['event_cols']    = isset( $_POST['event_cols'] ) ? $_POST['event_cols']  : $this->ep_check_column_size( $event_type_settings->single_type_event_column );
@@ -8816,36 +9234,44 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ) 
         $paged     = ( $_POST['paged'] ) ? $_POST['paged'] : 1;
         $paged++;
         $pargs     = array(
-            'orderby'        => 'em_start_date_time',
+            'orderby'        => $single_type_event_orderby,
+            'order'        => $single_type_event_order,
             'posts_per_page' => $event_args['event_limit'],
             'offset'         => (int)( $paged-1 ) * (int)$event_args['event_limit'],
             'paged'          => $paged,
-            'hide_past_events' => $event_args['hide_past_events']
+            'hide_past_events' => $event_args['hide_past_events'],
+            'post_status' => 'publish',
         );
         $organizer_data['event_args']  = $event_args;
         
         $pargs['post_status'] = !empty( $event_args['hide_past_events'] ) == 1 ? 'publish' : 'any';
-        $organizer_data['events'] = $this->get_upcoming_events_for_event_type( $event_args['post_id'] , $pargs);
-        
+        //$organizer_data['events'] = $this->get_upcoming_events_for_event_type( $event_args['post_id'] , $pargs);
+        $organizer_data['events'] = $ep_requests->get_upcoming_events_for_taxonomy('em_event_type', $event_args['post_id'], $event_args['hide_past_events'], $event_args['event_limit'], $paged, $pargs);
+            
         ob_start();
         wp_enqueue_style(
             'ep-organizer-views-css',
             plugin_dir_url( EP_PLUGIN_FILE ) . 'public/css/ep-frontend-views.css',
             false, EVENTPRIME_VERSION
         );
-        $this->ep_get_template_part( 'event_types/single-event-type/event-list-load', null, (object)$organizer_data );
-	    
+        $themepath = $ep_requests->eventprime_get_ep_theme('upcoming-events-list-load-tpl');
+
+        $this->ep_get_template_part( $themepath, null, (object)$organizer_data );
+            
         $data['html'] = ob_get_clean();
         $data['paged'] = $paged;
         return $data;
     }
     
     public function get_filtered_event_content() {
+        $ep_requests = new EP_Requests;
         $atts = ( ! empty( $_POST['event_atts'] ) ? (array)json_decode( stripslashes( $_POST['event_atts'] ) ) : array() );
         $events_data = $this->load_event_common_options( $atts );
         ob_start();
          $cal_events = array();
-        $this->ep_get_template_part( 'events/view-list-load', null, (object)$events_data );
+         $themepath = $ep_requests->eventprime_get_ep_theme('events-view-list-load-tpl');
+
+        $this->ep_get_template_part( $themepath, null, (object)$events_data );
 	    $data['html'] = ob_get_clean();
         $data['paged'] = $events_data['paged'];
         if( $events_data['calendar_view'] == 1 ) {
@@ -9682,7 +10108,7 @@ public function ep_get_events( $fields ) {
         }
         $args = apply_filters( 'ep_performers_render_argument', $args, array() );
         $performers = $this->get_performers_post_data($args);
-        $events = $this->get_events_post_data();
+        $events = $this->get_events_post_data(array(),false);
         $event_count = array();
         if(isset($events->posts) && !empty($events->posts)){
             foreach($events->posts as $event){
@@ -9711,16 +10137,30 @@ public function ep_get_events( $fields ) {
                 
             }
         }
-        $p_performers = wp_list_sort( $p_performers , 'events', 'DESC',  false );
-        $pp = new stdClass();
-        // $pp->max_num_pages = count($p_performers);
-        if(count($p_performers) > $posts_per_page){
-            $p_performers = array_slice($p_performers, $offset, $posts_per_page);
-        }
-        $pp->posts = $p_performers;
-        $pp->max_num_pages = count($performers->posts);
-   
-        return $pp;
+        
+        // Sort performers by event count in descending order
+        $p_performers = wp_list_sort($p_performers, 'events', 'DESC', false);
+
+        // Apply pagination (slice the array)
+        $paged_performers = array_slice($p_performers, $offset, $posts_per_page);
+
+        // Prepare the result object
+        $result = new stdClass();
+        $result->posts = $paged_performers;
+        $result->max_num_pages = ceil(count($p_performers) / $posts_per_page);
+
+        return $result;
+        
+//        $p_performers = wp_list_sort( $p_performers , 'events', 'DESC',  false );
+//        $pp = new stdClass();
+//        // $pp->max_num_pages = count($p_performers);
+//        if(count($p_performers) > $posts_per_page){
+//            $p_performers = array_slice($p_performers, $offset, $posts_per_page);
+//        }
+//        $pp->posts = $p_performers;
+//        $pp->max_num_pages = count($performers->posts);
+//   
+//        return $pp;
     }
     
     public function get_popular_event_types( $count = 5, $featured = 0 ){
@@ -10208,7 +10648,14 @@ public function ep_get_events( $fields ) {
        
 
     public function ep_get_available_tickets($event, $ticket){
-        $all_event_bookings = $this->get_event_booking_by_event_id( $event->em_id, true );
+        if(isset($event->all_bookings))
+        {
+            $all_event_bookings = $this->get_event_booking_by_event_id( $event->em_id, true,$event->all_bookings );
+        }
+        else
+        {
+            $all_event_bookings = $this->get_event_booking_by_event_id( $event->em_id, true );
+        }
         $remaining_caps = $ticket->capacity;
         $booked_tickets_data = $all_event_bookings['tickets'];
         if( ! empty( $booked_tickets_data ) ) {
@@ -10302,13 +10749,15 @@ public function ep_get_events( $fields ) {
     }
             
 
-    public function get_total_booking_number_by_event_id( $event_id) {
+    public function get_total_booking_number_by_event_id( $event_id,$all_bookings = null) {
 		$total_booking = 0;
 		if( ! empty( $event_id ) ) {
                         
                             $booking_controller = new EventPrime_Bookings;
-                            $all_bookings = $booking_controller->get_event_bookings_by_event_id( $event_id );
-                        
+                            if(empty($all_bookings))
+                            {
+                                $all_bookings = $booking_controller->get_event_bookings_by_event_id( $event_id );
+                            }
 			if( ! empty( $all_bookings ) ) {
 				foreach( $all_bookings as $booking ) {
 					//$booking_data = $booking_controller->load_booking_detail( $booking->ID, false );
@@ -10349,7 +10798,14 @@ public function ep_get_events( $fields ) {
 	public function get_event_available_tickets( $event ) {
 		$available_tickets = 0;
 		if( ! empty( $event ) && ! $this->check_event_has_expired( $event ) && ! empty( $event->all_tickets_data ) ) {
-			$all_event_bookings = $this->get_event_booking_by_event_id( $event->id, true );
+                        if(isset($event->all_bookings))
+                        {
+                            $all_event_bookings = $this->get_event_booking_by_event_id( $event->id, true,$event->all_bookings );
+                        }
+                        else
+                        {
+                            $all_event_bookings = $this->get_event_booking_by_event_id( $event->id, true );
+                        }
 			$booked_tickets_data = $all_event_bookings['tickets'];
 			foreach( $event->all_tickets_data as $ticket ) {
 				$check_ticket_visibility = $this->check_for_ticket_visibility( $ticket, $event );
@@ -10953,10 +11409,11 @@ public function ep_get_events( $fields ) {
     
     public function ep_check_event_restrictions($event,$user_id = '')
     {
-        $max_tickets_limit_per_user = isset($event->em_event_max_tickets_per_user)?$event->em_event_max_tickets_per_user:0;
-        $max_tickets_limit_per_order = isset($event->em_event_max_tickets_per_order)?$event->em_event_max_tickets_per_order:0;
+        $max_tickets_limit_per_user = isset($event->em_event_max_tickets_per_user)?(int)$event->em_event_max_tickets_per_user:0;
+        $max_tickets_limit_per_order = isset($event->em_event_max_tickets_per_order)?(int)$event->em_event_max_tickets_per_order:0;
         $max_ticket_reached_message = ( isset($event->em_event_max_tickets_reached_message) && ! empty($event->em_event_max_tickets_reached_message))?$event->em_event_max_tickets_reached_message:esc_html__('You have already reached the maximum ticket limit for this event and cannot purchase additional tickets.','eventprime-event-calendar-management');
         $return = array(true,'');
+        //var_dump($max_tickets_limit_per_user);die;
         if($max_tickets_limit_per_user > 0)
         {
             $event_id= $event->em_id;
@@ -11148,6 +11605,46 @@ public function ep_get_events( $fields ) {
         $count = $this->eventprime_get_event_booking_stats_by_event_id($event_id, $bookings);
         return $count;
     }
+    
+    public function eventprime_get_pm_theme_name() {
+           $dirname               = array();
+           $ep_theme_path          = plugin_dir_path( EP_PLUGIN_FILE ) . 'public/partials/themes/';
+           
+           $wp_theme_dir           = get_stylesheet_directory();
+           $override_ep_theme_path = $wp_theme_dir . '/eventprime/themes/';
+           if ( file_exists( $ep_theme_path ) ) {
+                   foreach ( glob( $ep_theme_path . '*', GLOB_ONLYDIR ) as $dir ) {
+                             $dirname[] = basename( $dir );
+                   }
+           }
+           
+           if ( file_exists( $override_ep_theme_path ) ) {
+                   foreach ( glob( $override_ep_theme_path . '*', GLOB_ONLYDIR ) as $dir2 ) {
+                             $dirname[] = basename( $dir2 );
+                   }
+           }
+           return array_unique( $dirname );
+   }
+
+   public function eventprime_get_pm_theme_path() {
+           $dirname               = array();
+           $ep_theme_path          =  plugin_dir_path( EP_PLUGIN_FILE ) . 'public/partials/themes/';
+           $wp_theme_dir           = get_stylesheet_directory();
+           $override_ep_theme_path = $wp_theme_dir . '/eventprime/themes/';
+           if ( file_exists( $ep_theme_path ) ) {
+                   foreach ( glob( $ep_theme_path . '*', GLOB_ONLYDIR ) as $dir ) {
+                             $dirname[] = plugin_dir_url( EP_PLUGIN_FILE ) . 'public/partials/themes/' . basename( $dir );
+                   }
+           }
+
+           if ( file_exists( $override_ep_theme_path ) ) {
+                   foreach ( glob( $override_ep_theme_path . '*', GLOB_ONLYDIR ) as $dir2 ) {
+                             $dirname[] = get_stylesheet_directory_uri() . '/eventprime/themes/' . basename( $dir2 );
+                   }
+           }
+           return array_unique( $dirname );
+   }
+
 
 
     

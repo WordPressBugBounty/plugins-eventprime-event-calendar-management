@@ -112,7 +112,7 @@ $sub_options = $global_settings->sub_options;
                 </label>
             </th>
             <td class="forminp forminp-text">
-                <input name="google_recaptcha_site_key" class="regular-text" id="google_recaptcha_site_key" type="text" value="<?php echo isset($global_options->google_recaptcha_site_key) ? esc_attr($global_options->google_recaptcha_site_key) : '';?>" <?php echo isset($global_options->google_recaptcha_site_key ) && $global_options->google_recaptcha_site_key == 1 ? 'required' : '';?>>
+                <input name="google_recaptcha_site_key" class="regular-text" id="google_recaptcha_site_key" type="text" value="<?php echo isset($global_options->google_recaptcha_site_key) ? esc_attr($global_options->google_recaptcha_site_key) : '';?>" <?php echo isset($global_options->google_recaptcha ) && $global_options->google_recaptcha == 1 ? 'required' : '';?>>
             </td>
         </tr>
         <tr valign="top" class="ep_google_recaptcha_child" style="<?php echo isset($global_options->google_recaptcha ) && $global_options->google_recaptcha == 1 ? '' : 'display:none;';?>">
@@ -122,7 +122,7 @@ $sub_options = $global_settings->sub_options;
                 </label>
             </th>
             <td class="forminp forminp-text">
-                <input name="google_recaptcha_secret_key" class="regular-text" id="google_recaptcha_secret_key" type="text" value="<?php echo isset($global_options->google_recaptcha_secret_key) ? esc_attr($global_options->google_recaptcha_secret_key) : '';?>" <?php echo isset($global_options->google_recaptcha_secret_key ) && $global_options->google_recaptcha_secret_key == 1 ? 'required' : '';?>>
+                <input name="google_recaptcha_secret_key" class="regular-text" id="google_recaptcha_secret_key" type="text" value="<?php echo isset($global_options->google_recaptcha_secret_key) ? esc_attr($global_options->google_recaptcha_secret_key) : '';?>" <?php echo (isset($global_options->google_recaptcha ) && $global_options->google_recaptcha == 1) ? 'required' : '';?>>
             </td>
         </tr>
     </tbody>

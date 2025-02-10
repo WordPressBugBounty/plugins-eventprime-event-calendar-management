@@ -89,6 +89,7 @@ class EventPrime_Admin_settings{
         $global_settings = new Eventprime_Global_Settings;
         $admin_notices = new EventM_Admin_Notices;
         $global_settings_data = $global_settings->ep_get_settings();
+        $global_settings_data->eventprime_theme     = isset( $form_data['eventprime_theme'] ) ? $form_data['eventprime_theme'] : 'default';
         $global_settings_data->time_format                    = ( ! empty( $form_data['time_format'] ) ? sanitize_text_field( $form_data['time_format'] ) : 'h:mmt' );
         $global_settings_data->required_booking_attendee_name = isset($form_data['required_booking_attendee_name']) ? (int) $form_data['required_booking_attendee_name'] : 0;
         $global_settings_data->hide_0_price_from_frontend     = isset($form_data['hide_0_price_from_frontend']) ? (int) $form_data['hide_0_price_from_frontend'] : 0;
@@ -135,6 +136,7 @@ class EventPrime_Admin_settings{
      * Save general settings - external setting tab
      */
     public function save_external_settings($form_data) {
+        $error = array();
         $global_settings = new Eventprime_Global_Settings;
         $admin_notices = new EventM_Admin_Notices;
         $global_settings_data = $global_settings->ep_get_settings();
@@ -144,16 +146,42 @@ class EventPrime_Admin_settings{
         $global_settings_data->google_cal_client_id        = sanitize_text_field($form_data['google_cal_client_id']);
         $global_settings_data->google_cal_api_key          = sanitize_text_field($form_data['google_cal_api_key']);
         $global_settings_data->google_recaptcha            = isset($form_data['google_recaptcha']) && !empty($form_data['google_recaptcha']) ? 1 : 0;
-        $global_settings_data->google_recaptcha_site_key   = sanitize_text_field($form_data['google_recaptcha_site_key']);
-        $global_settings_data->google_recaptcha_secret_key = sanitize_text_field($form_data['google_recaptcha_secret_key']);
-
-        $global_settings->ep_save_settings( $global_settings_data );
-        $admin_notices->ep_add_notice( 'success', esc_html__( 'Setting saved successfully', 'eventprime-event-calendar-management' ) );
-        $redirect_url = admin_url( "edit.php?post_type=em_event&page=ep-settings&tab=general&sub_tab=external" );
-        $nonce = wp_create_nonce('ep_settings_tab');
-        $redirect_url = add_query_arg( array('tab_nonce'=>$nonce ),$redirect_url);
-        wp_redirect( $redirect_url );
-        exit();
+        $global_settings_data->google_recaptcha_site_key   = sanitize_text_field(trim($form_data['google_recaptcha_site_key']));
+        $global_settings_data->google_recaptcha_secret_key = sanitize_text_field(trim($form_data['google_recaptcha_secret_key']));
+        if($global_settings_data->google_recaptcha==1)
+        {
+            if(empty($global_settings_data->google_recaptcha_site_key))
+            {
+                $error[] = esc_html__( 'reCAPTCHA site Key is required field.', 'eventprime-event-calendar-management' );
+                
+            }
+            if(empty($global_settings_data->google_recaptcha_secret_key))
+            {
+                $error[] = esc_html__( 'reCAPTCHA secret Key is required field.', 'eventprime-event-calendar-management' );
+                
+            }
+            
+        }
+        if(!empty($error))
+        {
+            $all_error = implode(' ', $error);
+            $admin_notices->ep_add_notice( 'error',$all_error);
+            $redirect_url = admin_url( "edit.php?post_type=em_event&page=ep-settings&tab=general&sub_tab=external" );
+            $nonce = wp_create_nonce('ep_settings_tab');
+            $redirect_url = add_query_arg( array('tab_nonce'=>$nonce ),$redirect_url);
+            wp_redirect( $redirect_url );
+            exit();
+        }
+        else
+        {
+            $global_settings->ep_save_settings( $global_settings_data );
+            $admin_notices->ep_add_notice( 'success', esc_html__( 'Setting saved successfully', 'eventprime-event-calendar-management' ) );
+            $redirect_url = admin_url( "edit.php?post_type=em_event&page=ep-settings&tab=general&sub_tab=external" );
+            $nonce = wp_create_nonce('ep_settings_tab');
+            $redirect_url = add_query_arg( array('tab_nonce'=>$nonce ),$redirect_url);
+            wp_redirect( $redirect_url );
+            exit();
+        }
     }
 
     /**
@@ -374,6 +402,7 @@ class EventPrime_Admin_settings{
         $global_settings_data->calendar_title_format           = sanitize_text_field( $form_data['calendar_title_format'] );
         $global_settings_data->hide_calendar_rows              = isset( $form_data['hide_calendar_rows'] ) ? (int) $form_data['hide_calendar_rows'] : 0;
         $global_settings_data->hide_time_on_front_calendar     = isset( $form_data['hide_time_on_front_calendar'] ) ? (int) $form_data['hide_time_on_front_calendar'] : 0;
+        $global_settings_data->show_event_types_on_calendar     = isset( $form_data['show_event_types_on_calendar'] ) ? (int) $form_data['show_event_types_on_calendar'] : 0;
         $global_settings_data->front_switch_view_option        = $form_data['front_switch_view_option'];
         $global_settings_data->hide_past_events                = isset($form_data['hide_past_events']) ? (int) $form_data['hide_past_events'] : 0;
         $global_settings_data->show_no_of_events_card          = sanitize_text_field( $form_data['show_no_of_events_card'] );

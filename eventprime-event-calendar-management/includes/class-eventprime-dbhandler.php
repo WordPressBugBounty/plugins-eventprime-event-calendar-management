@@ -377,6 +377,51 @@ class EP_DBhandler {
         return $results;
 
     }
+    
+    public function eventprime_get_all_posts_new($post_type, $result_type = 'posts', $status = 'publish', $orderby = 'title', $offset = 0, $order = 'ASC', $limit = -1, $meta_key = '', $meta_value = '', $meta_query = array(), $tax_query = array(), $date_query = array(), $search = '', $author = 0, $exclude_posts = array()) {
+        $return = false;
+
+        $args = array(
+            'post_type'      => $post_type,
+            'post_status'    => $status,
+            'orderby'        => $orderby,
+            'offset'         => $offset,
+            'order'          => $order,
+            'posts_per_page' => ($limit > 0) ? $limit : 10, // Default to 10 posts
+        );
+
+        if (!empty($meta_key)) $args['meta_key'] = $meta_key;
+        if (!empty($meta_value)) $args['meta_value'] = $meta_value;
+        if (!empty($meta_query)) $args['meta_query'] = $meta_query;
+        if (!empty($tax_query)) $args['tax_query'] = $tax_query;
+        if (!empty($date_query)) $args['date_query'] = $date_query;
+        if (!empty($search)) $args['s'] = $search;
+        if (!empty($author)) $args['author'] = $author;
+        if (!empty($exclude_posts)) $args['post__not_in'] = $exclude_posts;
+
+        $cache_key = md5(json_encode($args));
+        $cached_posts = wp_cache_get($cache_key, 'eventprime_posts');
+
+        if ($cached_posts !== false) {
+            return $cached_posts;
+        }
+
+        $query = new WP_Query($args);
+
+        if ($result_type === 'count') {
+            $return = $query->found_posts;
+        } else {
+            if ($query->have_posts()) {
+                $return = $query->get_posts();
+            }
+        }
+
+        wp_reset_postdata();
+
+        wp_cache_set($cache_key, $return, 'eventprime_posts', 3600); // Cache for 1 hour
+        return $return;
+    }
+
 
     public function eventprime_get_all_posts($post_type, $result_type = 'posts', $status = 'publish', $orderby = 'title', $offset = 0, $order = 'ASC', $limit = -1, $meta_key = '', $meta_value = '', $meta_query = array(), $tax_query = array(), $date_query = array(), $search = '', $author = 0, $exclude_posts = array()) {
         // Set up the query arguments
@@ -1138,6 +1183,7 @@ class EP_DBhandler {
         $post_data['em_id'] = $post['post_ID'];
         $post_data['em_name'] = $post['post_title'];
         /* taxonomy update */
+        //print_r($post['tax_input']);die;
         if (isset($post['tax_input']) && !empty($post['tax_input'])) {
            $post_data['em_event_type'] = (isset($post['tax_input']['em_event_type']))?$post['tax_input']['em_event_type']:'';
            $post_data['em_venue'] = (isset($post['tax_input']['em_venue']))?$post['tax_input']['em_venue']:'';
@@ -1259,6 +1305,9 @@ class EP_DBhandler {
         // add other settings meta box
         $post_data['em_event_text_color'] = (isset($post['em_event_text_color'])) ? sanitize_text_field($post['em_event_text_color']) : '';
         $post_data['em_audience_notice'] = (isset($post['em_audience_notice'])) ? sanitize_textarea_field($post['em_audience_notice']) : '';
+        
+        
+        $post_data['eventprime_event_theme'] = (isset($post['eventprime_event_theme'])) ? sanitize_text_field($post['eventprime_event_theme']) : '';
         
         // add restrictions settings meta box
         $post_data['em_event_max_tickets_per_user'] = (isset($post['em_event_max_tickets_per_user'])) ? sanitize_text_field($post['em_event_max_tickets_per_user']) : '';
@@ -2220,7 +2269,7 @@ class EP_DBhandler {
                 }
             } elseif ($ticket['em_ticket_ends_booking_type'] == 'event_date') {
                 $end_date['event_option'] = $ticket['em_ticket_ends_booking_event_option'];
-            } elseif ($ticket['em_ticket_ends_booking_type'] == 'event_ends') {
+            } elseif ($ticket['em_ticket_ends_booking_type'] == 'relative_date') {
                 if (isset($ticket['em_ticket_ends_booking_days']) && !empty($ticket['em_ticket_ends_booking_days'])) {
                     $end_date['days'] = $ticket['em_ticket_ends_booking_days'];
                 }
@@ -2999,7 +3048,9 @@ class EP_DBhandler {
                 'post_content' => $post->post_content,
                 'post_type' => $post->post_type,
                 'post_author' => get_current_user_id(),
-                'post_parent' => $post->ID
+                'post_parent' => $post->ID,
+                'comment_status'=> 'closed', // Disable comments
+                'ping_status'   => 'closed'  // Disable pingbacks
             );
             
             $new_post_id = wp_insert_post($new_post); // new post id

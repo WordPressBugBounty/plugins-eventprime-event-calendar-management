@@ -77,6 +77,10 @@ ul.ep_event_metabox_tabs li.ep_event_restrictions a::before{
     content: "\f160";
 }
 
+ul.ep_event_metabox_tabs li.ep_event_theme a::before{
+    content: "\f538";
+}
+
 ul.ep_event_metabox_tabs li.results_options a::before{
     content: "\f488";
 }
@@ -86,8 +90,12 @@ ul.ep_event_metabox_tabs li.ep-event-metabox-tab a span{
     margin-right: 0.618em;
 }
 
-.ep_event_options_panel, #em_event_organizer-adder, .ep_event_checkout_fields_panel{
+.ep_event_options_panel, .ep_event_checkout_fields_panel, #newem_event_type_parent, #newem_venue_parent, #newem_event_organizer_parent{
     display: none;
+}
+
+#ep_event_theme_data .ep-eventprime-theme #eventprime_event_theme{
+    text-transform: capitalize;
 }
 
 .ep-recurrence-advanced-wrapper{

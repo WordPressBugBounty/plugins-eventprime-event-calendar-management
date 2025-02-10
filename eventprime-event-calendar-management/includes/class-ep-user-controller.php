@@ -56,7 +56,7 @@ class EventM_User_Controller {
      */
     public function render_login_template( $atts = array() ) {
         $ep_functions = new Eventprime_Basic_Functions;
-
+        $ep_requests = new EP_Requests;
         ob_start();
 
         $this->enqueue_style_script();
@@ -117,8 +117,9 @@ class EventM_User_Controller {
         $args = $this->get_login_options( $args );
 
         $args->current_user = wp_get_current_user();
+        $themepath = $ep_requests->eventprime_get_ep_theme('login-tpl');
         
-        $ep_functions->ep_get_template_part( 'users/login', null, $args );
+        $ep_functions->ep_get_template_part( $themepath, null, $args );
 		
 		return ob_get_clean();
     }

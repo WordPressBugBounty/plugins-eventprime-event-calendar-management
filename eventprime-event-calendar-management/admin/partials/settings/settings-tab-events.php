@@ -271,6 +271,20 @@ $sub_options = $global_settings->sub_options;
                 <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( 'Enable to hide event time from the front end calendar view.', 'eventprime-event-calendar-management' );?></div>
             </td>
         </tr>
+        <tr valign="top">
+            <th scope="row" class="titledesc">
+                <label for="show_event_types_on_calendar">
+                    <?php esc_html_e( 'Show Event Types on Calendar View', 'eventprime-event-calendar-management' );?>
+                </label>
+            </th>
+            <td class="forminp forminp-text">
+                <label class="ep-toggle-btn">
+                    <input name="show_event_types_on_calendar" id="show_event_types_on_calendar" type="checkbox" value="1" <?php echo isset($global_options->show_event_types_on_calendar ) && $global_options->show_event_types_on_calendar == 1 ? 'checked' : '';?>>
+                    <span class="ep-toogle-slider round"></span>
+                </label>
+                <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( 'Enable to show event types on the front end calendar view.', 'eventprime-event-calendar-management' );?></div>
+            </td>
+        </tr>
     </tbody>
 </table>
 <div class="ep-setting-tab-content">

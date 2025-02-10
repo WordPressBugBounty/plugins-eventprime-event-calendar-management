@@ -76,6 +76,7 @@
     color: #333;
     text-overflow: ellipsis;
     width: 100%;
+    line-height: normal;
     display: inline-block;
     overflow: hidden;
     white-space: nowrap;
@@ -143,7 +144,7 @@
     background-color: #fff;
     width: 40px;
     height: 40px;
-    line-height: 45px;
+    line-height: 30px;
     color: var(--theme-color);
     font-size: 16px;
     text-align: center;
@@ -558,6 +559,36 @@ ul.ep-box-social-links li::marker{
     position: relative;
     z-index: 2;
 }
+
+/*---Theme Specific---*/
+
+
+html.hillstar-theme .ep-single-figure-box {
+    padding: 50px 0;
+    margin-right: -200px;
+    position: relative;
+    z-index: 2;
+}
+
+html.hillstar-theme .ep-single-box-content {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    padding: 50px 50px 50px 220px;
+    border-radius: 20px;
+    align-items: center;
+    /* background-color: rgba(255, 255, 255, 0.25); */
+}
+
+html.hillstar-theme .ep-single-figure-box img {
+    border-radius: 20px;
+    width: 100%;
+    max-width: 100%;
+    max-height: 450px;
+    object-fit: cover;
+}
+
+/*---Theme Specific End---*/
 
 .ep-single-figure-box img {
     border-radius: 20px;

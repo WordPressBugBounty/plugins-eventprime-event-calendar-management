@@ -2914,7 +2914,9 @@ jQuery( function( $ ) {
                 if( $( '#ep_additional_ticket_fee_label' + new_ind ).length > 0 ) {
                     let label_val = $( '#ep_additional_ticket_fee_label' + new_ind ).val();
                     let price_val = $( '#ep_additional_ticket_fee_price' + new_ind ).val();
+                    price_val = (parseFloat(price_val) || 0).toFixed(2);
                     let add_data = { label: label_val, price: price_val };
+                    //console.log(add_data);
                     additional_fee_arr.push( add_data );
                 }
             });
@@ -3809,6 +3811,7 @@ jQuery( function( $ ) {
         $( 'input[name=em_ticket_offer_seat_number]' ).val( '' );
         $( 'select[name="em_ticket_offer_discount_type"] option:first' ).attr( 'selected', 'selected' );
         $( 'input[name=em_ticket_offer_discount]' ).val( '' );
+        $( 'input[name=em_ticket_offer_volumn_count]').val('');
     }
     
     // show/hide panels
@@ -3866,5 +3869,9 @@ jQuery( function( $ ) {
         $('#wp-link-wrap').contents().wrapAll(ep_link_form_element);
     });
     
+    // Prevent manual typing but allow dropdown selection
+    $('.epTimePicker').on('keydown', function(event) {
+        event.preventDefault(); // Blocks typing
+    });
     
 });

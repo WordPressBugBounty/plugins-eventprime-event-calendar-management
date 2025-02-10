@@ -570,7 +570,7 @@ $ext_list = $global_function->ep_list_all_exts();
                         </div>
                         <div class="ep-scblock ep-sc-description-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Description', 'eventprime-event-calendar-management'); ?></div> 
-                            <div class="ep-sc-dec ep-morelink ep-box-w-65">Displays the user profile panel where a user can login and see his/her bookings for events. 'default' attribute will be use to show login or registration screens when user is not loggedin.</b></div>
+                            <div class="ep-sc-dec ep-morelink ep-box-w-65">Displays the user profile panel where a user can login and see his/her bookings for events. 'default' attribute will be use to show login or registration screens when user is not logged in.</b></div>
                         </div>
                     </div> 
                     <div class="ep-scblock ep-shorocode-show-more ep-d-flex ep-align-items-center ep-content-center ep-cursor">

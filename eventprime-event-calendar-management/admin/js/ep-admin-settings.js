@@ -423,7 +423,17 @@ jQuery( function( $ ) {
     }
 
     function ep_submit_payment_ajax( ele ) {
+        
         var loader = $( '<span class="spinner is-active" style="float: none;"></span>' );
+         var $button = $(ele);
+
+        // Disable the button to prevent further clicks
+        if ($button.prop('disabled')) {
+            return; // If the button is already disabled, do nothing
+        }
+
+        $button.prop('disabled', true); // Disable the button
+        
         $( loader ).insertAfter( $( ele ).parent() );
         let method = ele.getAttribute('name');
         let method_status = 0;
@@ -458,6 +468,7 @@ jQuery( function( $ ) {
                 }
                 loader.remove();
                 show_toast( 'success', response.data.message );
+                $button.prop('disabled', false);
             }
         });
     }
@@ -469,6 +480,15 @@ jQuery( function( $ ) {
     // set default payment option
     function ep_submit_default_payment_processor_ajax( ele ){
         var loader = $( '<span class="spinner is-active" style="float: none;"></span>' );
+        var $button = $(ele);
+
+        // Disable the button to prevent further clicks
+        if ($button.prop('disabled')) {
+            return; // If the button is already disabled, do nothing
+        }
+
+        $button.prop('disabled', true); // Disable the button
+        
         $( loader ).insertAfter( $( ele ).parent() );
         let ep_default_payment_processor = ele.value;
         console.log(ep_default_payment_processor);
@@ -486,6 +506,7 @@ jQuery( function( $ ) {
                 data: data,
                 success: function( response ) {
                     loader.remove();
+                    $button.prop('disabled', false);
                     if( response.success ) {
                         window.location.reload();
                     } else{
@@ -497,6 +518,7 @@ jQuery( function( $ ) {
             });
         } else{
             loader.remove();
+            $button.prop('disabled', false);
             let payment_name = ep_default_payment_processor.split( '_' )[0];
             show_toast( 'error', ep_admin_settings.activate_payment + ' ' + payment_name + ' ' + ep_admin_settings.payment_text);
             $( '#ep_default_payment_' + ep_default_payment_processor ).prop( 'checked', false );

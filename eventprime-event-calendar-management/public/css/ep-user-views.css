@@ -170,6 +170,13 @@ ep-sl-event-action span:hover{
     font-size: 62px;
 }
 
+.ep-login-form .ep-modal-title{
+    word-wrap: break-word;
+}
+
+.ep-login-form-submit{
+    word-break: break-word;
+}
 
 /*-- Login Register Form End--*/
 
@@ -179,7 +186,7 @@ ep-sl-event-action span:hover{
 .ep-logged-in-user-wrap {
     width: 100%;
     max-width: 600px;
-    margin: 0px auto;
+    margin: 0px auto 50px;
 }
 
 /*--Logged in user View End---*/

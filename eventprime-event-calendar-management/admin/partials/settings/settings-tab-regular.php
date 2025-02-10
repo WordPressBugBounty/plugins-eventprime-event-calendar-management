@@ -3,6 +3,8 @@ $global_settings = new Eventprime_Global_Settings;
 $admin_notices = new EventM_Admin_Notices;
 $global_options = $global_settings->ep_get_settings();
 $ep_functions = new Eventprime_Basic_Functions;
+$themes = $ep_functions->eventprime_get_pm_theme_name();
+//print_r($global_options->eventprime_theme);die;
 if (isset($_GET['tab_nonce']) && isset( $_GET['sub_tab'] ) && wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['tab_nonce'])), 'ep_settings_tab'))
 {
     $sub_tab = sanitize_text_field(wp_unslash($_GET['sub_tab']));
@@ -13,6 +15,7 @@ else
     $active_sub_tab = 'events';
 }
 $sub_options = $global_settings->sub_options;
+
 ?>
 <div class="ep-setting-tab-content">
     <h2><?php esc_html_e( 'Setup', 'eventprime-event-calendar-management' );?></h2>
@@ -20,6 +23,28 @@ $sub_options = $global_settings->sub_options;
 </div>
 <table class="form-table">
     <tbody>
+        <tr valign="top">
+            <th scope="row" class="titledesc">
+                <label for="eventprime_theme">
+                    <?php esc_html_e( 'Layout Template', 'eventprime-event-calendar-management' );?>
+                </label>
+            </th>
+            <td class="forminp forminp-text">
+                <select name="eventprime_theme" id="eventprime_theme" class="ep-form-control">
+                    <?php 
+                    foreach($themes as $themename){
+                        echo $themename;
+                        if($themename == $global_options->eventprime_theme){?>
+                            <option value="<?php echo esc_attr($themename);?>" selected><?php echo esc_html($themename);?></option><?php
+                        }else{?>
+                            <option value="<?php echo esc_attr($themename);?>"><?php echo esc_html($themename);?></option><?php
+                        }
+                    }?>
+                </select>
+                <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( 'Choose a template for all frontend event views, such as event listings and single event pages. The "Default" template, bundled with EventPrime, will apply unless overridden by an event-specific template.', 'eventprime-event-calendar-management' );?></div>
+                <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e('To create custom templates, copy and rename the "default" folder from "[plugin root]/public/partials/themes" to "[your current theme directory]/eventprime/themes".', 'eventprime-event-calendar-management'); ?></div>
+            </td>
+        </tr>
         <tr valign="top">
             <th scope="row" class="titledesc">
                 <label for="time_format">
@@ -40,7 +65,6 @@ $sub_options = $global_settings->sub_options;
                 <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( 'Time format for frontend event lists and single event pages. Admin area time format is based on your WordPress settings.', 'eventprime-event-calendar-management' );?></div>
             </td>
         </tr>
-        
         <tr valign="top">
             <th scope="row" class="titledesc">
                 <label for="required_booking_attendee_name">

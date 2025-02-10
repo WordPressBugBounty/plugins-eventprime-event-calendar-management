@@ -750,6 +750,12 @@ html.ep-embed-responsive .emagic{
     color: #212529!important;
 }
 
+
+.ep-text-break {
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+}
+
 /*-- If Dark Mode On---*/
 
 .ep-dark-mode-enabled .ep-text-dark {

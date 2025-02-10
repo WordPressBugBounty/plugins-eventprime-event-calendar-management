@@ -45,6 +45,11 @@ jQuery( function( $ ) {
                 $( '.ui-timepicker-wrapper' ).addClass( 'ep-ui-show-on-top' );
             }
         });
+        
+         // Prevent manual typing but allow dropdown selection
+        $('.epTimePicker').on('keydown', function(event) {
+            event.preventDefault(); // Blocks typing
+        });
 
         $( "#accordion" ).accordion({
             collapsible: true
@@ -1004,6 +1009,12 @@ jQuery( function( $ ) {
         if( em_min_ticket_no ){
             ticket_tier_data.min_ticket_no = em_min_ticket_no;
         }
+        else
+        {
+            $( '#ep_event_ticket_min_ticket_error' ).html( requireString );
+            document.getElementById( 'ep_min_ticket_no' ).focus();
+            return false;
+        }
         // max ticket number
         let em_max_ticket_no = tickets_data.get( 'max_ticket_no' );
         if( em_max_ticket_no ) {
@@ -1021,6 +1032,12 @@ jQuery( function( $ ) {
                 }
             }
             ticket_tier_data.max_ticket_no = em_max_ticket_no;
+        }
+        else
+        {
+            $( '#ep_event_ticket_max_ticket_error' ).html( requireString );
+            document.getElementById( 'ep_max_ticket_no' ).focus();
+            return false;
         }
 
         initiate_the_ticket_modal();

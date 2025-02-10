@@ -5,7 +5,11 @@
             if( isset( $bookings_data->posts_details->posts ) && ! empty( $bookings_data->posts_details->posts ) ) {
                 $booking_controller = new EventPrime_Bookings; ?>
                 <div class="ep-d-flex ep-justify-content-between ep-align-items-center"><?php
-                    echo sprintf( esc_html__( '%d booking found', 'eventprime-event-calendar-management' ), esc_html($bookings_data->posts_details->found_posts) );?>
+                    if ($bookings_data->posts_details->found_posts > 1) {
+                        echo sprintf( esc_html__( '%d bookings found', 'eventprime-event-calendar-management' ), esc_html($bookings_data->posts_details->found_posts) );
+                    } else {
+                        echo sprintf( esc_html__( '%d booking found', 'eventprime-event-calendar-management' ), esc_html($bookings_data->posts_details->found_posts) );
+                    } ?>
                     <?php if( class_exists( 'Eventprime_Advanced_Reports' ) ) { ?>
                         <button type="button" id="ep_booking_export" class="button-primary ep-btn ep-ar-btn-primary"><?php echo esc_html__( 'Export All', 'eventprime-event-calendar-management' );?></button><?php 
                     }?>

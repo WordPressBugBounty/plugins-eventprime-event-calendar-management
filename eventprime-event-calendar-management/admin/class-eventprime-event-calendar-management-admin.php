@@ -246,6 +246,7 @@ class Eventprime_Event_Calendar_Management_Admin {
             wp_enqueue_style( 'ep-toast-css' );
             wp_enqueue_script( 'ep-toast-js' );
             wp_enqueue_script( 'ep-toast-message-js' );
+            wp_enqueue_script( 'ep-event-taxonomy', plugin_dir_url( __FILE__ ) . 'js/ep-event-taxonomy.js', array( 'jquery' ), $this->version );
         }
 
         if ( $current_page == 'ep-settings' || $current_page == 'ep-bulk-emails' ) {
@@ -573,6 +574,21 @@ class Eventprime_Event_Calendar_Management_Admin {
 				)
             );
 
+            wp_enqueue_script( 'ep-common-script', plugin_dir_url( __FILE__ ) . 'js/ep-common-script.js', array( 'jquery' ), $this->version );
+            // localized global settings
+            $global_settings = $ep_functions->ep_get_global_settings();
+            $currency_symbol = $ep_functions->ep_currency_symbol();
+            wp_localize_script(
+                'ep-common-script',
+                'eventprime',
+                array(
+					'global_settings' => $global_settings,
+					'currency_symbol' => $currency_symbol,
+					'ajaxurl'         => admin_url( 'admin-ajax.php' ),
+					'trans_obj'       => $ep_functions->ep_define_common_field_errors(),
+				)
+            );
+
             wp_enqueue_script( 'google_charts', 'https://www.gstatic.com/charts/loader.js', array( 'jquery' ) );
             wp_enqueue_style( 'ep-admin-reports', plugin_dir_url( __FILE__ ) . 'css/ep-admin-reports.css', false, $this->version );
             wp_enqueue_script(
@@ -652,6 +668,7 @@ class Eventprime_Event_Calendar_Management_Admin {
                 'show_in_menu'       => true,
                 'query_var'          => true,
                 'hierarchical'       => true,
+                'single_value'      => true, 
                 'show_in_quick_edit' => false,
                 'capabilities'       => array(
                     'manage_terms' => 'manage_em_event_terms',
@@ -664,7 +681,7 @@ class Eventprime_Event_Calendar_Management_Admin {
                     //'ep_mask'    => EP_EM_EVENTS,
                     'with_front' => true,
                 ),
-                'meta_box_cb'        => array( $ep_functions, 'custom_em_event_type_dropdown' ),
+               // 'meta_box_cb'        => array( $ep_functions, 'custom_em_event_type_dropdown' ),
                 //'show_in_rest' => true,
             )
         );
@@ -720,7 +737,7 @@ class Eventprime_Event_Calendar_Management_Admin {
                     'assign_terms' => 'assign_em_event_terms',
                 ),
                 //'meta_box_cb' => array($ep_functions, 'custom_em_venue_dropdown'),
-                'meta_box_cb'        => array( $ep_functions, 'ep_taxonomy_select_meta_box' ),
+                //'meta_box_cb'        => array( $ep_functions, 'ep_taxonomy_select_meta_box' ),
                 //'show_in_rest'      => true,
             )
         );
@@ -818,8 +835,8 @@ class Eventprime_Event_Calendar_Management_Admin {
 					'search_items'          => esc_html__( 'Search Event', 'eventprime-event-calendar-management' ),
 				),
 				'description'         => esc_html__( 'Here you can add new events.', 'eventprime-event-calendar-management' ),
-				'public'              => false,
-				'publicly_queryable'  => false,
+				'public'              => true,
+				'publicly_queryable'  => true,
 				'show_ui'             => true,
 				'show_in_nav_menus'   => true,
 				'show_in_menu'        => true,
@@ -878,8 +895,8 @@ class Eventprime_Event_Calendar_Management_Admin {
 				),
 				/* translators: %s is the plural form of performer. */
 				'description'         => sprintf( esc_html__( 'Here you can add new %s.', 'eventprime-event-calendar-management' ), strtolower( $plural_performer_text ) ),
-				'public'              => false,
-				'publicly_queryable'  => false,
+				'public'              => true,
+				'publicly_queryable'  => true,
 				'show_ui'             => true,
 				'show_in_nav_menus'   => true,
 				'show_in_menu'        => 'edit.php?post_type=em_event',
@@ -1332,6 +1349,12 @@ class Eventprime_Event_Calendar_Management_Admin {
                                                         'class'    => array( 'ep_event_restrictions' ),
                                                         'priority' => 100,
                                                 ),
+                'event_theme'  => array(
+                                                        'label'    => esc_html__( 'Event Layout Template', 'eventprime-event-calendar-management' ),
+                                                        'target'   => 'ep_event_theme_data',
+                                                        'class'    => array( 'ep_event_theme' ),
+                                                        'priority' => 100,
+                                                ),
 			)
         );
         // Sort tabs based on priority.
@@ -1355,6 +1378,7 @@ class Eventprime_Event_Calendar_Management_Admin {
         include 'partials/metaboxes/meta-box-results-panel-html.php';
         include 'partials/metaboxes/meta-box-bookings-panel-html.php';
         include 'partials/metaboxes/meta-box-restrictions-panel-html.php';
+        include 'partials/metaboxes/meta-box-event-theme-panel-html.php';
         do_action( 'ep_event_tab_content' );
     }
 
@@ -2639,7 +2663,7 @@ class Eventprime_Event_Calendar_Management_Admin {
             'ep_title'          => esc_html__( 'Event', 'eventprime-event-calendar-management' ),
             'ep_booking_id'     => esc_html__( 'Booking ID', 'eventprime-event-calendar-management' ),
             'ep_user_email'     => esc_html__( 'User Email', 'eventprime-event-calendar-management' ),
-            'ep_event_date'     => esc_html__( 'Event Date', 'eventprime-event-calendar-management' ),
+            'ep_event_date'     => esc_html__( 'Booking Date', 'eventprime-event-calendar-management' ),
             'ep_attendees'      => esc_html__( 'No. Of Attendees', 'eventprime-event-calendar-management' ),
             'ep_status'         => esc_html__( 'Booking Status', 'eventprime-event-calendar-management' ),
             'ep_gateway'        => esc_html__( 'Payment Gateway', 'eventprime-event-calendar-management' ),
@@ -2719,7 +2743,11 @@ class Eventprime_Event_Calendar_Management_Admin {
         }
 
 		if ( $column_name == 'ep_event_date' ) {
-			$em_start_date = get_post_meta( $booking_event_id, 'em_start_date', true );
+                    if(isset($booking->post_data->post_date))
+                    {
+                        echo esc_html($booking->post_data->post_date);
+                    }
+			/*$em_start_date = get_post_meta( $booking, 'em_start_date', true );
 			if ( !empty( $em_start_date ) ) {
 				?>
                 <span>
@@ -2734,7 +2762,7 @@ class Eventprime_Event_Calendar_Management_Admin {
                 <?php
             } else {
                 echo '--';
-            }
+            } */
         }
         if ( $column_name == 'ep_attendees' ) {
             if ( !empty( $booking->em_attendee_names ) && count( $booking->em_attendee_names ) > 0 ) {
@@ -2826,7 +2854,7 @@ class Eventprime_Event_Calendar_Management_Admin {
                 if ( strtolower( $payment_method ) == 'offline' ) {
                     echo isset( $payment_log['offline_status'] ) ? esc_html( $payment_log['offline_status'] ) : '';
                 } else {
-                    $payment_status = $payment_log['payment_status'];
+                    $payment_status = isset($payment_log['payment_status']) ? $payment_log['payment_status'] : '';
                     if ( !empty( $payment_status ) ) {
                         if ( $payment_status == 'completed' ) {
                             echo esc_html( 'Received' );
@@ -2910,12 +2938,12 @@ class Eventprime_Event_Calendar_Management_Admin {
                 <?php } ?>
             </select>
             <?php do_action( 'ep_add_new_booking_filters' ); ?>
-            
+            <?php $today = date('Y-m-d'); ?>
             <span><?php esc_html_e( 'Start Date', 'eventprime-event-calendar-management' ); ?></span>
-            <input type="date" id="ep_booking_start_date" name="em_start_date" value="<?php echo isset( $_GET['em_start_date'] ) ? esc_attr( $start_date ) : ''; ?>" placeholder="<?php esc_html_e( 'Start Date', 'eventprime-event-calendar-management' ); ?>"/>
+            <input type="date" id="ep_booking_start_date" name="em_start_date" value="<?php echo isset( $_GET['em_start_date'] ) ? esc_attr( $start_date ) : ''; ?>" placeholder="<?php esc_html_e( 'Start Date', 'eventprime-event-calendar-management' ); ?>" max="<?php echo esc_attr($today); ?>"/>
 
             <span><?php esc_html_e( 'End Date', 'eventprime-event-calendar-management' ); ?></span>
-            <input type="date" id="ep_booking_end_date" name="em_end_date" value="<?php echo isset( $_GET['em_end_date'] ) ? esc_attr( $end_date ) : ''; ?>" placeholder="<?php esc_html_e( 'End Date', 'eventprime-event-calendar-management' ); ?>"/>
+            <input type="date" id="ep_booking_end_date" name="em_end_date" value="<?php echo isset( $_GET['em_end_date'] ) ? esc_attr( $end_date ) : ''; ?>" placeholder="<?php esc_html_e( 'End Date', 'eventprime-event-calendar-management' ); ?>" max="<?php echo esc_attr($today); ?>"/>
                                                                                              <?php
 
         }
@@ -2926,6 +2954,70 @@ class Eventprime_Event_Calendar_Management_Admin {
      */
 
     public function ep_booking_filters_argu( $query ) {
+    global $pagenow;
+
+    // Verify nonce before processing the query
+    if ( isset( $_GET['ep_booking_filter_nonce_field'] ) && 
+         !wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['ep_booking_filter_nonce_field'] ) ), 'ep_booking_filter_nonce_action' ) ) {
+        return $query; // Nonce verification failed, return the original query
+    }
+
+    $post_type = isset( $_GET['post_type'] ) ? sanitize_text_field( wp_unslash( $_GET['post_type'] ) ) : '';
+
+    if ( is_admin() && $pagenow == 'edit.php' && $post_type == 'em_booking' ) {
+        $meta_query = array(); // Initialize meta_query array
+
+        // Filter by Event ID
+        if ( isset( $_GET['event_id'] ) && $_GET['event_id'] != 'all' ) {
+            $meta_query[] = array(
+                'key'     => 'em_event',
+                'value'   => absint( sanitize_text_field( wp_unslash( $_GET['event_id'] ) ) ),
+                'compare' => '='
+            );
+        }
+
+        // Filter by Payment Method
+        if ( isset( $_GET['payment_method'] ) && $_GET['payment_method'] != 'all' ) {
+            $meta_query[] = array(
+                'key'     => 'em_payment_method',
+                'value'   => sanitize_text_field( wp_unslash( $_GET['payment_method'] ) ),
+                'compare' => '='
+            );
+        }
+
+        // Filter by Start Date
+        if ( isset( $_GET['em_start_date'] ) && !empty( $_GET['em_start_date'] ) ) {
+            $start_date = sanitize_text_field( wp_unslash( $_GET['em_start_date'] ) );
+            $meta_query[] = array(
+                'key'     => 'em_date',
+                'value'   => strtotime( $start_date ), // Ensure this matches stored format
+                'compare' => '>=',
+                'type'    => 'NUMERIC'
+            );
+        }
+
+        // Filter by End Date
+        if ( isset( $_GET['em_end_date'] ) && !empty( $_GET['em_end_date'] ) ) {
+            $end_date = sanitize_text_field( wp_unslash( $_GET['em_end_date'] ) );
+            $meta_query[] = array(
+                'key'     => 'em_date',
+                'value'   => strtotime( $end_date ), // Ensure this matches stored format
+                'compare' => '<=',
+                'type'    => 'NUMERIC'
+            );
+        }
+
+        // Apply the meta_query only if filters were set
+        if ( !empty( $meta_query ) ) {
+            $query->set( 'meta_query', $meta_query );
+        }
+    }
+
+    return $query;
+}
+
+    
+    public function ep_booking_filters_argu_old( $query ) {
         global $pagenow;
         
         // Verify the nonce before processing the query
@@ -4188,6 +4280,25 @@ class Eventprime_Event_Calendar_Management_Admin {
         }
     }
     
+    public function allow_single_term_selection($post_id, $post, $update) {
+        // Avoid autosave and revisions
+        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
+        if ($post->post_type !== 'em_event') return;
+
+        // Define the taxonomies for single selection
+        $taxonomies = array('em_event_type', 'em_venue');
+
+        foreach ($taxonomies as $taxonomy) {
+            // Get the selected terms
+            $terms = wp_get_object_terms($post_id, $taxonomy, array('fields' => 'ids'));
+
+            if (!empty($terms) && count($terms) > 1) {
+                // Keep only the first selected term
+                $latest_term = end($terms);
+                wp_set_object_terms($post_id, array($latest_term), $taxonomy);
+            }
+        }
+    }
     
 
 

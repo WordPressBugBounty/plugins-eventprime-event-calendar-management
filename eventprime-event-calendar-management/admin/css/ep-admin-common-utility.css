@@ -768,6 +768,10 @@ select.ep-form-control + span.select2-container {
 
 }
 
+#ep_setting_form select#eventprime_theme{
+      text-transform: capitalize;
+}
+
 .ep-form-check {
     display: block;
     min-height: 1.5rem;

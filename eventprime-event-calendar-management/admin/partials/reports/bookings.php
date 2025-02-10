@@ -10,7 +10,14 @@
                                     <div class="ep-box-col-3">
                                         <div class="ep-report-filter-attr ep-d-flex ep-align-items-center" id="ep-reports-datepicker-div">
                                             <label class="ep-form-label"> <?php esc_html_e( 'Date', 'eventprime-event-calendar-management' ); ?></label> 
-                                            <div class="ep-form-input ep-form-control"><input class="ep-form-control" id="ep-reports-datepicker" type="text"/> </div> 
+                                            <div class="ep-form-input ep-form-control">
+                                                <?php 
+                                                $start_date = gmdate( 'd-m-Y', strtotime( '-6 days' ) );
+                                                $end_date  = gmdate( 'd-m-Y' ); 
+                                                $default_date_selection = esc_html__("Last 7 Days","eventprime-event-calendar-management") . " (" . $start_date . " - " . $end_date . ")";
+                                                ?>
+                                                <input class="ep-form-control" value="<?php echo esc_attr($default_date_selection) ?>" id="ep-reports-datepicker" type="text"/>
+                                            </div> 
                                         </div>
                                     </div>
                                     <div class="ep-box-col-3">

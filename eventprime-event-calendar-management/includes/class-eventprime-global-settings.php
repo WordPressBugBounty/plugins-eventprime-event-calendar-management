@@ -112,6 +112,8 @@ class Eventprime_Global_Settings{
             'calendar_title_format'           => 'MMMM, YYYY',
             'hide_calendar_rows'              => 0,
             'hide_time_on_front_calendar'     => 0,
+            'show_event_types_on_calendar'     => 0,
+            'eventprime_theme' =>'default',
             'front_switch_view_option'        => array( 'month', 'week', 'day', 'listweek', 'square_grid', 'staggered_grid', 'slider', 'rows' ),
             'hide_past_events'                => 0,
             'show_no_of_events_card'          => 10,
@@ -335,6 +337,7 @@ class Eventprime_Global_Settings{
         $ep_functions = new Eventprime_Basic_Functions;
         $general_options = array(
             // regular settings
+            'eventprime_theme'                         => 'default',
             'time_format'                         => 'h:mmt',
             'default_calendar_date'               => $ep_functions->ep_get_local_timestamp(),
             'required_booking_attendee_name'      => 0,
@@ -465,6 +468,7 @@ class Eventprime_Global_Settings{
         
         $this->setting_options = array_merge( $this->setting_options, $license_options );
     }
+    
 
     public function ep_get_settings( $option_name = null ) { 
         $options = get_option('em_global_settings');

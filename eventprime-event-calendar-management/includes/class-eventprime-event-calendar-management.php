@@ -121,6 +121,8 @@ class Eventprime_Event_Calendar_Management {
                 
                 require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-eventprime-functions.php';
                 
+                require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-eventprime-requests.php';
+                
                 require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-eventprime-html-generator.php';
                 
                 require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-eventprime-sanitizer.php';
@@ -391,9 +393,9 @@ class Eventprime_Event_Calendar_Management {
                 
                 //$this->loader->add_action( 'admin_notices', $plugin_admin, 'ep_conflict_notices' );
                 
-                $this->loader->add_filter('post_row_actions', $plugin_admin, 'ep_add_custom_view_link', 10, 2);
+                //$this->loader->add_filter('post_row_actions', $plugin_admin, 'ep_add_custom_view_link', 10, 2);
                 
-                $this->loader->add_action('admin_bar_menu', $plugin_admin, 'ep_add_custom_view_link_to_admin_bar', 100);
+                //$this->loader->add_action('admin_bar_menu', $plugin_admin, 'ep_add_custom_view_link_to_admin_bar', 100);
                 
                 $this->loader->add_filter('tag_row_actions', $plugin_admin, 'ep_add_custom_taxonomy_view_link', 10, 2);
                  // add duplicate event option in bulk actions
@@ -403,6 +405,8 @@ class Eventprime_Event_Calendar_Management {
                 
                 $this->loader->add_action( 'restrict_manage_posts', $plugin_admin, 'ep_events_filters' );
                 $this->loader->add_filter( 'parse_query', $plugin_admin, 'ep_events_filters_arguments', 100, 1 );
+                $this->loader->add_action('save_post', $plugin_admin,'allow_single_term_selection', 10, 3);
+
 	}
 
 	/**
@@ -424,8 +428,8 @@ class Eventprime_Event_Calendar_Management {
                 //$this->loader->add_filter( 'archive_template', $plugin_public, 'ep_taxonomy_archive_template',1000000000 );
                 $this->loader->add_action('pre_get_posts',$plugin_public, 'ep_modify_taxonomy_archive_query',99999999);
                 //$this->loader->add_filter('template_include',$plugin_public, 'ep_load_single_template',1000);
-                //$this->loader->add_filter( 'the_content', $plugin_public, 'ep_load_single_template_dynamic',1000000000 );
-                //$this->loader->add_filter('post_thumbnail_html', $plugin_public,'remove_thumbnail_on_event_post_type', 10, 5);
+                $this->loader->add_filter( 'the_content', $plugin_public, 'ep_load_single_template_dynamic',1000000000 );
+                $this->loader->add_filter('post_thumbnail_html', $plugin_public,'remove_thumbnail_on_event_post_type', 10, 5);
                 
                 $this->loader->add_action( 'ep_events_list_before_render_content', $plugin_public, 'ep_show_timezone_related_message' , 10 );
                 $this->loader->add_action( 'ep_events_list_before_render_content', $plugin_public, 'ep_event_add_hidden_variables', 20  );
@@ -464,7 +468,9 @@ class Eventprime_Event_Calendar_Management {
                 // Redirect to Login page upon Logging out 
                 $this->loader->add_filter( 'logout_redirect', $plugin_public, 'ep_handle_logout_redirect', 10, 0 );
                 $this->loader->add_action('ep_event_booking_event_total',$plugin_public,'eventprime_checkout_total_html_block',10,4);
-	}
+                $this->loader->add_filter('get_the_post_navigation',$plugin_public,'ep_remove_post_navigation');
+                $this->loader->add_action('template_redirect', $plugin_public,'ep_remove_post_navigation_action');
+        }
         
         private function add_ajax_request() {
             $plugin_public = new EventM_Ajax_Service();

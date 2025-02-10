@@ -450,6 +450,11 @@ jQuery( function( $ ) {
             step: 15,
            
         });
+        // Prevent manual typing but allow dropdown selection
+        $('#calendar_end_time, #calendar_start_time').on('keydown', function(event) {
+            event.preventDefault(); // Blocks typing
+        });
+
         $( '#calendarPopup' ).prop( 'style',"left:" + 0 + "px;top:" + 0 + "px;" );
         $( '.ui-timepicker-wrapper' ).addClass( 'ep-ui-cal-time-modal-wrap' );
         $( '#calendarPopup' ).removeClass( 'em_edit_pop' );

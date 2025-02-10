@@ -44,7 +44,7 @@ $pages = $ep_functions->ep_get_all_pages_list();
                 </div>
             </div>
         </div>
-
+       <div class="ep-box-row ep-mb-3 ep-items-end">
         <div class="ep-box-col-6 ep-mt-3">
             <div class="ep-box-row">
                 <div class="ep-box-col-12">
@@ -101,6 +101,7 @@ $pages = $ep_functions->ep_get_all_pages_list();
                 </div>
             </div>
         </div>
+       </div>
      
     </div>
 </div>

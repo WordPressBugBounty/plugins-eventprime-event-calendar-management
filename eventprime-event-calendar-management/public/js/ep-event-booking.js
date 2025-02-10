@@ -106,7 +106,7 @@ jQuery( function( $ ) {
                 if( attr_id ) {
                     $( '#' + attr_id + '_error' ).text( '' );
                     if( $( '#' + attr_id ).attr( 'required' ) ) {
-                        let input_val = $( '#' + attr_id ).val();
+                        let input_val = $( '#' + attr_id ).val().trim();
                         if( !input_val ) {
                             $( '#' + attr_id + '_error' ).text( requireString );
                             document.getElementById( attr_id ).focus();
@@ -172,7 +172,7 @@ jQuery( function( $ ) {
                 if( attr_id_st ) {
                     $( '#' + attr_id_st + '_error' ).text( '' );
                     if( $( '#' + attr_id_st ).attr( 'required' ) ) {
-                        let input_val = $( '#' + attr_id_st ).val();
+                        let input_val = $( '#' + attr_id_st ).val().trim();
                         if( !input_val ) {
                             $( '#' + attr_id_st + '_error' ).text( requireString );
                             document.getElementById( attr_id_st ).focus();

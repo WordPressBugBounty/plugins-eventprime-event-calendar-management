@@ -77,7 +77,7 @@ $em_is_featured        = get_post_meta( $post->ID, 'em_is_featured', true );
                 </div><?php
             } else{
                 foreach( $em_performer_emails as $pkey => $email ) {?>
-                    <div class="ep-box-col-12 ep-per-email ep-per-data-field">
+                    <div class="ep-box-col-12  ep-mt-3 ep-per-email ep-per-data-field">
                         <input type="email" class="ep-per-data-input ep-mr-2" name="em_performer_emails[]" 
                             placeholder="<?php echo esc_attr('Email', 'eventprime-event-calendar-management');?>"
                             value="<?php echo esc_attr( $email );?>"><?php if( $pkey == 0 ) {?><button type="button" class="ep-per-add-more button button-primary" 
