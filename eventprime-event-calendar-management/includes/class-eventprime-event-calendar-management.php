@@ -389,7 +389,7 @@ class Eventprime_Event_Calendar_Management {
                 
                 $this->loader->add_action( 'wp_ajax_ep_dismissible_notice', $plugin_admin, 'ep_dismissible_notice_ajax' );
 		
-                //$this->loader->add_action( 'admin_notices', $plugin_admin, 'ep_dismissible_notice' );
+                $this->loader->add_action( 'admin_notices', $plugin_admin, 'ep_dismissible_notice' );
                 
                 //$this->loader->add_action( 'admin_notices', $plugin_admin, 'ep_conflict_notices' );
                 

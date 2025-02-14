@@ -5,7 +5,7 @@ Tags: event calendar, organizer , event manager, tickets, event booking, event b
 Requires at least: 4.8
 Tested up to: 6.7
 Requires PHP: 7.2
-Stable tag: 4.0.8.0
+Stable tag: 4.0.8.1
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -666,6 +666,10 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.0.8.1: February 14, 2025 =
+* Fixed: Resolved an issue where event type and venue were not displaying in the Events list view within the dashboard.
+* UI improvements.
 
 = 4.0.8.0: February 10, 2025 =
 * New: Introduced the Layout Template option – Now, you can create event-specific templates, allowing more customization for individual events.
@@ -2073,6 +2077,10 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.0.8.1: February 14, 2025 =
+* Fixed: Resolved an issue where event type and venue were not displaying in the Events list view within the dashboard.
+* UI improvements.
 
 = 4.0.8.0: February 10, 2025 =
 * New: Introduced the Layout Template option – Now, you can create event-specific templates, allowing more customization for individual events.

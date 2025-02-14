@@ -1561,11 +1561,13 @@ class Eventprime_Event_Calendar_Management_Admin {
         $ep_functions = new Eventprime_Basic_Functions();
         if ( $column_name == 'venue' ) {
             $id       = get_post_meta( $post_id, 'em_venue', true );
-            $venue_id = ( !empty( $id ) && is_array( $id ) )?$id[0]:$id;
+            $venue_id = $ep_functions->ep_get_filter_taxonomy_id($id);
             $venue    = get_term( $venue_id );
             echo ( isset( $venue->name ) && 'uncategorized' !== $venue->slug ? esc_html( $venue->name ) : '----' );
         } elseif ( $column_name == 'event_type' ) {
-            $event_type = get_term( get_post_meta( $post_id, 'em_event_type', true ) );
+            $event_type_term_id = get_post_meta( $post_id, 'em_event_type', true );  
+            $filter_term_id  = $ep_functions->ep_get_filter_taxonomy_id($event_type_term_id);
+            $event_type = get_term($filter_term_id);
             echo ( isset( $event_type->name ) && 'uncategorized' !== $event_type->slug ? esc_html( $event_type->name ) : '----' );
         } elseif ( $column_name == 'organizer' ) {
             $organizers     = get_post_meta( $post_id, 'em_organizer', true );
@@ -3770,7 +3772,7 @@ class Eventprime_Event_Calendar_Management_Admin {
     public function ep_dismissible_notice() {
          global $pagenow;
         $ep_functions = new Eventprime_Basic_Functions();
-        $notice_name  = get_option( 'ep_dismissible_plugin', '0' );
+        $notice_name  = get_option( 'ep_dismissible_plugin_notice_4080', '0' );
         $current_page = $ep_functions->is_eventprime_plugin_page();
         if ( $notice_name == '1' ) {
                 return;
@@ -3778,8 +3780,8 @@ class Eventprime_Event_Calendar_Management_Admin {
 
         if ( $current_page===true || $pagenow === 'plugins.php' ) {
             ?>
-            <div class="notice notice-info is-dismissible ep-dismissible" id="ep_dismissible_plugin">
-            <p><?php printf( esc_html__( 'Congratulations, EventPrime has been updated to v4! Please make sure all EventPrime extensions are up-to-date. Older incompatible extensions will be automatically deactivated. You can download the latest versions from %s.', 'eventprime-event-calendar-management' ), "<a href='https://theeventprime.com/checkout/order-history/' target='_blank'>here</a>" ); ?></p>
+            <div class="notice notice-info is-dismissible ep-dismissible" id="ep_dismissible_plugin_notice_4080">
+                <p><strong><?php esc_html_e('EventPrime Frontend Update: Please Review Your Layout','eventprime-event-calendar-management'); ?></strong><br/><?php esc_html_e( 'We’ve updated EventPrime for better compatibility with WordPress. Some event page elements, like widgets, may have been reset. Please take a quick look at your event pages to ensure everything looks right.', 'eventprime-event-calendar-management' ); ?><br/><?php esc_html_e('Thank you!', 'eventprime-event-calendar-management' );?></p>
             </div>
             <?php
         }
@@ -4181,9 +4183,15 @@ class Eventprime_Event_Calendar_Management_Admin {
     * Modify Filter Query
     */
     public function ep_events_filters_arguments( $query ) {
+         // Ensure WordPress core is fully loaded and we are in admin
+        if ( ! function_exists( 'wp_verify_nonce' ) || ! is_admin() ) {
+            return $query;
+        }
+
         // Verify the nonce before processing the query
-        if ( isset( $_GET['ep_events_filter_nonce_field'] ) && ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['ep_events_filter_nonce_field'] ) ), 'ep_events_filter_nonce_action' ) ) {
-            return $query; // Nonce verification failed, return the original query
+        if ( empty( $_GET['ep_events_filter_nonce_field'] ) || 
+            ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['ep_events_filter_nonce_field'] ) ), 'ep_events_filter_nonce_action' ) ) {
+            return $query; // Nonce verification failed, return original query
         }
         
         global $pagenow;
