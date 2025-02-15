@@ -4,7 +4,7 @@ $ep_functions = new Eventprime_Basic_Functions;
 <div class="ep-box-row ep-event-type-cal-section">
     <div class="ep-box-col-8 ep-sm-py-3 ep-md-py-4 ep-lg-py-5">
         <div class="ep-event-category ep-box-row">
-            <?php if( ! empty( $args->event->em_event_type ) ) {
+            <?php if( ! empty( $args->event->event_type_details ) ) {
                 $styles = '';
                 $styles .= ( ! empty( $args->event->event_type_details->em_color ) ? 'background-color:' . $args->event->event_type_details->em_color . ';' : '');
                 $styles .= ( ! empty( $args->event->event_type_details->em_type_text_color ) ? 'color:' . $args->event->event_type_details->em_type_text_color . ';' : '');?>

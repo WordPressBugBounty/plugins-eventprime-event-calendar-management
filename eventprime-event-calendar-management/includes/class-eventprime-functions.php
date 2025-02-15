@@ -10194,10 +10194,11 @@ public function ep_get_events( $fields ) {
         if( isset( $events->posts ) && ! empty( $events->posts ) ){
             foreach( $events->posts as $event ){
                 if( isset( $event->em_event_type ) && ! empty( $event->em_event_type ) ){
-                    if( isset( $event_count[$event->em_event_type] ) ){
-                        $event_count[$event->em_event_type] += 1;
+                    $event_type = $this->ep_get_filter_taxonomy_id($event->em_event_type);
+                    if( isset( $event_count[$event_type] ) ){
+                        $event_count[$event_type] += 1;
                     }else{
-                        $event_count[$event->em_event_type] = 1;
+                        $event_count[$event_type] = 1;
                     }
                 }
             }
@@ -10281,10 +10282,12 @@ public function ep_get_events( $fields ) {
         if( isset( $events->posts ) && ! empty( $events->posts ) ){
             foreach( $events->posts as $event ){
                 if( isset( $event->em_venue ) && ! empty( $event->em_venue ) ){
-                    if(!empty($event_count) && isset( $event_count[$event->em_venue] ) ){
-                        $event_count[$event->em_venue] += 1;
+                    $event_venue = $this->ep_get_filter_taxonomy_id($event->em_venue);
+                    
+                    if(!empty($event_count) && isset( $event_count[$event_venue] ) ){
+                        $event_count[$event_venue] += 1;
                     }else{
-                        $event_count[$event->em_venue] = 1;
+                        $event_count[$event_venue] = 1;
                     }
                 }
             }

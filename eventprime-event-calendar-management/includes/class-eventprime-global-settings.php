@@ -112,7 +112,7 @@ class Eventprime_Global_Settings{
             'calendar_title_format'           => 'MMMM, YYYY',
             'hide_calendar_rows'              => 0,
             'hide_time_on_front_calendar'     => 0,
-            'show_event_types_on_calendar'     => 0,
+            'show_event_types_on_calendar'     => 1,
             'eventprime_theme' =>'default',
             'front_switch_view_option'        => array( 'month', 'week', 'day', 'listweek', 'square_grid', 'staggered_grid', 'slider', 'rows' ),
             'hide_past_events'                => 0,
