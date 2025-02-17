@@ -20,6 +20,7 @@ $ep_functions = new Eventprime_Basic_Functions;
             if( ! empty( $type_id ) ){?>
             <div class="ep-event-type ep-event-type ep-mr-2 ep-border ep-p-2 ep-rounded-1 ep-lh-0 ep-di-flex ep-align-items-center ep-mb-2">
                 <?php
+                $type_id = (int)trim($type_id);
                 $type_url = $ep_functions->ep_get_custom_page_url( 'event_types', $type_id, 'event_type', 'term' );
                 $enable_seo_urls = $ep_functions->ep_get_global_settings( 'enable_seo_urls' );
                 if( isset( $enable_seo_urls ) && ! empty( $enable_seo_urls ) ){
