@@ -100,7 +100,8 @@ class Eventprime_Basic_Functions {
             'Eventprime_Offline',
             'Eventprime_Woocommerce_Checkout_Integration',
             'Eventprime_Advanced_Live_Seating',
-            'Eventprime_Attendee_Event_Check_In'
+            'Eventprime_Attendee_Event_Check_In',
+            'EventPrime_Waiting_List'
         );
         $free_exist = array();
         foreach ($free as $fc) {
@@ -175,7 +176,8 @@ class Eventprime_Basic_Functions {
             'Eventprime_Offline',
             'Eventprime_Woocommerce_Checkout_Integration',
             'Eventprime_Advanced_Live_Seating',
-            'Eventprime_Attendee_Event_Check_In'
+            'Eventprime_Attendee_Event_Check_In',
+            'EventPrime_Waiting_List'
         );
         $activate = array();
         foreach ($extensions as $extension) {
@@ -3743,13 +3745,13 @@ class Eventprime_Basic_Functions {
 
     // list all extension
     public function ep_list_all_exts() {
-        $exts = array('Live Seating', 'Events Import Export', 'Stripe Payments', 'Offline Payments', 'WooCommerce Integration', 'Event Sponsors', 'Attendees List', 'EventPrime Invoices', 'Coupon Codes', 'Guest Bookings', 'EventPrime Zoom Integration', 'Event List Widgets', 'Admin Attendee Bookings', 'EventPrime MailPoet', 'Twilio Text Notifications', 'Event Tickets', 'Zapier Integration', 'Advanced Reports', 'Advanced Checkout Fields', 'Elementor Integration', 'Mailchimp Integration', 'User Feedback', 'RSVP', 'WooCommerce Checkout', 'Ratings and Reviews','Attendee Event Check In');
+        $exts = array('Live Seating', 'Events Import Export', 'Stripe Payments', 'Offline Payments', 'WooCommerce Integration', 'Event Sponsors', 'Attendees List', 'EventPrime Invoices', 'Coupon Codes', 'Guest Bookings', 'EventPrime Zoom Integration', 'Event List Widgets', 'Admin Attendee Bookings', 'EventPrime MailPoet', 'Twilio Text Notifications', 'Event Tickets', 'Zapier Integration', 'Advanced Reports', 'Advanced Checkout Fields', 'Elementor Integration', 'Mailchimp Integration', 'User Feedback', 'RSVP', 'WooCommerce Checkout', 'Ratings and Reviews','Attendee Event Check In','Waiting List');
         return $exts;
     }
 
     // get premium extension list
     public function ep_load_premium_extension_list() {
-        $premium_ext_list = array('Live Seating', 'Stripe Payments', 'Offline Payments', 'Event Sponsors', 'Attendees List', 'EventPrime Invoices', 'Coupon Codes', 'Guest Bookings', 'EventPrime Zoom Integration', 'Event List Widgets', 'Admin Attendee Bookings', 'EventPrime MailPoet', 'Twilio Text Notifications', 'Event Tickets', 'Advanced Reports', 'Advanced Checkout Fields', 'Mailchimp Integration', 'User Feedback', 'RSVP', 'WooCommerce Checkout', 'Ratings and Reviews','Attendee Event Check In');
+        $premium_ext_list = array('Live Seating', 'Stripe Payments', 'Offline Payments', 'Event Sponsors', 'Attendees List', 'EventPrime Invoices', 'Coupon Codes', 'Guest Bookings', 'EventPrime Zoom Integration', 'Event List Widgets', 'Admin Attendee Bookings', 'EventPrime MailPoet', 'Twilio Text Notifications', 'Event Tickets', 'Advanced Reports', 'Advanced Checkout Fields', 'Mailchimp Integration', 'User Feedback', 'RSVP', 'WooCommerce Checkout', 'Ratings and Reviews','Attendee Event Check In','Waiting List');
         return $premium_ext_list;
     }
 
@@ -4316,6 +4318,28 @@ class Eventprime_Basic_Functions {
                 $data['is_free'] = !$this->ep_check_for_premium_extension('Attendee Event Check In');
                 $data['image'] = 'attendee-check-in.png';
                 $data['desc'] = "Enable attendee check-in system for your events. Authorize your check-in staff to manage attendee tracking efficiently for a smooth and organized event experience.";
+                break;
+                
+            case 'Waiting List':
+                $data['url'] = 'https://theeventprime.com/all-extensions/waiting-list/';
+                if (in_array('eventprime-waiting-list.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-waiting-list.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("EventPrime_Waiting_List");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=wt');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Waiting List');
+                $data['image'] = 'ep-waiting-list-icon.png';
+                $data['desc'] = "Allow users to join a waiting list when events are full and get notified if spots open up. Manage priorities, send alerts, and handle bookings efficiently.";
                 break;
         }
         return $data;

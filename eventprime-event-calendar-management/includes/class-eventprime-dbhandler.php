@@ -1387,10 +1387,21 @@ class EP_DBhandler {
             {
                 if($key=='em_event_type')
                 {
-                    $value = maybe_unserialize($value);
-                    if(is_array($value) && isset($value[1]))
+                    $value_array = maybe_unserialize($value);
+                    if(is_array($value_array))
                     {
-                        $value = $value[1];
+                        foreach($value_array as $val)
+                        {
+                            if($val!='0')
+                            {
+                                $value = $val;
+                            }
+                        }
+                        
+                    }
+                    else
+                    {
+                        $value = $value_array;
                     }
                 }
                 update_post_meta($post_id,$key, $value);

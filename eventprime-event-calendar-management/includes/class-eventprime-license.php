@@ -262,6 +262,7 @@ class EventPrime_License {
             'Eventprime_Offline'=>array(876,'Offline Payment'),
             'Eventprime_Woocommerce_Checkout_Integration'=>array(23284,'WooCommerce Checkout'),
             'Eventprime_Attendee_Event_Check_In'=>array(30503,'Attendee Event Check In'),
+            'EventPrime_Waiting_List'=>array(33631,'Waiting List'),
         );
         
         $activate = array();
