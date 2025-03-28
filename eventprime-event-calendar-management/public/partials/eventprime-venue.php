@@ -21,7 +21,8 @@ wp_localize_script(
     'ep_frontend', 
     array(
         '_nonce' => wp_create_nonce('ep-frontend-nonce'),
-        'ajaxurl'   => admin_url( 'admin-ajax.php' )
+        'ajaxurl'   => admin_url( 'admin-ajax.php' ),
+        'is_map_key' =>(!empty($gmap_api_key))?true:false
     )
 );
 $atts = array_change_key_case( (array) $atts, CASE_LOWER );

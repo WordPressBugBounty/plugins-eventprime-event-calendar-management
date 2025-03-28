@@ -491,7 +491,7 @@ jQuery( function( $ ) {
         
         $( loader ).insertAfter( $( ele ).parent() );
         let ep_default_payment_processor = ele.value;
-        console.log(ep_default_payment_processor);
+        //console.log(ep_default_payment_processor);
         // first check if payment processor is activate
         let check_payment_active = $('input:checkbox[name='+ep_default_payment_processor+']').val();
         if( check_payment_active == 1 ) {

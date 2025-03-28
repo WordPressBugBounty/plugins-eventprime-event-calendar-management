@@ -470,6 +470,9 @@ class Eventprime_Event_Calendar_Management {
                 $this->loader->add_action('ep_event_booking_event_total',$plugin_public,'eventprime_checkout_total_html_block',10,4);
                 $this->loader->add_filter('get_the_post_navigation',$plugin_public,'ep_remove_post_navigation');
                 $this->loader->add_action('template_redirect', $plugin_public,'ep_remove_post_navigation_action');
+                // iCal download
+                $this->loader->add_action( 'init', $plugin_public, 'get_ical_file', 9999 ); // iCal file download.
+
         }
         
         private function add_ajax_request() {

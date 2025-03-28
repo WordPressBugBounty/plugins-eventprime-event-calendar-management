@@ -249,7 +249,7 @@ class EventPrime_sanitizer {
                 'event_wt_reg_mail_subject',
                 'event_wt_reg_mail_email'
             );
-
+            $fields = apply_filters('ep_email_field_keys_array', $fields);
             return $fields;
         }
 

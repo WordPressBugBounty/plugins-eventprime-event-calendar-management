@@ -66,31 +66,31 @@ defined( 'ABSPATH' ) || exit;
 
             <?php if ( ! empty( $args->performer->em_social_links ) ) { ?>
                 <div class="ep-single-box-social">
-                    <?php if ( isset( $args->performer->em_social_links['facebook'] ) ) { ?>
+                    <?php if ( isset( $args->performer->em_social_links['facebook'] ) && !empty( $args->performer->em_social_links['facebook'] ) ) { ?>
                         <a href="<?php echo esc_url( $args->performer->em_social_links['facebook'] ); ?>" target="_blank" title="<?php echo esc_attr('Facebook'); ?>" class="ep-facebook-f"> 
                             <?php $image_url = plugin_dir_url( EP_PLUGIN_FILE ) . 'public/partials/images/facebook-icon.png';?>
                             <img src="<?php echo esc_url( $image_url );?>" width="30" />
                         </a><?php
                     }
-                    if ( isset( $args->performer->em_social_links['instagram'] ) ) {?>
+                    if ( isset( $args->performer->em_social_links['instagram'] ) && !empty( $args->performer->em_social_links['instagram'] )) {?>
                         <a href="<?php echo esc_url( $args->performer->em_social_links['instagram'] ); ?>" target="_blank" title="<?php echo esc_attr('Instagram'); ?>" class="ep-instagram">
                             <?php $image_url = plugin_dir_url( EP_PLUGIN_FILE ) . 'public/partials/images/instagram-icon.png';?>
                             <img src="<?php echo esc_url( $image_url );?>" width="30" />
                         </a><?php
                     }
-                    if ( isset( $args->performer->em_social_links['linkedin'] ) ) {?>
+                    if ( isset( $args->performer->em_social_links['linkedin'] ) && !empty( $args->performer->em_social_links['linkedin'] ) ) {?>
                         <a href="<?php echo esc_url( $args->performer->em_social_links['linkedin'] ); ?>" target="_blank" title="<?php echo esc_attr('Linkedin'); ?>" class="ep-linkedin"> 
                             <?php $image_url = plugin_dir_url( EP_PLUGIN_FILE ) . 'public/partials/images/linkedin-icon.png';?>
                             <img src="<?php echo esc_url( $image_url );?>" width="30" />
                         </a><?php
                     }
-                    if ( isset( $args->performer->em_social_links['twitter'] ) ) {?>
+                    if ( isset( $args->performer->em_social_links['twitter'] ) && !empty( $args->performer->em_social_links['twitter'] ) ) {?>
                         <a href="<?php echo esc_url( $args->performer->em_social_links['twitter'] ); ?>" target="_blank" title="<?php echo esc_attr('Twitter'); ?>" class="ep-twitter">
                             <?php $image_url = plugin_dir_url( EP_PLUGIN_FILE ) . 'public/partials/images/twitter-icon.png';?>
                             <img src="<?php echo esc_url( $image_url );?>" width="30" />
                         </a><?php 
                     }
-                    if ( isset( $args->performer->em_social_links['youtube'] ) ) {?>
+                    if ( isset( $args->performer->em_social_links['youtube'] ) && !empty( $args->performer->em_social_links['youtube'] ) ) {?>
                         <a href="<?php echo esc_url( $args->performer->em_social_links['youtube'] ); ?>" target="_blank" title="<?php echo esc_attr('Youtube'); ?>" class="ep-youtube">
                             <?php $image_url = plugin_dir_url( EP_PLUGIN_FILE ) . 'public/partials/images/youtube-icon.png';?>
                             <img src="<?php echo esc_url( $image_url );?>" width="30" />

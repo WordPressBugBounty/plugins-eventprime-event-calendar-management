@@ -11,6 +11,7 @@ $booking = $booking_controller->load_booking_detail( $booking_id );
 ?>
 
 <div class="panel-wrap ep_event_metabox">
+    <?php do_action('ep_before_booking_attendee_list', $booking);?>
     <?php if( ! empty( $booking->em_attendee_names ) && count( $booking->em_attendee_names ) > 0 ) {?>
         <div class="ep-border-bottom">
             <div class="ep-py-3 ep-ps-3 ep-fw-bold ep-text-uppercase ep-text-small">

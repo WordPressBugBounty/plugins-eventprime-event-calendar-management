@@ -2,6 +2,23 @@
 $ep_requests = new EP_Requests;
 $ep_functions = new Eventprime_Basic_Functions;
 $events_data = $ep_functions->load_event_common_options( $atts );
+if($ep_functions->ep_get_global_settings('show_event_types_on_calendar')==1 || $ep_functions->ep_get_global_settings( 'disable_filter_options' ) != 1 )
+{
+     $events_data['event_types'] =  $ep_functions->ep_get_terms_with_meta_on_all_events_page('em_event_type',array( 'id', 'name', 'em_color', 'em_type_text_color' ));
+}
+
+if($ep_functions->ep_get_global_settings( 'disable_filter_options' ) != 1 )
+{
+    //get performaers
+    $events_data['performers']  = $ep_functions->ep_get_performers_list( array( 'id', 'name' ) );
+     //get organizers
+    $events_data['organizers']  = $ep_functions->ep_get_terms_with_meta_on_all_events_page('em_event_organizer', array( 'id', 'name' ) );
+     // get organizers
+    $events_data['venues']      = $ep_functions->ep_get_terms_with_meta_on_all_events_page( 'em_venue',array( 'id', 'name', 'address', 'image' ), 1 );
+}
+
+
+        
 $event_data = (object)$events_data;
 wp_enqueue_script( 'jquery-ui-datepicker' );
 wp_enqueue_script( 'jquery-ui-slider' );

@@ -402,8 +402,8 @@ document.addEventListener("DOMContentLoaded", function (event) {
 function event_applied_filters( event_view_name, event_search_params ) {
     //if( view || ( event_search_params && event_search_params.length > 0 ) ) {
         jQuery( '.ep-event-loader' ).show();
-        console.log(event_view_name);
-        console.log(event_search_params);
+        //console.log(event_view_name);
+        //console.log(event_search_params);
         let formData = new FormData();
         formData.append( 'action', 'ep_filter_event_data' );
         formData.append( 'event_search_params', JSON.stringify( event_search_params ) );

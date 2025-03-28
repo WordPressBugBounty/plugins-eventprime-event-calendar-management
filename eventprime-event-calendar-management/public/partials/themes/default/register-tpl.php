@@ -2,6 +2,7 @@
 $ep_functions = new Eventprime_Basic_Functions;
 $ep_requests = new EP_Requests;
 // check for already loggedin user
+//print_r($args->register_timezone_label);die;
 if( ! empty( $args->current_user ) && ! empty( $args->current_user->ID ) ) {?>
   <div class="emagic">
     <div id="ep-logged-in-register-user-wrap" class="ep-logged-in-user-wrap"> 

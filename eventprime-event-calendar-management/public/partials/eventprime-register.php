@@ -2,6 +2,7 @@
 defined( 'ABSPATH' ) || exit;
 $ep_requests = new EP_Requests;
 $ep_functions = new Eventprime_Basic_Functions;
+//print_r($atts);die;
 $args = $atts;
 wp_enqueue_style( 'ep-user-select2-css' );
 wp_enqueue_style( 'ep-user-views-custom-css' );

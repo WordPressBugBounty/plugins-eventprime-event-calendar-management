@@ -365,7 +365,10 @@ $ep_requests = new EP_Requests;
                                             <span class="material-icons-outlined ep-fs-6 align-middle ep-lh-0 ep-mr-2">block</span>
                                             <?php esc_html_e('Cancel Booking','eventprime-event-calendar-management'); ?>
                                         </div><?php
-                                    }?>
+                                    }
+                                    do_action('ep_after_booking_details_additional', $args);
+                                    ?>
+                                    
                                 </div>
                             </div>
                         </div> <?php } ?>

@@ -120,8 +120,10 @@ jQuery( function( $ ) {
     });
 
     // ical export
-    $( document ).on( 'click', '#ep_event_ical_export', function() {
+    $( document ).on( 'click', '#ep_event_ical_export', function(event) {
+         event.preventDefault(); // Prevents the link from navigating
         let event_id = $( this ).attr( 'data-event_id' );
+        //console.log(event_id);
         if( event_id ) {
             if( window.location.search ) {
                 window.location = window.location.href + '&event='+event_id+'&download=ical';

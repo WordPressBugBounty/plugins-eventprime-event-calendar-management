@@ -43,27 +43,94 @@ jQuery( function( $ ) {
         });
 
         // timepicker
-        $( '.epTimePicker' ).timepicker({
-            timeFormat: 'h:i A',
-            step: 15,
-        });
-        $('#em_start_time').on('change', function(e){
-            $('#em_end_time').timepicker({
-                timeFormat: 'h:i A',
-                step: 15,
-                minTime: $('#em_start_time').val(),
-                maxTime: '11:49 PM'
-            });
-        });
-        $(document).ready(function(e){
-           $('#em_end_time').timepicker({
-                timeFormat: 'h:i A',
-                step: 15,
-                minTime: $('#em_start_time').val(),
-                maxTime: '11:49 PM'
-            }); 
-        });
-        // add class to ui time picker ui-timepicker-wrapper
+//        $( '.epTimePicker' ).timepicker({
+//            timeFormat: 'h:i A',
+//            step: 15,
+//        });
+//        $('#em_start_time').on('change', function(e){
+//            var start_date = $('#em_start_date').val();
+//            var end_date = $('#em_end_date').val();
+//            if(start_date===end_date)
+//            {
+//                $('#em_end_time').timepicker({
+//                    timeFormat: 'h:i A',
+//                    step: 15,
+//                    minTime: $('#em_start_time').val(),
+//                    maxTime: '11:49 PM'
+//                });
+//            }
+//            else
+//            {
+//                $('#em_end_time').timepicker({
+//                    timeFormat: 'h:i A',
+//                    step: 15,
+//                    minTime: $('#em_start_time').val(),
+//                    maxTime: false
+//                });
+//            }
+//        });
+//        $(document).ready(function(e){
+//            var start_date = $('#em_start_date').val();
+//            var end_date = $('#em_end_date').val();
+//            if(start_date===end_date)
+//            {
+//                $('#em_end_time').timepicker({
+//                     timeFormat: 'h:i A',
+//                     step: 15,
+//                     minTime: $('#em_start_time').val(),
+//                     maxTime: '11:49 PM'
+//                 }); 
+//             }
+//             else
+//             {
+//                 $('#em_end_time').timepicker({
+//                     timeFormat: 'h:i A',
+//                     step: 15,
+//                     minTime: $('#em_start_time').val(),
+//                     maxTime: false
+//                 }); 
+//             }
+//        
+//        });
+
+           // Common timepicker options
+const timepickerOptions = {
+    timeFormat: 'h:i A',
+    step: 15
+};
+
+// Initialize all timepickers
+$('.epTimePicker').timepicker(timepickerOptions);
+
+// Function to update end time picker based on selected start time and dates
+function updateEndTimePicker() {
+    const startTime = $('#em_start_time').val().trim();
+    const startDate = $('#em_start_date').val().trim();
+    const endDate = $('#em_end_date').val().trim();
+
+    // Remove previous instance to prevent duplication
+    $('#em_end_time').timepicker('remove');
+
+    if (!startTime) return; // Exit if no start time selected
+
+    const endTimeOptions = {
+        ...timepickerOptions,
+        minTime: startTime,
+        maxTime: (startDate === endDate) ? '11:49 PM' : false
+    };
+
+    $('#em_end_time').timepicker(endTimeOptions);
+}
+
+// Trigger update on document ready
+$(document).ready(function () {
+    updateEndTimePicker();
+});
+
+// Update on change of start time, start date, or end date
+$('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePicker);
+
+   // add class to ui time picker ui-timepicker-wrapper
         $( '.epTimePicker' ).click( function() {
             if( $( '.ui-timepicker-wrapper' ).length > 0 ) {
                 $( '.ui-timepicker-wrapper' ).addClass( 'ep-ui-show-on-top' );
@@ -115,7 +182,7 @@ jQuery( function( $ ) {
             // containment: "#ep_existing_individual_tickets_list", 
             stop: function(event, ui) {
                 var ticketOrderArr = $(this).sortable('toArray');
-                console.log(ticketOrderArr); 
+                //console.log(ticketOrderArr); 
 
                 ticketOrderArr.forEach( function( el, indx ) {
                     ticketOrderArr[indx] = ( $( '#'+el ).data('ticket_row_data').id );  // get the ids after the ticket is saved 
@@ -343,7 +410,7 @@ jQuery( function( $ ) {
         } );
         $( document ).on( 'click', '.em-event-gallery-remove', function(){
             var image_id = $(this).closest('li').data('attachment_id').toString();
-            console.log(image_id);
+            //console.log(image_id);
             var gallery_ids = $('#em_gallery_image_ids').val();
             var galleryArr  = gallery_ids.split(',');
             for( var i = 0; i < galleryArr.length; i++){ 
@@ -878,7 +945,7 @@ jQuery( function( $ ) {
     function addOrRemoveDate( date, cdates ) {
         var index = $.inArray( date, cdates );
         if ( index >= 0 ) {
-            console.log('IOP');
+            //console.log('IOP');
             cdates = removeDate(index, cdates);
         } else{ 
             cdates = addDate(date, cdates);
@@ -2454,7 +2521,7 @@ jQuery( function( $ ) {
             let ticket_offer_len = ep_event_ticket_offers.length;
             if( ticket_offer_len > 0 ) {
                 if( parent_row_id ) {
-                    console.log(parent_row_id);
+                    //console.log(parent_row_id);
                     let id_num = parent_row_id.split( 'ep_ticket_offer_section' )[1];
                     ep_event_ticket_offers[id_num - 1] = ticket_offer_data;
                 } else{

@@ -50,7 +50,7 @@ function em_show_calendar( dates ) {
                 localStorage.setItem("ep_calendar_active", true);
                 localStorage.setItem("ep_calendar_date", dateText);
                 var page_url = blocks_obj.event_page_url;
-				console.log(page_url)
+				//console.log(page_url)
                 window.location.href = page_url;	// ***** Redirect to date view for calendar 
             }
 			/*

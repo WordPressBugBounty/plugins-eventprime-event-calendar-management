@@ -111,6 +111,7 @@ jQuery( function( $ ) {
 
         // Map
         setTimeout( function() {
+            //console.log(ep_frontend)
             if( ep_frontend.is_map_key ) {
                 ep_load_google_map( 'em_single_venue_map_canvas' );
             }

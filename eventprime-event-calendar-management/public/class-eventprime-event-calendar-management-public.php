@@ -927,6 +927,7 @@ class Eventprime_Event_Calendar_Management_Public {
         }
 
         $args = $this->get_register_options( $args );
+        //print_r($args);die;
         $args->current_user = wp_get_current_user();
         $template = 'eventprime-register';
         return $this->eventprime_get_template_html($template, $args);
@@ -1081,9 +1082,9 @@ class Eventprime_Event_Calendar_Management_Public {
         $args->register_password_label = esc_html__( 'Password', 'eventprime-event-calendar-management' );
         if( ! isset( $register_password['show'] ) || $register_password['show'] == 0 ) {
             $args->register_password_show = 0;
-            if( isset( $register_password['label'] ) && ! empty( $register_password['label'] ) ) {
-                $args->register_password_label = $register_password['label'];
-            }
+        }
+        if( isset( $register_password['label'] ) && ! empty( $register_password['label'] ) ) {
+            $args->register_password_label = $register_password['label'];
         }
         $args->register_password_mandatory = 1;
         if( ! isset( $register_password['mandatory'] ) || $register_password['mandatory'] == 0 ) {
@@ -1103,9 +1104,9 @@ class Eventprime_Event_Calendar_Management_Public {
         $args->register_repeat_password_label = esc_html__( 'Repeat Password', 'eventprime-event-calendar-management' );
         if( ! isset( $register_repeat_password['show'] ) || $register_repeat_password['show'] == 0 ) {
             $args->register_repeat_password_show = 0;
-            if( isset( $register_repeat_password['label'] ) && ! empty( $register_repeat_password['label'] ) ) {
-                $args->register_repeat_password_label = $register_repeat_password['label'];
-            }
+        }
+        if( isset( $register_repeat_password['label'] ) && ! empty( $register_repeat_password['label'] ) ) {
+            $args->register_repeat_password_label = $register_repeat_password['label'];
         }
         $args->register_repeat_password_mandatory = 1;
         if( ! isset( $register_repeat_password['mandatory'] ) || $register_repeat_password['mandatory'] == 0 ) {
@@ -1120,11 +1121,11 @@ class Eventprime_Event_Calendar_Management_Public {
         $args->register_dob_show = 1;
         $args->register_dob_label = esc_html__( 'Date of Birth', 'eventprime-event-calendar-management' );
         if( ! isset( $register_dob['show'] ) || $register_dob['show'] == 0 ) {
-            $args->register_dob_show = 0;
-            if( isset( $register_dob['label'] ) && ! empty( $register_dob['label'] ) ) {
+            $args->register_dob_show = 0; 
+        }
+        if( isset( $register_dob['label'] ) && ! empty( $register_dob['label'] ) ) {
                 $args->register_dob_label = $register_dob['label'];
             }
-        }
         $args->register_dob_mandatory = 1;
         if( ! isset( $register_dob['mandatory'] ) || $register_dob['mandatory'] == 0 ) {
             $args->register_dob_mandatory = 0;
@@ -1136,9 +1137,9 @@ class Eventprime_Event_Calendar_Management_Public {
         $args->register_phone_label = esc_html__( 'Phone', 'eventprime-event-calendar-management' );
         if( ! isset( $register_phone['show'] ) || $register_phone['show'] == 0 ) {
             $args->register_phone_show = 0;
-            if( isset( $register_phone['label'] ) && ! empty( $register_phone['label'] ) ) {
-                $args->register_phone_label = $register_phone['label'];
-            }
+        }
+        if( isset( $register_phone['label'] ) && ! empty( $register_phone['label'] ) ) {
+            $args->register_phone_label = $register_phone['label'];
         }
         $args->register_phone_mandatory = 1;
         if( ! isset( $register_phone['mandatory'] ) || $register_phone['mandatory'] == 0 ) {
@@ -1153,14 +1154,16 @@ class Eventprime_Event_Calendar_Management_Public {
         }
         // timezone settings
         $register_timezone = $ep_functions->ep_get_global_settings( 'register_timezone' );
+        
         $args->register_timezone_show = 1;
         $args->register_timezone_label = esc_html__( 'Timezone', 'eventprime-event-calendar-management' );
         if( ! isset( $register_timezone['show'] ) || $register_timezone['show'] == 0 ) {
             $args->register_timezone_show = 0;
-            if( isset( $register_timezone['label'] ) && ! empty( $register_timezone['label'] ) ) {
-                $args->register_timezone_label = $register_timezone['label'];
-            }
         }
+        if( isset( $register_timezone['label'] ) && ! empty( $register_timezone['label'] ) ) {
+            $args->register_timezone_label = $register_timezone['label'];
+        }
+        
         $args->register_button_label = 'Register';
         // Register block button label update
         if( ! empty( $args->block_register_button_label ) ){
@@ -1982,7 +1985,7 @@ class Eventprime_Event_Calendar_Management_Public {
             <span class="material-icons-outlined ep-handle-share ep-button-text-color ep-mr-3 ep-cursor">calendar_month</span>
             <ul class="ep-event-share ep-m-0 ep-p-0" style="display:none;">
                 <li class="ep-event-social-icon">
-                    <a href="javascript:void(;);" title="<?php esc_html_e( '+ iCal Export','eventprime-event-calendar-management' ); ?>" id="ep_event_ical_export" data-event_id="<?php echo esc_attr( $event->em_id );?>">
+                    <a href="#" title="<?php esc_html_e( '+ iCal Export','eventprime-event-calendar-management' ); ?>" id="ep_event_ical_export" data-event_id="<?php echo esc_attr( $event->em_id );?>">
                         <?php esc_html_e( '+ iCal Export','eventprime-event-calendar-management' ); ?>
                     </a>
                 </li>
@@ -2079,6 +2082,82 @@ class Eventprime_Event_Calendar_Management_Public {
             remove_action('wp_footer', 'the_post_navigation', 10);
         }
     }
+    
+    /**
+    * Download iCal file
+    */
+   public function get_ical_file() {
+        
+           $ep_functions = new Eventprime_Basic_Functions();
+           if( ! is_admin() ) {
+                   if( isset( $_REQUEST['event'] ) ) {
+                           $event_id = absint( $_REQUEST['event'] );
+                           if( ! empty( $event_id ) ) {
+                                   if( isset( $_REQUEST['download'] ) ) {
+                                           $download_format = sanitize_text_field( $_REQUEST['download'] );
+                                           if ($download_format === 'ical') {
+                                                   $event = $ep_functions->get_single_event( $event_id );
+                                                   $event_url = $event->event_url;
+                                                   $event_content = preg_replace('#<a[^>]*href="((?!/)[^"]+)">[^<]+</a>#', '$0 ( $1 )', $event->description);
+                                                   $event_content = str_replace("<p>", "\\n", $event_content);
+                                                   $event_content = strip_shortcodes(strip_tags($event_content));
+                                                   $event_content = str_replace("\r\n", "\\n", $event_content);
+                                                   $event_content = str_replace("\n", "\\n", $event_content);
+                                                   $event_content = preg_replace('/(<script[^>]*>.+?<\/script>|<style[^>]*>.+?<\/style>)/s', '', $event_content);
+
+                                                   $gmt_offset_seconds = $ep_functions->ep_gmt_offset_seconds( $event->em_start_date );
+                                                   $time_format = ( $event->em_all_day == 1 ) ? 'Ymd' : 'Ymd\\THi00\\Z';
+
+                                                   $crlf = "\r\n";
+
+                                                   $ical  = "BEGIN:VCALENDAR".$crlf;
+                                                   $ical .= "VERSION:2.0".$crlf;
+                                                   $ical .= "METHOD:PUBLISH".$crlf;
+                                                   $ical .= "CALSCALE:GREGORIAN".$crlf;
+                                                   $ical .= "PRODID:-//WordPress - EPv".EVENTPRIME_VERSION."//EN".$crlf;
+                                                   $ical .= "X-ORIGINAL-URL:".home_url().'/'.$crlf;
+                                                   $ical .= "X-WR-CALNAME:".get_bloginfo('name').$crlf;
+                                                   $ical .= "X-WR-CALDESC:".get_bloginfo('description').$crlf;
+                                                   $ical .= "REFRESH-INTERVAL;VALUE=DURATION:PT1H".$crlf;
+                                                   $ical .= "X-PUBLISHED-TTL:PT1H".$crlf;
+                                                   $ical .= "X-MS-OLK-FORCEINSPECTOROPEN:TRUE".$crlf;
+
+                                                   $ical .= "BEGIN:VEVENT".$crlf;
+                                                   $ical .= "CLASS:PUBLIC".$crlf;
+                                                   $ical .= "UID:EP-".md5( strval( $event->em_id ) )."@".$ep_functions->ep_get_site_domain().$crlf;
+                                                   $ical .= "DTSTART:".gmdate( $time_format, ( $ep_functions->ep_convert_event_date_time_to_timestamp( $event, 'start' ) ) ).$crlf;
+                                                   $ical .= "DTEND:".gmdate( $time_format, ( $ep_functions->ep_convert_event_date_time_to_timestamp( $event, 'end' ) ) ).$crlf;
+                                                   $ical .= "DTSTAMP:".get_the_date( $time_format, $event->em_id ).$crlf;
+                                                   $ical .= "CREATED:".get_the_date( 'Ymd', $event->em_id ).$crlf;
+                                                   $ical .= "LAST-MODIFIED:".get_the_modified_date( 'Ymd', $event->em_id ).$crlf;
+                                                   $ical .= "SUMMARY:".html_entity_decode( $event->name, ENT_NOQUOTES, 'UTF-8' ).$crlf;
+                                                   $ical .= "DESCRIPTION:".html_entity_decode( $event_content, ENT_NOQUOTES, 'UTF-8' ).$crlf;
+                                                   $ical .= "X-ALT-DESC;FMTTYPE=text/html:".html_entity_decode( $event_content, ENT_NOQUOTES, 'UTF-8' ).$crlf;
+                                                   $ical .= "URL:".$event_url.$crlf;
+
+                                                   if ( ! empty( $event->venue_details ) ) {
+                                                           $ical .= "LOCATION:".trim(strip_tags($event->venue_details->em_address)).$crlf;
+                                                   }
+
+                                                   $cover_image_id = get_post_thumbnail_id( $event->em_id );
+                                                   if ( ! empty( $cover_image_id ) && $cover_image_id > 0 ) {
+                                                           $ical .= "ATTACH;FMTTYPE=".get_post_mime_type( $cover_image_id ).":".$event->image_url.$crlf;
+                                                   }
+
+                                                   $ical .= "END:VEVENT".$crlf;
+                                                   $ical .= "END:VCALENDAR";
+
+                                                   header('Content-type: application/force-download; charset=utf-8');
+                                                   header('Content-Disposition: attachment; filename="ep-event-'.$event->id.'.ics"');
+
+                                                   echo $ical;
+                                                   exit;
+                                           }
+                                   }
+                           }
+                   }
+           }
+   }
 
 
 

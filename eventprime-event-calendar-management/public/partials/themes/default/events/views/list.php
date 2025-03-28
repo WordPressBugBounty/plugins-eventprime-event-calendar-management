@@ -82,16 +82,10 @@ $ep_functions = new Eventprime_Basic_Functions;
                         </div>
                         <!-- Venue -->
                         <?php 
-                        if(is_array($event->em_venue))
-                        {
-                            $venue = $event->em_venue[0];
-                        }
-                        else
-                        {
-                            $venue = $event->em_venue;
-                        }
-                        $event_venue_details =(isset($venue) && isset($args->venues[$venue]))?$args->venues[$venue]:'&nbsp;';
-
+                        $venue = $ep_functions->ep_get_filter_taxonomy_id($event->em_venue);
+                
+                        $event_venue_details =(isset($venue) && !empty($venue))?(array)$ep_functions->get_single_venue( $venue ):'&nbsp;';
+                
                             if( ! empty( $event_venue_details['name'] ) ) {?>
                                 <div class="ep-mb-2 ep-text-small ep-text-muted ep-text-truncate"><?php
                                     echo esc_html( $event_venue_details['name'] );?>

@@ -112,9 +112,9 @@ jQuery( function( $ ) {
         $ = jQuery;
         jQuery(cardClass).removeClass(["ep-card-col-", "ep-card-col-1", "ep-card-col-2", "ep-card-col-3", "ep-card-col-4", "ep-card-col-5", "ep-box-col-4"]);
         var container = $(containerId);
-        console.log(containerId);
+        //console.log(containerId);
         var kfWidth = container.innerWidth();
-        console.log(kfWidth);
+        //console.log(kfWidth);
     
         if (kfWidth < 720) {
             container.addClass("ep-narrow");

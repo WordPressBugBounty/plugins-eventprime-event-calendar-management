@@ -231,7 +231,7 @@ jQuery( function( $ ) {
 	} );
         $( document ).on( 'click', '.em-performer-gallery-remove', function(){
             var image_id = $(this).closest('li').data('attachment_id').toString();
-            console.log(image_id);
+            //console.log(image_id);
             var gallery_ids = $('#em_performer_gallery').val();
             var galleryArr  = gallery_ids.split(',');
             for( var i = 0; i < galleryArr.length; i++){ 

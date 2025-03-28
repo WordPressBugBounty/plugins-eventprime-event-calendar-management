@@ -461,7 +461,7 @@ jQuery( function( $ ) {
                         $( this ).addClass( 'step2' );
                     }
                     let booking_price = $( 'input[name=ep_event_booking_total_price]' ).val();
-                    console.log(booking_price);
+                    //console.log(booking_price);
                     if( parseFloat( booking_price, 10 )  > 0 ) {
                         $( this ).hide();
                     } else{
@@ -793,7 +793,7 @@ jQuery( function( $ ) {
 
 // load payment section
 function loadPaymentSection_old() {
-    console.log(ep_event_booking)
+    //console.log(ep_event_booking)
     var ep_currency = eventprime.global_settings.currency;
     if( !ep_currency ){
         ep_currency = 'USD';
@@ -982,7 +982,7 @@ function loadPaymentSection() {
         ep_currency = 'USD';
     }
     var booking_price = jQuery( 'input[name=ep_event_booking_total_price]' ).val();
-    console.log(booking_price);
+    //console.log(booking_price);
     if( booking_price > 0 ) {
         jQuery( '#ep_event_booking_payment_section' ).show( 500 );
         if( !ep_event_booking.is_payment_method_enabled && booking_price > 0 ) {
@@ -1005,7 +1005,7 @@ function loadPaymentSection() {
                             var random_order_id = Math.random().toString( 36 ).substring( 2, 7 );
                             jQuery.each( booking_tickets, function(idx, data ) {
                                 let price = data.price
-                                console.log(data);
+                                //console.log(data);
                                 //total_price = parseFloat( total_price ) + parseFloat( price );
                                 if( data.additional_fee && data.additional_fee.length > 0 ) {
                                     jQuery.each( data.additional_fee, function( idx, add_data ) {
@@ -1018,8 +1018,8 @@ function loadPaymentSection() {
                                 }
                                 if( data.offer ) {
                                     total_discount = parseFloat( total_discount ) + parseFloat( data.offer );
-                                    console.log(data.offer );
-                                    console.log(total_discount);
+                                    //console.log(data.offer );
+                                    //console.log(total_discount);
                                 }
                                 let item_data = {
                                     "name": data.name,
@@ -1167,7 +1167,7 @@ function loadPaymentSection() {
 }
 
 function loadPaymentSection_new() {
-    console.log(ep_event_booking);
+    //console.log(ep_event_booking);
     var ep_currency = eventprime.global_settings.currency;
 
     if (!ep_currency) {

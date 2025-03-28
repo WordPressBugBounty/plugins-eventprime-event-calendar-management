@@ -71,7 +71,7 @@ jQuery( function( $ ) {
         if($('#ep_register_phone').length){
             if($('#ep_register_phone').val() != ''){
                 var validPhone = registrationPhoneCheck($('#ep_register_phone').val());
-                console.log(validPhone);
+                //console.log(validPhone);
                 if(validPhone === false){
                     $('.ep-register-response').html('<div class="ep-error-message">'+$("#ep_register_phone").data('validate')+'</div>');
                     $('.ep-spinner').removeClass('ep-is-active');

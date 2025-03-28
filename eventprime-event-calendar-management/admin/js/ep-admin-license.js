@@ -37,7 +37,7 @@ jQuery( function( $ ) {
             'ep_item_id' : key, 
             'ep_item_key': prefix
         };
-        console.log(data);
+        //console.log(data);
         $.ajax({
             type: 'POST', 
             url :  get_ajax_url(),

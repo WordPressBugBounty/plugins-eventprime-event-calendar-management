@@ -5,7 +5,7 @@ Tags: event calendar, organizer , event manager, tickets, event booking, event b
 Requires at least: 4.8
 Tested up to: 6.7
 Requires PHP: 7.2
-Stable tag: 4.0.8.4
+Stable tag: 4.0.9.0
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -666,6 +666,15 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.0.9.0: March 27, 2025 =
+* Fixed: An issue where custom field labels were not displaying correctly.
+* Fixed: A bug where the map was not showing on the single venue page.
+* Fixed: The issue of venue details not appearing in card view layout.
+* Fixed: The iCal export functionality on the single event page.
+* Fixed: An issue where end time options were not available when the start time was set to midnight.
+* Fixed: A problem where venue information was missing in email templates.
+* Fixed: Visibility of the "One Time Fee" option on the frontend event submission form — now only displayed when bookings are enabled, as intended.
 
 = 4.0.8.4: March 04, 2025 =
 * New Extension: Waiting List.
@@ -2087,6 +2096,15 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.0.9.0: March 27, 2025 =
+* Fixed: An issue where custom field labels were not displaying correctly.
+* Fixed: A bug where the map was not showing on the single venue page.
+* Fixed: The issue of venue details not appearing in card view layout.
+* Fixed: The iCal export functionality on the single event page.
+* Fixed: An issue where end time options were not available when the start time was set to midnight.
+* Fixed: A problem where venue information was missing in email templates.
+* Fixed: Visibility of the "One Time Fee" option on the frontend event submission form — now only displayed when bookings are enabled, as intended.
 
 = 4.0.8.4: March 04, 2025 =
 * New Extension: Waiting List.
