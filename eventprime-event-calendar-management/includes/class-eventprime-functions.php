@@ -6932,6 +6932,9 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
             $booked_tickets_data = $all_event_bookings['tickets'];
             $min_start = $max_end = ''; $price = $start_check_off = $total_caps = $total_bookings = 0;
             $buy_ticket_text = $this->ep_global_settings_button_title('Buy Tickets');
+
+            $buy_ticket_text = apply_filters('ep_extend_buy_ticket_text', $buy_ticket_text, $tickets, $event);
+
             $booking_closed_text = $this->ep_global_settings_button_title('Booking closed');
             $booking_start_on_text = $this->ep_global_settings_button_title('Booking start on');
             $free_text = $this->ep_global_settings_button_title('Free');

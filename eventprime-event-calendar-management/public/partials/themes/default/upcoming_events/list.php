@@ -32,10 +32,10 @@ foreach( $args->events->posts as $event ) {
                 <div class="ep-box-row ep-m-0">
                     <div class="ep-box-col-3 ep-p-0 ep-border-right ep-position-relative ep-rounded-tbl-right ep-list-view-image ep-upcoming-list-view">
                         <a href="<?php echo esc_url($single_event_data->event_url); ?>" class="ep-img-link" <?php echo esc_attr( $new_window );?>>
-                            <?php if (!empty($event_data['image'] ) ) { ?>
-                            <img src="<?php echo esc_url( $event_data['image'] ) ?>" alt="<?php echo esc_attr( $event_data['title'] ); ?>" class="ep-img-fluid ep-box-w-100 ep-list-img-fluid ep-rounded-tbl-right"><?php 
+                            <?php if (!empty($single_event_data->image_url ) ) { ?>
+                            <img src="<?php echo esc_url( $single_event_data->image_url ) ?>" alt="<?php echo esc_attr( $single_event_data->em_name ); ?>" class="ep-img-fluid ep-box-w-100 ep-list-img-fluid ep-rounded-tbl-right"><?php 
                             } else {?>
-                            <img src="<?php echo esc_url( plugin_dir_url( EP_PLUGIN_FILE ) . 'public/partials/images/dummy_image.png' ); ?>" alt="<?php echo esc_attr( $event_data['title'] ); ?>" class="ep-img-fluid ep-no-image ep-box-w-100 ep-list-img-fluid"><?php 
+                            <img src="<?php echo esc_url( plugin_dir_url( EP_PLUGIN_FILE ) . 'public/partials/images/dummy_image.png' ); ?>" alt="<?php echo esc_attr( $single_event_data->em_name ); ?>" class="ep-img-fluid ep-no-image ep-box-w-100 ep-list-img-fluid"><?php 
                             }?>
                         </a>
                         <div class="ep-list-icon-group ep-position-absolute ep-bg-white ep-rounded ep-d-inline-flex">

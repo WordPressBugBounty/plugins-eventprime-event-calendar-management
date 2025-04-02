@@ -67,6 +67,8 @@ $max_ticket_per_order = $is_able_to_purchase[0];
                         <!-- Ticket Price End -->
                         <!-- Button -->
                         <div class="ep-mt-3 d-grid gap-2 d-md-block" id="ep_single_event_ticket_now_wrapper"><?php 
+                            $get_ticket_now_text = apply_filters('ep_extend_get_tickets_now_text', $get_ticket_now_text, $args->event);
+
                             if( $args->event->em_enable_booking == 'external_bookings' ) {
                                 $url = $args->event->em_custom_link;
                                 $new_window = '';
@@ -101,7 +103,10 @@ $max_ticket_per_order = $is_able_to_purchase[0];
                                     
                                     if( ! empty( $invite_only_event ) || ! empty( $event_has_waiting_listers ) ) {
                                         $ticket_button_style = 'style=display:none;';
-                                    }?>
+                                    }
+                                    
+                                    $ticket_button_style = apply_filters('ep_ticket_button_style', $ticket_button_style, $args->event);
+                                    ?>
                                     <button type="button" id="ep_single_event_ticket_now_btn" class="ep-btn ep-btn-dark ep-box-w-100 ep-mb-2 ep-py-2" ep-modal-open="ep_single_event_page_ticket_modal" <?php echo esc_attr( $ticket_button_style );?>>
                                         <?php echo esc_html( $get_ticket_now_text ); ?>
                                     </button><?php

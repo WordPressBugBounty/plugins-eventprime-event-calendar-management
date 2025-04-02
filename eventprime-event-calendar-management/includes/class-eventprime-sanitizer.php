@@ -11,7 +11,7 @@ class EventPrime_sanitizer {
 					$data[ $key ] = $this->get_sanitized_fields( $identifier, $key, $value );
 				} else {
                                     
-                                       $data[ $key ] = maybe_serialize( $this->sanitize_request_array( $value, $identifier ) );
+                    $data[ $key ] = maybe_serialize( $this->sanitize_request_array( $value, $identifier ) );
 					
 				}
 			}
@@ -22,7 +22,7 @@ class EventPrime_sanitizer {
 			return null; }
 	}
         
-        public function sanitize_request_array( $post, $identifier ) {
+    public function sanitize_request_array( $post, $identifier ) {
 		
 		foreach ( $post as $key => $value ) {
 			if ( is_array( $value ) ) {
@@ -61,14 +61,14 @@ class EventPrime_sanitizer {
 			case 'id':
 				$value = sanitize_text_field( $value );
 				break;
-                        case 'option_data':
+            case 'option_data':
 				$value = wp_kses_post( $value );
 				break;
 			default:
 				$value = sanitize_text_field( $value );
 
 		}
-			return $value;
+		return $value;
 	}
         
         public function get_sanitized_ticket_categories_field( $field, $value ) {

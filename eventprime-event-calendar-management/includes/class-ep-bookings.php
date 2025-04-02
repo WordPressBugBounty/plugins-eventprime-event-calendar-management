@@ -104,7 +104,7 @@ class EventPrime_Bookings {
         $data = $sanitizer->sanitize($data);
         $booking = $this->load_booking_detail( $booking_id );
         if( empty( $booking->em_id ) ) return;
-
+        
         // update booking status
         $booking_status = $this->ep_get_event_booking_status( $booking_id, $data );
         $postData = [ 'ID' => $booking->em_id, 'post_status' => $booking_status ];
