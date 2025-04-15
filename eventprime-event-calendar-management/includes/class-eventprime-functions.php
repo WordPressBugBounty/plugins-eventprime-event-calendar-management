@@ -101,7 +101,9 @@ class Eventprime_Basic_Functions {
             'Eventprime_Woocommerce_Checkout_Integration',
             'Eventprime_Advanced_Live_Seating',
             'Eventprime_Attendee_Event_Check_In',
-            'EventPrime_Waiting_List'
+            'EventPrime_Waiting_List',
+            'Eventprime_Honeypot_Integration',
+            'Eventprime_Turnstile_Antispam'
         );
         $free_exist = array();
         foreach ($free as $fc) {
@@ -177,7 +179,9 @@ class Eventprime_Basic_Functions {
             'Eventprime_Woocommerce_Checkout_Integration',
             'Eventprime_Advanced_Live_Seating',
             'Eventprime_Attendee_Event_Check_In',
-            'EventPrime_Waiting_List'
+            'EventPrime_Waiting_List',
+            'Eventprime_Honeypot_Integration',
+            'Eventprime_Turnstile_Antispam'
         );
         $activate = array();
         foreach ($extensions as $extension) {
@@ -3745,13 +3749,13 @@ class Eventprime_Basic_Functions {
 
     // list all extension
     public function ep_list_all_exts() {
-        $exts = array('Live Seating', 'Events Import Export', 'Stripe Payments', 'Offline Payments', 'WooCommerce Integration', 'Event Sponsors', 'Attendees List', 'EventPrime Invoices', 'Coupon Codes', 'Guest Bookings', 'EventPrime Zoom Integration', 'Event List Widgets', 'Admin Attendee Bookings', 'EventPrime MailPoet', 'Twilio Text Notifications', 'Event Tickets', 'Zapier Integration', 'Advanced Reports', 'Advanced Checkout Fields', 'Elementor Integration', 'Mailchimp Integration', 'User Feedback', 'RSVP', 'WooCommerce Checkout', 'Ratings and Reviews','Attendee Event Check In','Waiting List');
+        $exts = array('Live Seating', 'Events Import Export', 'Stripe Payments', 'Offline Payments', 'WooCommerce Integration', 'Event Sponsors', 'Attendees List', 'EventPrime Invoices', 'Coupon Codes', 'Guest Bookings', 'EventPrime Zoom Integration', 'Event List Widgets', 'Admin Attendee Bookings', 'EventPrime MailPoet', 'Twilio Text Notifications', 'Event Tickets', 'Zapier Integration', 'Advanced Reports', 'Advanced Checkout Fields', 'Elementor Integration', 'Mailchimp Integration', 'User Feedback', 'RSVP', 'WooCommerce Checkout', 'Ratings and Reviews','Attendee Event Check In','Waiting List','HoneyPot Security','Turnstile Antispam Security');
         return $exts;
     }
 
     // get premium extension list
     public function ep_load_premium_extension_list() {
-        $premium_ext_list = array('Live Seating', 'Stripe Payments', 'Offline Payments', 'Event Sponsors', 'Attendees List', 'EventPrime Invoices', 'Coupon Codes', 'Guest Bookings', 'EventPrime Zoom Integration', 'Event List Widgets', 'Admin Attendee Bookings', 'EventPrime MailPoet', 'Twilio Text Notifications', 'Event Tickets', 'Advanced Reports', 'Advanced Checkout Fields', 'Mailchimp Integration', 'User Feedback', 'RSVP', 'WooCommerce Checkout', 'Ratings and Reviews','Attendee Event Check In','Waiting List');
+        $premium_ext_list = array('Live Seating', 'Stripe Payments', 'Offline Payments', 'Event Sponsors', 'Attendees List', 'EventPrime Invoices', 'Coupon Codes', 'Guest Bookings', 'EventPrime Zoom Integration', 'Event List Widgets', 'Admin Attendee Bookings', 'EventPrime MailPoet', 'Twilio Text Notifications', 'Event Tickets', 'Advanced Reports', 'Advanced Checkout Fields', 'Mailchimp Integration', 'User Feedback', 'RSVP', 'WooCommerce Checkout', 'Ratings and Reviews','Attendee Event Check In','Waiting List','HoneyPot Security','Turnstile Antispam Security');
         return $premium_ext_list;
     }
 
@@ -4340,6 +4344,49 @@ class Eventprime_Basic_Functions {
                 $data['is_free'] = !$this->ep_check_for_premium_extension('Waiting List');
                 $data['image'] = 'ep-waiting-list-icon.png';
                 $data['desc'] = "Allow users to join a waiting list when events are full and get notified if spots open up. Manage priorities, send alerts, and handle bookings efficiently.";
+                break;
+                
+            case 'HoneyPot Security':
+                $data['url'] = 'https://theeventprime.com/all-extensions/honeypot-security/';
+                if (in_array('eventprime-honeypot-security.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-honeypot-security.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Honeypot_Integration");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=honeypot');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('HoneyPot Security');
+                $data['image'] = 'honeypot-icon.png';
+                $data['desc'] = "The HoneyPot Security extension for EventPrime adds an invisible anti-spam trap to your event forms, preventing bots from submitting fake data while ensuring a smooth experience for real users.";
+                break;
+            case 'Turnstile Antispam Security':
+                $data['url'] = 'https://theeventprime.com/all-extensions/turnstile-antispam-security/';
+                if (in_array('eventprime-turnstile-antispam-security.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-turnstile-antispam-security.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Turnstile_Antispam");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=turnstile-security-settings');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Turnstile Antispam Security');
+                $data['image'] = 'ep-turnstile-icon.png';
+                $data['desc'] = "EventPrime Turnstile Antispam Security enhances the protection of your event forms by integrating Cloudflare's advanced Turnstile CAPTCHA.";
                 break;
         }
         return $data;
@@ -6191,6 +6238,55 @@ public function ep_get_checkout_page_esential_fields() {
         )
     );
     return $fields;
+}
+
+public function eventprime_check_remaining_tickets_in_event($event,$ticket_id,$qty)
+{
+        $total_caps = $total_bookings = 0;
+        if( ! empty( $event ) && ! $this->check_event_has_expired( $event ) && ! empty( $event->all_tickets_data ) ) 
+        {
+                if(isset($event->all_bookings))
+                {
+                    $all_event_bookings = $this->get_event_booking_by_event_id( $event->id, true,$event->all_bookings );
+                }
+                else
+                {
+                    $all_event_bookings = $this->get_event_booking_by_event_id( $event->id, true );
+                }
+                $booked_tickets_data = $all_event_bookings['tickets'];
+                foreach( $event->all_tickets_data as $ticket ) {
+                        // ticket total capacity
+                    if(!empty($ticket_id) && $ticket_id==$ticket->id)
+                    {
+                        $total_caps += $ticket->capacity;
+                        // ticket booked capacity
+                        $total_bookings += ( ! empty( $booked_tickets_data[$ticket->id] ) ? $booked_tickets_data[$ticket->id] : 0 );
+                    }
+                    else
+                    {
+                        $total_caps += $ticket->capacity;
+                        // ticket booked capacity
+                        $total_bookings += ( ! empty( $booked_tickets_data[$ticket->id] ) ? $booked_tickets_data[$ticket->id] : 0 );
+                    }
+                }
+                
+                if( $total_caps > $total_bookings ) {
+                    $remaining_tickets = $total_caps - $total_bookings;
+                    if($remaining_tickets >= $qty)
+                    {
+                        return $remaining_tickets;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                } 
+                else
+                {
+                    return false;
+                }
+                
+        }
 }
 
 public function ep_is_event_sold_out( $event ) 
@@ -8581,7 +8677,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
         return $get_ticket_data;
     }
 
-    public function ep_recalculate_tickets_data($tickets,$offer)
+    public function ep_recalculate_tickets_data($tickets,$offer,$event=false)
     {
         $tickets_data = json_decode($tickets);
         $newtickets = array();
@@ -8590,6 +8686,11 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
         $offerdiscount = 0;
         if (is_array($tickets_data)) {
             foreach ($tickets_data as $key =>$ticket) {
+                $remaining_tickets = $this->eventprime_check_remaining_tickets_in_event($event, $ticket->id,$ticket->qty);
+                if($remaining_tickets==false)
+                {
+                    return false;
+                }
                 $ticket_data = $this->ep_recalculate_ticket_data($ticket,$offer); 
                 $newtickets[$key] = $ticket_data[0];
                 $sub_total += $ticket_data[1];
@@ -8748,7 +8849,12 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
             {
                 if($key=='ep_event_booking_ticket_data')
                 {
-                    $newtickets_data = $this->ep_recalculate_tickets_data($value,$offer);
+                    $newtickets_data = $this->ep_recalculate_tickets_data($value,$offer,$event);
+                    if($newtickets_data==false)
+                    {
+                        return 'ticket_sold';
+                        break;
+                    }
                     $value = wp_json_encode($newtickets_data[0]);
                     $total += $newtickets_data[1];
                     $qty += $newtickets_data[2];

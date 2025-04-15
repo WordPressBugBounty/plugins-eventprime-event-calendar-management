@@ -353,6 +353,12 @@ class EventM_Ajax_Service {
                     $data = $ep_functions->ep_recalculate_and_verify_the_cart_data($data,$offer_data);
                 }
                 
+                if($data=='ticket_sold')
+                {
+                    wp_send_json_error( array( 'error' => esc_html__( 'One or more ticket types for this event are sold out. Please select from the available tickets or check back later for availability.', 'eventprime-event-calendar-management' ) ) );
+                    die;
+                }
+                
                 $woocommerce_validate = $ep_functions->ep_validate_woocommerce_product_data($data);
                 if($woocommerce_validate===false)
                 {
@@ -380,10 +386,13 @@ class EventM_Ajax_Service {
                                     $ticket_seat_uid = $ticket_seat->uid;
 
                                     // If seat has been sold then throw error. ***** 
-                                    foreach ( $event_seats_current_details->{$area_id}->seats as $event_seats_data ) {
-                                        foreach ( $event_seats_data as $event_seats_row ) {
-                                            if ( ($event_seats_row->uniqueIndex == $ticket_seat_uid) && ($event_seats_row->type == 'sold') ) {
-                                                $data = false;  
+                                    if(isset($event_seats_current_details) && !empty($event_seats_current_details))
+                                    {
+                                        foreach ( $event_seats_current_details->{$area_id}->seats as $event_seats_data ) {
+                                            foreach ( $event_seats_data as $event_seats_row ) {
+                                                if ( ($event_seats_row->uniqueIndex == $ticket_seat_uid) && ($event_seats_row->type == 'sold') ) {
+                                                    $data = false;  
+                                                }
                                             }
                                         }
                                     }

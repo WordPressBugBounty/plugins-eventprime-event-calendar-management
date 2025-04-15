@@ -17,14 +17,14 @@ if( ! empty( $args->event->em_venue ) ) {
                                 <?php echo esc_html( $event_venue->em_address );?>
                             </span><?php
                         }?>
-                            <span id="ep_sl_venue_more" class="material-icons-outlined ep-cursor ep-bg-secondary ep-bg-opacity-10 ep-ml-2 ep-rounded-circle">
+                            <span id="ep_sl_venue_more" class="material-icons-outlined ep-cursor ep-bg-secondary ep-bg-opacity-10 ep-ml-2 ep-rounded-circle ep-arrow-active">
                             
                              <span class="ep_expand_more_icon ep-d-flex"><svg class="ep-btn-text-fill-color" xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px" fill="#5f6368"><path d="M24 24H0V0h24v24z" fill="none" opacity=".87"/><path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6-1.41-1.41z"/></svg></span>
                              <span class="ep_expand_less_icon ep-d-flex" style="display: none;"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px" fill="#5f6368"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14l-6-6z"/></svg></span>
                         </span>
                     </span>
                 </div>
-                <div id="venue_hidden_details" class="ep-box-row ep-mb-3 ep-mt-3 ep-pt-3 ep-border-top" style="display: none">
+                <div id="venue_hidden_details" class="ep-box-row ep-mb-3 ep-mt-3 ep-pt-3 ep-border-top">
                     <div class="ep-box-col-12">
                         <ul class="ep-nav-pills ep-mx-0 ep-p-0 ep-mb-3 ep-venue-details-tabs" role="tablist">
                             <li class="ep-tab-item ep-mx-0" role="presentation"><a href="javascript:void(0)" data-tag="ep-sl-venue" class="ep-tab-link ep-tab-active"><?php esc_html_e( 'Details', 'eventprime-event-calendar-management' );?></a></li>

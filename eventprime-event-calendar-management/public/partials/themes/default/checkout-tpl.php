@@ -230,7 +230,7 @@ if( $ep_functions->ep_get_global_settings('checkout_reg_google_recaptcha') == 1 
                             <?php if( ! empty( $args->tickets ) && count( $args->tickets ) > 0 ) {?>
                                 <div id="ep_event_booking_attendee_section">
                                     <div class="ep-mb-3">
-                                        <?php esc_html_e( 'Please enter details of the attendees below:', 'eventprime-event-calendar-management' );?>
+                                        <?php esc_html_e('Please enter details of the attendees below:', 'eventprime-event-calendar-management');?>
                                     </div>
                                     <?php $ticket_num = 1;
                                     $em_event_checkout_attendee_fields = ( ! empty( $args->event->em_event_checkout_attendee_fields ) ? $args->event->em_event_checkout_attendee_fields : array() );

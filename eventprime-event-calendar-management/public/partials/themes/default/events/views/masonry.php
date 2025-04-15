@@ -41,7 +41,18 @@ $ep_functions = new Eventprime_Basic_Functions;
                         }
                         else
                         {
-                            echo get_the_post_thumbnail( $event->id, 'large', array('class' => 'img-fluid ep-rounded-1 ep-box-w-100 ep-event-cover') );
+                            $thumb_id = get_post_thumbnail_id( $event->id );
+
+                            if( ! empty( $thumb_id ) ) {
+                                echo wp_get_attachment_image( $thumb_id, 'large', false, array(
+                                    'class' => 'img-fluid ep-rounded-1 ep-box-w-100 ep-event-cover',
+                                    'alt'   => esc_attr( $event->em_name ),
+                                ) );
+                            } else {
+                                // Fallback image
+                                echo '<img src="' . esc_url( plugin_dir_url(EP_PLUGIN_FILE) . 'admin/images/dummy_image.png' ) . '" alt="'. esc_attr__('Dummy Image', 'eventprime-event-calendar-management') .'" class="img-fluid ep-rounded-1 ep-box-w-100 ep-event-cover">';
+                            }
+                            //echo get_the_post_thumbnail( $event->id, 'large', array('class' => 'img-fluid ep-rounded-1 ep-box-w-100 ep-event-cover') );
                         }
                         
                         ?>

@@ -5,7 +5,7 @@ Tags: event calendar, organizer , event manager, tickets, event booking, event b
 Requires at least: 4.8
 Tested up to: 6.7
 Requires PHP: 7.2
-Stable tag: 4.0.9.2
+Stable tag: 4.0.9.3
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -666,6 +666,13 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.0.9.3: April 15, 2025 =
+* New Extension: HoneyPot Security.
+* New Extension: Turnstile Antispam Security.
+* Fixed: Compatibility issues with Live Seating extension.
+* Fixed: Event images not displaying correctly when using shortcodes inside posts.
+* Fixed: Terms and Conditions field being removed when updating event from the dashboard.
 
 = 4.0.9.2: April 04, 2025 =
 * UI improvements.
@@ -2103,6 +2110,13 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.0.9.3: April 15, 2025 =
+* New Extension: HoneyPot Security.
+* New Extension: Turnstile Antispam Security.
+* Fixed: Compatibility issues with Live Seating extension.
+* Fixed: Event images not displaying correctly when using shortcodes inside posts.
+* Fixed: Terms and Conditions field being removed when updating event from the dashboard.
 
 = 4.0.9.2: April 04, 2025 =
 * UI improvements.

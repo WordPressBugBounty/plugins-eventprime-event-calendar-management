@@ -535,7 +535,7 @@ $em_event_booking_fields_data_required = ( ! empty( $em_event_checkout_booking_f
                                         if( ! empty( $em_event_checkout_fixed_fields['em_event_checkout_fixed_terms_content'] ) ) {
                                             $em_event_checkout_fixed_terms_content = '';
                                             if( $em_event_checkout_fixed_fields['em_event_checkout_fixed_terms_option'] == 'page' ) {
-                                                $em_event_checkout_fixed_terms_content = esc_html( get_the_title( $em_event_checkout_fixed_fields['em_event_checkout_fixed_terms_content'] ) );
+                                                $em_event_checkout_fixed_terms_content = esc_html( $em_event_checkout_fixed_fields['em_event_checkout_fixed_terms_content']);
                                             } elseif( $em_event_checkout_fixed_fields['em_event_checkout_fixed_terms_option'] == 'url' ) {
                                                 $em_event_checkout_fixed_terms_content = esc_url( $em_event_checkout_fixed_fields['em_event_checkout_fixed_terms_content'] );
                                             } elseif( $em_event_checkout_fixed_fields['em_event_checkout_fixed_terms_option'] == 'content' ) {
