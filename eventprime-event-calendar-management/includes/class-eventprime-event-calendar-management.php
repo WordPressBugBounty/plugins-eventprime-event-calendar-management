@@ -289,6 +289,29 @@ class Eventprime_Event_Calendar_Management {
                     }
                 });
                 
+                add_action( 'admin_footer-edit.php', function() {
+                    $screen = get_current_screen();
+                    if ( $screen->post_type === 'em_event' ) {
+                        ?>
+                        <script type="text/javascript">
+                            jQuery(document).ready(function($) {
+                                // Select the notices inside the wrap
+                                var $notices = $('.wrap > .notice, .wrap > .update-nag');
+
+                                if ($notices.length) {
+                                    // Move them above the page title
+                                    $notices.each(function() {
+                                        $('#wpbody-content .wrap').before($(this));
+                                    });
+                                }
+                            });
+                        </script>
+                        <?php
+                    }
+                });
+                
+                
+                
                 
                 
                 /*
@@ -391,6 +414,9 @@ class Eventprime_Event_Calendar_Management {
 		
                 $this->loader->add_action( 'admin_notices', $plugin_admin, 'ep_dismissible_notice' );
                 
+                //$this->loader->add_action( 'admin_notices', $plugin_admin, 'ep_dismissible_buddybot_promotion' );
+                
+                
                 //$this->loader->add_action( 'admin_notices', $plugin_admin, 'ep_conflict_notices' );
                 
                 //$this->loader->add_filter('post_row_actions', $plugin_admin, 'ep_add_custom_view_link', 10, 2);
@@ -404,6 +430,8 @@ class Eventprime_Event_Calendar_Management {
                 $this->loader->add_filter( 'handle_bulk_actions-edit-em_event',$plugin_admin, 'ep_duplicate_event_bulk_action_handler' , 10, 3 );
                 
                 $this->loader->add_action( 'restrict_manage_posts', $plugin_admin, 'ep_events_filters' );
+                $this->loader->add_action( 'restrict_manage_posts', $plugin_admin, 'ep_events_filters_starter_guide' );
+                
                 $this->loader->add_filter( 'parse_query', $plugin_admin, 'ep_events_filters_arguments', 100, 1 );
                 $this->loader->add_action('save_post', $plugin_admin,'allow_single_term_selection', 10, 3);
 

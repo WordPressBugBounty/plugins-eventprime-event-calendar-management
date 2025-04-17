@@ -1234,7 +1234,7 @@ class Eventprime_Event_Calendar_Management_Public {
     public function ep_load_single_template_dynamic($content)
     {
         
-        //remove_filter( 'the_content', array( $this, 'ep_load_single_template_dynamic') );
+        remove_filter( 'the_content', array( $this, 'ep_load_single_template_dynamic'),1000000000 );
         if( is_single() ) 
         {
             $atts = array();

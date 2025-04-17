@@ -4003,3 +4003,9 @@ table.ep-setting-table-main th {
 .notice#ep_dismissible_plugin .notice-dismiss:before{
     color: #5d4700;
 }
+
+.ep-starter-guide-btn a{
+     background-color: transparent !important;
+    color: #4d5bff !important;
+    border-color: #4d5bff !important;
+}

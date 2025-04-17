@@ -26,12 +26,12 @@ class Eventprime_Global_Settings{
      */
     public function get_fes_setting_options() {
         $fes_options = array(
-            'ues_confirm_message'                => esc_html__( 'Thank you for submitting your event. We will review and publish it soon.', 'eventprime-event-calendar-management' ),
-            'ues_login_message'                  => esc_html__( 'Please login to submit your event.', 'eventprime-event-calendar-management' ),
+            'ues_confirm_message'                => 'Thank you for submitting your event. We will review and publish it soon.',
+            'ues_login_message'                  => 'Please login to submit your event.',
             'ues_default_status'                 => 'draft',
             'allow_submission_by_anonymous_user' => '',
             'frontend_submission_roles'          => array(),
-            'ues_restricted_submission_message'  => esc_html__( 'You are not authorised to access this page. Please contact with your administrator.', 'eventprime-event-calendar-management' ),
+            'ues_restricted_submission_message'  => 'You are not authorised to access this page. Please contact with your administrator.',
             'frontend_submission_sections'       => array( 'fes_event_featured_image' => 1, 'fes_event_booking' => 1, 'fes_event_link' => 1, 'fes_event_type' => 1, 'fes_event_location' => 1, 'fes_event_performer' => 1, 'fes_event_organizer' => 1, 'fes_event_more_options' => 1, 'fes_event_text_color' => 1 ),
             'frontend_submission_required'       => array( 'fes_event_description' => 0, 'fes_event_booking' => 0, 'fes_booking_price' => 0,'fes_event_link' => 0, 'fes_event_type' => 0, 'fes_event_location' => 0, 'fes_event_performer' => 0, 'fes_event_organizer' => 0 ),
             'fes_allow_media_library'            => '',
@@ -91,7 +91,7 @@ class Eventprime_Global_Settings{
             'single_performer_event_load_more'    => 1,
             'single_performer_hide_past_events'   => 0,
             'performer_box_color'                 => array('A6E7CF', 'DBEEC1', 'FFD3B6', 'FFA9A5'),
-            'single_performer_event_section_title'   => esc_html__( "Upcoming Events", 'eventprime-event-calendar-management' ),
+            'single_performer_event_section_title'   => 'Upcoming Events',
         );
         $performers_options = apply_filters('ep_performers_options',$performers_options);
         if( $return_options == TRUE ) {
@@ -160,7 +160,7 @@ class Eventprime_Global_Settings{
             'type_box_color'                 => array('A6E7CF', 'DBEEC1', 'FFD3B6', 'FFA9A5'),
             'single_type_event_order'        => 'asc',
             'single_type_event_orderby'      => 'em_start_date_time',
-            'single_type_event_section_title'   => esc_html__( "Upcoming Events", 'eventprime-event-calendar-management' ),
+            'single_type_event_section_title' => 'Upcoming Events',
         );
         if( $return_options == TRUE ) {
             return $event_types_options;
@@ -184,7 +184,7 @@ class Eventprime_Global_Settings{
             'single_venue_event_column'       => 4,
             'single_venue_event_load_more'    => 1,
             'single_venue_hide_past_events'   => 1,
-            'single_venue_event_section_title'   => esc_html__( "Upcoming Events", 'eventprime-event-calendar-management' ),
+            'single_venue_event_section_title' => 'Upcoming Events',
             'venue_box_color'                 => array('A6E7CF', 'DBEEC1', 'FFD3B6', 'FFA9A5'),
         );
         $venues_options = apply_filters('ep_venues_options',$venues_options);
@@ -209,7 +209,7 @@ class Eventprime_Global_Settings{
             'single_organizer_event_column'       => 0,
             'single_organizer_event_load_more'    => 1,
             'single_organizer_hide_past_events'   => 0,
-            'single_organizer_event_section_title'   => esc_html__( "Upcoming Events", 'eventprime-event-calendar-management' ),
+            'single_organizer_event_section_title'   => 'Upcoming Events',
             'organizer_box_color'                 => array('A6E7CF', 'DBEEC1', 'FFD3B6', 'FFA9A5'),
         );
         $organizers_options = apply_filters('ep_organizers_options',$organizers_options);
@@ -227,6 +227,7 @@ class Eventprime_Global_Settings{
             'single_event_date_format_std_option'      => '', 
             'single_event_date_format_val'      => '', 
             'show_qr_code_on_single_event'       => 1,
+            'expand_venue_container'             => 1,
             'hide_weather_tab'                   => 0,
             'weather_unit_fahrenheit'            => 0,
             'hide_map_tab'                       => 0,
@@ -291,35 +292,35 @@ class Eventprime_Global_Settings{
         $email_options = array(
             'disable_admin_email'                   => '',
             'disable_frontend_email'                => '',
-            'registration_email_subject'            => esc_html__( 'User registration successful!', 'eventprime-event-calendar-management' ),
+            'registration_email_subject'            => 'User registration successful!',
             'registration_email_content'            => '',
-            'reset_password_mail_subject'           => esc_html__( 'Reset your password', 'eventprime-event-calendar-management' ),
+            'reset_password_mail_subject'           => 'Reset your password',
             'reset_password_mail'                   => '',
             'send_booking_pending_email'            => 1,
-            'booking_pending_email_subject'         => esc_html__( 'Your payment is pending', 'eventprime-event-calendar-management' ),
+            'booking_pending_email_subject'         => 'Your payment is pending',
             'booking_pending_email'                 => '',
             'booking_pending_email_cc'              => '',
             'send_booking_confirm_email'            => 1,
-            'booking_confirm_email_subject'         => esc_html__( 'Your booking is confirmed!', 'eventprime-event-calendar-management' ),
+            'booking_confirm_email_subject'         => 'Your booking is confirmed!',
             'booking_confirmed_email'               => '',
             'booking_confirmed_email_cc'            => '',
             'send_booking_cancellation_email'       => 1,
-            'booking_cancelation_email_subject'     => esc_html__( 'Your booking has been cancelled', 'eventprime-event-calendar-management' ),
+            'booking_cancelation_email_subject'     => 'Your booking has been cancelled',
             'booking_cancelation_email'             => '',
             'booking_cancelation_email_cc'          => '',
             'send_booking_refund_email'             => 1,
-            'booking_refund_email_subject'          => esc_html__( 'Refund for your booking', 'eventprime-event-calendar-management' ),
+            'booking_refund_email_subject'          => 'Refund for your booking',
             'booking_refund_email'                  => '',
             'booking_refund_email_cc'               => '',
             'send_event_submitted_email'            => 1,
-            'event_submitted_email_subject'         => esc_html__( 'Event submitted successfully!', 'eventprime-event-calendar-management' ),
+            'event_submitted_email_subject'         => 'Event submitted successfully!',
             'event_submitted_email'                 => '',
             'event_submitted_email_cc'              => '',
             'send_event_approved_email'             => 1,
-            'event_approved_email_subject'          => esc_html__( 'Your event is now live!', 'eventprime-event-calendar-management' ),
+            'event_approved_email_subject'          => 'Your event is now live!',
             'event_approved_email'                  => '',
             'send_admin_booking_confirm_email'      => 1,
-            'admin_booking_confirmed_email_subject' => esc_html__( 'New event booking', 'eventprime-event-calendar-management' ),
+            'admin_booking_confirmed_email_subject' => 'New event booking',
             'admin_booking_confirmed_email'         => '',
             'admin_booking_confirmed_email_cc'      => '',
             'admin_booking_confirm_email_attendees' => '',

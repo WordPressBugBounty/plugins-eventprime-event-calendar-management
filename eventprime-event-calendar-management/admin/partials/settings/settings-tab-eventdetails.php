@@ -44,6 +44,20 @@ $global_options = $global_settings->ep_get_settings();
         </tr>
         <tr valign="top">
             <th scope="row" class="titledesc">
+                <label for="expand_venue_container">
+                    <?php esc_html_e( 'Expand Venue Section', 'eventprime-event-calendar-management' );?>
+                </label>
+            </th>
+            <td class="forminp forminp-text">
+                <label class="ep-toggle-btn">
+                    <input name="expand_venue_container" id="expand_venue_container" type="checkbox" value="1" <?php echo isset( $global_options->expand_venue_container ) && $global_options->expand_venue_container == 1 ? 'checked' : '';?>>
+                    <span class="ep-toogle-slider round"></span>
+                </label>
+                <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( 'Enable to display venue section in expanded state on event page. When disabled, only the venue name will be visible and users can click to expand it for more details.', 'eventprime-event-calendar-management' );?></div>
+            </td>
+        </tr>
+        <tr valign="top">
+            <th scope="row" class="titledesc">
                 <label for="hide_weather_tab">
                     <?php esc_html_e( 'Hide Weather Tab', 'eventprime-event-calendar-management' );?>
                 </label>

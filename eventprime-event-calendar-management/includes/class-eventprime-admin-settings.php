@@ -714,6 +714,7 @@ class EventPrime_Admin_settings{
         $admin_notices = new EventM_Admin_Notices;
         $global_settings_data = $global_settings->ep_get_settings();
         $global_settings_data->hide_weather_tab = ( ! empty( $form_data['hide_weather_tab'] ) ? 1 : 0 );
+        $global_settings_data->expand_venue_container = ( ! empty( $form_data['expand_venue_container'] ) ? 1 : 0 );
         if( empty( $global_settings_data->hide_weather_tab ) ) {
             $global_settings_data->weather_unit_fahrenheit  = ( ! empty( $form_data['weather_unit_fahrenheit'] ) ? 1 : 0 );
         } else{

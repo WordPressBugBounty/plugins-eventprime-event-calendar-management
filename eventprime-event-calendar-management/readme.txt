@@ -3,9 +3,9 @@ Contributors: metagauss
 Donate link: https://theeventprime.com/
 Tags: event calendar, organizer , event manager, tickets, event booking, event bookings, booking manager, bookings manager, event organizer, events organizer, event planner, events planner, paid events, event list, events list, event registration, event registrations
 Requires at least: 4.8
-Tested up to: 6.7
+Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 4.0.9.3
+Stable tag: 4.0.9.4
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -666,6 +666,11 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.0.9.4: April 17, 2025 =
+* Improved: UI enhancements for a smoother user experience.
+* Added: Option to keep the venue section expanded or collapsed by default on the event page.
+* Fixed: Text domain inconsistencies in translatable strings.
 
 = 4.0.9.3: April 15, 2025 =
 * New Extension: HoneyPot Security.
@@ -2110,6 +2115,11 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.0.9.4: April 17, 2025 =
+* Improved: UI enhancements for a smoother user experience.
+* Added: Option to keep the venue section expanded or collapsed by default on the event page.
+* Fixed: Text domain inconsistencies in translatable strings.
 
 = 4.0.9.3: April 15, 2025 =
 * New Extension: HoneyPot Security.

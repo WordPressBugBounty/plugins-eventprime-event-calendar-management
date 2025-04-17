@@ -3786,6 +3786,42 @@ class Eventprime_Event_Calendar_Management_Admin {
             <?php
         }
     }
+    
+    public function ep_dismissible_buddybot_promotion() {
+         global $pagenow;
+        $ep_functions = new Eventprime_Basic_Functions();
+        $notice_name  = get_option( 'ep_dismissible_buddybot_promotion', '0' );
+        $current_page = $ep_functions->is_eventprime_plugin_page();
+        if ( $notice_name == '1' || defined('BUDDYBOT_PLUGIN_VERSION') || version_compare( PHP_VERSION, '8.0', '<=' )) {
+                return;
+        }
+
+        if ( $pagenow !== 'plugins.php' ) {
+             $install_url = wp_nonce_url(
+                    self_admin_url('update.php?action=install-plugin&plugin=buddybot-ai-custom-ai-assistant-and-chat-agent'),
+                    'install-plugin_buddybot-ai-custom-ai-assistant-and-chat-agent' 
+                );
+            ?>        
+            <div class="notice notice-info is-dismissible ep-dismissible" id="ep_dismissible_buddybot_promotion">
+                <p>
+                    <span>
+                        <a href="<?php echo esc_url($install_url); ?>" 
+                      class="button button-primary thickbox" 
+                      aria-label="<?php esc_attr_e('Install BuddyBot Plugin','eventprime-event-calendar-management'); ?>">
+                       <?php esc_html_e('Click here','eventprime-event-calendar-management'); ?>
+                   </a>
+                    </span>
+                    <?php esc_html_e('to try BuddyBot help your visitors find answers fast with an AI chatbot trained on your WordPress content. Built by the EventPrime team.', 'eventprime-event-calendar-management'); ?>
+                 
+                </p>
+
+            </div>
+                
+                
+                
+            <?php
+        }
+    }
 
     public function ep_dismissible_notice_ajax() {
          $nonce      = filter_input( INPUT_POST, 'nonce' );
@@ -4175,6 +4211,17 @@ class Eventprime_Event_Calendar_Management_Admin {
                 ?>
                 <input id="event_date_picker" type="text" name="ep_filter_date" value="<?php echo esc_attr( $filter_date ); ?>" placeholder="<?php esc_attr_e( 'Select Date', 'eventprime-event-calendar-management' ); ?>" autocomplete="off"/>
             </span>
+            <?php
+        }
+    }
+    
+    public function ep_events_filters_starter_guide() {
+         global $typenow;
+        if ( $typenow == 'em_event' ) {
+            ?>
+            <div class="alignright actions ep-starter-guide-btn">
+                <a href="https://theeventprime.com/starter-guide/" target="_blank" class=" button action">Starter Guide</a>
+            </div>
             <?php
         }
     }
