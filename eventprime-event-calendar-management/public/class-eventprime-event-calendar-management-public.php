@@ -1713,51 +1713,126 @@ class Eventprime_Event_Calendar_Management_Public {
     public function ep_event_detail_add_weather_widget( $venue ) {
         $ep_functions = new Eventprime_Basic_Functions;
         //print_r($venue);die;
-        if( ! empty( $venue ) && ! empty( $venue->em_place_id ) ) {
-            $place_url = $ep_functions->fetch_url_content( 'https://forecast7.com/api/getUrl/' . $venue->em_place_id );
-            
-            if( empty( $place_url ) ) {
-                // call autocomplete api with state and country
-                if( ! empty( $venue->em_state ) && ! empty( $venue->em_country ) ) {
-                    $autocomplete_api = 'https://forecast7.com/api/autocomplete/'.$venue->em_state.'/'.$venue->em_country.'/';
-                    if( empty( $autocomplete_api ) ) {
-                        $autocomplete_api = 'https://forecast7.com/api/autocomplete/'.$venue->em_state.', '.$venue->em_country.'/';
-                    }
-                    if( $autocomplete_api ) {
-                        $autocomplete_data = $ep_functions->fetch_url_content( $autocomplete_api );
-                        if( ! empty( $autocomplete_data ) ) {
-                            $place_data = json_decode( $autocomplete_data );
-                            if( ! empty( $place_data ) && ! empty( $place_data[0] ) ) {
-                                if( ! empty( $place_data[0]->place_id ) ) {
-                                    $place_url = $ep_functions->fetch_url_content( 'https://forecast7.com/api/getUrl/' . $place_data[0]->place_id );
+        $weather_api_key = $ep_functions->ep_get_global_settings( 'weather_api_key' );
+        if( ! empty($weather_api_key  ) && !empty($venue) && isset($venue->em_locality) && !empty($venue->em_locality) ) {
+            $api_key = $weather_api_key;
+$city = $venue->em_locality;
+$api_url = "http://api.weatherapi.com/v1/forecast.json?key={$api_key}&q={$city}&days=7&aqi=no&alerts=no";
+$temp_unit = $ep_functions->ep_get_global_settings('weather_unit_fahrenheit');
+$response = file_get_contents($api_url);
+$data = json_decode($response);
+//print_r($data);
+if(!empty($temp_unit) && $temp_unit == 1)
+{
+    $currenttemp = $data->current->temp_f.'°F';
+}
+else
+{
+    $currenttemp = $data->current->temp_c.'°C';
+}
+
+?>
+
+<div class="ep-weather-widget">
+    
+    <div class="ep-current-weather">
+        <div class="ep-location-wrap">
+            <div class="ep-location-name ep-fs-4 ep-fw-bold"><?php echo esc_html($data->location->name); ?> </div>
+            <div class="ep-location-title ep-fs-6"><?php esc_html_e('Weather','eventprime-event-calendar-management');?></div>
+        </div>
+        <img src="https:<?php echo esc_attr($data->current->condition->icon); ?>" alt="<?php esc_attr_e('Current Weather Icon','eventprime-event-calendar-management');?>">
+        <div class="ep-temp-wrap">
+        <div class="ep-temp ep-fs-4 ep-fw-bold"><?php echo esc_html($currenttemp); ?></div>
+        <div class="ep-desc ep-fs-6"><?php echo esc_html($data->current->condition->text); ?></div>
+        </div>
+    </div>
+
+    <div class="ep-weather-forecast">
+        <?php foreach($data->forecast->forecastday as $day): ?>
+            <div class="ep-weather-day">
+                <div><?php echo esc_html(date('D', strtotime($day->date))); ?></div>
+                <img src="https:<?php echo esc_attr($day->day->condition->icon); ?>" alt="">
+                <?php
+                
+                if(!empty($temp_unit) && $temp_unit == 1){
+                    $maxtemp = $day->day->maxtemp_f.'°F';
+                    $mintemp = $day->day->mintemp_f.'°F';
+                }
+                else
+                {
+                    $maxtemp = $day->day->maxtemp_c.'°C';
+                    $mintemp = $day->day->mintemp_c.'°C';
+                }
+                ?>
+                <div class="max-temp"><?php echo esc_html($maxtemp); ?></div>
+                <div class="min-temp"><?php echo esc_html($mintemp); ?></div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+</div> <?php
+        }
+        else
+        {                     
+            if( ! empty( $venue ) && ! empty( $venue->em_place_id ) ) {
+                $place_url = $ep_functions->fetch_url_content( 'https://forecast7.com/api/getUrl/' . $venue->em_place_id );
+
+                if( empty( $place_url ) ) {
+                    // call autocomplete api with state and country
+                    if( ! empty( $venue->em_state ) && ! empty( $venue->em_country ) ) {
+                        $autocomplete_api = 'https://forecast7.com/api/autocomplete/'.$venue->em_state.'/'.$venue->em_country.'/';
+                        if( empty( $autocomplete_api ) ) {
+                            $autocomplete_api = 'https://forecast7.com/api/autocomplete/'.$venue->em_state.', '.$venue->em_country.'/';
+                        }
+                        if( $autocomplete_api ) {
+                            $autocomplete_data = $ep_functions->fetch_url_content( $autocomplete_api );
+                            if( ! empty( $autocomplete_data ) ) {
+                                $place_data = json_decode( $autocomplete_data );
+                                if( ! empty( $place_data ) && ! empty( $place_data[0] ) ) {
+                                    if( ! empty( $place_data[0]->place_id ) ) {
+                                        $place_url = $ep_functions->fetch_url_content( 'https://forecast7.com/api/getUrl/' . $place_data[0]->place_id );
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
-            $temp_unit = $ep_functions->ep_get_global_settings('weather_unit_fahrenheit');
-            if(!empty($temp_unit) && $temp_unit == 1){
-                $place_url .='/?unit=us';
-            }else{
-                $place_url .='/';
-            }
-            
-            //echo 'https://forecast7.com/en/'.$place_url;
-            if( ! empty( $place_url ) ) {?>
-                <a class="weatherwidget-io" href="https://forecast7.com/en/<?php echo esc_html( $place_url );?>" data-label_1="<?php echo esc_html( $venue->em_locality );?>" data-label_2="WEATHER" data-theme="pure" ><?php echo esc_html( $venue->em_locality );?> <?php esc_html_e( 'WEATHER', 'eventprime-event-calendar-management' ); ?></a>
-                <script>
-                    !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src='https://weatherwidget.io/js/widget.min.js';fjs.parentNode.insertBefore(js,fjs);}}(document,'script','weatherwidget-io-js');
-                </script><?php
-            } else{?>
+                $temp_unit = $ep_functions->ep_get_global_settings('weather_unit_fahrenheit');
+                if( ! empty( $place_url ) ) 
+                {
+                    if(!empty($temp_unit) && $temp_unit == 1)
+                    {
+                        $place_url .='/?unit=us';
+                    }
+                    else
+                    {
+                        $place_url .='/';
+                    }
+
+                //echo 'https://forecast7.com/en/'.$place_url;
+                ?>
+                    <a class="weatherwidget-io" href="https://forecast7.com/en/<?php echo esc_html( $place_url );?>" data-label_1="<?php echo esc_html( $venue->em_locality );?>" data-label_2="WEATHER" data-theme="pure" ><?php echo esc_html( $venue->em_locality );?> <?php esc_html_e( 'WEATHER', 'eventprime-event-calendar-management' ); ?></a>
+                    <script>
+                        !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src='https://weatherwidget.io/js/widget.min.js';fjs.parentNode.insertBefore(js,fjs);}}(document,'script','weatherwidget-io-js');
+                    </script>
+                        <?php
+                } 
+                else
+                {
+                    ?>
+                    <div class="ep-alert ep-alert-warning ep-mt-3">
+                        <?php esc_html_e( 'No data found.', 'eventprime-event-calendar-management' ); ?>
+                    </div>
+                        <?php
+                }
+            } 
+            else
+            {
+                ?>
                 <div class="ep-alert ep-alert-warning ep-mt-3">
                     <?php esc_html_e( 'No data found.', 'eventprime-event-calendar-management' ); ?>
-                </div><?php
+                </div>
+                    <?php
             }
-        } else{?>
-            <div class="ep-alert ep-alert-warning ep-mt-3">
-                <?php esc_html_e( 'No data found.', 'eventprime-event-calendar-management' ); ?>
-            </div><?php
         }
     }
     

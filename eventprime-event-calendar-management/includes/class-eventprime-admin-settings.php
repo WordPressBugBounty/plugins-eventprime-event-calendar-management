@@ -141,6 +141,7 @@ class EventPrime_Admin_settings{
         $admin_notices = new EventM_Admin_Notices;
         $global_settings_data = $global_settings->ep_get_settings();
         $global_settings_data->gmap_api_key                = sanitize_text_field($form_data['gmap_api_key']);
+        $global_settings_data->weather_api_key                = sanitize_text_field($form_data['weather_api_key']);
         $global_settings_data->social_sharing              = isset($form_data['social_sharing']) ? (int) $form_data['social_sharing'] : 0;
         $global_settings_data->gcal_sharing                = isset($form_data['gcal_sharing']) ? (int) $form_data['gcal_sharing'] : 0;
         $global_settings_data->google_cal_client_id        = sanitize_text_field($form_data['google_cal_client_id']);

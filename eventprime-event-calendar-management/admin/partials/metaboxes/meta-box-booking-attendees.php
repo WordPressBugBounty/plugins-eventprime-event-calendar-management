@@ -141,7 +141,12 @@ $booking = $booking_controller->load_booking_detail( $booking_id );
                                                         }
                                                     }
                                                 }
-                                                echo esc_html( $at_val );?>
+                                                $at_val = apply_filters(
+                                                    'ep_booking_attendee_details_backend',
+                                                    $at_val,
+                                                    $formated_val
+                                                );
+                                                echo wp_kses_post( $at_val );?>
                                             </td><?php
                                         }
                                         /* if( ! empty( $em_allow_edit_booking ) ) { */ ?>

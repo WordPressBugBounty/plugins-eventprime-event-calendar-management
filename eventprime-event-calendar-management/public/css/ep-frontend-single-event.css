@@ -759,3 +759,53 @@ ul.ep-event-share:after {
 .ep-sl-venue .ep-venue-card-thumb {
     background-color: rgba(var(--themeColor), 0.2);
 }
+
+/* weather widget start */
+.emagic .ep-weather-widget {
+    padding: 20px;
+    border-radius: 10px;
+    width: 100%;
+}
+
+.emagic .ep-current-weather {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    justify-content: space-between;
+}
+
+.emagic .ep-current-weather img{
+    box-shadow:unset !important;
+}
+
+.emagic .ep-temp {
+    font-size: 32px;
+    font-weight: bold;
+}
+
+.emagic .ep-weather-forecast {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.emagic .ep-weather-day {
+    text-align: center;
+    width: 42px;
+    font-size: 13px;
+}
+.emagic .ep-weather-day img{
+    box-shadow:unset !important;
+    width:35px;
+}
+
+.emagic .ep-weather-day .max-temp{
+    color: #dc2b2b;
+}
+
+.emagic .ep-weather-day .min-temp{
+    color: #1279c2;
+}
+/*weather widget end */

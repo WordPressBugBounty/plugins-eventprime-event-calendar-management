@@ -173,8 +173,11 @@ class Eventprime_Event_Calendar_Management_Activator {
 			case 'created_at':
 				$format = '%s';
 				break;
-                        case 'updated_at':
-                                $format = '%s';
+			case 'updated_at':
+					$format = '%s';
+				break;
+			case 'cat_misc_data':
+					$format = '%s';
 				break;
 			default:
 				$format = '%d';

@@ -33,9 +33,34 @@ $sub_options = $global_settings->sub_options;
 
             </td>
         </tr>
+        
         <tr valign="top">
             <th scope="row" class="titledesc">
-                <label for="gmap_api_key">
+                <label for="weather_api_key">
+                    <?php esc_html_e( 'Weather API Key', 'eventprime-event-calendar-management' );?>
+                </label>
+            </th>
+            <td class="forminp forminp-text">
+                <label>
+                    <input name="weather_api_key" id="weather_api_key" class="regular-text" type="text" value="<?php echo isset($global_options->weather_api_key ) ? esc_attr($global_options->weather_api_key) : '';?>">    
+                </label>
+                <div class="ep-help-tip-info ep-my-2 ep-text-muted">
+                    <?php 
+                    $weather_api_url = 'https://www.weatherapi.com/my/';
+                    printf(
+                        esc_html__( 'EventPrime can display weather forecast to the visitors if Weather Maps API key is configured. You can generate one from your Weather API account. %s Learn more about Weather API keys %s', 'eventprime-event-calendar-management' ),
+                        '<a href="' . esc_url( $weather_api_url ) . '" target="_blank">',
+                        '</a>'
+                    );
+                    ?>
+                </div>
+
+            </td>
+        </tr>
+        
+        <tr valign="top">
+            <th scope="row" class="titledesc">
+                <label for="social_sharing">
                     <?php esc_html_e( 'Allow Sharing Events', 'eventprime-event-calendar-management' );?>
                 </label>
             </th>

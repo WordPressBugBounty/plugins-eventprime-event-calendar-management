@@ -133,10 +133,24 @@ $ep_requests = new EP_Requests;
                                 }
                                 if( ! empty( $args->event_data->em_start_date ) && $ep_functions->ep_show_event_date_time( 'em_start_date', $args->event_data ) ) {?>
                                     <div class="ep-ps-4 ep-text-muted ep-text-small">
+                                        <span><?php esc_html_e('Event Start:','eventprime-event-calendar-management');?></span>
+                                        
                                         <span>
                                             <?php echo esc_html( $ep_functions->ep_timestamp_to_date( $args->event_data->em_start_date, 'dS M Y', 1 ) );
                                             if( ! empty( $args->event_data->em_start_time ) && $ep_functions->ep_show_event_date_time( 'em_start_time', $args->event_data ) ) {
                                                 echo ', ' . esc_html( $ep_functions->ep_convert_time_with_format( $args->event_data->em_start_time ) );
+                                            }?>
+                                        </span>
+                                    </div><?php
+                                }
+                                
+                                if( ! empty( $args->event_data->em_end_date ) && $ep_functions->ep_show_event_date_time( 'em_end_date', $args->event_data ) ) {?>
+                                    <div class="ep-ps-4 ep-text-muted ep-text-small">
+                                        <span><?php esc_html_e('Event End:','eventprime-event-calendar-management');?></span>
+                                        <span>
+                                            <?php echo esc_html( $ep_functions->ep_timestamp_to_date( $args->event_data->em_end_date, 'dS M Y', 1 ) );
+                                            if( ! empty( $args->event_data->em_end_time ) && $ep_functions->ep_show_event_date_time( 'em_end_time', $args->event_data ) ) {
+                                                echo ', ' . esc_html( $ep_functions->ep_convert_time_with_format( $args->event_data->em_end_time ) );
                                             }?>
                                         </span>
                                     </div><?php
@@ -298,6 +312,15 @@ $ep_requests = new EP_Requests;
                                             <?php echo ( ! empty( $args->em_payment_log ) && ( ! empty( $args->em_payment_log['payment_gateway'] ) ) ? esc_html( ucfirst( $args->em_payment_log['payment_gateway'] ) ) : '' );?>
                                         </span>
                                     </div>
+                                    <div class="">
+                                        <span class="ep-mr-2">
+                                            <?php esc_html_e( 'Booking Date', 'eventprime-event-calendar-management' );?>:
+                                        </span>
+                                        <span>
+                                            <?php 
+                                            echo ! empty( $args->em_date ) ? esc_html($ep_functions->ep_timestamp_to_datetime( $args->em_date )) : '' ; ?>
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                             <div class="ep-box-col-3 ep-p-3 ep-text-small">
@@ -439,7 +462,12 @@ $ep_requests = new EP_Requests;
                                                                         }
                                                                     }
                                                                 }
-                                                                echo esc_html( $at_val );?>
+                                                                $at_val = apply_filters(
+                                                                    'ep_booking_attendee_details_frontend',
+                                                                    $at_val,
+                                                                    $formated_val
+                                                                );
+                                                                echo wp_kses_post( $at_val );?>
                                                             </td><?php
                                                         }?>
 

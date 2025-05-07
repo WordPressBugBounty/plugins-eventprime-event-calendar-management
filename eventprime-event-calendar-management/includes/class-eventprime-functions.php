@@ -6303,10 +6303,10 @@ public function ep_is_event_sold_out( $event )
                 }
                 $booked_tickets_data = $all_event_bookings['tickets'];
                 foreach( $event->all_tickets_data as $ticket ) {
-                        // ticket total capacity
-        $total_caps += $ticket->capacity;
-                        // ticket booked capacity
-        $total_bookings += ( ! empty( $booked_tickets_data[$ticket->id] ) ? $booked_tickets_data[$ticket->id] : 0 );
+                    // ticket total capacity
+                    $total_caps += $ticket->capacity;
+                    // ticket booked capacity
+                    $total_bookings += ( ! empty( $booked_tickets_data[$ticket->id] ) ? $booked_tickets_data[$ticket->id] : 0 );
                 }
         }
         if( $total_caps > $total_bookings ) {
@@ -8771,8 +8771,8 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
         $ticket->price = (float)$ticket_data[0]->price; // Set to the desired new price
         $maximum_ticket_qty = $ticket_data[0]->max_ticket_no;
         $minimum_ticket_qty = $ticket_data[0]->min_ticket_no;
-        if($ticket->qty>$maximum_ticket_qty)
-        {
+        
+        if( !empty($maximum_ticket_qty) && $ticket->qty > $maximum_ticket_qty ) {
             $ticket->qty = $maximum_ticket_qty;
         }
 
@@ -8780,6 +8780,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
         {
             $ticket->qty = $minimum_ticket_qty;
         }
+
         $ticket_response = (object)$this->eventprime_update_cart_response($ticket->id,$ticket->qty);
 //        $ticket_offers = json_decode( $ticket_data[0]->offers );
 //        $offer_applied_data = $this->get_event_offer_applied_data( $ticket_offers, $ticket_data[0], $ticket_data[0]->event_id,$ticket->qty );
@@ -10898,6 +10899,7 @@ public function ep_get_events( $fields ) {
                 }
             }
         }
+        $remaining_caps = apply_filters('ep_update_remaining_capacity', $remaining_caps, $event, $ticket);
         return $remaining_caps;
     }
     
@@ -11873,11 +11875,5 @@ public function ep_get_events( $fields ) {
            }
            return array_unique( $dirname );
    }
-   
-   
-
-
-
-
     
 }

@@ -361,6 +361,7 @@ class Eventprime_Global_Settings{
 
             //EXternal
             'gmap_api_key'                        => '',
+            'weather_api_key'                        => '',
             'social_sharing'                      => 0,
             'gcal_sharing'                        => 0,
             'google_cal_client_id'                => '',

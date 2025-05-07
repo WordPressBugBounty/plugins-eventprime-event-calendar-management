@@ -96,7 +96,7 @@ jQuery( function( $ ) {
            // Common timepicker options
 const timepickerOptions = {
     timeFormat: 'h:i A',
-    step: 15
+    step: 5
 };
 
 // Initialize all timepickers
@@ -641,7 +641,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
         // timepicker
         $( '#'+ next_row_id +' .epTimePicker' ).timepicker({
             timeFormat: 'h:i A',
-            step: 15,
+            step: 5,
         });
     });
 
@@ -2825,7 +2825,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
                 return false; 
             }
 
-        } else if ( ticketDateStartType = 'relative_date' ) {
+        } else if ( ticketDateStartType == 'relative_date' ) {
             let daysVal = $('#ep_ticket_start_booking_days').val();
             let daysOptionVal = $('#ep_ticket_start_booking_days_option').val();
             let eventOptionVal = $('#ep_ticket_start_booking_event_option').val();
@@ -2866,7 +2866,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
                 return false; 
             }
 
-        } else if ( ticketDateEndType = 'relative_date' ) {
+        } else if ( ticketDateEndType == 'relative_date' ) {
             let daysVal = $('#ep_ticket_ends_booking_days').val();
             let daysOptionVal = $('#ep_ticket_ends_booking_days_option').val();
             let eventOptionVal = $('#ep_ticket_ends_booking_event_option').val();

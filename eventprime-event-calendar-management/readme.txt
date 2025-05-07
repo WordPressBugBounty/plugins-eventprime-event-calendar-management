@@ -5,7 +5,7 @@ Tags: event calendar, organizer , event manager, tickets, event booking, event b
 Requires at least: 4.8
 Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 4.0.9.5
+Stable tag: 4.0.9.6
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -666,6 +666,10 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.0.9.6: May 06, 2025 =
+* New: Event start and end dates now appear on the Booking Details page.
+* New: Integrated updated Weather API for improved data accuracy.
 
 = 4.0.9.5: April 22, 2025 =
 * Fixed: Minor bugs on single event page.
@@ -2118,6 +2122,10 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.0.9.6: May 06, 2025 =
+* New: Event start and end dates now appear on the Booking Details page.
+* New: Integrated updated Weather API for improved data accuracy.
 
 = 4.0.9.5: April 22, 2025 =
 * Fixed: Minor bugs on single event page.

@@ -583,6 +583,7 @@ class EP_DBhandler {
                         $arg[] = $ep_activator->get_db_table_field_type('TICKET_CATEGORIES', $key);
                     }
                     $this->update_row('TICKET_CATEGORIES', 'id', $cat_id, $data, $arg, '%d');
+                    do_action('ep_update_category_data', $cat_id, $cat, $post_id);
                 } else {
                     $save_data = array();
                     $arg = array();
@@ -597,6 +598,7 @@ class EP_DBhandler {
                         $arg[] = $ep_activator->get_db_table_field_type('TICKET_CATEGORIES', $key);
                     }
                     $cat_id = $this->insert_row('TICKET_CATEGORIES', $save_data, $arg);
+                    do_action('ep_update_category_data', $cat_id, $cat, $post_id);
                 }
                 $cat_priority++;
                 //save tickets
