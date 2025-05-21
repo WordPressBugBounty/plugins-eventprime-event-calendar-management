@@ -316,6 +316,10 @@ body .emagic h6 {
     position: absolute!important;
 }
 
+.ep-position-sticky {
+    position: sticky !important; 
+}
+
 .ep-z-index {
     z-index: 999
 

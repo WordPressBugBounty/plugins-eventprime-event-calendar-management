@@ -99,7 +99,8 @@ class Eventprime_Event_Calendar_Management_Admin {
         wp_register_script( 'eventprime-admin-blocks-js', plugin_dir_url( __FILE__ ) . 'js/blocks/index.js', array( 'wp-blocks', 'wp-editor', 'wp-i18n', 'wp-element', 'wp-components' ), $this->version );
         wp_register_script( 'em-meta-box-admin-custom-js', plugin_dir_url( __FILE__ ) . 'js/em-admin-metabox-custom.js', array( 'jquery', 'jquery-ui-datepicker', 'jquery-ui-dialog', 'jquery-ui-accordion', 'jquery-ui-sortable' ), $this->version );
         wp_register_script( 'em-type-admin-custom-js', plugin_dir_url( __FILE__ ) . 'js/event-types/em-type-admin-custom.js', array( 'jquery', 'jquery-ui-datepicker', 'jquery-ui-dialog', 'jquery-ui-accordion', 'jquery-ui-sortable' ), $this->version );
-
+        wp_register_script( 'ep-admin-utility-script', plugin_dir_url( __FILE__ ) . 'js/ep-admin-common-utility.js', array( 'jquery', 'jquery-ui-tooltip', 'jquery-ui-dialog' ), $this->version );
+            
         wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/eventprime-event-calendar-management-admin.js', array( 'jquery' ), $this->version, true );
         $ep_dismissable_notice_nonce = wp_create_nonce( 'ep_dismissable_notice_nonce' );
         wp_localize_script(
@@ -2126,6 +2127,7 @@ class Eventprime_Event_Calendar_Management_Admin {
             if ( !metadata_exists( 'term', $term_id, 'em_status' ) ) {
                 update_term_meta( $term_id, 'em_status', 1 );
             }
+            do_action( "ep_after_save_organizer_data", $term_id, $post );
         }
     }
 
@@ -2210,6 +2212,7 @@ class Eventprime_Event_Calendar_Management_Admin {
             if ( !metadata_exists( 'term', $term_id, 'em_status' ) ) {
                 update_term_meta( $term_id, 'em_status', 1 );
             }
+            do_action( "ep_after_edit_organizer_data", $term_id, $post );
         }
     }
 

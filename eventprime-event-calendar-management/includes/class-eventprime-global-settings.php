@@ -1033,6 +1033,8 @@ class Eventprime_Global_Settings{
         echo '<option value="{{venue_address}}">' . esc_html__( 'Address', 'eventprime-event-calendar-management' ) . '</option>';
         echo '</optgroup>';
         
+        do_action( 'ep_extend_emailer_fields_list' );
+
         echo '</select>';
     }
     

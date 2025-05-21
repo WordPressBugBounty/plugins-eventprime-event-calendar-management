@@ -182,6 +182,9 @@ $extensions = $ep_functions->ep_get_activate_extensions();
                         </div>
                     </div>
                 </div>
+
+                <?php do_action('ep_after_one_time_event_fee_option', $post); ?>
+
                 <div class="ep-box-row ep-p-3 ep-border ep-bg-light ep-rounded ep-m-3">
                     <div class="ep-box-col-6">
                         <div class="ep-meta-box-section ep-form-check ep-mt-2">

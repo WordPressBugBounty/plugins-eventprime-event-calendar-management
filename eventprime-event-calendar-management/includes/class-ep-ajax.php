@@ -498,9 +498,15 @@ class EventM_Ajax_Service {
                 $response->order_id       = $new_post_id;
                 $response->payment_method = $payment_method;
                 $response->post_status    = $post_status;
-                $response->booking_total  = (float)$data['ep_event_booking_total_price'];
+                
+                // $response->booking_total  = (float)$data['ep_event_booking_total_price'];
+                $response->booking_total  = (isset($data['ep_event_booking_total_price']) && !empty($data['ep_event_booking_total_price'])) ? number_format( (float)$data['ep_event_booking_total_price'], 2 ) : 0;
+                
                 $response->item_total     = (float)$data['ep_event_booking_total_tickets'];
-                $response->discount_total = (isset($data['ep_event_booking_total_discount']))?(float)$data['ep_event_booking_total_discount']:0;
+                
+                // $response->discount_total = (isset($data['ep_event_booking_total_discount']))?(float)$data['ep_event_booking_total_discount']:0;
+                $response->discount_total = (isset($data['ep_event_booking_total_discount']) && !empty($data['ep_event_booking_total_discount'])) ? number_format( (float)$data['ep_event_booking_total_discount'], 2 ) : 0;
+                
                 // $redirect                 = esc_url( add_query_arg( array( 'order_id' => $new_post_id ), get_permalink( ep_get_global_settings( 'booking_details_page' ) ) ) );
                 $redirect                 = add_query_arg( array( 'order_id' => $new_post_id ), esc_url( get_permalink( $ep_functions->ep_get_global_settings( 'booking_details_page' ) ) ) );
                 $response->redirect       = apply_filters( 'ep_booking_redirection_url', $redirect, $new_post_id );

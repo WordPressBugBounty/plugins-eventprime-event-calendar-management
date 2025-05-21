@@ -375,6 +375,7 @@ $max_ticket_per_order = $is_able_to_purchase[0];
                                                             //var_dump($is_able_to_purchase);
                                                             $max_caps = $remaining_caps = $is_able_to_purchase;
                                                         }
+                                                        $external_filter_classes = apply_filters( 'ep_event_ticket_external_filter_classes', '', $ticket, $args->event );
                                                         if( $ticket->show_remaining_tickets == 1 ) {?>
                                                             <div class="ep-text-small ep-text-white ep-mt-2 ep-event-ticket-modal-ticket-left">
                                                                 <span class="ep-bg-danger ep-py-1 ep-px-2 ep-rounded-1 ep-text-smalll">
@@ -397,6 +398,7 @@ $max_ticket_per_order = $is_able_to_purchase[0];
                                                                 </span>
                                                             </div><?php
                                                         }?>
+                                                        <?php do_action( 'ep_after_event_ticket_left_label', $ticket, $args->event, $all_event_bookings ); ?>
                                                         <div class="ep-my-3 ep-event-ticket-modal-ticket-price">
                                                             <span class="ep-fs-5 ep-fw-bold" id="ep_ticket_price_<?php echo absint( $ticket->id );?>" data-row_ticket_price="<?php echo esc_attr( $ticket->price );?>">
                                                                 <?php 

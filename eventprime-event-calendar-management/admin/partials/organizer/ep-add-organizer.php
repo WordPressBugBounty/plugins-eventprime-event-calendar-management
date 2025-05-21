@@ -87,4 +87,6 @@ $ep_functions = new Eventprime_Basic_Functions;
                     <?php esc_html_e( 'Check if you want to make this organizer featured.', 'eventprime-event-calendar-management' ); ?>
                 </p>
             </label>
-        </div><?php wp_nonce_field( 'em_event_organizer_nonce_action', 'em_event_organizer_nonce_field' );
+        </div>
+        <?php do_action("ep_extend_add_organizer_form"); ?>
+        <?php wp_nonce_field( 'em_event_organizer_nonce_action', 'em_event_organizer_nonce_field' );

@@ -164,7 +164,10 @@ if( $ep_functions->ep_get_global_settings('checkout_reg_google_recaptcha') == 1 
                                     </li><?php
                                 }?>
 
-                                <?php do_action( 'ep_event_booking_before_ticket_total', $args ); ?>
+                                <?php 
+                                do_action( 'ep_event_booking_before_ticket_total', $args ); 
+                                do_action( 'ep_event_booking_before_ticket_total_new', $total_price, $total_tickets, $args, [] );
+                                ?>
 
                                 <!-- Total Price -->
                                 <li class="ep-list-group-item ep-bg-light" id="ep-booking-total" aria-current="true">

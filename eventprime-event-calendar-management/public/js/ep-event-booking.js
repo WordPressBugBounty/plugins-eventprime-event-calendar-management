@@ -1050,6 +1050,25 @@ function loadPaymentSection() {
                                 items.push( item_data );
                             }
 
+                            if( ep_event_booking.booking_data.event.em_tax_percentage_per_booking && ep_event_booking.booking_data.event.em_tax_percentage_per_booking > 0 ) {
+                                let ep_event_booking_taxable_amount = jQuery( 'input[name=ep_event_booking_taxable_amount]' ).val();
+
+                                if( ep_event_booking_taxable_amount ) {
+                                    let item_data = {
+                                        "name": "Booking Tax Amout",
+                                        "description": "Booking Tax Amout",
+                                        "unit_amount": {
+                                            "currency_code": ep_currency,
+                                            // "value": parseFloat(taxable_amount.toFixed(2))
+                                            "value": Math.round(parseFloat(ep_event_booking_taxable_amount)*100)/100
+                                        },
+                                        "quantity": 1
+                                    }
+                                    items.push( item_data );
+                                }
+                            }
+
+
                             if (sessionStorage.getItem("ep_booking_additional_price") !== null) {
                                 const additional_price = sessionStorage.getItem('ep_booking_additional_price');
                                 if( ep_event_booking.enabled_woocommerce_integration == 1 && additional_price != 'undefined' && ep_event_booking.booking_data.event.em_enable_product == 1 && ep_event_booking.booking_data.event.em_selectd_products.length > 0 ){
@@ -1124,7 +1143,8 @@ function loadPaymentSection() {
                                                     breakdown: {
                                                         item_total: {
                                                             currency_code: ep_currency,
-                                                            value: (parseFloat(booking_total) + parseFloat(total_discount)),
+                                                            // value: (parseFloat(booking_total) + parseFloat(total_discount)),
+                                                            value: Math.round(parseFloat(parseFloat(booking_total) + parseFloat(total_discount))*100)/100,
                                                         },
                                                         discount: {
                                                             currency_code: ep_currency,

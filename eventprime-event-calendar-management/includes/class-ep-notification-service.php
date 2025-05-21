@@ -14,6 +14,7 @@ class EventM_Notification_Service {
     public function ep_filter_email_content( $message, $data ) {
             $matches    = $this->getInbetweenStrings( '{{', '}}', $message );
             $result     = isset($matches[1])?$matches[1]:[];
+            $message = apply_filters('ep_filter_email_content_before_findFieldValue', $message, $data);
             if(!empty($result))
             {
                 foreach ( $result as $field ) {
@@ -373,6 +374,8 @@ class EventM_Notification_Service {
                         $attendee_name_html .= '<tr><th colspan="2" style="text-align:left;border-top-width:4px;color:#737373;border:1px solid #e4e4e4;padding:12px">'.esc_html__( 'Attendees '.$i, 'eventprime-event-calendar-management' ).' </th>';
                             $attendee_name_html .= '<td colspan ="2" style="text-align:left;border-top-width:4px;color:#737373;border:1px solid #e4e4e4;padding:12px">';
                                 $booking_attendees_val = array_values( $booking_attendees );
+                                //print_r($booking_attendees);
+                               //print_r($booking_attendees_val);die;
                                 foreach( $booking_attendees_field_labels as $label_keys => $labels ){
                                     $formated_val = $ep_functions->ep_get_slug_from_string( $labels );
                                     $at_val = '---';
@@ -381,8 +384,14 @@ class EventM_Notification_Service {
                                             $at_val = is_array($baval[$formated_val]) ? implode(", ", $baval[$formated_val]) : $baval[$formated_val];
                                             break;
                                         }
+                                        
+                                        
+                                       
                                     }
-                                    $attendee_name_html .= '<span>'. esc_html__( $labels, 'eventprime-event-calendar-management' ) .' : '. $at_val .' </span><br/>';
+                                    $at_val = apply_filters('ep_booking_attendees_filter_value',$at_val,$labels,$booking_attendees_val[0],$booking_attendees_val,$booking_attendees);
+                                    $labels = apply_filters('ep_booking_attendees_filter_labels',$labels,$label_keys,$at_val,$booking_attendees_val[0],$booking_attendees_val,$booking_attendees);
+                                    
+                                    $attendee_name_html .= '<span>'. esc_html( $labels) .' : '. $at_val .' </span><br/>';
                                 }
                             $attendee_name_html .= '</td>';
                         $attendee_name_html .= '</tr>';
@@ -391,6 +400,7 @@ class EventM_Notification_Service {
                 }
                 $lastFootUpdate .= $attendee_name_html;
             }
+            
             $lastFootUpdate = apply_filters( 'event_magic_booking_confirmed_footer_contnent', $lastFootUpdate, $booking );
             if(isset($lastFoot[1]))
             {
@@ -450,6 +460,7 @@ class EventM_Notification_Service {
             $mail_body = str_replace( "(user_first_name)", $user_first_name, $mail_body );
             $mail_body = str_replace( "(user_last_name)", $user_last_name, $mail_body );
             $mail_body = str_replace( "(user_phone)", $booking_user_phone, $mail_body );
+            $mail_body = apply_filters( 'event_magic_booking_confirmed_footer_contnent', $mail_body, $booking );
             
             if(isset($global_setting->admin_booking_confirm_email_attendees) && !empty($global_setting->admin_booking_confirm_email_attendees)){
                 $lastFoot = explode( '</tbody>', $mail_body );
@@ -474,6 +485,9 @@ class EventM_Notification_Service {
                                                 break;
                                             }
                                         }
+                                        $at_val = apply_filters('ep_booking_attendees_filter_value',$at_val,$labels,$booking_attendees_val[0],$booking_attendees_val,$booking_attendees);
+                                        $labels = apply_filters('ep_booking_attendees_filter_labels',$labels,$at_val,$booking_attendees_val[0],$booking_attendees_val,$booking_attendees);
+                                    
                                         $attendee_name_html .= '<span>'. esc_html__( $labels, 'eventprime-event-calendar-management' ) .' : '. $at_val .' </span><br/>';
                                     }
                                 $attendee_name_html .= '</td>';

@@ -170,8 +170,9 @@ jQuery( function( $ ) {
         $("#ep-search-filters").css("animation", "ep-searchfilters-exit 1s forwards normal 1");
         $(".ep-search-filter-overlay").hide();
         let search_keyword = $( '#ep_event_keyword_search' ).val();
-        if(search_keyword) {
+        //if(search_keyword) {
             // sanitize the input first
+            /*
             let post_data = {
                 action   : 'ep_sanitize_input_field_data',
                 security : em_front_event_object._nonce,
@@ -182,23 +183,25 @@ jQuery( function( $ ) {
                 url     : eventprime.ajaxurl,
                 data    : post_data,
                 success : function( response ) {
-                    if( response.success ) {
-                        search_keyword = response.data;
+                    if( response.success ) {*/
+                        //search_keyword = response.data;
                         // render html
                         let param = { label: 'Keyword', key: 'keyword', value: search_keyword };
-                        // update html
-                        event_applied_filters_render_content( param );
+                        if( search_keyword ) {
+                            // update html
+                            event_applied_filters_render_content( param );
+                            event_filters_selection_update(event_search_params, param);    
+                        }
                         //event_search_params.push( param );
-                        event_filters_selection_update(event_search_params, param);    
                         let display_style = $('#ep-events-style').val();
                         event_applied_filters( display_style, event_search_params );
-                    } else{
+                   /* } else{
                         show_toast( 'error', response.data.message );
                         return false;
                     }
                 }
             });
-        }
+       // }*/
         
     });
     
@@ -330,6 +333,32 @@ jQuery( function( $ ) {
             event_filters_selection_update(event_search_params, param);
         }
     });
+
+    if( $('#ep-filter-event-tags').length ) {
+        $( document ).on( 'change', '#ep-filter-event-tags', function() {
+            let filter_value = $( '#ep-filter-event-tags' ).val();
+            console.log(filter_value)
+            if(filter_value.length == 0){
+                event_filters_selection_remove(event_search_params, 'event_tags');
+                $('#ep_event_tags').remove(); 
+            }else if( filter_value.length > 0) {
+                // render html
+                // let param = { label: ep_custom_dash_pub_obj.event_tags_events_lising_fliter_placeholder, key:'event_tags', value: filter_value, text: filter_value.length+' Selected' };
+                let selectedTexts = [];
+                filter_value.forEach(function(val) {
+                    let text = $('#ep-filter-event-tags option[value="' + val + '"]').text();
+                    if (text) {
+                        selectedTexts.push(text.trim());
+                    }
+                });
+                let selectedTextsString = selectedTexts.join(', ');
+                let param = { label: ep_custom_dash_pub_obj.event_tags_events_lising_fliter_placeholder, key:'event_tags', value: filter_value, text: selectedTextsString };
+                // update html
+                event_applied_filters_render_content( param );
+                event_filters_selection_update(event_search_params, param);
+            }
+        });
+    }
 
     // edit timezone
     $( document ).on( 'click', '#ep-user-profile-timezone-edit', function() {

@@ -445,6 +445,9 @@ class Eventprime_html_Generator {
                         </td>
                     </tr>
                     <?php 
+
+                    do_action( 'ep_admin_booking_detail_after_tickets_subtotal', $booking ); 
+
                    /* if( ! empty( $offers ) ) {?>
                         <tr>
                             <td class="label"><?php esc_html_e( 'Offers:', 'eventprime-event-calendar-management' );?></td>

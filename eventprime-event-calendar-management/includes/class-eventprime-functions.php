@@ -1687,6 +1687,7 @@ class Eventprime_Basic_Functions {
                 "twilio_number",
                 "zapier_api_key",
             ];
+            $exclude_fields = apply_filters('ep_extend_global_exclude_fields', $exclude_fields, $global_options);
             foreach($exclude_fields as $field) {
                 if ( isset($global_options->{$field}) ) {
                     $global_options->{$field} = ''; 
@@ -2637,6 +2638,7 @@ class Eventprime_Basic_Functions {
                 $all_tickets = array_merge($all_tickets, $solo_tickets);
             }
         }
+        $all_tickets = apply_filters( 'ep_filter_event_all_tickets_data', $all_tickets, $event ); 
         return $all_tickets;
     }
     
@@ -4872,6 +4874,9 @@ class Eventprime_Basic_Functions {
         if( isset ( $_POST['block_square_disable_load_more_button'] ) ) {
             $events_data['load_more'] = $_POST['block_square_disable_load_more_button'] ;
         }
+
+        $events_data = apply_filters( 'ep_filter_load_event_common_options_events_data_obj', $events_data, $atts );
+
         return $events_data;
     }
     
@@ -5115,7 +5120,7 @@ class Eventprime_Basic_Functions {
                 $args['meta_query'][] =array(
                     array(
                         'key'      => 'em_venue',
-                        'value'    => serialize(array($event_venue_id)),
+                        'value'    => maybe_serialize(array('0',$event_venue_id)),
                         'compare'  => '='
                     )
                 );
@@ -5508,6 +5513,9 @@ class Eventprime_Basic_Functions {
                 'applicable_offers'  => array()
             );
             $price_range = array();
+
+            $event_data->all_tickets_data =  apply_filters( 'ep_filter_event_all_tickets_data', $event_data->all_tickets_data, $event_data );
+
             if( ! empty( $event_data->all_tickets_data ) && count( $event_data->all_tickets_data ) > 0 ) {
                 $all_tickets = $event_data->all_tickets_data;
                 if( count( $event_data->all_tickets_data ) > 1 ) {
@@ -6052,9 +6060,31 @@ class Eventprime_Basic_Functions {
             }
             // image
             $featured_img_url = get_the_post_thumbnail_url( $event->id );
+            if(is_admin() && defined('ELEMENTOR_VERSION'))
+            {
+                $featured_img_url = $this->get_event_image_url($event->id);
+            }
+            else
+            {
+                $thumb_id = get_post_thumbnail_id( $event->id );
+
+                if( ! empty( $thumb_id ) ) {
+                    $featured_img_url_array = wp_get_attachment_image_src( $thumb_id, 'large', false);
+                    if(!empty($featured_img_url_array))
+                    {
+                        $featured_img_url = $featured_img_url_array[0];
+                    }
+                } 
+            }
+            
             if( ! empty( $featured_img_url ) ) {
                 $ev['image'] = $featured_img_url;
             }
+            
+            
+            
+            
+            
             // url
             $ev['event_url'] = $this->ep_get_custom_page_url( 'events_page', $event->id, 'event' );
             $ev['url'] = $this->ep_get_custom_page_url( 'events_page', $event->id, 'event' );
@@ -7387,10 +7417,15 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
             $organizer_name = isset($data['name']) ? sanitize_text_field($data['name']) : '';
             $description = isset($data['description']) ? sanitize_text_field($data['description']) : '';
             $org = wp_insert_term(
-                    $organizer_name,
-                    'em_event_organizer',
-                    array('description'=>$description)
-                    );
+                $organizer_name,
+                'em_event_organizer',
+                array('description'=>$description)
+            );
+
+            if( is_wp_error($org) ) {
+                return $term_id;
+            }
+
             $term_id = isset($org['term_id']) ? $org['term_id'] : 0;
             
             $em_organizer_phones = isset($data['em_organizer_phones']) && !empty($data['em_organizer_phones']) ? $data['em_organizer_phones']: array();
@@ -8914,6 +8949,8 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
                 return false;
             }  
         }
+
+        $newdata = apply_filters('ep_update_new_data_before_validating_cart', $newdata, $data); 
 
         $validate  = $this->ep_validate_cart_data($data,$newdata);
         if($validate===true)
@@ -11059,6 +11096,27 @@ public function ep_get_events( $fields ) {
 		}
 		return $available_tickets;
 	}
+
+    public function ep_get_ticket_available_spaces($event, $ticket, $booked_tickets_data) {
+        $available_tickets = 0;
+        $check_ticket_visibility = $this->check_for_ticket_visibility( $ticket, $event );
+        if( ! empty( $check_ticket_visibility['status'] ) ) {
+            $check_ticket_available = $this->check_for_ticket_available_for_booking( $ticket, $event );
+            if( empty( $check_ticket_available['expire'] ) ) {
+                $remaining_caps = $ticket->capacity;
+                if( ! empty( $booked_tickets_data ) ) {
+                    if( isset( $booked_tickets_data[$ticket->id] ) && ! empty( $booked_tickets_data[$ticket->id] ) ) {
+                        $booked_ticket_qty = absint( $booked_tickets_data[$ticket->id] );
+                        if( $booked_ticket_qty > 0 ) {
+                            $remaining_caps = $ticket->capacity - $booked_ticket_qty;
+                        }
+                    }
+                }
+                $available_tickets += $remaining_caps;
+            }
+        }
+        return $available_tickets;
+    }
         
         // depricated.
          public function get_event_child_data_by_parent_id( $parent_event_id, $fields ) {

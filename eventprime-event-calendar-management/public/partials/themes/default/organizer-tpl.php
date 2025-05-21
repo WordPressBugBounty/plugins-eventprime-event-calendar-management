@@ -1,6 +1,8 @@
 <?php
 $ep_functions = new Eventprime_Basic_Functions;
 $ep_requests = new EP_Requests;
+
+$ep_organizer_socials_exists = isset($args->organizer->em_social_links) && !empty($args->organizer->em_social_links) ? !empty(array_filter($args->organizer->em_social_links) ) : [];
 ?>
 <div class="ep-single-frontend-view-container ep-mb-5" id="ep_single_frontend_view_container">
     <div class="ep-view-container">
@@ -28,6 +30,8 @@ $ep_requests = new EP_Requests;
                                     <?php echo esc_html( $args->organizer->name ); ?>
                                 </h3>
                                 <ul class="ep-single-box-details-meta ep-mx-0 ep-my-2 ep-p-0">
+                                <?php 
+                                if ( isset($args->organizer->em_organizer_emails) && !empty($args->organizer->em_organizer_emails) ) { ?>
                                     <li> 
                                         <div class="ep-details-box-icon ep-pr-2">
                                         <?php $image_url = plugin_dir_url( EP_PLUGIN_FILE ) . 'public/partials/images/email-icon.png';?>
@@ -45,6 +49,9 @@ $ep_requests = new EP_Requests;
                                         } ?>
                                         </div>
                                     </li>
+                                    <?php 
+                                }
+                                if ( isset($args->organizer->em_organizer_phones) && !empty($args->organizer->em_organizer_phones) ) { ?>
                                     <li>
                                         <div class="ep-details-box-icon ep-pr-2">
                                         <?php $image_url = plugin_dir_url( EP_PLUGIN_FILE ) . 'public/partials/images/phone-icon.png';?>
@@ -58,7 +65,9 @@ $ep_requests = new EP_Requests;
                                         } ?>
                                         </div>
                                     </li>
-
+                                    <?php 
+                                }
+                                if(isset($args->organizer->em_organizer_websites) && !empty($args->organizer->em_organizer_websites)) { ?>
                                     <li>
                                         <div class="ep-details-box-icon ep-pr-2">
                                         <?php $image_url = plugin_dir_url( EP_PLUGIN_FILE ) . 'public/partials/images/website-icon.png';?>
@@ -77,10 +86,13 @@ $ep_requests = new EP_Requests;
                                         }?>
                                         </div>
                                     </li>
+                                    <?php
+                                }
+                                ?>
                                 </ul>
                             </div>
 
-                            <?php if ( ! empty( $args->organizer->em_social_links ) ){ ?>
+                            <?php if ( ! empty( $ep_organizer_socials_exists ) ){ ?>
                                 <div class="ep-single-box-social"><?php
                                     if( ! empty( $args->organizer->em_social_links['facebook'] ) ){ ?>
                                         <a href="<?php echo esc_url( $args->organizer->em_social_links['facebook'] );?>" target="_blank" title="<?php echo esc_attr( 'Facebook' );?>" class="ep-facebook-f"> 

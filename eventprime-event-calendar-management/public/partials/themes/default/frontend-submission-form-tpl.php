@@ -91,7 +91,7 @@ $ep_requests = new EP_Requests;
                                 <label for="ep-fes-featured-file" class="ep-form-label">
                                     <?php esc_html_e( 'Featured Image', 'eventprime-event-calendar-management' );?>
                                 </label>
-                                <?php if( ! empty( $args->fes_allow_media_library ) ) {?>
+                                <?php if( ! empty( $args->fes_allow_media_library ) && is_user_logged_in()) {?>
                                     <button type="button" class="fes_upload_image_button button"><?php esc_html_e( 'Upload/Add image', 'eventprime-event-calendar-management' ); ?></button><?php
                                 } else{?>
                                     <input type="file" name="featured_img" id="ep-fes-featured-file" onchange="upload_file_media(this)" accept="image/png, image/jpeg"/><?php

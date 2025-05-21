@@ -183,4 +183,6 @@ $em_organizer_phones = get_term_meta( $term->term_id, 'em_organizer_phones', tru
                     </p>
                 </div>
             </td>
-        </tr><?php wp_nonce_field( 'em_event_organizer_nonce_action', 'em_event_organizer_nonce_field' );
+        </tr>
+        <?php do_action("ep_extend_edit_organizer_form", $term->term_id); ?>
+        <?php wp_nonce_field( 'em_event_organizer_nonce_action', 'em_event_organizer_nonce_field' );

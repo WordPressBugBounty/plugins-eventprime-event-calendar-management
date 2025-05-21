@@ -62,6 +62,9 @@ foreach( $args->events->posts as $event ) {
                             </div>
                         </div><?php
                     }?>
+
+                    <?php do_action( 'ep_event_view_before_event_description', $event ); ?>
+
                     <!-- Event Description -->
                     <div class="ep-box-card-desc ep-text-small ep-mb-2">
                         <?php if ( ! empty( $event_data->description ) ) {

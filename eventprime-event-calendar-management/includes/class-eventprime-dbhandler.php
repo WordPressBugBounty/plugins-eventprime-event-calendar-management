@@ -7,6 +7,19 @@
  */
 
 class EP_DBhandler {
+    
+    public function ep_get_distinct_months($identifier) {
+        global $wpdb;
+        $ep_activator = new Eventprime_Event_Calendar_Management_Activator();
+        $table = $ep_activator->get_db_table_name($identifier);
+
+        $query = "SELECT DISTINCT DATE_FORMAT(created_at, '%Y%m') as ym, 
+                         DATE_FORMAT(created_at, '%M %Y') as label
+                  FROM $table
+                  ORDER BY ym DESC";
+
+        return $wpdb->get_results($query);
+    }
 
     public function insert_row($identifier, $data, $format = null) {
         global $wpdb;
@@ -1353,6 +1366,8 @@ class EP_DBhandler {
         $post_data['em_edit_booking_date_data'] = $em_edit_booking_date_data;
         
         $this->eventprime_save_event_metadata($post_id,$post_data);
+
+        do_action('ep_after_save_event_metadata', $post_id, $post);
         
         $this->eventprime_update_event_tickets_and_category($post_id, $post, $wp_post);
 

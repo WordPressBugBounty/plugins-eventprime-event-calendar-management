@@ -107,6 +107,9 @@ $ep_functions = new Eventprime_Basic_Functions;
                         </div>
                     </div><?php
                 }?>
+
+                <?php do_action( 'ep_event_view_before_event_description', $event ); ?>
+
                 <!-- Event Description -->
                 <div class="ep-box-card-desc ep-text-small ">
                     <?php if ( ! empty( $event->description ) ) {

@@ -146,6 +146,8 @@ $booking = $booking_controller->load_booking_detail( $booking_id );
                                                     $at_val,
                                                     $formated_val
                                                 );
+                                                $at_val = apply_filters('ep_booking_attendees_filter_value',$at_val,$labels,$booking_attendees_val[0],$booking_attendees_val,$booking_attendees);
+                                                
                                                 echo wp_kses_post( $at_val );?>
                                             </td><?php
                                         }

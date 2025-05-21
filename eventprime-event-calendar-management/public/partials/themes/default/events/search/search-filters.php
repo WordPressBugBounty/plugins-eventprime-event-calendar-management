@@ -140,7 +140,10 @@
                 </div>
             </div>
             <?php endif;?>
-        <?php } ?>
+        <?php } 
+        
+        do_action( 'ep_after_events_listing_search_filters', $args );
+        ?>
     </div>
     
 </div>

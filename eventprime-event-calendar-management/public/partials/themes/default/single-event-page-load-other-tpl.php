@@ -24,6 +24,9 @@ include $image_file_path;
     // Load icon template
     $icons_file_path = $ep_requests->eventprime_get_ep_theme('event/icons');
     include $icons_file_path;
+
+    do_action( 'ep_after_single_event_icons_section', $events_data);
+
     ?>
     <div class="ep-box-row ep-gx-5">
         <div class="ep-box-col-8" id="ep-sl-left-area">
