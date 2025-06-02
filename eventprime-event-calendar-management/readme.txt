@@ -5,7 +5,7 @@ Tags: event calendar, organizer , event manager, tickets, event booking, event b
 Requires at least: 4.8
 Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 4.0.9.7
+Stable tag: 4.0.9.8
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -667,18 +667,19 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 == Changelog ==
 
-= 4.0.9.7: May 20, 2025 =
-== Fixed ==
-* Frontend confirmation message inconsistency, ensuring a consistent user experience when registering for events.
-* Critical error with invalid time format identified via Burp Suite, improving form validation and error handling.
-* Warning when using shortcodes with invalid event type ID, ensuring smooth shortcode execution.
-* Import/export warning when handling full event data, improving the data migration process.
-* Booking failure due to error in the Waiting List extension, ensuring successful event bookings.
-* Fatal error in the Performer widget, fixing issues in some scenarios when displaying event performers.
-* Button requiring two presses in admin area, improving the responsiveness and functionality of buttons.
+= 4.0.9.8: June 02, 2025 =
+* Multiple bug fixes.
+* UI improvements.
 
-== Added ==
-* "Load more" button for the attendee list, enhancing user experience by allowing users to load additional attendees seamlessly.
+= 4.0.9.7: May 20, 2025 =
+* Fixed: Frontend confirmation message inconsistency, ensuring a consistent user experience when registering for events.
+* Fixed: Critical error with invalid time format identified via Burp Suite, improving form validation and error handling.
+* Fixed: Warning when using shortcodes with invalid event type ID, ensuring smooth shortcode execution.
+* Fixed: Import/export warning when handling full event data, improving the data migration process.
+* Fixed: Booking failure due to error in the Waiting List extension, ensuring successful event bookings.
+* Fixed: Fatal error in the Performer widget, fixing issues in some scenarios when displaying event performers.
+* Fixed: Button requiring two presses in admin area, improving the responsiveness and functionality of buttons.
+* Added: "Load more" button for the attendee list, enhancing user experience by allowing users to load additional attendees seamlessly.
 
 = 4.0.9.6: May 06, 2025 =
 * New: Event start and end dates now appear on the Booking Details page.
@@ -2136,18 +2137,19 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 == Upgrade Notice ==
 
-= 4.0.9.7: May 20, 2025 =
-== Fixed ==
-* Frontend confirmation message inconsistency, ensuring a consistent user experience when registering for events.
-* Critical error with invalid time format identified via Burp Suite, improving form validation and error handling.
-* Warning when using shortcodes with invalid event type ID, ensuring smooth shortcode execution.
-* Import/export warning when handling full event data, improving the data migration process.
-* Booking failure due to error in the Waiting List extension, ensuring successful event bookings.
-* Fatal error in the Performer widget, fixing issues in some scenarios when displaying event performers.
-* Button requiring two presses in admin area, improving the responsiveness and functionality of buttons.
+= 4.0.9.8: June 02, 2025 =
+* Multiple bug fixes.
+* UI improvements.
 
-== Added ==
-* "Load more" button for the attendee list, enhancing user experience by allowing users to load additional attendees seamlessly.
+= 4.0.9.7: May 20, 2025 =
+* Fixed: Frontend confirmation message inconsistency, ensuring a consistent user experience when registering for events.
+* Fixed: Critical error with invalid time format identified via Burp Suite, improving form validation and error handling.
+* Fixed: Warning when using shortcodes with invalid event type ID, ensuring smooth shortcode execution.
+* Fixed: Import/export warning when handling full event data, improving the data migration process.
+* Fixed: Booking failure due to error in the Waiting List extension, ensuring successful event bookings.
+* Fixed: Fatal error in the Performer widget, fixing issues in some scenarios when displaying event performers.
+* Fixed: Button requiring two presses in admin area, improving the responsiveness and functionality of buttons.
+* Added: "Load more" button for the attendee list, enhancing user experience by allowing users to load additional attendees seamlessly.
 
 = 4.0.9.6: May 06, 2025 =
 * New: Event start and end dates now appear on the Booking Details page.

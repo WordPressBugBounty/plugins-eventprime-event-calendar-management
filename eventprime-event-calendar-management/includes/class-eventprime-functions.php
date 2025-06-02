@@ -8929,9 +8929,10 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
                 $newdata['ep_event_booking_total_tickets'] = $qty;
             }
             // If WooCommerce Integration enabled for the event. 
-            if ( isset($event->em_enable_product) && $event->em_enable_product == 1) { 
-                $newdata['ep_event_booking_total_price'] += $newdata['ep_wc_product_total']; 
-            }
+            // if ( isset($event->em_enable_product) && $event->em_enable_product == 1) { 
+            //     // $newdata['ep_event_booking_total_price'] += $newdata['ep_wc_product_total']; 
+            //     $newdata['ep_event_booking_total_price'] = round( $newdata['ep_event_booking_total_price'] + $newdata['ep_wc_product_total'] , 2 ); 
+            // }
         }
         if(is_user_logged_in())
         {
@@ -11932,6 +11933,83 @@ public function ep_get_events( $fields ) {
                    }
            }
            return array_unique( $dirname );
+   }
+
+   public function ep_get_paypal_order_items($data) {
+       $ep_functions = new Eventprime_Basic_Functions();
+       $total_discount = 0;
+       $ep_currency = $ep_functions->ep_get_global_settings('currency');
+
+       $items = [
+            'items_total' => 0,
+            'items' => []
+       ]; 
+
+       // tickets 
+       if( isset($data['ep_event_booking_ticket_data']) && !empty($data['ep_event_booking_ticket_data']) ) {
+
+            $tickets = json_decode($data['ep_event_booking_ticket_data'], true);
+            foreach ($tickets as $ticket) {
+                $price = $ticket['price'];
+                
+                // Process additional fees
+                if (!empty($ticket['additional_fee'])) {
+                    foreach ($ticket['additional_fee'] as $add_data) {
+                        $add_price = $add_data['price'];
+                        if ($add_price > 0) {
+                            $price = floatval($price) + ( floatval($add_price) / intval($ticket['qty']) );
+                        }
+                    }
+                }
+                
+                // Calculate total discount
+                if (!empty($ticket['offer'])) {
+                    $total_discount += floatval($ticket['offer']);
+                }
+                
+                // Prepare item data
+                $item_data = array(
+                    'name' => $ticket['name'],
+                    'description' => $ticket['name'],
+                    'unit_amount' => array(
+                        'currency_code' => $ep_currency,
+                        'value' => round( floatval($price), 2 ) 
+                    ),
+                    'discount' => array(
+                        'currency_code' => $ep_currency,
+                        'value' => round( floatval($ticket['offer'] ?? 0), 2 )
+                    ),
+                    'quantity' => intval($ticket['qty'])
+                );
+                
+                $items['items_total'] += ( round( floatval($price), 2 ) * intval($ticket['qty']) );
+                $items['items'][] = $item_data;
+            }
+        }
+        
+        // event additional fee 
+        if( isset($data['ep_event_booking_event_fixed_price']) && !empty($data['ep_event_booking_event_fixed_price']) ) {
+            $ep_event_booking_event_fixed_price = round( floatval($data['ep_event_booking_event_fixed_price']) , 2 );
+            $item_data = [
+                "name" => esc_html__("Event Fees", 'eventprime-event-calendar-management'),
+                "description" => esc_html__("Event Fees", 'eventprime-event-calendar-management'),
+                "unit_amount" => [
+                    "currency_code" => $ep_currency,
+                    "value" => $ep_event_booking_event_fixed_price
+                ],
+                "quantity" => 1
+            ];
+            
+            $items['items_total'] += $ep_event_booking_event_fixed_price; 
+            $items['items'][] = $item_data;
+
+       }
+
+        
+
+
+        return $items;
+
    }
     
 }

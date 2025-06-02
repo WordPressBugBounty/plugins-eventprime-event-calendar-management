@@ -401,7 +401,7 @@ class EventM_Notification_Service {
                 $lastFootUpdate .= $attendee_name_html;
             }
             
-            $lastFootUpdate = apply_filters( 'event_magic_booking_confirmed_footer_contnent', $lastFootUpdate, $booking );
+            $lastFootUpdate = apply_filters( 'event_magic_booking_confirmed_footer_content', $lastFootUpdate, $booking );
             if(isset($lastFoot[1]))
             {
                 $mail_body = $lastFootUpdate . '</tfoot>' . $lastFoot[1];
@@ -460,7 +460,6 @@ class EventM_Notification_Service {
             $mail_body = str_replace( "(user_first_name)", $user_first_name, $mail_body );
             $mail_body = str_replace( "(user_last_name)", $user_last_name, $mail_body );
             $mail_body = str_replace( "(user_phone)", $booking_user_phone, $mail_body );
-            $mail_body = apply_filters( 'event_magic_booking_confirmed_footer_contnent', $mail_body, $booking );
             
             if(isset($global_setting->admin_booking_confirm_email_attendees) && !empty($global_setting->admin_booking_confirm_email_attendees)){
                 $lastFoot = explode( '</tbody>', $mail_body );
@@ -512,6 +511,7 @@ class EventM_Notification_Service {
                 }
             }
             $mail_body = $this->ep_filter_email_content($mail_body, $booking);
+            $mail_body = apply_filters( 'event_magic_booking_confirmed_admin_content', $mail_body, $booking );
             wp_mail( $to, $subject, $mail_body, $headers);
         }
     }
@@ -599,7 +599,7 @@ class EventM_Notification_Service {
                 }
                 $lastFootUpdate .=$attendee_name_html;
             }
-            $lastFootUpdate = apply_filters( 'event_magic_booking_confirmed_footer_contnent', $lastFootUpdate, $booking );
+            $lastFootUpdate = apply_filters( 'event_magic_booking_refund_footer_content', $lastFootUpdate, $booking );
             $mail_body = $lastFootUpdate . '</tfoot>' . $lastFoot[1];
 
             // Send to user
@@ -623,6 +623,8 @@ class EventM_Notification_Service {
             $to = $admin_email; 
             $subject = sprintf(esc_html__( 'Booking Refund on Booking ID# %d', 'eventprime-event-calendar-management'), $booking_id );        
             $body = sprintf(esc_html__( 'A refund of %s has been issued to booking #%d for %s', 'eventprime-event-calendar-management'), $ep_functions->ep_price_with_position( $ticket_sub_total ), $booking_id, $booking->em_name );
+            $body = $this->ep_filter_email_content($body, $booking);
+            $body = apply_filters( 'event_magic_booking_refund_admin_content', $lastFootUpdate, $booking );
             wp_mail( $to, $subject, $body, $headers );
         }
     }
@@ -642,14 +644,21 @@ class EventM_Notification_Service {
         $subject = isset($global_setting->booking_pending_email_subject) ? $global_setting->booking_pending_email_subject : esc_html__( 'Your payment is pending', 'eventprime-event-calendar-management' );
         $this->configure_mail();
         
+        $sub_total = 0;
+        $booking_user_phone = $user_first_name = $user_last_name = 'N/A';
         $booking_user_email = $booking_user_name = $to = '';
         $user_id = isset($booking->em_user) ? (int) $booking->em_user : 0;
         if($user_id){
             $user = get_userdata($user_id);
             $booking_user_email = $to = $user->user_email;
             $booking_user_name = $user->display_name;
+            $user_first_name = get_user_meta( $user_id, 'first_name', true );
+            $user_last_name = get_user_meta( $user_id, 'last_name', true );
+            $booking_user_phone = get_user_meta($user_id, 'phone', true);
         } else {
             $booking_user_email = $to = isset($order_info['user_email']) ? $order_info['user_email'] :'';
+            $booking_user_name = isset($order_info['user_name']) ? $order_info['user_name'] : '';
+            $booking_user_phone = (isset($order_info['user_phone']) && !empty($order_info['user_phone']) ? $order_info['user_phone'] : 'N/A');
         }
         $from = get_bloginfo('name') . '<' . get_bloginfo('admin_email') . '>';
         $headers[] = 'From: ' . $from;
@@ -711,7 +720,7 @@ class EventM_Notification_Service {
                 $lastFootUpdate .=$attendee_name_html;
             }
             
-            $lastFootUpdate = apply_filters( 'event_magic_booking_confirmed_footer_contnent', $lastFootUpdate, $booking );
+            $lastFootUpdate = apply_filters( 'event_magic_booking_pending_footer_content', $lastFootUpdate, $booking );
             $mail_body = $lastFootUpdate . '</tfoot>' . $lastFoot[1];
 
             //Send to user
@@ -720,9 +729,37 @@ class EventM_Notification_Service {
         }
 
         // Admin email
-        //Add CC to admin emails
-        if( empty( $global_setting->disable_admin_email ) ) {
-            $mail_cc = $ep_functions->ep_get_global_settings('booking_pending_email_cc');
+        $sub_total = $ticket_sub_total + $order_info['event_fixed_price'];
+        if( empty( $global_setting->disable_admin_email ) && $global_setting->send_booking_pending_admin_email == 1 ) {
+            $mail_body = isset($global_setting->booking_pending_admin_email) ? $global_setting->booking_pending_admin_email : sprintf( esc_html__( 'User %s has Booking Pending with Booking ID #%d.', 'eventprime-event-calendar-management' ), $booking_user_email, $booking_id );
+            
+            if( isset( $global_setting->ep_admin_email_to ) && ! empty( $global_setting->ep_admin_email_to ) ){
+                $to = $global_setting->ep_admin_email_to; 
+            }else{
+                $to = get_option('admin_email'); 
+            }
+            $subject = ( ! empty( $global_setting->booking_pending_admin_email_subject ) ? $global_setting->booking_pending_admin_email_subject : esc_html__( 'Booking Pending', 'eventprime-event-calendar-management' ) );
+            $mail_body = str_replace( "(user_email)", $booking_user_email, $mail_body );
+            $mail_body = str_replace( "(event_name)", $booking->em_name, $mail_body );
+            $mail_body = str_replace( "(event_date)", empty($event_date_time) ? '' : $event_date_time, $mail_body );
+            $mail_body = str_replace( "(booking_id)", $booking_id, $mail_body );
+            $booking_url = admin_url( "post.php?action=edit&post=".$booking_id );
+            $view_order_url = '<a href="'.esc_url( $booking_url ).'" target="_blank">' . esc_html__('View Order', 'eventprime-event-calendar-management') . '</a>';
+            $mail_body = str_replace( "(view_order)", $view_order_url, $mail_body );
+            $event_date = $booking->event_data->em_start_date;
+            $booking_date_time = esc_html( $ep_functions->ep_timestamp_to_datetime( $booking->em_date ) );
+            $mail_body = str_replace( "(booking_date)", empty($booking_date_time) ? '' : $booking_date_time, $mail_body );
+            $mail_body = str_replace( "(subtotal)", $ep_functions->ep_price_with_position($sub_total), $mail_body );
+            $mail_body = str_replace( "(discount)", $ep_functions->ep_price_with_position(isset($order_info['discount']) ? $order_info['discount'] : 0), $mail_body );
+            $mail_body = str_replace( "(order_total)", $ep_functions->ep_price_with_position($order_info['booking_total']), $mail_body );
+            $payment_gateway = isset($booking->em_payment_method) ? ucfirst($booking->em_payment_method) : 'N/A';
+            $mail_body = str_replace( "(payment_method)", $payment_gateway, $mail_body );
+            $mail_body = str_replace( "(user_name)", $booking_user_name, $mail_body );
+            $mail_body = str_replace( "(user_first_name)", $user_first_name, $mail_body );
+            $mail_body = str_replace( "(user_last_name)", $user_last_name, $mail_body );
+            $mail_body = str_replace( "(user_phone)", $booking_user_phone, $mail_body );
+            
+            $mail_cc = isset($global_setting->booking_pending_admin_email_cc) ? $global_setting->booking_pending_admin_email_cc : "";
             if( ! empty( $mail_cc ) ) {
                 $mails = explode( ",", $mail_cc );
                 if( ! empty( $mails ) ) {
@@ -731,10 +768,11 @@ class EventM_Notification_Service {
                     }
                 }
             }
-            $to = get_option('admin_email');
-            $subject = esc_html__( 'Booking Pending', 'eventprime-event-calendar-management' );        
-            $body = sprintf( esc_html__( 'User %s has Booking Pending with Booking ID #%d.', 'eventprime-event-calendar-management' ), $booking_user_email, $booking_id );
-            wp_mail( $to, $subject, $body, $headers );
+
+            $mail_body = $this->ep_filter_email_content($mail_body, $booking);
+            $mail_body = apply_filters( 'event_magic_booking_pending_admin_content', $mail_body, $booking );
+
+            wp_mail( $to, $subject, $mail_body, $headers );
         }
     }
 
@@ -819,7 +857,7 @@ class EventM_Notification_Service {
 
                 $lastFootUpdate .=$attendee_name_html;
             }
-            $lastFootUpdate = apply_filters( 'event_magic_booking_confirmed_footer_contnent', $lastFootUpdate, $booking );
+            $lastFootUpdate = apply_filters( 'event_magic_booking_cancel_footer_content', $lastFootUpdate, $booking );
             $mail_body = $lastFootUpdate . '</tfoot>' . $lastFoot[1];
 
             // Send to user
@@ -848,6 +886,7 @@ class EventM_Notification_Service {
             $to = $admin_email;
             $subject = esc_html__( 'Booking Cancellation', 'eventprime-event-calendar-management' );
             $mail_body = $this->ep_filter_email_content($mail_body, $booking);
+            $mail_body = apply_filters( 'event_magic_booking_cancel_admin_content', $mail_body, $booking );
             wp_mail( $to, $subject, $mail_body ); 
         }
     }

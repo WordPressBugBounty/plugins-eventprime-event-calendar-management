@@ -300,6 +300,10 @@ class Eventprime_Global_Settings{
             'booking_pending_email_subject'         => 'Your payment is pending',
             'booking_pending_email'                 => '',
             'booking_pending_email_cc'              => '',
+            'send_booking_pending_admin_email'      => 1,
+            'booking_pending_admin_email_subject'   => 'Booking Pending',
+            'booking_pending_admin_email'           => '',
+            'booking_pending_admin_email_cc'        => '',
             'send_booking_confirm_email'            => 1,
             'booking_confirm_email_subject'         => 'Your booking is confirmed!',
             'booking_confirmed_email'               => '',
@@ -767,6 +771,12 @@ class Eventprime_Global_Settings{
             'title'=>__('Admin Booking Confirmation Email','eventprime-event-calendar-management'),
             'description'=>__('Informs the admin when a new booking is created by a user, for any event.','eventprime-event-calendar-management'),
             'enable_key'=> 'send_admin_booking_confirm_email',
+            'recipient'=>__('Admin','eventprime-event-calendar-management')
+        );
+        $emailers['booking_pending_admin'] = array(
+            'title'=>__('Admin Booking Pending Email','eventprime-event-calendar-management'),
+            'description'=>__('Informs the admin when a booking is pending, for any event.','eventprime-event-calendar-management'),
+            'enable_key'=> 'send_booking_pending_admin_email',
             'recipient'=>__('Admin','eventprime-event-calendar-management')
         );
         return apply_filters('ep_emailer_list_add', $emailers);

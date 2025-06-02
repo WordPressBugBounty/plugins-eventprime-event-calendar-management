@@ -309,6 +309,12 @@ class EventPrime_Admin_settings{
                 $global_settings_data->booking_pending_email_cc = wp_kses_post($form_data['booking_pending_email_cc']);
             
             }
+            if($form_data['em_emailer_type'] == 'booking_pending_admin'){
+                $global_settings_data->send_booking_pending_admin_email = isset($form_data['send_booking_pending_admin_email']) ? (int) $form_data['send_booking_pending_admin_email'] : 0;
+                $global_settings_data->booking_pending_admin_email_subject = sanitize_text_field($form_data['booking_pending_admin_email_subject']);
+                $global_settings_data->booking_pending_admin_email = wp_kses_post($form_data['booking_pending_admin_email']);
+                $global_settings_data->booking_pending_admin_email_cc = wp_kses_post($form_data['booking_pending_admin_email_cc']);
+            }
             if($form_data['em_emailer_type'] == 'booking_confirm'){
                 $global_settings_data->send_booking_confirm_email = isset($form_data['send_booking_confirm_email']) ? (int) $form_data['send_booking_confirm_email'] : 0;
                 $global_settings_data->booking_confirm_email_subject = sanitize_text_field($form_data['booking_confirm_email_subject']);

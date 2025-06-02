@@ -1108,6 +1108,8 @@ function loadPaymentSection() {
                             var checkout_form = jQuery( "#ep_event_checkout_form" );
                             jQuery('#ep-paypal-button-container').html('');
                             
+                            let response_items = []; 
+                            
                             paypal.Buttons({
                                 
                                 // Set up the transaction
@@ -1130,9 +1132,13 @@ function loadPaymentSection() {
                                                 booking_total = response.data.booking_total;
                                                 item_total    = response.data.item_total;
                                                 discount_total = response.data.discount_total;
+                                                response_items = response.data.items;
                                             }
                                         },
                                     }).then(function () {
+                                        let paypal_items = response_items && response_items.length > 0 ? response_items : items;
+                                        let paypal_discount = discount_total !== 0 ? discount_total : total_discount; 
+
                                         // Return order details for PayPal
                                         return actions.order.create({
                                             purchase_units: [{
@@ -1143,16 +1149,16 @@ function loadPaymentSection() {
                                                     breakdown: {
                                                         item_total: {
                                                             currency_code: ep_currency,
-                                                            // value: (parseFloat(booking_total) + parseFloat(total_discount)),
-                                                            value: Math.round(parseFloat(parseFloat(booking_total) + parseFloat(total_discount))*100)/100,
+                                                            value: (parseFloat(booking_total) + parseFloat(paypal_discount)),
+                                                            // value: Math.round(parseFloat(parseFloat(booking_total) + parseFloat(total_discount))*100)/100,
                                                         },
                                                         discount: {
                                                             currency_code: ep_currency,
-                                                            value: parseFloat(total_discount),
+                                                            value: parseFloat(paypal_discount),
                                                         },
                                                     },
                                                 },
-                                                items: items,
+                                                items: paypal_items,
                                             }],
                                         });
                                     });

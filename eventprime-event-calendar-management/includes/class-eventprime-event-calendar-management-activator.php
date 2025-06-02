@@ -524,11 +524,18 @@ class Eventprime_Event_Calendar_Management_Activator {
 			$global_options->event_approved_email = ob_get_clean();
 		}
                 
-                $admin_booking_confirmed_email =$ep_functions->ep_get_global_settings( 'admin_booking_confirmed_email' );
+        $admin_booking_confirmed_email =$ep_functions->ep_get_global_settings( 'admin_booking_confirmed_email' );
 		if ( empty( $admin_booking_confirmed_email ) ) {
 			ob_start();
 			include plugin_dir_path( EP_PLUGIN_FILE ) . 'admin/partials/settings/emailers/mail/admin_confirm.php';
 			$global_options->admin_booking_confirmed_email = ob_get_clean();
+		}
+
+        $admin_booking_pending_email =$ep_functions->ep_get_global_settings( 'booking_pending_admin_email' );
+		if ( empty( $admin_booking_pending_email ) ) {
+			ob_start();
+			include plugin_dir_path( EP_PLUGIN_FILE ) . 'admin/partials/settings/emailers/mail/admin_pending.php';
+			$global_options->booking_pending_admin_email = ob_get_clean();
 		}
 
 		// Update settings.
