@@ -1,6 +1,6 @@
 <?php
 $ep_functions = new Eventprime_Basic_Functions;
-$ep_select_result_page = get_post_meta($args->event->em_id, 'ep_select_result_page', true);
+$ep_select_result_page = !empty($args->event->em_id) ? get_post_meta($args->event->em_id, 'ep_select_result_page', true): '';
 if (!empty($ep_select_result_page)) {
     $ep_result_page_link = get_page_link($ep_select_result_page);
     if (!empty($ep_result_page_link)) {

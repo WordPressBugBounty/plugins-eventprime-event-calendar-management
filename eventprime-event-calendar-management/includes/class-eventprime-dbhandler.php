@@ -904,7 +904,7 @@ class EP_DBhandler {
 			$ep_ticket_order_arr = sanitize_text_field( $post['ep_ticket_order_arr'] ); 
 			$ep_ticket_order_arr_explode = explode( ',', $ep_ticket_order_arr ); 
 
-			$get_existing_individual_ticket_lists = $ep_functions->get_existing_individual_ticket_lists( $post->ID ); 
+			$get_existing_individual_ticket_lists = $ep_functions->get_existing_individual_ticket_lists($post_id); 
 			foreach ( $get_existing_individual_ticket_lists as $ticket ) { 
 				if ( ! in_array( $ticket->id, $ep_ticket_order_arr_explode ) ) {
 					array_push( $ep_ticket_order_arr_explode, $ticket->id ); 

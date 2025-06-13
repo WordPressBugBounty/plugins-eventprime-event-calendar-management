@@ -555,6 +555,8 @@ class Eventprime_Basic_Functions {
             'invalid_phone' => esc_html__('Please enter a valid phone no.', 'eventprime-event-calendar-management'),
             'invalid_number' => esc_html__('Please enter a valid number', 'eventprime-event-calendar-management'),
             'invalid_date' => esc_html__('Please enter a valid date', 'eventprime-event-calendar-management'),
+            'whole_number' => esc_html__('Please enter a valid whole number.', 'eventprime-event-calendar-management'),
+            'invalid_price' => esc_html__('Please enter a valid price.', 'eventprime-event-calendar-management'),
         );
         return $errors;
     }
@@ -1709,7 +1711,7 @@ class Eventprime_Basic_Functions {
      * 
      * @return string $date Date.
      */
-    public function ep_timestamp_to_date($timestamp, $format = 'Y-m-d', $strict = 0) {
+    public function ep_timestamp_to_date_old($timestamp, $format = 'Y-m-d', $strict = 0) {
         $date = '';
         if (!empty($timestamp)) {
             if (empty($strict)) { // Not use setting format if $strict = 1
@@ -1722,6 +1724,21 @@ class Eventprime_Basic_Functions {
         }
         return $date;
     }
+    
+    public function ep_timestamp_to_date($timestamp, $format = 'Y-m-d', $strict = 0) {
+    $date = '';
+    if (!empty($timestamp)) {
+        if (empty($strict)) {
+            $format = $this->ep_get_datepicker_format(); // use custom format
+        }
+        if (!is_int($timestamp)) {
+            $timestamp = (int) $timestamp;
+        }
+        $date = wp_date($format, $timestamp); // use wp_date instead of date_i18n
+    }
+    return $date;
+}
+
 
     public function ep_get_event_date_time_diff($event) {
         $date_diff = '';
@@ -6587,11 +6604,12 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
         return $wp_query;
     }
 
-    public function check_for_ticket_visibility( $ticket, $event ) {
+    public function check_for_ticket_visibility_old( $ticket, $event ) {
 		$response = array( 'status' => false, 'message' => '', 'reason' => '' );
 		if( ! empty( $ticket ) && ! empty( $event ) ) {
 			if( ! empty( $ticket->visibility ) ) {
 				$visibility = json_decode( $ticket->visibility );
+                                //print_r($visibility);die;
 				$em_tickets_user_visibility = $em_ticket_for_invalid_user = $em_tickets_visibility_time_restrictions = $em_ticket_visibility_user_roles = '';
 				$em_tickets_user_visibility = $visibility->em_tickets_user_visibility;
 				$em_ticket_for_invalid_user = $visibility->em_ticket_for_invalid_user;
@@ -6659,6 +6677,76 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
 		}
 		return $response;
 	}
+       
+        public function check_for_ticket_visibility($ticket, $event) 
+        {
+            $response = ['status' => false, 'message' => '', 'reason' => ''];
+
+            if (empty($ticket) || empty($event)) {
+                return $response;
+            }
+
+            if (empty($ticket->visibility)) {
+                $response['status'] = true;
+                return $response;
+            }
+
+            $visibility = json_decode($ticket->visibility);
+            $user_visibility = $visibility->em_tickets_user_visibility ?? 'public';
+            $invalid_user_behavior = $visibility->em_ticket_for_invalid_user ?? '';
+            $role_restrictions = $visibility->em_ticket_visibility_user_roles ?? [];
+
+            // For now, time restriction is hardcoded
+            $time_restriction = 'always_visible';
+
+            if ($time_restriction !== 'always_visible') {
+                return $response; // Future support for time-based restriction can go here
+            }
+
+            // --- Public visibility
+            if ($user_visibility === 'public') {
+                $response['status'] = true;
+
+            // --- All logged-in users
+            } elseif ($user_visibility === 'all_login') {
+                if (is_user_logged_in()) {
+                    $response['status'] = true;
+                } else {
+                    $response = ($invalid_user_behavior === 'disabled') ?
+                        ['status' => true, 'message' => 'disabled', 'reason' => 'user_login'] :
+                        ['status' => false, 'message' => 'require_login', 'reason' => ''];
+                }
+
+            // --- Restricted to specific roles
+            } elseif ($user_visibility === 'user_roles') {
+                if (is_user_logged_in()) {
+                    $user = wp_get_current_user();
+                    $roles = (array) $user->roles;
+
+                    if (in_array('administrator', $roles)) {
+                        $response['status'] = true;
+                    } elseif (!empty($role_restrictions)) {
+                        $intersect = array_intersect($role_restrictions, $roles);
+                        if (!empty($intersect)) {
+                            $response['status'] = true;
+                        } else {
+                            $response = ($invalid_user_behavior === 'disabled') ?
+                                ['status' => true, 'message' => 'disabled', 'reason' => 'user_role'] :
+                                ['status' => false, 'message' => 'role_not_found', 'reason' => ''];
+                        }
+                    } else {
+                        $response['status'] = true; // No specific roles configured
+                    }
+                } else {
+                    $response = ($invalid_user_behavior === 'disabled') ?
+                        ['status' => true, 'message' => 'disabled', 'reason' => 'user_role'] :
+                        ['status' => false, 'message' => 'require_login', 'reason' => ''];
+                }
+            }
+
+            return apply_filters("ep_check_ticket_visibility_response", $response, $ticket, $event);
+        }
+
         
         public function get_ticket_category_name( $category_id, $event ) {
 		$cat_name = '';
@@ -6688,6 +6776,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
                     if( $booking_type == 'custom_date' ) {
                         if( ! empty( $starts->start_date ) ){
                             $book_start_date = $starts->start_date;
+                            //print_r($book_start_date);die;
                             if( ! empty( $starts->start_time ) ) {
                                 $book_start_date .= ' ' . $starts->start_time;
                                 $book_start_timestamp = $this->ep_datetime_to_timestamp( $book_start_date );
@@ -12011,5 +12100,43 @@ public function ep_get_events( $fields ) {
         return $items;
 
    }
+   public function ep_get_dashboard_setting_url($tab)
+    {
+        $nonce = wp_create_nonce('ep_settings_tab');
+        $sub_tab_url = add_query_arg( 
+                array(
+                    'tab' => $tab,'tab_nonce'=>$nonce 
+                ),admin_url('edit.php?post_type=em_event&page=ep-settings')
+            );
+        return $sub_tab_url;
+    }
+    
+    public function ep_documentation_link_notice_html($text,$link)
+    {
+        ?>
+            <div class="ep-article-notice">
+                <p>
+                <strong><?php echo esc_html($text);?>:</strong> 
+                <a href="<?php echo esc_url($link);?>" target="_blank" rel="noopener"><?php esc_html_e('Read full guide','eventprime-event-calendar-management');?> <span class="dashicons dashicons-external"></span></a>
+                
+                </p>
+            </div>
+        <?php
+    }
+    
+    public function ep_documentation_link_read_more_html($link,$read_more_text='')
+    {
+        if($read_more_text=='')
+        {
+            $read_more_text = esc_html__('Learn more','eventprime-event-calendar-management');
+        }
+         ?>
+            <span class="ep-read-more">
+                <a href="<?php echo esc_url($link);?>" target="_blank" rel="noopener"><?php echo esc_html($read_more_text); ?> <span class="dashicons dashicons-external"></span></a>
+            </span>
+        <?php
+    }
+
+
     
 }

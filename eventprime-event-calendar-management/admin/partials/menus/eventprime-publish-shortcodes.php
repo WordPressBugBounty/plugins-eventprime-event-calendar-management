@@ -9,7 +9,7 @@ $ext_list = $global_function->ep_list_all_exts();
 <div class="emagic ep-frontend ep-shortcode-page">
     <div class="ep-sc-wrap ep-box-wrap">
         <div class="ep-sc-blocks ep-box-row">
-            <div class="ep-sc-block-row ep-box-col-12 ep-scpagetitle ep-py-4 ep-my-4 ep-text-center"> <b><?php esc_html_e('EventPrime','eventprime-event-calendar-management'); ?></b> <span class=""><?php esc_html_e('Shortcodes','eventprime-event-calendar-management'); ?></span> </div>
+            <div class="ep-sc-block-row ep-box-col-12 ep-scpagetitle ep-py-4 ep-my-4 ep-text-center"> <b><?php esc_html_e('EventPrime','eventprime-event-calendar-management'); ?></b> <span class=""><?php esc_html_e('Shortcodes','eventprime-event-calendar-management'); $global_function->ep_documentation_link_read_more_html('https://theeventprime.com/wordpress-event-calendar-shortcodes-by-eventprime/'); ?></span> </div>
         </div>
         <div class="ep-escblock-wrap ep-box-row">
             <!-- All Events -->

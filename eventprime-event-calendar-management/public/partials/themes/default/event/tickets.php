@@ -174,7 +174,7 @@ $max_ticket_per_order = $is_able_to_purchase[0];
             do_action( 'ep_event_detail_after_ticket_block', $args );
             
             if( $ep_functions->ep_get_global_settings( 'show_qr_code_on_single_event' ) == 1 ) {
-                if( ! $is_event_expired && ( ! empty( $all_tickets ) && count( $all_tickets ) > 0 ) || $args->event->em_enable_booking == 'external_bookings' ) {?>
+                if( ! $is_event_expired && ( ! empty( $all_tickets ) && count( $all_tickets ) > 0 ) || isset($args->event->em_enable_booking) && $args->event->em_enable_booking == 'external_bookings' ) {?>
                     <div class="ep-box-col-12 ep-border-top"></div><?php
                 }?>
                 <div class="ep-box-col-12 ep-qr-code-section ep-p-4 mx-auto ep-text-center">
@@ -289,7 +289,9 @@ $max_ticket_per_order = $is_able_to_purchase[0];
                                 <div class="ep-box-col-8 ep-box-col-sm-8 ep-py-3" id="ep_event_ticket_modal_left">
                                     <div class="ep-event-ticket-wrap ep-box-w-100 ep-overflow-auto">
                                     <?php foreach( $all_tickets as $ticket ) {
+                                       
                                         $check_ticket_visibility = $ep_functions->check_for_ticket_visibility( $ticket, $args->event );
+                                        
                                         if( ! empty( $check_ticket_visibility['status'] ) ){
                                             $visible_ticket = 1;$ticket_disabled = 0;$ticket_disabled_class = $cursor_class = '';
                                             if( $check_ticket_visibility['message'] == 'disabled' ) {
@@ -334,20 +336,28 @@ $max_ticket_per_order = $is_able_to_purchase[0];
                                                         <a href="#" class="ep-show-less" style="display:none"><?php esc_html_e( 'less', 'eventprime-event-calendar-management' );?></a> 
                                                     </div><?php
                                                 }?>
+                                                
                                                 <div class="ep-box-col-12"><?php 
                                                     $check_ticket_available = $ep_functions->check_for_ticket_available_for_booking( $ticket, $args->event );
-                                                    if( $check_ticket_available['status'] == 'not_started' ) {?>
-                                                        <div class="ep-text-small ep-mt-3 ep-mb-2">
-                                                            <span class="ep-text-small ep-text-success ep-bg-success ep-bg-opacity-10 ep-px-2 ep-py-2 ep-rounded-1">
-                                                                <?php echo esc_html( $check_ticket_available['message'] );?>
-                                                            </span>
-                                                        </div><?php
-                                                    } elseif( $check_ticket_available['status'] == 'off' ) {?>
+                                                    if( $check_ticket_available['status'] == 'not_started') {
+                                                        if($ticket->show_ticket_booking_dates){
+                                                            ?>
+                                                            <div class="ep-text-small ep-mt-3 ep-mb-2">
+                                                                <span class="ep-text-small ep-text-success ep-bg-success ep-bg-opacity-10 ep-px-2 ep-py-2 ep-rounded-1">
+                                                                    <?php echo esc_html( $check_ticket_available['message'] );?>
+                                                                </span>
+                                                            </div><?php
+                                                        }
+                                                    } elseif( $check_ticket_available['status'] == 'off' ) {
+                                                        if($ticket->show_ticket_booking_dates){
+                                                        ?>
                                                         <div class="ep-text-small ep-mt-3 ep-mb-2">
                                                             <span class="ep-text-small ep-text-danger ep-bg-success ep-bg-opacity-10 ep-px-2 ep-py-2 ep-rounded-1">
                                                                 <?php echo esc_html( $check_ticket_available['message'] );?>
                                                             </span>
-                                                        </div><?php
+                                                        </div>
+                                                            <?php
+                                                        }
                                                     } else{
                                                         $ticket_booking_start = 1;$ticket_sold_out = 0;
                                                         $remaining_caps = $ticket->capacity;

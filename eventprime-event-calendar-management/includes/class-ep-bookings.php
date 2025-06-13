@@ -823,6 +823,11 @@ class EventPrime_Bookings {
                     $booking_status = $default_booking_status;
                 }
             }
+            
+            if(isset($data['payment_status']) && $data['payment_status']=='pending')
+            {
+                $booking_status = 'pending';
+            }
         }
 
         return $booking_status;

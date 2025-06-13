@@ -863,6 +863,14 @@ label.ep-form-check-label {
     -ms-flex-wrap: wrap!important;
     flex-wrap: wrap!important;
 }
+.ep-flex-nowrap{
+    -ms-flex-wrap: nowrap!important;
+    flex-wrap: nowrap!important;
+}
+
+.ep-flex-column {
+    flex-direction: column!important;
+}
 
 .ep-inline-block{
     display: inline-block;
@@ -1104,6 +1112,10 @@ label.ep-form-check-label {
 
     .ep-rounded {
         border-radius: var(--ep-border-radius);
+    }
+    
+    .ep-rounded-0 {
+        border-radius: 0 !important;
     }
 
     .ep-rounded-1{
@@ -1372,7 +1384,7 @@ label.ep-form-check-label {
         padding: 1.5rem!important;
     }
     .ep-py-3 {
-        padding: 1rem 0rem;
+        padding: 1rem 0rem !important;
     }
 
     .ep-py-4 {
@@ -2188,14 +2200,14 @@ label.ep-form-check-label {
         --ep-card-border-width: 1px;
         --ep-card-border-color: rgba(0, 0, 0, 0.175);
         --ep-card-border-radius: 0.375rem;
-        --ep-card-box-shadow: ;
+        /*--ep-card-box-shadow: ; */
         --ep-card-inner-border-radius: calc(0.375rem - 1px);
         --ep-card-cap-padding-y: 0.5rem;
         --ep-card-cap-padding-x: 1rem;
         --ep-card-cap-bg: rgba(0, 0, 0, 0.03);
-        --ep-card-cap-color: ;
+       /* --ep-card-cap-color: ;*/
         --ep-card-height:100% ;
-        --ep-card-color: ;
+       /* --ep-card-color: ;*/
         --ep-card-bg: #fff;
         --ep-card-img-overlay-padding: 1rem;
         --ep-card-group-margin: 0.75rem;
@@ -2411,6 +2423,10 @@ label.ep-form-check-label {
 
     .ep-modal-xsm {
         --ep-modal-width: 660px;
+    }
+    
+     .ep-modal-xssm {
+        --ep-modal-width: 750px;
     }
     .ep-modal-sm {
         --ep-modal-width: 800px;
@@ -3052,14 +3068,14 @@ label.ep-form-check-label {
     --ep-card-border-width: 1px;
     --ep-card-border-color: rgba(0, 0, 0, 0.175);
     --ep-card-border-radius: 0.375rem;
-    --ep-card-box-shadow: ;
+/*    --ep-card-box-shadow: ;*/
     --ep-card-inner-border-radius: calc(0.375rem - 1px);
     --ep-card-cap-padding-y: 0.5rem;
     --ep-card-cap-padding-x: 1rem;
     --ep-card-cap-bg: rgba(0, 0, 0, 0.03);
-    --ep-card-cap-color: ;
+   /* --ep-card-cap-color: ;*/
     --ep-card-height:100% ;
-    --ep-card-color: ;
+   /* --ep-card-color: ;*/
     --ep-card-bg: #fff;
     --ep-card-img-overlay-padding: 1rem;
     --ep-card-group-margin: 0.75rem;
@@ -4012,4 +4028,25 @@ table.ep-setting-table-main th {
      background-color: transparent !important;
     color: #4d5bff !important;
     border-color: #4d5bff !important;
+}
+
+.ep-article-notice{
+    background: #fff;
+    padding: 1px 0px;
+    border-bottom: 1px solid #efefef;
+
+}
+
+.ep-read-more a,.ep-article-notice a{
+    text-decoration: none;
+}
+
+.ep-read-more a .dashicons,.ep-article-notice a .dashicons{
+    font-size:13px;
+    width: auto;
+}
+.ep-read-more a .dashicons:before,
+.ep-article-notice a .dashicons:before{
+    padding-top: 4px;
+    display: inline-block;
 }

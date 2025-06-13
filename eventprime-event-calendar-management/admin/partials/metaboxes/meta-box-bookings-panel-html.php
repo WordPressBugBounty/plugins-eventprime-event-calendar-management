@@ -23,10 +23,10 @@ $extensions = $ep_functions->ep_get_activate_extensions();
             </div><?php
         } else{?>
             <div class="ep-box-row ep-p-3 ep-border ep-bg-light ep-rounded ep-m-3">
-                <div class="ep-box-col-12 ep-mb-3" id="ep-how-to-book">
+                <div class="ep-box-col-10 ep-mb-3" id="ep-how-to-book">
                     <strong><?php esc_html_e('How do you wish to handle ticket bookings for this event?', 'eventprime-event-calendar-management'); ?></strong>
                 </div>
-                <div class="ep-box-col-12">
+                <div class="ep-box-col-10">
                     <div class="ep-form-check ep-form-check-inline ep-mb-3">
                         <input class="ep-form-check-input" type="radio" name="em_enable_booking" id="ep-bookings-off" value="bookings_off" <?php if( empty( esc_attr( $em_enable_booking ) ) || 'bookings_off' == esc_attr( $em_enable_booking ) ) { echo 'checked="checked"'; }?> >
                         <label class="ep-form-check-label" for="ep-bookings-off">
@@ -37,18 +37,18 @@ $extensions = $ep_functions->ep_get_activate_extensions();
                         </label>
                     </div>
                 </div>
-                <div class="ep-box-col-12">
+                <div class="ep-box-col-10">
                     <div class="ep-form-check ep-form-check-inline ep-mb-3">
                         <input class="ep-form-check-input" type="radio" name="em_enable_booking" id="ep-bookings-on" value="bookings_on" <?php if( 'bookings_on' == esc_attr( $em_enable_booking ) ) { echo 'checked="checked"'; }?> >
                         <label class="ep-form-check-label" for="ep-bookings-on">
                             <?php esc_html_e('Turn bookings on', 'eventprime-event-calendar-management'); ?>
                             <div class="ep-text-muted ep-text-small">
-                                <?php esc_html_e('Users will be able to buy and manage tickets for this event on your website. Also use for free events.', 'eventprime-event-calendar-management'); ?>
+                                <?php esc_html_e('Users will be able to buy and manage tickets for this event on your website. Also use for free events.', 'eventprime-event-calendar-management'); $ep_functions->ep_documentation_link_read_more_html('https://theeventprime.com/how-to-turn-on-bookings-for-a-wordpress-event/'); ?>
                             </div>
                         </label>
                     </div>
                 </div>
-                <div class="ep-box-col-12">
+                <div class="ep-box-col-10">
                     <div class="ep-form-check ep-form-check-inline ep-mb-3">
                         <input class="ep-form-check-input" type="radio" name="em_enable_booking" id="ep-external-bookings" value="external_bookings" <?php if( 'external_bookings' == esc_attr( $em_enable_booking ) ) { echo 'checked="checked"'; }?> >
                         <label class="ep-form-check-label" for="ep-external-bookings">
@@ -207,7 +207,8 @@ $extensions = $ep_functions->ep_get_activate_extensions();
                                     <label class="ep-event-booking-hide-status ">
                                     <?php esc_html_e( 'Allow Cancellations', 'eventprime-event-calendar-management' ); ?>
                                     <div class="ep-text-muted ep-text-small">
-                                        <?php esc_html_e('Allow users to cancel confirmed bookings for this event.', 'eventprime-event-calendar-management'); ?>
+                                        <?php esc_html_e('Allow users to cancel confirmed bookings for this event.', 'eventprime-event-calendar-management'); $ep_functions->ep_documentation_link_read_more_html('https://theeventprime.com/how-to-configure-cancellations-for-wordpress-events/');
+                                        ?>
                                     </div>
                                 </label>
                             </div>

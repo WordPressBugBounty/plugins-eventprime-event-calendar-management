@@ -152,6 +152,67 @@ jQuery(function ($) {
         $(this).val('');
     });
 
+    // Tabmenu 
+// Tabmenu 
+
+
+$(document).ready(function () {
+    // Ensure the first main tab and its corresponding content are active by default
+    if (!$('.ep-tab-item a.ep-tab-active').length) {
+        $('.ep-tab-item a').first().addClass('ep-tab-active');
+        var firstMainTabId = $('.ep-tab-item a').first().data('tag');
+        $('#' + firstMainTabId).addClass('active').removeClass('ep-item-hide');
+
+        // Ensure the first internal tab inside the active parent is also shown
+        var firstInternalTab = $('#' + firstMainTabId).find('.ep-tab-item a').first();
+        if (firstInternalTab.length) {
+            firstInternalTab.addClass('ep-tab-active');
+            var firstInternalTabId = firstInternalTab.data('tag');
+            $('#' + firstInternalTabId).addClass('active').removeClass('ep-item-hide');
+        }
+    }
+});
+
+$(document).on('click', '.ep-tab-item a', function (e) {
+    e.preventDefault(); // Prevent default anchor behavior
+
+    var tagid = $(this).data('tag');
+    var parentContainer = $(this).closest('.ep-tab-content'); // Find the closest parent tab content
+
+    // If this is a main tab, target all main tab contents
+    if (!parentContainer.length) {
+        $('.ep-tab-item a').removeClass('ep-tab-active');
+        $(this).addClass('ep-tab-active');
+        $('.ep-tab-content').removeClass('active').addClass('ep-item-hide');
+        $('#' + tagid).addClass('active').removeClass('ep-item-hide');
+
+        // Ensure the first internal tab inside the newly activated parent remains visible
+        var firstInternalTab = $('#' + tagid).find('.ep-tab-item a').first();
+        if (firstInternalTab.length) {
+            firstInternalTab.addClass('ep-tab-active');
+            var firstInternalTabId = firstInternalTab.data('tag');
+            $('#' + firstInternalTabId).addClass('active').removeClass('ep-item-hide');
+        }
+    } else {
+        // If this is an internal tab, only target tabs inside the same section
+        parentContainer.find('.ep-tab-content').removeClass('active').addClass('ep-item-hide');
+        $('#' + tagid).addClass('active').removeClass('ep-item-hide');
+
+        // Remove active class from other internal tabs and set clicked one as active
+        parentContainer.find('.ep-tab-item a').removeClass('ep-tab-active');
+        $(this).addClass('ep-tab-active');
+    }
+});
+
+
+
+
+
+
+
+
+  
+    // Tabmenu End
 });
 
 /**

@@ -81,7 +81,7 @@ html.ep-embed-responsive .emagic{
 }
 .ep-dark-mode-enabled .ep-list-group{
     --ep-list-group-bg: 38, 38, 38;
-    --ep-list-group-color: ;
+   /* --ep-list-group-color: ;*/
 }
 .ep-dark-mode-enabled .ep-list-group-item{
     --ep-bg-opacity: 1;
@@ -2380,6 +2380,10 @@ body.ep-modal-open-body {
 
 .emagic .ep-btn-group>:not(.ep-btn-check:first-child)+input.ep-btn{
     margin-left: -1px !important;
+}
+
+.emagic .ep-btn-group>:not(.ep-btn-check:first-child)+input.ep-btn:focus{
+    border-style: solid;
 }
 
 .emagic .ep-btn-group>:not(.ep-btn-check:first-child)+input.ep-btn:hover{

@@ -5,7 +5,7 @@ Tags: event calendar, organizer , event manager, tickets, event booking, event b
 Requires at least: 4.8
 Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 4.0.9.8
+Stable tag: 4.1.0.0
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -666,6 +666,15 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.1.0.0: June 13, 2025 =
+* Added: New email template for pending booking notification to admin.
+* Added: Option in Stripe extension to show/hide customer information form on checkout.
+* Added: Venue address display on event tickets.
+* Updated: Introduced new UI for the ticket modal for a cleaner user experience.
+* Fixed: Featured image button issue in frontend event submission form for guest bookings.
+* Fixed: WooCommerce checkout order status issue for virtual products.
+* Fixed: Fatal error in Sponsor extension on some installations.
 
 = 4.0.9.8: June 02, 2025 =
 * Multiple bug fixes.
@@ -2136,6 +2145,15 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.1.0.0: June 13, 2025 =
+* Added: New email template for pending booking notification to admin.
+* Added: Option in Stripe extension to show/hide customer information form on checkout.
+* Added: Venue address display on event tickets.
+* Updated: Introduced new UI for the ticket modal for a cleaner user experience.
+* Fixed: Featured image button issue in frontend event submission form for guest bookings.
+* Fixed: WooCommerce checkout order status issue for virtual products.
+* Fixed: Fatal error in Sponsor extension on some installations.
 
 = 4.0.9.8: June 02, 2025 =
 * Multiple bug fixes.

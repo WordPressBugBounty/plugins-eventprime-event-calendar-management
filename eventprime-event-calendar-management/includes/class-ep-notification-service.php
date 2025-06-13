@@ -336,7 +336,15 @@ class EventM_Notification_Service {
 
             // add offers in discount
             if( ! empty( $offers ) ) {
-                $order_info['discount'] += $offers;
+                if(isset($order_info['discount']))
+                {
+                    $order_info['discount'] += $offers;
+                }
+                else
+                {
+                    $order_info['discount'] = $offers;
+                }
+               
             }
 
             $sub_total = $ticket_sub_total + $order_info['event_fixed_price'];

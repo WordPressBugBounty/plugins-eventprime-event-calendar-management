@@ -596,9 +596,129 @@ table.ep-attendee-fields-modal-table {
 }
 
 /** Summary meta box **/
+
 .ep-event-summary-data-list{
     margin-bottom: 0.75rem;
 }
 span.ep-remove-custom-date {
     cursor: pointer;
 }
+
+/**-- Ticket Modal ---**/
+
+ul#ep-ticket-Tabs .ep-tab-item a.ep-tab-link {
+    text-decoration: none;
+    transition: background-color 0.3s ease, font-weight 0.3s ease;
+    border-radius: var(--ep-border-radius-sm) !important;
+    color:#000;
+    padding: calc(12px) calc(16px);
+}
+ul#ep-ticket-Tabs .ep-tab-item a.ep-tab-link:hover {
+    background-color: #F2F2F2;
+}
+ul#ep-ticket-Tabs .ep-tab-item a.ep-tab-link.ep-tab-active {
+    background-color: #F2F2F2;
+    font-weight: 500;
+    transition: background-color 0.3s ease, font-weight 0.3s ease;
+}
+#ep-ticket-details button.upload_offer_icon_button.button{
+    background-color: #F0F0F0;
+    border: 0px;
+    line-height: 0px;
+    padding: 20px 20px;
+}
+#ep-ticket-details #ep_event_ticket_icon_image{
+    background-color: #F0F0F0;
+    border: 0px;
+    line-height: 0px;
+    padding: 20px 20px;
+    padding: 10px;
+    margin-left: 8px;
+}
+
+#ep-ticket-details #ep_event_ticket_icon_image:empty{
+     display: none;
+}
+
+
+#ep-ticket-details #ep_event_ticket_icon_image .ep-event-offer-icon{
+    margin-top: 0px;
+}
+
+#ep-ticket-details button.upload_offer_icon_button.button span{
+    font-size: 32px;
+    color: #8f8f8f;
+    font-weight: 100;
+}
+
+
+#ep_event_ticket_tier_modal .ep-form-control,
+#ep_ticket_add_offer_modal .ep-form-control{
+    --ep-color-input-background: #efefef;
+    --ep-input-font-size:12px;
+    --ep-input-padding:4px 8px;
+    --ep-color-input-text:#000;
+    --ep-input-line-height: 32px; 
+    --ep-input-field-border-radius:3px;
+}
+
+
+#ep_event_ticket_tier_modal .ep-form-control,
+#ep_ticket_add_offer_modal .ep-form-control{
+    font-family: inherit;
+    font-size: var(--ep-input-font-size);
+    font-weight: var(--ep-input-font-weight);
+    padding: var(--ep-input-padding);
+    line-height: var(--ep-input-line-height);
+    color: var(--ep-color-input-text);
+    border: var(--ep-color-input-border) solid 1px;
+    border-radius: var(--ep-input-field-border-radius);
+    background-color: var(--ep-color-input-background);
+    height: var(--ep-input-height);
+    outline: 0;
+    margin: var(--ep-input-field-margin);
+    transition: .2s ease-out;
+  }
+  
+#ep_event_ticket_tier_modal .ep-form-control:focus,
+#ep_ticket_add_offer_modal .ep-form-control:focus{
+    --ep-bg-opacity: 1;
+    background-color: rgba(var(--ep-white-color),var(--ep-bg-opacity))!important;
+  }
+
+#ep_event_ticket_tier_modal .ep-input-textarea{
+    resize: vertical;
+    height: unset;
+    line-height: var(--wpff-input-field-line-height) !important;
+  }
+  
+  .ep-nav-tabs-internal .ep-nav-tabs .ep-tab-link{
+           font-weight: 600;
+    color: #000;
+    text-decoration: none;
+  }
+  
+   .ep-nav-tabs-internal .ep-nav-tabs .ep-tab-link.ep-tab-active{
+      border-bottom: 2px solid #2271b1 !important;
+  }
+  
+    .ep-nav-tabs-internal .ep-nav-tabs .ep-tab-link:hover {
+        border-bottom: 2px solid #2271b1 !important;
+  }
+  
+  #ep_ticket_add_offer_modal .ep-modal-wrap{
+        top: 50px;
+  }
+
+  
+  #ep_event_ticket_tier_modal #ep-ticket-availability .ep-nav-tabs li a.ep-tab-link{
+    text-decoration: none;
+    font-weight: 600;
+    color: #000;
+  }
+
+  #ep_event_ticke_description{
+        min-height: 100px;
+  }
+  
+/**-- Ticket Modal Ends---**/

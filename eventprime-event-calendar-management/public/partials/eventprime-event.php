@@ -129,13 +129,13 @@ if( ! empty( $post ) && $post->post_type=='em_event') {
 }
 
 $event_visibility = true;
-if( isset($args) && isset($args->event->em_id) && post_password_required( $args->event->em_id ) ){
+if( isset($args) && isset($event_id) && post_password_required( $event_id ) ){
     // if events are password protected
     $event_visibility = false;
     echo get_the_password_form();
     
 }
-elseif ( isset($args) && get_post_status( $args->event->em_id ) === 'private' ) 
+elseif ( isset($args) && get_post_status( $event_id ) === 'private' ) 
 {
     // Check if the current user has permission to view private posts
     if ( current_user_can( 'read_private_posts' ) || get_current_user_id() === (int) get_post_field( 'post_author', $args->event->em_id ) ) {

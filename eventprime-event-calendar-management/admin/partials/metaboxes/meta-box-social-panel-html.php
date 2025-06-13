@@ -8,7 +8,15 @@ $em_social_links = (array)get_post_meta($post->ID, 'em_social_links', true);?>
 <div id="ep_event_social_data" class="panel ep_event_options_panel">
     <div class="ep-box-wrap ep-my-3">
         <div class="ep-box-row">
-            <?php $social_links = $ep_functions->ep_social_sharing_fields();
+            <?php 
+            $text = esc_html__('Social Information','eventprime-event-calendar-management');
+            $link = 'https://theeventprime.com/how-to-add-social-media-links-to-a-wordpress-event/';
+            ?>
+            <div class="ep-box-col-12 ep-mb-3">
+                <?php $ep_functions->ep_documentation_link_notice_html($text,$link);?>
+            </div>
+            <?php
+            $social_links = $ep_functions->ep_social_sharing_fields();
             foreach ($social_links as $key => $links) { ?>
                 <div class="ep-box-col-12 ep-mb-3 ep-meta-box-section">
                     <div class="ep-box-row">

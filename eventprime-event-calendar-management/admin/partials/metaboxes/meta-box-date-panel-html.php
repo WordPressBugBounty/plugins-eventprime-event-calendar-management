@@ -35,11 +35,23 @@ if( is_int( $em_end_date ) ) {
 	$em_end_date = ep_timestamp_to_date( $em_end_date, $date_format );
 } */
 
+if(empty($em_start_date)) $em_start_date = time();
+if(empty($em_end_date)) $em_end_date = time();
 $em_start_date = $ep_functions->ep_timestamp_to_date( $em_start_date, $date_format );
 $em_end_date = $ep_functions->ep_timestamp_to_date( $em_end_date, $date_format );?>
 <div id="ep_event_datetime_data" class="panel ep_event_options_panel">
     <!-- <div class="postbox-header ep-metabox-title"><h2><?php esc_html_e('Date and Time', 'eventprime-event-calendar-management'); ?></h2></div> -->
     <div class="ep-box-wrap ep-my-3">
+         <?php 
+            $text = esc_html__('Date & Time','eventprime-event-calendar-management');
+            $link = 'https://theeventprime.com/how-to-set-start-and-end-dates-for-a-wordpress-event/';
+            ?>
+        <div class="ep-box-row ep-pb-3">
+            <div class="ep-box-col-12">
+                <?php $ep_functions->ep_documentation_link_notice_html($text,$link);?>
+            </div>
+        </div>
+        
         <div class="ep-box-row ep-mb-3 ep-items-end">
             <div class="ep-box-col-3 ep-meta-box-data">
                 <label class="ep-form-label"><?php esc_html_e('Start Date', 'eventprime-event-calendar-management'); ?>

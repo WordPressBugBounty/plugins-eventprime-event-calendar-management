@@ -143,6 +143,8 @@ jQuery( function( $ ) {
     });
 
     // Tabmenu 
+    
+    /**
     $( document ).on( 'click', '.ep-tab-item a', function(){
         $( '.ep-tab-item a' ).removeClass( 'ep-tab-active' );
         $(this).addClass('ep-tab-active');
@@ -150,6 +152,8 @@ jQuery( function( $ ) {
         $( '.ep-tab-content' ).removeClass( 'active' ).addClass( 'ep-item-hide' );
         $( '#'+tagid ).addClass( 'active' ).removeClass( 'ep-item-hide' );
     });  
+    
+    */
     // Tabmenu End
     
     //Sub Tab Menu

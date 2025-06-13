@@ -21,8 +21,18 @@ $ep_result_start_event_option =  get_post_meta( $post->ID, 'ep_result_start_even
 $pages = $ep_functions->ep_get_all_pages_list();
 ?>
 <div id="ep_event_results_data" class="panel ep_event_options_panel">
-    <div class="ep-box-wrap ep-my-3">
-        <div class="ep-box-row ep-mb-3 ep-items-end">
+    <div class="ep-box-wrap ep-my-3">        
+        <?php 
+        $text = esc_html__('Choose a page to display event results or a recap.','eventprime-event-calendar-management');
+        $link = 'https://theeventprime.com/how-to-add-results-or-recap-to-a-wordpress-event/';
+        ?>
+        <div class="ep-box-row ep-items-end">
+            <div class="ep-box-col-12 ep-mb-3">
+            <?php $ep_functions->ep_documentation_link_notice_html($text,$link);?>
+            </div>
+        </div>
+        
+        <div class="ep-box-row ep-items-end">
             <div class="ep-box-col-6 ep-meta-box-data">
                 <label class="ep-form-label"><?php esc_html_e( 'Select Result Page', 'eventprime-event-calendar-management' ); ?>
                     <span class="ep-help-tip" tooltip="<?php esc_html_e( 'Choose a page to display the event results or recap. Make sure the selected page contains the event result shortcode to properly display the results. If you do not want to use this feature, leave this option unselected. A banner with a button will appear on the event page, directing visitors to view the selected results page once it is set.', 'eventprime-event-calendar-management' );?>" tooltip-position="bottom"  ep-icon-position="relative"></span>

@@ -1976,6 +1976,11 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
             $( '#ep_ticket_category_name_error' ).html( requireString );
             return false;
         }
+        if (isNaN(cat_capacity) || cat_capacity <= 0) {
+            let negativeString = get_translation_string( 'whole_number' );
+            $( '#ep_ticket_category_capacity_error' ).html( negativeString );
+            return false;
+        }
         if( !cat_capacity ) {
             let requireString = get_translation_string( 'required' );
             $( '#ep_ticket_category_capacity_error' ).html( requireString );
@@ -2142,7 +2147,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
     // open ticket modal inside category
     $( document ).on( 'click', '.ep-open-category-ticket-modal', function() {
         $('.ep-error-message').empty();
-        initiate_the_ticket_modal();
+        initiate_the_ticket_modal(true);
         let parent_id = $( this ).data( 'parent_id' );
         if( parent_id ) {
             $( 'input[name=em_ticket_category_id]' ).val( parent_id );
@@ -2300,12 +2305,20 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
     }, 500);
     
     // ticket visibility
-    $( document ).on( 'change', '#ep_tickets_user_visibility', function() {
-    	if ( $(this).val() == 'user_roles' ) {
-    		$( '#ep_ticket_visibility_user_roles_select' ).fadeIn();
-    	} else {
-    		$( '#ep_ticket_visibility_user_roles_select' ).fadeOut();
-    	}
+//    $( document ).on( 'change', '#ep_tickets_user_visibility', function() {
+//    	if ( $(this).val() == 'user_roles' ) {
+//    		$( '#ep_ticket_visibility_user_roles_select' ).fadeIn();
+//    	} else {
+//    		$( '#ep_ticket_visibility_user_roles_select' ).fadeOut();
+//    	}
+//    });
+    
+    $(document).on('change', 'input[name="em_tickets_user_visibility"]', function() {
+        if ($(this).val() === 'user_roles') {
+            $('#ep_ticket_visibility_user_roles_select').fadeIn();
+        } else {
+            $('#ep_ticket_visibility_user_roles_select').fadeOut();
+        }
     });
 
     // visibility time restriction
@@ -2555,14 +2568,14 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
             $( '#ep_ticket_add_offer' ).text( em_event_meta_box_object.add_text + ' ' + em_event_meta_box_object.offer_text );
             $( '#ep_ticket_add_offer' ).removeAttr( 'data-edit_offer_id' );
         } else{
-            offer_list_data += "<div class='ep-box-row ep-border ep-rounded ep-my-2 ep-mx-0 ep-bg-white ep-items-center ep-shadow-sm ep-offer-list-class' id='"+new_offer_row_id+"' data-offer_row_data='"+new_ticket_offer_data+"'>";
+            offer_list_data += "<div class='ep-box-row ep-border ep-rounded ep-my-3 ep-mx-0 ep-bg-white ep-items-center ep-shadow-sm ep-offer-list-class' id='"+new_offer_row_id+"' data-offer_row_data='"+new_ticket_offer_data+"'>";
                 offer_list_data += '<div class="ep-box-col-2 ep-p-2">';
                     offer_list_data += '<span class="material-icons ep-cursor-move text-muted" data-parent_id="'+new_offer_row_id+'">drag_indicator</span>';
                 offer_list_data += '</div>';
                 offer_list_data += '<div class="ep-box-col-4 ep-p-2">';
                     offer_list_data += '<span class="ep-offer-name">'+em_ticket_offer_name+'</span>';
                 offer_list_data += '</div>';
-                offer_list_data += '<div class="ep-box-col-4 ep-p-2">';
+                offer_list_data += '<div class="ep-box-col-3 ep-p-2">';
                     offer_list_data += '<span class="ep-offer-type">'+ ep_offer_type +'</span>';
                 offer_list_data += '</div>';
                 offer_list_data += '<div class="ep-box-col-1 ep-p-2"><a href="javascript:void(0)" class="ep-ticket-offer-edit ep-text-primary ep-cursor" data-parent_id="'+new_offer_row_id+'">Edit</a></div>';
@@ -2570,7 +2583,11 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
             offer_list_data += '</div>';
             $( '#ep_existing_offers_list' ).append( offer_list_data );
             $( '#ep_ticket_offers_wrapper').show();
+            
+            
         }
+        $('#ep_ticket_add_offer_modal').hide();
+        ep_open_ticket_tab('ep-ticket-offers');
 
     });
 
@@ -2633,7 +2650,16 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
 
     // edit ticket offer
     $( document ).on( 'click', '.ep-ticket-offer-edit', function() {
+       
+        $('#ep_ticket_add_offer_modal').show();
+         
+      $('#ep_ticket_add_offer_modal .ep-modal-wrap').addClass('ep-modal-in').removeClass('ep-modal-out');
+        
+        initiate_the_offer_section();
         let parentid = $( this ).data( 'parent_id' );
+        //$('#ep_ticket_add_offer_modal .ep-modal-title').html('Edit Offer');
+        //console.log(parentid);
+        
         let offer_row_data = $( '#' + parentid ).data( 'offer_row_data' );
         if( offer_row_data ){
             let em_ticket_offer_name = offer_row_data.em_ticket_offer_name;
@@ -2779,7 +2805,9 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
             }
 
             $( '#ep_ticket_add_offer' ).text( em_event_meta_box_object.update_text + ' ' + em_event_meta_box_object.offer_text );
-            $( '#ep_ticket_add_offer' ).attr( 'data-edit_offer_id', parentid );
+            $( '#ep_ticket_add_offer' ).attr( 'data-edit_offer_id', parentid );  
+            
+            
         }
     });
 
@@ -2928,6 +2956,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
         if( !em_event_ticket_name ) {
             $( '#ep_event_ticket_name_error' ).html( requireString );
             document.getElementById( 'ep_event_ticke_name' ).focus();
+            ep_open_ticket_tab('ep-ticket-details');
             return false;
         }
         ticket_tier_data.name = em_event_ticket_name;
@@ -2944,12 +2973,22 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
 
         let em_event_ticket_qty = tickets_data.get( 'capacity' );
         if( em_event_ticket_qty ) {
+            if (!em_event_ticket_qty || isNaN(em_event_ticket_qty) || !Number.isInteger(Number(em_event_ticket_qty)) || em_event_ticket_qty <= 0) {
+            let whole_number = get_translation_string( 'whole_number' );
+            $( '#ep_event_ticket_qty_error' ).html(whole_number);
+            document.getElementById( 'ep_event_ticket_qty' ).focus();
+            ep_open_ticket_tab('ep-ticket-inventory');
+            return false;
+           
+        }
+
             // check for max quantity
             let max_qty = $( 'input[name=capacity]' ).attr( 'max' );
             if( max_qty ) {
                 if( parseInt( em_event_ticket_qty, 10 ) > parseInt( max_qty, 10 ) ) {
                     $( '#ep_event_ticket_qty_error' ).html( em_event_meta_box_object.max_capacity_error + ' ' + max_qty );
                     document.getElementById( 'ep_event_ticket_qty' ).focus();
+                    ep_open_ticket_tab('ep-ticket-inventory');
                     return false;
                 }
             } 
@@ -2958,6 +2997,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
                 if ( $('input[name="em_ticket_category_id"]').val() ) {
                     $( '#ep_event_ticket_qty_error' ).html("No seats left to allocate.");
                     document.getElementById( 'ep_event_ticket_qty' ).focus();
+                    ep_open_ticket_tab('ep-ticket-inventory');
                     return false;
                 }
             }
@@ -2965,10 +3005,21 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
         } else{
             $( '#ep_event_ticket_qty_error' ).html( requireString );
             document.getElementById( 'ep_event_ticket_qty' ).focus();
+            ep_open_ticket_tab('ep-ticket-inventory');
             return false;
         }
 
         let em_event_ticket_price = tickets_data.get( 'price' );
+        
+        if(em_event_ticket_price < 0) {
+            let invalid_price = get_translation_string( 'invalid_price' );
+            $( '#ep_event_ticket_price_error' ).html(invalid_price);
+            document.getElementById( 'ep_event_ticket_price' ).focus();
+            ep_open_ticket_tab('ep-ticket-price');
+            return false;
+           
+        }
+        
         if( em_event_ticket_price ) {
             ticket_tier_data.price = em_event_ticket_price;
         }
@@ -3002,7 +3053,8 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
         }
 
         if ( !validateTicketAvailabilityDates( tickets_data ) ) {
-            show_toast( 'error', 'Invalid ticket availability details. Please review and try again!' )
+            show_toast( 'error', 'Invalid ticket availability details. Please review and try again!' );
+            ep_open_ticket_tab('ep-ticket-availability');
             return false;
         }
 
@@ -3089,6 +3141,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
         if( em_min_ticket_no == 0 ){
             $( '#ep_event_ticket_min_ticket_error' ).html( em_event_meta_box_object.min_ticket_no_zero_error );
             document.getElementById( 'ep_min_ticket_no' ).focus();
+            ep_open_ticket_tab('ep-ticket-limits');
             return false;
         }
         if( em_min_ticket_no ){
@@ -3096,15 +3149,21 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
         }
         // max ticket number
         let em_max_ticket_no = tickets_data.get( 'max_ticket_no' );
-        if( em_max_ticket_no == 0 ){
+        if(em_max_ticket_no === '')
+        {
+            em_max_ticket_no = em_event_ticket_qty;
+        }
+        if( em_max_ticket_no === 0 ){
             $( '#ep_event_ticket_max_ticket_error' ).html( em_event_meta_box_object.max_ticket_no_zero_error );
             document.getElementById( 'ep_max_ticket_no' ).focus();
+            ep_open_ticket_tab('ep-ticket-limits');
             return false;
         }
         if( em_max_ticket_no ) {
             if( parseInt(em_max_ticket_no) < parseInt(em_min_ticket_no) ) {
                 $( '#ep_event_ticket_max_ticket_error' ).html( em_event_meta_box_object.max_less_then_min_error );
                 document.getElementById( 'ep_max_ticket_no' ).focus();
+                ep_open_ticket_tab('ep-ticket-limits');
                 return false;
             }
             let capacity = $( 'input[name=capacity]' ).val();
@@ -3112,6 +3171,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
                 if( parseInt( em_max_ticket_no, 10 ) > parseInt( capacity, 10 ) ) {
                     $( '#ep_event_ticket_max_ticket_error' ).html( em_event_meta_box_object.max_capacity_error + ' ' + capacity );
                     document.getElementById( 'ep_max_ticket_no' ).focus();
+                     ep_open_ticket_tab('ep-ticket-limits');
                     return false;
                 }
             }
@@ -3226,6 +3286,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
         let ep_ticket_offer_name = $( '#ep_ticket_offer_name' ).val();
         if( ep_ticket_offer_name ) {
             $( '#ep_ticket_offer_not_save_error' ).html( em_event_meta_box_object.offer_not_save_error_text );
+             ep_open_ticket_tab('ep-ticket-offers');
             return false;
         }
         let em_event_ticket_offers = tickets_data.get( 'offers' );
@@ -3296,9 +3357,8 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
                         ticket_template += '<span>'+em_event_ticket_name+'</span>';
                     ticket_template += '</div>';
                     ticket_template += '<div class="ep-box-col-2 ep-p-3">';
-                        if( em_event_ticket_price ){
-                            ticket_template += '<span>'+ ep_format_price_with_position( em_event_ticket_price )+'</span>';
-                        }
+                    ticket_template += '<span>'+ ep_format_price_with_position( em_event_ticket_price || '0' )+'</span>';
+                    
                     ticket_template += '</div>';
                     ticket_template += '<div class="ep-box-col-3 ep-p-3">';
                         if( em_ticket_category_id ) {
@@ -3415,7 +3475,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
     // edit tickets
     $( document ).on( 'click', '.ep-ticket-row-edit', function() {
         $('.ep-error-message').empty(); 
-        initiate_the_ticket_modal();
+        initiate_the_ticket_modal(true);
         let parentid = $( this ).data( 'parent_id' );
         let ticket_row_data = $( '#' + parentid ).data( 'ticket_row_data' );
         if( ticket_row_data ){
@@ -3475,8 +3535,8 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
             if( icon_url ) {
                 $( '#ep_event_ticket_icon' ).val( ticket_row_data.icon );
                 let imageHtml = '<span class="ep-event-offer-icon ep-d-flex ep-mt-2">';
-                    imageHtml += '<i class="ep-remove-event-offer-icon dashicons dashicons-trash ep-cursor"></i>';
                     imageHtml += '<img src="'+icon_url+'" data-image_id="'+ticket_row_data.icon+'" width="50">';
+                    imageHtml += '<span class="ep-remove-event-offer-icon dashicons dashicons-trash ep-cursor"></span>';
                 imageHtml += '</span>';
                 $( '#ep_event_ticket_icon_image' ).html( imageHtml );
             }
@@ -3521,7 +3581,11 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
             let booking_starts = ticket_row_data.booking_starts;
             if( booking_starts ) {
                 booking_starts = JSON.parse( booking_starts );
-                $( '#ep_ticket_start_booking_type' ).val( booking_starts.em_ticket_start_booking_type );
+                console.log(booking_starts);
+                //$( '#ep_ticket_start_booking_type' ).val( booking_starts.em_ticket_start_booking_type );
+                $('input[name="em_ticket_start_booking_type"][value="' + booking_starts.em_ticket_start_booking_type + '"]')
+                .prop('checked', true).trigger('change');
+
                 if( booking_starts.em_ticket_start_booking_type == 'custom_date' ) {
                     if( booking_starts.em_ticket_start_booking_date ) {
                         $( '#ep_ticket_start_booking_date' ).val( booking_starts.em_ticket_start_booking_date );
@@ -3530,13 +3594,15 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
                         $( '#ep_ticket_start_booking_time' ).val( booking_starts.em_ticket_start_booking_time );
                     }
                 } else if( booking_starts.em_ticket_start_booking_type == 'event_date' ) {
-                    $( '#ep_ticket_start_booking_type' ).trigger( 'change' );
+                    //$( '#ep_ticket_start_booking_type' ).trigger( 'change' );
+
                     let event_option = booking_starts.em_ticket_start_booking_event_option;
                     if( event_option ) {
                         $( '#ep_ticket_start_booking_event_option' ).val( event_option );
                     }
                 } else{
-                    $( '#ep_ticket_start_booking_type' ).trigger( 'change' );
+                    //$( '#ep_ticket_start_booking_type' ).trigger( 'change' );
+
                     let start_days = booking_starts.em_ticket_start_booking_days;
                     if( start_days ) {
                         $( '#ep_ticket_start_booking_days' ).val( start_days );
@@ -3555,7 +3621,10 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
             let booking_ends = ticket_row_data.booking_ends;
             if( booking_ends ) {
                 booking_ends = JSON.parse( booking_ends );
-                $( '#ep_ticket_ends_booking_type' ).val( booking_ends.em_ticket_ends_booking_type );
+                //$( '#ep_ticket_ends_booking_type' ).val( booking_ends.em_ticket_ends_booking_type );
+                $('input[name="em_ticket_ends_booking_type"][value="' + booking_ends.em_ticket_ends_booking_type + '"]')
+                .prop('checked', true).trigger('change');
+      
                 if( booking_ends.em_ticket_ends_booking_type == 'custom_date' ) {
                     if( booking_ends.em_ticket_ends_booking_date ) {
                         $( '#ep_ticket_ends_booking_date' ).val( booking_ends.em_ticket_ends_booking_date );
@@ -3564,13 +3633,13 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
                         $( '#ep_ticket_ends_booking_time' ).val( booking_ends.em_ticket_ends_booking_time );
                     }
                 } else if( booking_ends.em_ticket_ends_booking_type == 'event_date' ) {
-                    $( '#ep_ticket_ends_booking_type' ).trigger( 'change' );
+                    //$( '#ep_ticket_ends_booking_type' ).trigger( 'change' );
                     let event_end_option = booking_ends.em_ticket_ends_booking_event_option;
                     if( event_end_option ) {
                         $( '#ep_ticket_ends_booking_event_option' ).val( event_end_option );
                     }
                 } else{
-                    $( '#ep_ticket_ends_booking_type' ).trigger( 'change' );
+                    //$( '#ep_ticket_ends_booking_type' ).trigger( 'change' );
                     let ends_days = booking_ends.em_ticket_ends_booking_days;
                     if( ends_days ) {
                         $( '#ep_ticket_ends_booking_days' ).val( ends_days );
@@ -3598,9 +3667,10 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
             let visibility = ticket_row_data.visibility;
             if( visibility ) {
                 visibility = JSON.parse( visibility );
-                $( '#ep_tickets_user_visibility' ).val( visibility.em_tickets_user_visibility );
+                //$( '#ep_tickets_user_visibility' ).val( visibility.em_tickets_user_visibility );
+                $('input[name="em_tickets_user_visibility"][value="' + visibility.em_tickets_user_visibility + '"]').prop('checked', true).trigger('change'); // triggers UI changes
                 if( visibility.em_tickets_user_visibility == 'user_roles' ) {
-                    $( '#ep_tickets_user_visibility' ).trigger( 'change' );
+                    //$( '#ep_tickets_user_visibility' ).trigger( 'change' );
                     let user_roles_val = visibility.em_ticket_visibility_user_roles;
                     if( user_roles_val ) {
                         $( '#ep_ticket_visibility_user_roles' ).val( user_roles_val );
@@ -3626,14 +3696,14 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
                     let new_ticket_offer_data = JSON.stringify( data );
                     let new_offer_row_id = 'ep_ticket_offer_section'+next_offer_list_count;
                     let ep_offer_type = $( '#ep_ticket_offer_type option[value="'+ data.em_ticket_offer_type + '"' ).text();
-                    offer_list_data += "<div class='ep-box-row ep-border ep-rounded ep-m-3 ep-bg-white ep-items-center ep-offer-list-class' id='"+new_offer_row_id+"' data-offer_row_data='"+new_ticket_offer_data+"'>";
+                    offer_list_data += "<div class='ep-box-row ep-border ep-rounded ep-my-3 ep-mx-0 ep-bg-white ep-items-center ep-offer-list-class' id='"+new_offer_row_id+"' data-offer_row_data='"+new_ticket_offer_data+"'>";
                         offer_list_data += '<div class="ep-box-col-2 ep-p-2">';
                             offer_list_data += '<span class="material-icons ep-cursor-move text-muted" data-parent_id="'+new_offer_row_id+'">drag_indicator</span>';
                         offer_list_data += '</div>';
                         offer_list_data += '<div class="ep-box-col-4 ep-p-2">';
                             offer_list_data += '<span class="ep-offer-name">'+data.em_ticket_offer_name+'</span>';
                         offer_list_data += '</div>';
-                        offer_list_data += '<div class="ep-box-col-4 ep-p-2">';
+                        offer_list_data += '<div class="ep-box-col-3 ep-p-2">';
                             offer_list_data += '<span class="ep-offer-type">'+ ep_offer_type +'</span>';
                         offer_list_data += '</div>';
                         offer_list_data += '<div class="ep-box-col-1 ep-p-2"><a href="javascript:void(0)" class="ep-ticket-offer-edit ep-text-primary" data-parent_id="'+new_offer_row_id+'">Edit</a></div>';
@@ -3677,6 +3747,8 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
             $( '#ep_event_ticket_tier_modal' ).openPopup({
                 anim: (!$(this).attr('data-animation') || $(this).data('animation') == null) ? 'ep-modal-' : $(this).data('animation')
             } , edit_modal );
+
+            $('body').addClass("ep-modal-open-body");
         }
     });
 
@@ -3745,7 +3817,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
 
     // open the ticket modal action to blank the old inputs
     $( document ).on( 'click', '#ep_event_open_ticket_modal', function() {
-        initiate_the_ticket_modal();
+        initiate_the_ticket_modal(true);
     });
 
     // open the ticket category modal action to blank the old inputs
@@ -3753,9 +3825,30 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
         initiate_the_category_modal();
     });
     // blank the ticket modal inputs
-    function initiate_the_ticket_modal(){
+    function initiate_the_ticket_modal(initiate=false){
         // blank the inputs
+        $('#ep_event_ticket_tier_modal .ep-tab-active').removeClass("ep-tab-active");
+        $('#ep_event_ticket_tier_modal .ep-tab-content').removeClass("active");
+        $('#ep_event_ticket_tier_modal .ep-tab-content').addClass("ep-item-hide");
+        
+        
+        if(initiate)
+        {
+            var firstTabLink = $('#ep_event_ticket_tier_modal .ep-tab-item a.ep-tab-link').first();
+
+            if (!firstTabLink.hasClass('ep-tab-active')) {
+                firstTabLink.addClass('ep-tab-active');
+            }
+
+            var firstTabContent = $('#ep_event_ticket_tier_modal #ep-tab-container .ep-tab-content').first();
+            if (!firstTabContent.hasClass('ep-tab-active')) {
+                firstTabContent.addClass('ep-tab-active');
+            }
+            firstTabContent.removeClass('ep-item-hide');
+        }
+        
         $( '#ep_event_ticket_tier_modal' ).find( '.ep-modal-title' ).html( em_event_meta_box_object.add_ticket_text );
+        
         $( 'input[name=em_ticket_category_id]' ).val( '' );
         $( 'input[name=em_ticket_id]' ).val( '' );
         $( 'input[name=em_ticket_parent_div_id]' ).val( '' );
@@ -3766,7 +3859,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
         $( '#ep_event_ticket_icon_image' ).html( '' );
         $( 'input[name="capacity"]' ).val( '' );
         $( '#ep_ticket_remaining_capacity' ).text( '' );
-        $( 'input[name="price"]' ).val( '' );
+        $( 'input[name="price"]' ).val( '0' );
         $( '#ep_additional_ticket_fee_wrapper' ).html( '' );
         $( 'input[name="allow_cancellation"]' ).prop( 'checked', false );
         $( 'input[name="show_remaining_tickets"]' ).prop( 'checked', false );
@@ -3790,7 +3883,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
         $( 'select[name="em_ticket_ends_booking_event_option"] option:first' ).attr( 'selected', 'selected' );
 
         $( 'input[name="show_ticket_booking_dates"]' ).prop( 'checked', false );
-        $( 'input[name="min_ticket_no"]' ).val( '' );
+        $( 'input[name="min_ticket_no"]' ).val( 1 );
         $( 'input[name="max_ticket_no"]' ).val( '' );
         // visibility
         $( 'select[name="em_tickets_user_visibility"] option:first' ).attr( 'selected', 'selected' );
@@ -3879,6 +3972,21 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
         $( 'select[name="em_ticket_offer_discount_type"] option:first' ).attr( 'selected', 'selected' );
         $( 'input[name=em_ticket_offer_discount]' ).val( '' );
         $( 'input[name=em_ticket_offer_volumn_count]').val('');
+        
+         $('#ep_ticket_add_offer_modal .ep-error-message').empty(); 
+        // 1. Check and activate first tab link
+        var firstTabLink = $('#ep_ticket_add_offer_modal #ep-offer-start-tabs .ep-tab-item a.ep-tab-link').first();
+        //console.log(firstTabLink)
+        if (!firstTabLink.hasClass('ep-tab-active')) {
+            firstTabLink.addClass('ep-tab-active');
+        }
+
+        // 2. Check and activate first tab content
+        var firstTabContent = $('#ep_ticket_add_offer_modal #ep-tab-container .ep-tab-content').first();
+        if (!firstTabContent.hasClass('ep-tab-active')) {
+            firstTabContent.addClass('ep-tab-active');
+        }
+        firstTabContent.removeClass('ep-item-hide');
     }
     
     // show/hide panels
@@ -3941,4 +4049,37 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
         event.preventDefault(); // Blocks typing
     });
     
+     $('#ep_ticket_add_offer_modal_btn').on('click', function() {
+        initiate_the_offer_section();
+       //console.log('modal open');
+    });
+    
+    $('#ep_ticket_add_offer_modal .ep-offer-modal-close').on('click',function(){
+        //console.log('offer modal close');
+        ep_open_ticket_tab('ep-ticket-offers');
+        setTimeout(function() {
+        $('body').addClass('ep-modal-open-body');
+    }, 1000); // 2000 milliseconds = 2 seconds
+    });
+          
 });
+
+function ep_open_ticket_tab(tagid)
+{
+     // Tabmenu 
+        jQuery( '.ep-tab-item a' ).removeClass( 'ep-tab-active' );
+        jQuery( '.ep-tab-content' ).removeClass( 'ep-tab-active' );
+        jQuery( '.ep-tab-content' ).removeClass( 'active' ).addClass( 'ep-item-hide' );
+        jQuery('#'+tagid).addClass('ep-tab-active');
+        jQuery('#'+tagid+'-tab').addClass('ep-tab-active');
+        jQuery('#'+tagid).addClass( 'active' ).removeClass( 'ep-item-hide' ); 
+}
+
+
+jQuery(document).ready(function($) {
+   
+});
+
+
+
+
