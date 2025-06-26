@@ -18,10 +18,10 @@ $global_options = $global_settings->ep_get_settings();
                 <label>
                     <select name="single_event_date_format_std_option" id="single_event_date_format_std_option" class="ep-form-control">
                         <option value="" <?php selected($global_options->single_event_date_format_std_option, ""); ?>><?php esc_html_e("Default", "eventprime-event-calendar-management"); ?></option>    
-                        <option value="F j, Y" <?php selected($global_options->single_event_date_format_std_option, 'F j, Y'); ?>><?php echo esc_html(date_i18n('F j, Y')); ?></option>
-                        <option value="Y-m-d" <?php selected($global_options->single_event_date_format_std_option, 'Y-m-d'); ?>><?php echo esc_html(date_i18n('Y-m-d')); ?></option>
-                        <option value="m/d/Y" <?php selected($global_options->single_event_date_format_std_option, 'm/d/Y'); ?>><?php echo esc_html(date_i18n('m/d/Y')); ?></option>
-                        <option value="d/m/Y" <?php selected($global_options->single_event_date_format_std_option, 'd/m/Y'); ?>><?php echo esc_html(date_i18n('d/m/Y')); ?></option>
+                        <option value="F j, Y" <?php selected($global_options->single_event_date_format_std_option, 'F j, Y'); ?>><?php echo esc_html(wp_date('F j, Y')); ?></option>
+                        <option value="Y-m-d" <?php selected($global_options->single_event_date_format_std_option, 'Y-m-d'); ?>><?php echo esc_html(wp_date('Y-m-d')); ?></option>
+                        <option value="m/d/Y" <?php selected($global_options->single_event_date_format_std_option, 'm/d/Y'); ?>><?php echo esc_html(wp_date('m/d/Y')); ?></option>
+                        <option value="d/m/Y" <?php selected($global_options->single_event_date_format_std_option, 'd/m/Y'); ?>><?php echo esc_html(wp_date('d/m/Y')); ?></option>
                     </select>
                 </label>
                 <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( 'Choose the date and time format on frontend.', 'eventprime-event-calendar-management' );?></div>

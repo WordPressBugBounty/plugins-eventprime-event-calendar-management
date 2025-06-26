@@ -72,7 +72,7 @@ class EventM_Admin_Controller_License {
                             case 'expired' :
                                 $message = sprintf(
                                     esc_html__( 'Your license key expired on %s.', 'eventprime-event-calendar-management' ),
-                                    date_i18n( get_option( 'date_format' ), strtotime( $license_data->expires, current_time( 'timestamp' ) ) )
+                                    wp_date( get_option( 'date_format' ), strtotime( $license_data->expires, current_time( 'timestamp',true ) ) )
                                 );
                                 break;
                             case 'revoked' :
@@ -131,7 +131,7 @@ class EventM_Admin_Controller_License {
             //                     case 'expired' :
             //                         $message = sprintf(
             //                             esc_html__( 'Your license key expired on %s.', 'eventprime-event-calendar-management' ),
-            //                             date_i18n( get_option( 'date_format' ), strtotime( $license_data->expires, current_time( 'timestamp' ) ) )
+            //                             wp_date( get_option( 'date_format' ), strtotime( $license_data->expires, current_time( 'timestamp' ) ) )
             //                         );
             //                         break;
             //                     case 'revoked' :
@@ -290,7 +290,7 @@ class EventM_Admin_Controller_License {
                             case 'expired' :
                                 $message = sprintf(
                                     esc_html__( 'Your license key expired on %s.' ),
-                                    date_i18n( get_option( 'date_format' ), strtotime( $license_data->expires, current_time( 'timestamp' ) ) )
+                                    wp_date( get_option( 'date_format' ), strtotime( $license_data->expires, current_time( 'timestamp',true ) ) )
                                 );
                                 break;
                             case 'revoked' :
@@ -350,7 +350,7 @@ class EventM_Admin_Controller_License {
             //                     case 'expired' :
             //                         $message = sprintf(
             //                             esc_html__( 'Your license key expired on %s.', 'eventprime-event-calendar-management' ),
-            //                             date_i18n( get_option( 'date_format' ), strtotime( $license_data->expires, current_time( 'timestamp' ) ) )
+            //                             wp_date( get_option( 'date_format' ), strtotime( $license_data->expires, current_time( 'timestamp' ) ) )
             //                         );
             //                         break;
             //                     case 'revoked' :

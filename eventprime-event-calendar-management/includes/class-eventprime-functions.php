@@ -1720,7 +1720,7 @@ class Eventprime_Basic_Functions {
             if (!is_int($timestamp)) {
                 $timestamp = (int) $timestamp;
             }
-            $date = date_i18n($format, $timestamp);
+            $date = wp_date($format, $timestamp);
         }
         return $date;
     }
@@ -1734,7 +1734,7 @@ class Eventprime_Basic_Functions {
         if (!is_int($timestamp)) {
             $timestamp = (int) $timestamp;
         }
-        $date = wp_date($format, $timestamp); // use wp_date instead of date_i18n
+        $date = wp_date($format, $timestamp); // use wp_date instead of wp_date
     }
     return $date;
 }
@@ -1990,7 +1990,7 @@ class Eventprime_Basic_Functions {
                 $format = $this->ep_get_datepicker_format();
                 $format = $format . ' h:i a';
             }
-            $datetime = date_i18n($format, $timestamp);
+            $datetime = wp_date($format, $timestamp);
         }
         return $datetime;
     }
@@ -5802,7 +5802,7 @@ class Eventprime_Basic_Functions {
                 if( $this->ep_show_event_date_time( 'em_start_time', $event ) ) {
                     $start_date_time = explode( ' ', $start_date_time )[0];
                 }
-                $start_date_time = date_i18n( $event_listings_date_format, $event->em_start_date ); 
+                $start_date_time = wp_date( $event_listings_date_format, $event->em_start_date ); 
                 // popup html
                 if($is_admin)
                 {
@@ -9645,7 +9645,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
                 if( $this->ep_show_event_date_time( 'em_start_time', $event ) ) {
                     $start_date_time = explode( ' ', $start_date_time )[0];
                 }
-                $start_date_time = date_i18n( $event_listings_date_format, $event->em_start_date );
+                $start_date_time = wp_date( $event_listings_date_format, $event->em_start_date );
                 $ev['edit_url'] = esc_url(get_edit_post_link($ev['id']));
                 if(isset($ev['url'])){
                     unset($ev['url']);
@@ -9846,7 +9846,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
                     $tier_data['icon'] = '';
                     $tier_data['priority'] = 1;
                     $tier_data['status'] = 1;
-                    $tier_data['created_at'] = date_i18n("Y-m-d H:i:s", time());
+                    $tier_data['created_at'] = wp_date("Y-m-d H:i:s", time());
                     $dbhandler->insert_row($price_options_table, $tier_data);
                 }
                 $event = $this->get_single_event($post_id);

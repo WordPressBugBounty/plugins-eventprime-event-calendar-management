@@ -1470,7 +1470,7 @@ class Eventprime_Event_Calendar_Management_Public {
                             if( $start_date == $end_date ) {?>
                                 <span class="ep-event-date ep-fw-bold ep-text-dark"><?php
                                     // echo esc_html__( gmdate( 'D', $start_date ), 'eventprime-event-calendar-management' ) . esc_html( ', ' . $event->fstart_date );
-                                    echo esc_html(date_i18n( 'D', $start_date )) . ', ' . esc_html(date_i18n( $event_listings_date_format, $start_date ));
+                                    echo esc_html(wp_date( 'D', $start_date )) . ', ' . esc_html(wp_date( $event_listings_date_format, $start_date ));
                                     if( ! empty( $event->em_all_day ) || ( $ep_functions->ep_show_event_date_time( 'em_start_time', $event ) && ( ! empty( $event->em_start_time ) ) ) ) {
                                         echo ',' . '&nbsp;';
                                     }?>
@@ -1499,12 +1499,12 @@ class Eventprime_Event_Calendar_Management_Public {
                                 }
                             } else{?>
                                 <span class="ep-fw-bold ep-text-dark"><?php
-                                    // echo esc_html__( date_i18n( 'D', $start_date ), 'eventprime-event-calendar-management' ) . esc_html( ', ' . $event->fstart_date );
-                                    echo esc_html(date_i18n('D', $start_date)) . ', ' . esc_html(date_i18n( $event_listings_date_format, $start_date ));
+                                    // echo esc_html__( wp_date( 'D', $start_date ), 'eventprime-event-calendar-management' ) . esc_html( ', ' . $event->fstart_date );
+                                    echo esc_html(wp_date('D', $start_date)) . ', ' . esc_html(wp_date( $event_listings_date_format, $start_date ));
                                     if( $ep_functions->ep_show_event_date_time( 'em_end_date', $event ) && ( ! empty( $event->em_end_date ) ) ) {?>
                                         <span><?php 
                                         // echo ' - ' . esc_html( $event->fend_date );
-                                        echo ' - ' . esc_html(date_i18n( $event_listings_date_format, $event->em_end_date ));
+                                        echo ' - ' . esc_html(wp_date( $event_listings_date_format, $event->em_end_date ));
                                         ?></span><?php
                                     }?>
                                 </span><?php
@@ -1531,7 +1531,7 @@ class Eventprime_Event_Calendar_Management_Public {
                                 <span class="ep-card-event-date-start ep-text-primary hunny">
                                     <?php 
                                     // echo esc_html__( gmdate( 'D', $event->em_start_date ), 'eventprime-event-calendar-management' ) . esc_html( ', ' . $event->fstart_date );
-                                    echo esc_html(date_i18n( 'D', $event->em_start_date )) . ', ' . esc_html(date_i18n( $event_listings_date_format, $event->em_start_date )); 
+                                    echo esc_html(wp_date( 'D', $event->em_start_date )) . ', ' . esc_html(wp_date( $event_listings_date_format, $event->em_start_date )); 
                                     ?>
                                 </span><?php
                                 if( ! empty( $event->em_all_day ) ) {?>
@@ -1540,11 +1540,11 @@ class Eventprime_Event_Calendar_Management_Public {
                             } else{
                                 if( ! empty( $event_date_time ) ) {?>
                                     <span class="ep-card-event-date-start ep-text-primary">
-                                        <?php echo esc_html(date_i18n('D', $start_date)) . ', ' . esc_html( $event_date_time );?>
+                                        <?php echo esc_html(wp_date('D', $start_date)) . ', ' . esc_html( $event_date_time );?>
                                     </span><?php
                                 } else{?>
                                     <span class="ep-card-event-date-start ep-text-primary">
-                                        <?php echo esc_html( date_i18n( 'D', $event->em_start_date )) . esc_html( ', ' . $event->fstart_date );?>
+                                        <?php echo esc_html( wp_date( 'D', $event->em_start_date )) . esc_html( ', ' . $event->fstart_date );?>
                                     </span>
                                     <span class="ep-card-event-time-start ep-text-primary">
                                         <?php echo ', ' . esc_html( $ep_functions->ep_convert_time_with_format( $event->em_start_time ) );?>
@@ -1574,7 +1574,7 @@ class Eventprime_Event_Calendar_Management_Public {
                             <span class="ep-fw-bold ep-text-dark">
                                 <?php 
                                 // echo esc_html__( gmdate( 'D', $start_date ), 'eventprime-event-calendar-management' ) . esc_html( ', ' . $event->fstart_date );
-                                echo esc_html(date_i18n( 'D', $start_date )) . ', ' . esc_html(date_i18n( $event_listings_date_format, $start_date ));
+                                echo esc_html(wp_date( 'D', $start_date )) . ', ' . esc_html(wp_date( $event_listings_date_format, $start_date ));
                                 ?>
                             </span><?php
                         }
@@ -1599,18 +1599,18 @@ class Eventprime_Event_Calendar_Management_Public {
                                 <span class="ep-card-event-date-start ep-text-primary hb">
                                     <?php 
                                     // echo esc_html__( gmdate( 'D', $event->em_start_date ), 'eventprime-event-calendar-management' ) . esc_html( ', ' . $event->fstart_date );
-                                    echo esc_html(date_i18n( 'D',$event->em_start_date )) . ', ' . esc_html(date_i18n( $event_listings_date_format, $start_date ));
+                                    echo esc_html(wp_date( 'D',$event->em_start_date )) . ', ' . esc_html(wp_date( $event_listings_date_format, $start_date ));
                                     ?>
                                 </span><?php
                             } else{
                                 if( ! empty( $event_date_time ) ) {?>
                                     <span class="ep-card-event-date-start ep-text-primary ll">
-                                        <?php echo esc_html(date_i18n('D', $start_date)) . ', ' . esc_html( $event_date_time );?>
+                                        <?php echo esc_html(wp_date('D', $start_date)) . ', ' . esc_html( $event_date_time );?>
                                     </span><?php
                                 } else{?>
                                     <span class="ep-card-event-date-start ep-text-primary mm">
                                         <?php 
-                                         echo esc_html( date_i18n( 'D', $event->em_start_date ) ) . ', ' . esc_html(date_i18n( $event_listings_date_format, $start_date ));
+                                         echo esc_html( wp_date( 'D', $event->em_start_date ) ) . ', ' . esc_html(wp_date( $event_listings_date_format, $start_date ));
                                         ?>
 
                                     </span>

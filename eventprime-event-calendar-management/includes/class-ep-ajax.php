@@ -112,16 +112,16 @@ class EventM_Ajax_Service {
                 $save_data['priority'] = 1;
                 $save_data['status'] = 1;
                 $save_data['created_by'] = get_current_user_id();
-                $save_data['created_at'] = date_i18n( "Y-m-d H:i:s", time() );
+                $save_data['created_at'] = wp_date( "Y-m-d H:i:s", time() );
                 $field_id = $dbhandler->insert_row($table_name, $save_data);
                 $response['message'] = esc_html__( 'Field Saved Successfully.', 'eventprime-event-calendar-management' );
                 // format created_at to display after saving it in DB 
                 $wp_saved_format = get_option('date_format').' '.get_option('time_format');
                 $format = !empty($wp_saved_format) ? $wp_saved_format : "Y-m-d H:i:s"; 
-                $save_data['created_at'] = date_i18n( $format, time() );
+                $save_data['created_at'] = wp_date( $format, time() );
             } else{
                 $field_id = absint( $data['em_checkout_field_id'] );
-                $save_data['updated_at'] = date_i18n( "Y-m-d H:i:s", time() );
+                $save_data['updated_at'] = wp_date( "Y-m-d H:i:s", time() );
                 $save_data['last_updated_by'] = get_current_user_id();
                 $result = $dbhandler->update_row($table_name,'id', $field_id, $save_data);
                 $response['message'] = esc_html__( 'Field Updated Successfully.', 'eventprime-event-calendar-management' );
@@ -453,7 +453,7 @@ class EventM_Ajax_Service {
             
                 update_post_meta( $new_post_id, 'em_id', $new_post_id );
                 update_post_meta( $new_post_id, 'em_event', $event_id );
-                update_post_meta( $new_post_id, 'em_date', current_time( 'timestamp' ) );
+                update_post_meta( $new_post_id, 'em_date', current_time( 'timestamp',true ) );
                 update_post_meta( $new_post_id, 'em_user', $user_id );
                 update_post_meta( $new_post_id, 'em_name', $event_name );
                 update_post_meta( $new_post_id, 'em_status', $post_status );
@@ -1026,7 +1026,7 @@ class EventM_Ajax_Service {
                         $save_data['priority']   = 1;
                         $save_data['status']     = 1;
                         $save_data['created_by'] = get_current_user_id();
-                        $save_data['created_at'] = date_i18n( "Y-m-d H:i:s", time() );
+                        $save_data['created_at'] = wp_date( "Y-m-d H:i:s", time() );
                         $cat_id = $dbhandler->insert_row($cat_table_name, $save_data);
                     } else{
                        $update_data =  array( 
@@ -1034,7 +1034,7 @@ class EventM_Ajax_Service {
                                 'capacity' 		  => $cat['capacity'],
                                 'priority'		  => $cat_priority,
                                 'last_updated_by' => get_current_user_id(),
-                                'updated_at' 	  => date_i18n("Y-m-d H:i:s", time())
+                                'updated_at' 	  => wp_date("Y-m-d H:i:s", time())
                             );
                         $dbhandler->update_row($cat_table_name,'id', $cat_id, $update_data);
                         
@@ -1056,7 +1056,7 @@ class EventM_Ajax_Service {
                                     $ticket_data['capacity'] 	   		   = isset( $ticket['capacity'] ) ? absint( $ticket['capacity'] ) : 0;
                                     $ticket_data['icon'] 		   		   = isset( $ticket['icon'] ) ? absint( $ticket['icon'] ) : '';
                                     $ticket_data['priority'] 	   		   = $cat_ticket_priority;
-                                    $ticket_data['updated_at'] 	   		   = date_i18n("Y-m-d H:i:s", time());
+                                    $ticket_data['updated_at'] 	   		   = wp_date("Y-m-d H:i:s", time());
                                     $ticket_data['additional_fees']    	   = ( isset( $ticket['ep_additional_ticket_fee_data'] ) && !empty( $ticket['ep_additional_ticket_fee_data'] ) ) ? json_encode( $ticket['ep_additional_ticket_fee_data'] ) : '';
                                     $ticket_data['allow_cancellation'] 	   = isset( $ticket['allow_cancellation'] ) ? absint( $ticket['allow_cancellation'] ) : 0;
                                     $ticket_data['show_remaining_tickets'] = isset( $ticket['show_remaining_tickets'] ) ? absint( $ticket['show_remaining_tickets'] ) : 0;
@@ -1127,7 +1127,7 @@ class EventM_Ajax_Service {
                                     $ticket_data['icon'] 		   = isset( $ticket['icon'] ) ? absint( $ticket['icon'] ) : '';
                                     $ticket_data['priority'] 	   = $cat_ticket_priority;
                                     $ticket_data['status'] 		   = 1;
-                                    $ticket_data['created_at'] 	   = date_i18n("Y-m-d H:i:s", time());
+                                    $ticket_data['created_at'] 	   = wp_date("Y-m-d H:i:s", time());
 
                                     // new
                                     $ticket_data['additional_fees']    = ( isset( $ticket['ep_additional_ticket_fee_data'] ) && !empty( $ticket['ep_additional_ticket_fee_data'] ) ) ? json_encode( $ticket['ep_additional_ticket_fee_data'] ) : '';
@@ -1201,7 +1201,7 @@ class EventM_Ajax_Service {
                                 $ticket_data['icon'] 		   = isset( $ticket['icon'] ) ? absint( $ticket['icon'] ) : '';
                                 $ticket_data['priority'] 	   = $cat_ticket_priority;
                                 $ticket_data['status'] 		   = 1;
-                                $ticket_data['created_at'] 	   = date_i18n("Y-m-d H:i:s", time());
+                                $ticket_data['created_at'] 	   = wp_date("Y-m-d H:i:s", time());
 
                                 // new
                                 $ticket_data['additional_fees']    = ( isset( $ticket['ep_additional_ticket_fee_data'] ) && !empty( $ticket['ep_additional_ticket_fee_data'] ) ) ? json_encode( $ticket['ep_additional_ticket_fee_data'] ) : '';
@@ -1297,7 +1297,7 @@ class EventM_Ajax_Service {
                                 $ticket_data['price'] 		   = isset( $ticket['price'] ) ? $ticket['price'] : 0;
                                 $ticket_data['capacity'] 	   = isset( $ticket['capacity'] ) ? absint( $ticket['capacity'] ) : 0;
                                 $ticket_data['icon'] 		   = isset( $ticket['icon'] ) ? absint( $ticket['icon'] ) : '';
-                                $ticket_data['updated_at'] 	   = date_i18n("Y-m-d H:i:s", time());
+                                $ticket_data['updated_at'] 	   = wp_date("Y-m-d H:i:s", time());
                                 $ticket_data['additional_fees']    = ( isset( $ticket['ep_additional_ticket_fee_data'] ) && !empty( $ticket['ep_additional_ticket_fee_data'] ) ) ? json_encode( $ticket['ep_additional_ticket_fee_data'] ) : '';
                                 $ticket_data['allow_cancellation'] = isset( $ticket['allow_cancellation'] ) ? absint( $ticket['allow_cancellation'] ) : 0;
                                 $ticket_data['show_remaining_tickets'] = isset( $ticket['show_remaining_tickets'] ) ? absint( $ticket['show_remaining_tickets'] ) : 0;
@@ -1369,7 +1369,7 @@ class EventM_Ajax_Service {
                                 $ticket_data['icon'] 		   = isset( $ticket['icon'] ) ? absint( $ticket['icon'] ) : '';
                                 $ticket_data['priority'] 	   = 1;
                                 $ticket_data['status'] 		   = 1;
-                                $ticket_data['created_at'] 	   = date_i18n("Y-m-d H:i:s", time());
+                                $ticket_data['created_at'] 	   = wp_date("Y-m-d H:i:s", time());
 
                                 // new
                                 $ticket_data['additional_fees']    = ( isset( $ticket['ep_additional_ticket_fee_data'] ) && !empty( $ticket['ep_additional_ticket_fee_data'] ) ) ? json_encode( $ticket['ep_additional_ticket_fee_data'] ) : '';
@@ -1444,7 +1444,7 @@ class EventM_Ajax_Service {
                             $ticket_data['icon'] 		   = isset( $ticket['icon'] ) ? absint( $ticket['icon'] ) : '';
                             $ticket_data['priority'] 	   = 1;
                             $ticket_data['status'] 		   = 1;
-                            $ticket_data['created_at'] 	   = date_i18n("Y-m-d H:i:s", time());
+                            $ticket_data['created_at'] 	   = wp_date("Y-m-d H:i:s", time());
 
                             // new
                             $ticket_data['additional_fees']    = ( isset( $ticket['ep_additional_ticket_fee_data'] ) && !empty( $ticket['ep_additional_ticket_fee_data'] ) ) ? json_encode( $ticket['ep_additional_ticket_fee_data'] ) : '';

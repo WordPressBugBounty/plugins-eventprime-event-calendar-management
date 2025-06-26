@@ -591,7 +591,7 @@ class EP_DBhandler {
                 $arg = array();
                 if (!empty($cat_id)) {
                     $get_field_data = $this->get_all_result('TICKET_CATEGORIES', '*', array('event_id' => $post_id, 'id' => $cat_id));
-                    $data = array('name' => $cat['name'], 'capacity' => $cat['capacity'], 'priority' => $cat_priority, 'last_updated_by' => get_current_user_id(), 'updated_at' => date_i18n("Y-m-d H:i:s", time()));
+                    $data = array('name' => $cat['name'], 'capacity' => $cat['capacity'], 'priority' => $cat_priority, 'last_updated_by' => get_current_user_id(), 'updated_at' => wp_date("Y-m-d H:i:s", time()));
                     foreach ($data as $key => $value) {
                         $arg[] = $ep_activator->get_db_table_field_type('TICKET_CATEGORIES', $key);
                     }
@@ -606,7 +606,7 @@ class EP_DBhandler {
                     $save_data['priority'] = 1;
                     $save_data['status'] = 1;
                     $save_data['created_by'] = get_current_user_id();
-                    $save_data['created_at'] = date_i18n("Y-m-d H:i:s", time());
+                    $save_data['created_at'] = wp_date("Y-m-d H:i:s", time());
                     foreach ($save_data as $key => $value) {
                         $arg[] = $ep_activator->get_db_table_field_type('TICKET_CATEGORIES', $key);
                     }
@@ -630,7 +630,7 @@ class EP_DBhandler {
                                     $ticket_data['capacity'] = isset($ticket['capacity']) ? absint($ticket['capacity']) : 0;
                                     $ticket_data['icon'] = isset($ticket['icon']) ? absint($ticket['icon']) : '';
                                     $ticket_data['priority'] = $cat_ticket_priority;
-                                    $ticket_data['updated_at'] = date_i18n("Y-m-d H:i:s", time());
+                                    $ticket_data['updated_at'] = wp_date("Y-m-d H:i:s", time());
                                     $ticket_data['additional_fees'] = ( isset($ticket['ep_additional_ticket_fee_data']) && !empty($ticket['ep_additional_ticket_fee_data']) ) ? wp_json_encode($ticket['ep_additional_ticket_fee_data']) : '';
                                     $ticket_data['allow_cancellation'] = isset($ticket['allow_cancellation']) ? absint($ticket['allow_cancellation']) : 0;
                                     $ticket_data['show_remaining_tickets'] = isset($ticket['show_remaining_tickets']) ? absint($ticket['show_remaining_tickets']) : 0;
@@ -775,7 +775,7 @@ class EP_DBhandler {
                         $ticket_data['price'] = isset($ticket['price']) ? number_format(floatval($ticket['price']),2,'.','') : 0;
                         $ticket_data['capacity'] = isset($ticket['capacity']) ? absint($ticket['capacity']) : 0;
                         $ticket_data['icon'] = isset($ticket['icon']) ? absint($ticket['icon']) : '';
-                        $ticket_data['updated_at'] = date_i18n("Y-m-d H:i:s", time());
+                        $ticket_data['updated_at'] = wp_date("Y-m-d H:i:s", time());
                         $ticket_data['additional_fees'] = ( isset($ticket['ep_additional_ticket_fee_data']) && !empty($ticket['ep_additional_ticket_fee_data']) ) ? wp_json_encode($ticket['ep_additional_ticket_fee_data']) : '';
                         $ticket_data['allow_cancellation'] = isset($ticket['allow_cancellation']) ? absint($ticket['allow_cancellation']) : 0;
                         $ticket_data['show_remaining_tickets'] = isset($ticket['show_remaining_tickets']) ? absint($ticket['show_remaining_tickets']) : 0;
@@ -1132,17 +1132,31 @@ class EP_DBhandler {
                     if ($em_recurrence_ends == 'on') {
                         $last_date_on = $ep_functions->ep_date_to_timestamp(sanitize_text_field($post['em_recurrence_limit']));
                         if (empty($last_date_on)) {
-                            $last_date_on = $ep_functions->ep_date_to_timestamp($ep_functions->ep_timestamp_to_date(current_time('timestamp')));
+                            $last_date_on = $ep_functions->ep_date_to_timestamp($ep_functions->ep_timestamp_to_date(current_time('timestamp',true)));
                         }
                         if (!empty($last_date_on)) {
                             update_post_meta($post_id, 'em_recurrence_limit', $last_date_on);
-                            $recurrence_limit = new DateTime('@' . $last_date_on);
+                            
+                            //$recurrence_limit = new DateTime('@' . $last_date_on);
+                            $timezone = new DateTimeZone(get_option('timezone_string') ?: 'UTC');
+
+                            $recurrence_limit = new DateTime('now', $timezone);
+                            $recurrence_limit->setTimestamp($last_date_on);
+
                             //$recurrence_limit->setTime( 0,0,0,0 );
                             $recurrence_limit_timestamp = $recurrence_limit->getTimestamp();
                         }
                         // update start date format
-                        $start_date_only = new DateTime('@' . $em_start_date);
-                        $start_date_only->setTime(0, 0, 0, 0);
+//                        $start_date_only = new DateTime('@' . $em_start_date);
+//                        
+//                        $start_date_only->setTime(0, 0, 0, 0);
+                        
+                        $timezone = new DateTimeZone(get_option('timezone_string') ?: 'UTC');
+
+                        $start_date_only = new DateTime('now', $timezone);
+                        $start_date_only->setTimestamp($em_start_date);
+                        $start_date_only->setTime(0, 0, 0); // Sets time to midnight in local timezone
+
                     }
 
                     if ($em_recurrence_ends == 'after') {
@@ -1618,7 +1632,7 @@ class EP_DBhandler {
                 $arg = array();
                 if (!empty($cat_id)) {
                     $get_field_data = $this->get_all_result('TICKET_CATEGORIES', '*', array('event_id' => $post_id, 'id' => $cat_id));
-                    $data = array('name' => $cat['name'], 'capacity' => $cat['capacity'], 'priority' => $cat_priority, 'last_updated_by' => get_current_user_id(), 'updated_at' => date_i18n("Y-m-d H:i:s", time()));
+                    $data = array('name' => $cat['name'], 'capacity' => $cat['capacity'], 'priority' => $cat_priority, 'last_updated_by' => get_current_user_id(), 'updated_at' => wp_date("Y-m-d H:i:s", time()));
                     foreach ($data as $key => $value) {
                         $arg[] = $ep_activator->get_db_table_field_type('TICKET_CATEGORIES', $key);
                     }
@@ -1632,7 +1646,7 @@ class EP_DBhandler {
                     $save_data['priority'] = 1;
                     $save_data['status'] = 1;
                     $save_data['created_by'] = get_current_user_id();
-                    $save_data['created_at'] = date_i18n("Y-m-d H:i:s", time());
+                    $save_data['created_at'] = wp_date("Y-m-d H:i:s", time());
                     foreach ($save_data as $key => $value) {
                         $arg[] = $ep_activator->get_db_table_field_type('TICKET_CATEGORIES', $key);
                     }
@@ -1655,7 +1669,7 @@ class EP_DBhandler {
                                     $ticket_data['capacity'] = isset($ticket['capacity']) ? absint($ticket['capacity']) : 0;
                                     $ticket_data['icon'] = isset($ticket['icon']) ? absint($ticket['icon']) : '';
                                     $ticket_data['priority'] = $cat_ticket_priority;
-                                    $ticket_data['updated_at'] = date_i18n("Y-m-d H:i:s", time());
+                                    $ticket_data['updated_at'] = wp_date("Y-m-d H:i:s", time());
                                     $ticket_data['additional_fees'] = ( isset($ticket['ep_additional_ticket_fee_data']) && !empty($ticket['ep_additional_ticket_fee_data']) ) ? wp_json_encode($ticket['ep_additional_ticket_fee_data']) : '';
                                     $ticket_data['allow_cancellation'] = isset($ticket['allow_cancellation']) ? absint($ticket['allow_cancellation']) : 0;
                                     $ticket_data['show_remaining_tickets'] = isset($ticket['show_remaining_tickets']) ? absint($ticket['show_remaining_tickets']) : 0;
@@ -1796,7 +1810,7 @@ class EP_DBhandler {
                         $ticket_data['price'] = isset($ticket['price']) ? number_format(floatval($ticket['price']),2,'.','') : 0;
                         $ticket_data['capacity'] = isset($ticket['capacity']) ? absint($ticket['capacity']) : 0;
                         $ticket_data['icon'] = isset($ticket['icon']) ? absint($ticket['icon']) : '';
-                        $ticket_data['updated_at'] = date_i18n("Y-m-d H:i:s", time());
+                        $ticket_data['updated_at'] = wp_date("Y-m-d H:i:s", time());
                         $ticket_data['additional_fees'] = ( isset($ticket['ep_additional_ticket_fee_data']) && !empty($ticket['ep_additional_ticket_fee_data']) ) ? wp_json_encode($ticket['ep_additional_ticket_fee_data']) : '';
                         $ticket_data['allow_cancellation'] = isset($ticket['allow_cancellation']) ? absint($ticket['allow_cancellation']) : 0;
                         $ticket_data['show_remaining_tickets'] = isset($ticket['show_remaining_tickets']) ? absint($ticket['show_remaining_tickets']) : 0;
@@ -2134,17 +2148,31 @@ class EP_DBhandler {
                     if ($em_recurrence_ends == 'on') {
                         $last_date_on = $ep_functions->ep_date_to_timestamp(sanitize_text_field($post['em_recurrence_limit']));
                         if (empty($last_date_on)) {
-                            $last_date_on = $ep_functions->ep_date_to_timestamp($ep_functions->ep_timestamp_to_date(current_time('timestamp')));
+                            $last_date_on = $ep_functions->ep_date_to_timestamp($ep_functions->ep_timestamp_to_date(current_time('timestamp',true)));
                         }
                         if (!empty($last_date_on)) {
                             update_post_meta($post_id, 'em_recurrence_limit', $last_date_on);
-                            $recurrence_limit = new DateTime('@' . $last_date_on);
-                            //$recurrence_limit->setTime( 0,0,0,0 );
+//                            $recurrence_limit = new DateTime('@' . $last_date_on);
+//                            //$recurrence_limit->setTime( 0,0,0,0 );
+//                            $recurrence_limit_timestamp = $recurrence_limit->getTimestamp();
+                            $timezone = new DateTimeZone(get_option('timezone_string') ?: 'UTC');
+
+                            $recurrence_limit = new DateTime('now', $timezone);
+                            $recurrence_limit->setTimestamp($last_date_on);
+
                             $recurrence_limit_timestamp = $recurrence_limit->getTimestamp();
+                            
                         }
                         // update start date format
-                        $start_date_only = new DateTime('@' . $em_start_date);
-                        $start_date_only->setTime(0, 0, 0, 0);
+//                        $start_date_only = new DateTime('@' . $em_start_date);
+//                        $start_date_only->setTime(0, 0, 0, 0);
+                        
+                        $timezone = new DateTimeZone( get_option('timezone_string') ?: 'UTC' );
+
+                        $start_date_only = new DateTime('now', $timezone);
+                        $start_date_only->setTimestamp($em_start_date);
+                        $start_date_only->setTime(0, 0, 0); // Midnight in local time
+                        
                     }
 
                     if ($em_recurrence_ends == 'after') {
@@ -2263,7 +2291,7 @@ class EP_DBhandler {
         $ticket_data['icon'] = isset($ticket['icon']) ? absint($ticket['icon']) : '';
         $ticket_data['priority'] = $cat_ticket_priority;
         $ticket_data['status'] = 1;
-        $ticket_data['created_at'] = date_i18n("Y-m-d H:i:s", time());
+        $ticket_data['created_at'] = wp_date("Y-m-d H:i:s", time());
         // new
         $ticket_data['additional_fees'] = ( isset($ticket['ep_additional_ticket_fee_data']) && !empty($ticket['ep_additional_ticket_fee_data']) ) ? wp_json_encode($ticket['ep_additional_ticket_fee_data']) : '';
         $ticket_data['allow_cancellation'] = isset($ticket['allow_cancellation']) ? absint($ticket['allow_cancellation']) : 0;
@@ -2355,7 +2383,7 @@ class EP_DBhandler {
         $ticket_data['icon'] = isset($ticket['icon']) ? absint($ticket['icon']) : '';
         $ticket_data['priority'] = 1;
         $ticket_data['status'] = 1;
-        $ticket_data['created_at'] = date_i18n("Y-m-d H:i:s", time());
+        $ticket_data['created_at'] = wp_date("Y-m-d H:i:s", time());
         // new
         $ticket_data['additional_fees'] = ( isset($ticket['ep_additional_ticket_fee_data']) && !empty($ticket['ep_additional_ticket_fee_data']) ) ? wp_json_encode($ticket['ep_additional_ticket_fee_data']) : '';
         $ticket_data['allow_cancellation'] = isset($ticket['allow_cancellation']) ? absint($ticket['allow_cancellation']) : 0;
@@ -2488,8 +2516,17 @@ class EP_DBhandler {
 
     public function ep_event_daily_recurrence($post, $data = array(), $post_data = array()) {
         $ep_functions = new Eventprime_Basic_Functions;
-        $start_date = new DateTime('@' . $data['start_date']);
-        $end_date = new DateTime('@' . $data['end_date']);
+//        $start_date = new DateTime('@' . $data['start_date']);
+//        $end_date = new DateTime('@' . $data['end_date']);
+        
+        $timezone = new DateTimeZone( get_option( 'timezone_string' ) ?: 'UTC' );
+
+        $start_date = new DateTime( 'now', $timezone );
+        $start_date->setTimestamp( $data['start_date'] );
+
+        $end_date = new DateTime( 'now', $timezone );
+        $end_date->setTimestamp( $data['end_date'] );
+
         $modify_string = $this->get_date_modification_string($data);
         $counter = 0;
         $old_post_metas = get_post_custom($post->ID);
@@ -2565,8 +2602,17 @@ class EP_DBhandler {
                 $modify_string = $day_name . ' +' . $step . ' ' . $step_string;
             }
 
-            $start_date = new DateTime('@' . $data['start_date']);
-            $end_date = new DateTime('@' . $data['end_date']);
+//            $start_date = new DateTime('@' . $data['start_date']);
+//            $end_date = new DateTime('@' . $data['end_date']);
+            
+            $timezone = new DateTimeZone( get_option( 'timezone_string' ) ?: 'UTC' );
+
+            $start_date = new DateTime( 'now', $timezone );
+            $start_date->setTimestamp( $data['start_date'] );
+
+            $end_date = new DateTime( 'now', $timezone );
+            $end_date->setTimestamp( $data['end_date'] );
+
             $counter = 0;
             $old_post_metas = get_post_custom($post->ID);
             $default_modify_string = $modify_string;
@@ -2693,6 +2739,7 @@ class EP_DBhandler {
         }
     }
 
+    
     /**
      * Method to create monthly recurring events
      * 
@@ -2714,8 +2761,17 @@ class EP_DBhandler {
             $data['em_recurrence_monthly_fullweekday'] = $em_recurrence_monthly_fullweekday;
         }
 
-        $start_date = new DateTime('@' . $data['start_date']);
-        $end_date = new DateTime('@' . $data['end_date']);
+//        $start_date = new DateTime('@' . $data['start_date']);
+//        $end_date = new DateTime('@' . $data['end_date']);
+        
+        $timezone = new DateTimeZone( get_option( 'timezone_string' ) ?: 'UTC' );
+
+        $start_date = new DateTime( 'now', $timezone );
+        $start_date->setTimestamp( $data['start_date'] );
+
+        $end_date = new DateTime( 'now', $timezone );
+        $end_date->setTimestamp( $data['end_date'] );
+
         $modify_string = $this->get_date_modification_string($data);
         $old_post_metas = get_post_custom($post->ID);
         // get date of next recure
@@ -2784,8 +2840,17 @@ class EP_DBhandler {
             $data['em_recurrence_yearly_monthday'] = $em_recurrence_yearly_monthday;
             $data['em_recurrence_yearly_year'] = $current_year;
         }
-        $start_date = new DateTime('@' . $data['start_date']);
-        $end_date = new DateTime('@' . $data['end_date']);
+//        $start_date = new DateTime('@' . $data['start_date']);
+//        $end_date = new DateTime('@' . $data['end_date']);
+        
+        $timezone = new DateTimeZone( get_option( 'timezone_string' ) ?: 'UTC' );
+
+        $start_date = new DateTime( 'now', $timezone );
+        $start_date->setTimestamp( $data['start_date'] );
+
+        $end_date = new DateTime( 'now', $timezone );
+        $end_date->setTimestamp( $data['end_date'] );
+        
         $modify_string = $this->get_date_modification_string($data);
         //print_r($modify_string);die;
         $old_post_metas = get_post_custom($post->ID);
@@ -2852,8 +2917,17 @@ class EP_DBhandler {
         update_post_meta($post->ID, 'em_recurrence_advanced_dates', $em_recurrence_advanced_dates);
         $data['em_recurrence_advanced_dates'] = $em_recurrence_advanced_dates;
         $weeknos_data = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
-        $start_date = new DateTime('@' . $data['start_date']);
-        $end_date = new DateTime('@' . $data['end_date']);
+//        $start_date = new DateTime('@' . $data['start_date']);
+//        $end_date = new DateTime('@' . $data['end_date']);
+        
+        $timezone = new DateTimeZone( get_option( 'timezone_string' ) ?: 'UTC' );
+
+        $start_date = new DateTime( 'now', $timezone );
+        $start_date->setTimestamp( $data['start_date'] );
+
+        $end_date = new DateTime( 'now', $timezone );
+        $end_date->setTimestamp( $data['end_date'] );
+        
         $modify_string = '';
         if (!empty($em_recurrence_advanced_dates)) {
             $m = gmdate('m');
@@ -2909,8 +2983,17 @@ class EP_DBhandler {
                                 $counter++;
                             }
                             // reset the variable so we can start from the actual start & end dates
-                            $start_date = new DateTime('@' . $data['start_date']);
-                            $end_date = new DateTime('@' . $data['end_date']);
+//                            $start_date = new DateTime('@' . $data['start_date']);
+//                            $end_date = new DateTime('@' . $data['end_date']);
+                            
+                            $timezone = new DateTimeZone( get_option( 'timezone_string' ) ?: 'UTC' );
+
+                            $start_date = new DateTime( 'now', $timezone );
+                            $start_date->setTimestamp( $data['start_date'] );
+
+                            $end_date = new DateTime( 'now', $timezone );
+                            $end_date->setTimestamp( $data['end_date'] );
+                            
                         }
                     }
                     $i++;
@@ -2953,8 +3036,17 @@ class EP_DBhandler {
                                 break;
                             }
                             // reset the variable so we can start from the actual start & end dates
-                            $start_date = new DateTime('@' . $data['start_date']);
-                            $end_date = new DateTime('@' . $data['end_date']);
+//                            $start_date = new DateTime('@' . $data['start_date']);
+//                            $end_date = new DateTime('@' . $data['end_date']);
+                            
+                            $timezone = new DateTimeZone( get_option( 'timezone_string' ) ?: 'UTC' );
+
+                            $start_date = new DateTime( 'now', $timezone );
+                            $start_date->setTimestamp( $data['start_date'] );
+
+                            $end_date = new DateTime( 'now', $timezone );
+                            $end_date->setTimestamp( $data['end_date'] );
+
                         }
                     }
                     $i++;
@@ -2980,8 +3072,18 @@ class EP_DBhandler {
         update_post_meta($post->ID, 'em_recurrence_selected_custom_dates', $em_recurrence_selected_custom_dates);
         $data['em_recurrence_selected_custom_dates'] = $em_recurrence_selected_custom_dates;
         if (!empty($em_recurrence_selected_custom_dates)) {
-            $start_date = new DateTime('@' . $data['start_date']);
-            $end_date = new DateTime('@' . $data['end_date']);
+            
+//            $start_date = new DateTime('@' . $data['start_date']);
+//            $end_date = new DateTime('@' . $data['end_date']);
+            
+            $timezone = new DateTimeZone( get_option( 'timezone_string' ) ?: 'UTC' );
+
+            $start_date = new DateTime( 'now', $timezone );
+            $start_date->setTimestamp( $data['start_date'] );
+
+            $end_date = new DateTime( 'now', $timezone );
+            $end_date->setTimestamp( $data['end_date'] );
+            
             $modify_string = '';
             $counter = 1;
             foreach ($em_recurrence_selected_custom_dates as $cdates) {
@@ -3005,8 +3107,17 @@ class EP_DBhandler {
                         $counter++;
                     }
                     // reset the variable so we can start from the actual start & end dates
-                    $start_date = new DateTime('@' . $data['start_date']);
-                    $end_date = new DateTime('@' . $data['end_date']);
+//                    $start_date = new DateTime('@' . $data['start_date']);
+//                    $end_date = new DateTime('@' . $data['end_date']);
+                    
+                    $timezone = new DateTimeZone( get_option( 'timezone_string' ) ?: 'UTC' );
+
+                    $start_date = new DateTime( 'now', $timezone );
+                    $start_date->setTimestamp( $data['start_date'] );
+
+                    $end_date = new DateTime( 'now', $timezone );
+                    $end_date->setTimestamp( $data['end_date'] );
+                    
                 }
             }
         }
@@ -3151,8 +3262,8 @@ class EP_DBhandler {
                     $cat_data['status'] = $cat['status'];
                     $cat_data['created_by'] = $cat['created_by'];
                     $cat_data['last_updated_by'] = $cat['last_updated_by'];
-                    $cat_data['created_at'] = date_i18n("Y-m-d H:i:s", time());
-                    $cat_data['updated_at'] = date_i18n("Y-m-d H:i:s", time());
+                    $cat_data['created_at'] = wp_date("Y-m-d H:i:s", time());
+                    $cat_data['updated_at'] = wp_date("Y-m-d H:i:s", time());
                     foreach ($cat_data as $key => $value) {
                         $arg[] = $ep_activator->get_db_table_field_type('TICKET_CATEGORIES', $key);
                     }
@@ -3166,8 +3277,8 @@ class EP_DBhandler {
                             $ticket['event_id'] = $new_post_id;
                             $ticket['parent_price_option_id'] = $parent_price_option_id;
                             $ticket['category_id'] = $cat_id;
-                            $ticket['created_at'] = date_i18n("Y-m-d H:i:s", time());
-                            $ticket['updated_at'] = date_i18n("Y-m-d H:i:s", time());
+                            $ticket['created_at'] = wp_date("Y-m-d H:i:s", time());
+                            $ticket['updated_at'] = wp_date("Y-m-d H:i:s", time());
 
                             $result = $this->insert_row('TICKET', $ticket);
                         }
@@ -3183,8 +3294,8 @@ class EP_DBhandler {
                     unset($ticket['id']);
                     $ticket['event_id'] = $new_post_id;
                     $ticket['parent_price_option_id'] = $parent_price_option_id;
-                    $ticket['created_at'] = date_i18n("Y-m-d H:i:s", time());
-                    $ticket['updated_at'] = date_i18n("Y-m-d H:i:s", time());
+                    $ticket['created_at'] = wp_date("Y-m-d H:i:s", time());
+                    $ticket['updated_at'] = wp_date("Y-m-d H:i:s", time());
                     $result = $this->insert_row('TICKET', $ticket);
                 }
             }
@@ -3651,7 +3762,7 @@ class EP_DBhandler {
 										'name' 		  	  => $name,
 										'capacity' 		  => $capacity,
 										'last_updated_by' => get_current_user_id(),
-										'updated_at' 	  => date_i18n("Y-m-d H:i:s", time())
+										'updated_at' 	  => wp_date("Y-m-d H:i:s", time())
 									), 
 									array( 'id' => $get_cat_data->id )
 								);
@@ -3686,7 +3797,7 @@ class EP_DBhandler {
 													'multiple_offers_max_discount' => $parent_tickets->multiple_offers_max_discount,
 													'ticket_template_id' 	  	   => $parent_tickets->ticket_template_id,
 													'last_updated_by' 			   => get_current_user_id(),
-													'updated_at' 	  			   => date_i18n("Y-m-d H:i:s", time())
+													'updated_at' 	  			   => wp_date("Y-m-d H:i:s", time())
 												), 
 												array( 'id' => $get_ticket_data->id )
 											);
@@ -3718,8 +3829,8 @@ class EP_DBhandler {
 											$ticket_data['multiple_offers_option'] 	   = $parent_tickets->multiple_offers_option;
 											$ticket_data['multiple_offers_max_discount'] = $parent_tickets->multiple_offers_max_discount;
 											$ticket_data['ticket_template_id'] 	  	   = $parent_tickets->ticket_template_id;
-											$ticket_data['created_at'] 				   = date_i18n( "Y-m-d H:i:s", time() );
-											$ticket_data['updated_at'] 				   = date_i18n( "Y-m-d H:i:s", time() );
+											$ticket_data['created_at'] 				   = wp_date( "Y-m-d H:i:s", time() );
+											$ticket_data['updated_at'] 				   = wp_date( "Y-m-d H:i:s", time() );
 											$result = $wpdb->insert( $price_options_table, $ticket_data );
 										}
 									}
@@ -3734,8 +3845,8 @@ class EP_DBhandler {
 								$cat_data['status'] 		 = $parent_category->status;
 								$cat_data['created_by'] 	 = $parent_category->created_by;
 								$cat_data['last_updated_by'] = $parent_category->last_updated_by;
-								$cat_data['created_at'] 	 = date_i18n( "Y-m-d H:i:s", time() );
-								$cat_data['updated_at'] 	 = date_i18n( "Y-m-d H:i:s", time() );
+								$cat_data['created_at'] 	 = wp_date( "Y-m-d H:i:s", time() );
+								$cat_data['updated_at'] 	 = wp_date( "Y-m-d H:i:s", time() );
 								$result = $wpdb->insert( $cat_table_name, $cat_data );
 								$cat_id = $wpdb->insert_id;
 
@@ -3748,8 +3859,8 @@ class EP_DBhandler {
 										$ticket['event_id'] = $child_post->ID;
 										$ticket['parent_price_option_id'] = $parent_price_option_id;
 										$ticket['category_id'] = $cat_id;
-										$ticket['created_at'] = date_i18n( "Y-m-d H:i:s", time() );
-										$ticket['updated_at'] = date_i18n( "Y-m-d H:i:s", time() );
+										$ticket['created_at'] = wp_date( "Y-m-d H:i:s", time() );
+										$ticket['updated_at'] = wp_date( "Y-m-d H:i:s", time() );
 										$result = $wpdb->insert( $price_options_table, $ticket );
 									}
 								}
@@ -3786,7 +3897,7 @@ class EP_DBhandler {
 									'multiple_offers_option' 	   => $ticket->multiple_offers_option,
 									'multiple_offers_max_discount' => $ticket->multiple_offers_max_discount,
 									'ticket_template_id' 	  	   => $ticket->ticket_template_id,
-									'updated_at' 	  			   => date_i18n("Y-m-d H:i:s", time())
+									'updated_at' 	  			   => wp_date("Y-m-d H:i:s", time())
 								);
 								$wpdb->update( $price_options_table, 
 									$updated_ticket_data, 
@@ -3797,8 +3908,8 @@ class EP_DBhandler {
 								unset( $ticket['id'] );
 								$ticket['event_id'] = $child_post->ID;
 								$ticket['parent_price_option_id'] = $parent_price_option_id;
-								$ticket['created_at'] = date_i18n( "Y-m-d H:i:s", time() );
-								$ticket['updated_at'] = date_i18n( "Y-m-d H:i:s", time() );
+								$ticket['created_at'] = wp_date( "Y-m-d H:i:s", time() );
+								$ticket['updated_at'] = wp_date( "Y-m-d H:i:s", time() );
 								$result = $wpdb->insert( $price_options_table, $ticket );
 							}
 						}

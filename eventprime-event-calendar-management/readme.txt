@@ -5,7 +5,7 @@ Tags: event calendar, organizer , event manager, tickets, event booking, event b
 Requires at least: 4.8
 Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 4.1.0.0
+Stable tag: 4.1.0.1
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -666,6 +666,12 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.1.0.1: June 26, 2025 =
+* Fixed: Weekly recurrence issue causing child event dates to shift by one day in some timezones.
+* Improved: Recurrence logic now respects WordPress timezone settings for accurate event scheduling.
+* Updated: Replaced `date_i18n()` function with recommended `wp_date()` for modern and timezone-safe date formatting.
+* Improved: Standardized DateTime handling across recurrence generation for better stability.
 
 = 4.1.0.0: June 13, 2025 =
 * Added: New email template for pending booking notification to admin.
@@ -2145,6 +2151,12 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.1.0.1: June 26, 2025 =
+* Fixed: Weekly recurrence issue causing child event dates to shift by one day in some timezones.
+* Improved: Recurrence logic now respects WordPress timezone settings for accurate event scheduling.
+* Updated: Replaced `date_i18n()` function with recommended `wp_date()` for modern and timezone-safe date formatting.
+* Improved: Standardized DateTime handling across recurrence generation for better stability.
 
 = 4.1.0.0: June 13, 2025 =
 * Added: New email template for pending booking notification to admin.

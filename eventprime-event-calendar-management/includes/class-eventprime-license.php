@@ -36,7 +36,7 @@ class EventPrime_License {
                             case 'expired' :
                                 $message = sprintf(
                                     esc_html__( 'Your license key expired on %s.', 'profilegrid-user-profiles-groups-and-communities' ),
-                                    date_i18n( get_option( 'date_format' ), strtotime( $license_data->expires, current_time( 'timestamp' ) ) )
+                                    wp_date( get_option( 'date_format' ), strtotime( $license_data->expires, current_time( 'timestamp' ,true) ) )
                                 );
                                 break;
                             case 'revoked' :
@@ -148,7 +148,7 @@ class EventPrime_License {
                             case 'expired' :
                                 $message = sprintf(
                                     esc_html__( 'Your license key expired on %s.' ),
-                                    date_i18n( get_option( 'date_format' ), strtotime( $license_data->expires, current_time( 'timestamp' ) ) )
+                                    wp_date( get_option( 'date_format' ), strtotime( $license_data->expires, current_time( 'timestamp',true ) ) )
                                 );
                                 break;
                             case 'revoked' :

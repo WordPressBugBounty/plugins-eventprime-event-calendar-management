@@ -1704,13 +1704,13 @@ class Eventprime_Event_Calendar_Management_Admin {
                     $save_data['priority']   = 1;
                     $save_data['status']     = 1;
                     $save_data['created_by'] = get_current_user_id();
-                    $save_data['created_at'] = date_i18n( 'Y-m-d H:i:s', time() );
+                    $save_data['created_at'] = wp_date( 'Y-m-d H:i:s', time() );
 
                     $field_id            = $dbhandler->insert_row( 'CHECKOUT_FIELDS', $save_data );
                     $response['message'] = esc_html__( 'Field Saved Successfully.', 'eventprime-event-calendar-management' );
                 } else {
                     $field_id                     = absint( $data['em_checkout_field_id'] );
-                    $save_data['updated_at']      = date_i18n( 'Y-m-d H:i:s', time() );
+                    $save_data['updated_at']      = wp_date( 'Y-m-d H:i:s', time() );
                     $save_data['last_updated_by'] = get_current_user_id();
                     $result                       = $dbhandler->update_row( 'CHECKOUT_FIELDS', 'id', $field_id, $save_data );
                     $response['message']          = esc_html__( 'Field Updated Successfully.', 'eventprime-event-calendar-management' );
@@ -3946,7 +3946,7 @@ class Eventprime_Event_Calendar_Management_Admin {
 						$save_data['priority']   = 1;
 						$save_data['status']     = 1;
 						$save_data['created_by'] = get_current_user_id();
-						$save_data['created_at'] = date_i18n( 'Y-m-d H:i:s', time() );
+						$save_data['created_at'] = wp_date( 'Y-m-d H:i:s', time() );
 						foreach ( $save_data as $key => $value ) {
 							$arg[] = $ep_activator->get_db_table_field_type( 'TICKET_CATEGORIES', $key );
 						}
@@ -3969,7 +3969,7 @@ class Eventprime_Event_Calendar_Management_Admin {
 								$ticket_data['icon']           = isset( $ticket->icon ) ? absint( $ticket->icon ) : '';
 								$ticket_data['priority']       = $cat_ticket_priority;
 								$ticket_data['status']         = 1;
-								$ticket_data['created_at']     = date_i18n( 'Y-m-d H:i:s', time() );
+								$ticket_data['created_at']     = wp_date( 'Y-m-d H:i:s', time() );
 								// new
 								$ticket_data['additional_fees']        = ( isset( $ticket->ep_additional_ticket_fee_data ) && ! empty( $ticket->ep_additional_ticket_fee_data ) ) ? wp_json_encode( $ticket->ep_additional_ticket_fee_data ) : '';
 								$ticket_data['allow_cancellation']     = isset( $ticket->allow_cancellation ) ? absint( $ticket->allow_cancellation ) : 0;
@@ -4063,7 +4063,7 @@ class Eventprime_Event_Calendar_Management_Admin {
 						$ticket_data['icon']           = isset( $ticket->icon ) ? absint( $ticket->icon ) : '';
 						$ticket_data['priority']       = $cat_ticket_priority;
 						$ticket_data['status']         = 1;
-						$ticket_data['created_at']     = date_i18n( 'Y-m-d H:i:s', time() );
+						$ticket_data['created_at']     = wp_date( 'Y-m-d H:i:s', time() );
 						// new
 						$ticket_data['additional_fees']        = ( isset( $ticket->ep_additional_ticket_fee_data ) && ! empty( $ticket->ep_additional_ticket_fee_data ) ) ? wp_json_encode( $ticket->ep_additional_ticket_fee_data ) : '';
 						$ticket_data['allow_cancellation']     = isset( $ticket->allow_cancellation ) ? absint( $ticket->allow_cancellation ) : 0;

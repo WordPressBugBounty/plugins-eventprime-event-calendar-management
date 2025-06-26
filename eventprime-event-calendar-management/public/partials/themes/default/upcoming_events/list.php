@@ -19,7 +19,7 @@ foreach( $args->events->posts as $event ) {
             <div class="ep-box-col-12 ep-month-divider ep-text-center ep-my-3">
                 
                 <span class="ep-listed-event-month ep-fw-bold ep-fs-5">
-                    <?php echo esc_html( date_i18n( 'F Y', strtotime( $event_data['start'] ) ) ); ?>
+                    <?php echo esc_html( wp_date( 'F Y', strtotime( $event_data['start'] ) ) ); ?>
                     <span class="ep-listed-event-month-tag"></span>
                 </span>
             </div><?php

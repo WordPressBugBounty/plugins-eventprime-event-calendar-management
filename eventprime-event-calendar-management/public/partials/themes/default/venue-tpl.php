@@ -31,7 +31,7 @@ $ep_requests = new EP_Requests;
                                                 <?php esc_html_e('Established', 'eventprime-event-calendar-management'); ?> :  
                                             </div>
                                             <div class="kf-event-attr-value">
-                                                <?php echo wp_kses_post( date_i18n( get_option('date_format'), $args->venue->em_established )); ?>
+                                                <?php echo wp_kses_post( wp_date( get_option('date_format'), $args->venue->em_established )); ?>
                                             </div>
                                         </li><?php 
                                     }
