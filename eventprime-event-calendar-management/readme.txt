@@ -5,7 +5,7 @@ Tags: event calendar, organizer , event manager, tickets, event booking, event b
 Requires at least: 4.8
 Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 4.1.0.1
+Stable tag: 4.1.0.2
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -666,6 +666,9 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.1.0.2: July 8, 2025 =
+* Fixed: Image blur issue in slider view.
 
 = 4.1.0.1: June 26, 2025 =
 * Fixed: Weekly recurrence issue causing child event dates to shift by one day in some timezones.
@@ -2151,6 +2154,9 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.1.0.2: July 8, 2025 =
+* Fixed: Image blur issue in slider view.
 
 = 4.1.0.1: June 26, 2025 =
 * Fixed: Weekly recurrence issue causing child event dates to shift by one day in some timezones.

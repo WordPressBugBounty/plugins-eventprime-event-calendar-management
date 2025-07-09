@@ -2352,6 +2352,10 @@ label.ep-form-check-label {
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
     }
+    
+    .ep-btn-group>.ep-btn+.ep-btn{
+        margin-left: -1px;
+    }
 
 
     /*--- Button Group End---*/

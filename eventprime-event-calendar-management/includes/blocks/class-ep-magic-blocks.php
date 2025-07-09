@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		public function enqueue_scripts() {
                     $ep_functions = new Eventprime_Basic_Functions;
                     $current_page = $ep_functions->eventprime_check_is_ep_dashboard_page();
-                    $array = array('events','event_edit','ep-event-calendar','em_event_type','em_venue','em_event_organizer','performers','performer_edit','bookings','booking_edit','ep-events-reports','ep-bulk-emails','ep-publish-shortcodes','ep-import-export','ep-settings','ep-extensions');
+                    $array = array('events','event_edit','ep-event-calendar','em_event_type','em_venue','em_event_organizer','performers','performer_edit','bookings','booking_edit','ep-events-reports','ep-bulk-emails','ep-publish-shortcodes','ep-import-export','ep-settings','ep-extensions','eventprime_seat_plans','eventprime_seat_plan','eventprime_seat_plan_preview');
                     if(!in_array($current_page,$array) && is_admin())
                     {
                         wp_enqueue_style('ep-admin-blocks-style');

@@ -100,6 +100,7 @@ $ep_requests = new EP_Requests;
             include $user_profile_data_file;
             
             do_action('ep_profile_tabs_list_content', $args->current_user);
+            do_action('ep_profile_tabs_list_additional_content', $args);
             ?>
         </div>
     </div>

@@ -1841,6 +1841,16 @@ class Eventprime_Basic_Functions {
                 $datetime = $date . ' ' . $start_time;
                 $times = $this->ep_datetime_to_timestamp($datetime, 'Y-m-d h:i a', $site_timezone, 1);
                 $times->setTimeZone(new DateTimeZone($user_timezone));
+                
+                if (in_array($user_timezone, DateTimeZone::listIdentifiers())) {
+                    $times->setTimeZone(new DateTimeZone($user_timezone));
+                } else {
+                    // Handle invalid timezone
+                    // e.g., fallback to UTC or site default
+                    $times->setTimeZone($site_timezone);
+                }
+                
+                
                 if (!empty($strict) && !empty($format)) {
                     $date = $times->format($format);               
                 } else {
