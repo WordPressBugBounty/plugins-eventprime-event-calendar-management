@@ -158,6 +158,7 @@ if($event_visibility===true)
 ?>
 <div class="emagic" id="ep_single_event_detail_page_content">
     <?php
+    do_action( 'pg-ep-event-group-details-banner',$args->event->em_id);
     $themepath = $ep_requests->eventprime_get_ep_theme('event-tpl',$event_id);
     include $themepath;
 ?>

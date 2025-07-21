@@ -5,7 +5,7 @@ Tags: event calendar, organizer , event manager, tickets, event booking, event b
 Requires at least: 4.8
 Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 4.1.0.2
+Stable tag: 4.1.0.3
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -666,6 +666,15 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.1.0.3: July 21, 2025 =
+* Added: New extension – Demo Data Extension to generate sample events and user bookings.
+* Added: New extension – Event Email Reminders to automatically notify attendees before the event.
+* Updated: Google Calendar library in the Import Export extension for better compatibility.
+* Improved: Variation product selection logic in WooCommerce Integration to support complex product types.
+* Fixed: Session handling and optimized code performance in WooCommerce Integration.
+* Fixed: Booking details page visibility issue for guest checkout orders in WooCommerce Checkout extension.
+* Fixed: Booking status updates to support additional WooCommerce payment gateways in WooCommerce Checkout extension.
 
 = 4.1.0.2: July 8, 2025 =
 * Fixed: Image blur issue in slider view.
@@ -2154,6 +2163,15 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.1.0.3: July 21, 2025 =
+* Added: New extension – Demo Data Extension to generate sample events and user bookings.
+* Added: New extension – Event Email Reminders to automatically notify attendees before the event.
+* Updated: Google Calendar library in the Import Export extension for better compatibility.
+* Improved: Variation product selection logic in WooCommerce Integration to support complex product types.
+* Fixed: Session handling and optimized code performance in WooCommerce Integration.
+* Fixed: Booking details page visibility issue for guest checkout orders in WooCommerce Checkout extension.
+* Fixed: Booking status updates to support additional WooCommerce payment gateways in WooCommerce Checkout extension.
 
 = 4.1.0.2: July 8, 2025 =
 * Fixed: Image blur issue in slider view.

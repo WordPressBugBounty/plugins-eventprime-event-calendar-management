@@ -817,16 +817,15 @@ class EventPrime_Bookings {
         $ep_functions = new Eventprime_Basic_Functions;
         $booking_status = 'completed';
         if( ! empty( $booking_id ) && ! empty( $data ) ) {
-            if( ! empty( $data['payment_gateway'] ) && 'offline' == $data['payment_gateway'] ) {
+            if( isset( $data['payment_gateway'] ) && ! empty( $data['payment_gateway'] ) && 'offline' == $data['payment_gateway'] ) {
                 $default_booking_status = $ep_functions->ep_get_global_settings( 'default_booking_status' );
                 if( ! empty( $default_booking_status ) ) {
                     $booking_status = $default_booking_status;
                 }
-            }
-            
-            if(isset($data['payment_status']) && $data['payment_status']=='pending')
-            {
-                $booking_status = 'pending';
+            } else {
+                if(isset($data['payment_status']) && $data['payment_status']=='pending') {
+                    $booking_status = 'pending';
+                }
             }
         }
 

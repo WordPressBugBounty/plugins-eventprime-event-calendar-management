@@ -75,7 +75,8 @@ class Eventprime_Basic_Functions {
             'Eventprime_Event_Import_Export',
             'Eventprime_Woocommerce_Integration',
             'Eventprime_Elementor_Integration',
-            'Eventprime_Zapier_Integration'
+            'Eventprime_Zapier_Integration',
+            'Eventprime_Demo_Data'
         );
         $paid = array(
             'Eventprime_Attendees_List',
@@ -103,7 +104,8 @@ class Eventprime_Basic_Functions {
             'Eventprime_Attendee_Event_Check_In',
             'EventPrime_Waiting_List',
             'Eventprime_Honeypot_Integration',
-            'Eventprime_Turnstile_Antispam'
+            'Eventprime_Turnstile_Antispam',
+            'Eventprime_Event_Reminder_Emails',
         );
         $free_exist = array();
         foreach ($free as $fc) {
@@ -181,7 +183,9 @@ class Eventprime_Basic_Functions {
             'Eventprime_Attendee_Event_Check_In',
             'EventPrime_Waiting_List',
             'Eventprime_Honeypot_Integration',
-            'Eventprime_Turnstile_Antispam'
+            'Eventprime_Turnstile_Antispam',
+            'Eventprime_Event_Reminder_Emails',
+            'Eventprime_Demo_Data'
         );
         $activate = array();
         foreach ($extensions as $extension) {
@@ -3778,13 +3782,13 @@ class Eventprime_Basic_Functions {
 
     // list all extension
     public function ep_list_all_exts() {
-        $exts = array('Live Seating', 'Events Import Export', 'Stripe Payments', 'Offline Payments', 'WooCommerce Integration', 'Event Sponsors', 'Attendees List', 'EventPrime Invoices', 'Coupon Codes', 'Guest Bookings', 'EventPrime Zoom Integration', 'Event List Widgets', 'Admin Attendee Bookings', 'EventPrime MailPoet', 'Twilio Text Notifications', 'Event Tickets', 'Zapier Integration', 'Advanced Reports', 'Advanced Checkout Fields', 'Elementor Integration', 'Mailchimp Integration', 'User Feedback', 'RSVP', 'WooCommerce Checkout', 'Ratings and Reviews','Attendee Event Check In','Waiting List','HoneyPot Security','Turnstile Antispam Security');
+        $exts = array('Live Seating', 'Events Import Export', 'Stripe Payments', 'Offline Payments', 'WooCommerce Integration', 'Event Sponsors', 'Attendees List', 'EventPrime Invoices', 'Coupon Codes', 'Guest Bookings', 'EventPrime Zoom Integration', 'Event List Widgets', 'Admin Attendee Bookings', 'EventPrime MailPoet', 'Twilio Text Notifications', 'Event Tickets', 'Zapier Integration', 'Advanced Reports', 'Advanced Checkout Fields', 'Elementor Integration', 'Mailchimp Integration', 'User Feedback', 'RSVP', 'WooCommerce Checkout', 'Ratings and Reviews','Attendee Event Check In','Waiting List','HoneyPot Security','Turnstile Antispam Security','Event Reminder Emails','Demo Data');
         return $exts;
     }
 
     // get premium extension list
     public function ep_load_premium_extension_list() {
-        $premium_ext_list = array('Live Seating', 'Stripe Payments', 'Offline Payments', 'Event Sponsors', 'Attendees List', 'EventPrime Invoices', 'Coupon Codes', 'Guest Bookings', 'EventPrime Zoom Integration', 'Event List Widgets', 'Admin Attendee Bookings', 'EventPrime MailPoet', 'Twilio Text Notifications', 'Event Tickets', 'Advanced Reports', 'Advanced Checkout Fields', 'Mailchimp Integration', 'User Feedback', 'RSVP', 'WooCommerce Checkout', 'Ratings and Reviews','Attendee Event Check In','Waiting List','HoneyPot Security','Turnstile Antispam Security');
+        $premium_ext_list = array('Live Seating', 'Stripe Payments', 'Offline Payments', 'Event Sponsors', 'Attendees List', 'EventPrime Invoices', 'Coupon Codes', 'Guest Bookings', 'EventPrime Zoom Integration', 'Event List Widgets', 'Admin Attendee Bookings', 'EventPrime MailPoet', 'Twilio Text Notifications', 'Event Tickets', 'Advanced Reports', 'Advanced Checkout Fields', 'Mailchimp Integration', 'User Feedback', 'RSVP', 'WooCommerce Checkout', 'Ratings and Reviews','Attendee Event Check In','Waiting List','HoneyPot Security','Turnstile Antispam Security','Event Reminder Emails');
         return $premium_ext_list;
     }
 
@@ -4416,6 +4420,48 @@ class Eventprime_Basic_Functions {
                 $data['is_free'] = !$this->ep_check_for_premium_extension('Turnstile Antispam Security');
                 $data['image'] = 'ep-turnstile-icon.png';
                 $data['desc'] = "EventPrime Turnstile Antispam Security enhances the protection of your event forms by integrating Cloudflare's advanced Turnstile CAPTCHA.";
+                break;
+            case 'Event Reminder Emails':
+                $data['url'] = 'https://theeventprime.com/all-extensions/event-reminder-emails/';
+                if (in_array('eventprime-event-reminder-emails.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-event-reminder-emails.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Event_Reminder_Emails");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=email-reminder-settings');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Event Reminder Emails');
+                $data['image'] = 'ep-event-reminder-emails-icon.png';
+                $data['desc'] = "The Event Reminder Emails extension for EventPrime automatically sends reminder emails to attendees before an event starts.";
+                break;
+            case 'Demo Data':
+                $data['url'] = 'https://theeventprime.com/all-extensions/demo-data/';
+                if (in_array('eventprime-demo-data.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-demo-data.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Demo_Data");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-demo-data');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Demo Data');
+                $data['image'] = 'ep-demo-data-icon.png';
+                $data['desc'] = "The purpose of this extension is to help users quickly set up their EventPrime installation with demo events to showcase the plugin’s features. The extension will allow users to generate demo events, with the option to include demo user accounts to show booking details.";
                 break;
         }
         return $data;

@@ -68,7 +68,7 @@ $max_ticket_per_order = $is_able_to_purchase[0];
                         <!-- Button -->
                         <div class="ep-mt-3 d-grid gap-2 d-md-block" id="ep_single_event_ticket_now_wrapper"><?php 
                             $get_ticket_now_text = apply_filters('ep_extend_get_tickets_now_text', $get_ticket_now_text, $args->event);
-
+                            do_action( 'ep_event_detail_before_ticket_block', $args->event->em_id );
                             if( $args->event->em_enable_booking == 'external_bookings' ) {
                                 $url = $args->event->em_custom_link;
                                 $new_window = '';

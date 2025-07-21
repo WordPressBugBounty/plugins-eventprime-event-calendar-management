@@ -265,6 +265,8 @@ class EventPrime_License {
             'EventPrime_Waiting_List'=>array(33631,'Waiting List'),
             'Eventprime_Honeypot_Integration'=>array(35062,'HoneyPot Security'),
             'Eventprime_Turnstile_Antispam'=>array(35065,'Turnstile Antispam Security'),
+            'Eventprime_Event_Reminder_Emails'=>array(35178,'Event Reminder Emails'),
+            'Eventprime_Demo_Data'=>array(35183,'Demo Data'),
         );
         
         $activate = array();
