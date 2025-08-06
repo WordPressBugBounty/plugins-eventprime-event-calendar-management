@@ -5,7 +5,7 @@ Tags: event calendar, organizer , event manager, tickets, event booking, event b
 Requires at least: 4.8
 Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 4.1.0.3
+Stable tag: 4.1.0.4
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -666,6 +666,14 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.1.0.4: August 05, 2025 =
+* Added full GDPR compliance tools
+* New "My Data" tab for export/delete requests
+* Consent checkbox in booking and checkout forms
+* Optional GDPR badge.
+* Automatic data anonymization after retention period
+* Integrated with WordPress privacy tools.
 
 = 4.1.0.3: July 21, 2025 =
 * Added: New extension – Demo Data Extension to generate sample events and user bookings.
@@ -2163,6 +2171,14 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.1.0.4: August 05, 2025 =
+* Added full GDPR compliance tools
+* New "My Data" tab for export/delete requests
+* Consent checkbox in booking and checkout forms
+* Optional GDPR badge.
+* Automatic data anonymization after retention period
+* Integrated with WordPress privacy tools.
 
 = 4.1.0.3: July 21, 2025 =
 * Added: New extension – Demo Data Extension to generate sample events and user bookings.

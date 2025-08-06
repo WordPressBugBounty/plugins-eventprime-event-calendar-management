@@ -123,6 +123,7 @@ class Eventprime_Event_Calendar_Management_Public {
             'em_booking' => array($this, 'load_booking'),
             'em_booking_details' => array($this, 'load_event_booking_details'),
             'em_event' => array($this, 'load_single_event'),
+            'em_gdpr_badge' => array($this, 'load_gdpr_badge'),
             /*'em_sponsors' => array($this, 'load_sponsors'),
             'em_sponsor' => array($this, 'load_single_sponsor'),*/
         );
@@ -226,6 +227,17 @@ class Eventprime_Event_Calendar_Management_Public {
              plugin_dir_url(__FILE__) . 'js/responsiveslides.min.js',
             array( 'jquery' ), $this->version
         );
+        
+//        if (! empty( $global_settings->enable_gdpr_tools ) && ! empty( $global_settings->enable_cookie_consent_banner )) 
+//        {
+//            wp_enqueue_script('ep-cookie-consent',plugin_dir_url(__FILE__) . 'js/ep-cookie-consent.js',array('jquery'),$this->version,true);
+//            wp_localize_script( 'ep-cookie-consent', 'ep_cookie_consent_data', array(
+//                'message' => ! empty( $global_settings->cookie_consent_message ) ? $global_settings->cookie_consent_message : __( 'We use cookies to ensure you get the best experience on our website.', 'eventprime-event-calendar-management' ),
+//                'button' => ! empty( $global_settings->cookie_consent_button_text ) ? $global_settings->cookie_consent_button_text : __( 'Accept', 'eventprime-event-calendar-management' ),
+//                'privacy_url' => ! empty( $global_settings->gdpr_privacy_policy_url )? esc_url( $global_settings->gdpr_privacy_policy_url ) : esc_url( get_privacy_policy_url() ),
+//            ));
+//        }
+        
     }
     
     public function eventprime_get_template_html($template_name, $atts, $content = null) {
@@ -286,6 +298,12 @@ class Eventprime_Event_Calendar_Management_Public {
         }
     }
 
+    public function load_gdpr_badge($atts)
+    {
+        $template = 'eventprime-gdpr-badge';
+        return $this->eventprime_get_template_html($template, $atts);
+    }
+    
     public function load_single_event($atts)
     {
         $atts = array_change_key_case( (array) $atts, CASE_LOWER );
@@ -1277,8 +1295,9 @@ class Eventprime_Event_Calendar_Management_Public {
     public function ep_show_timezone_related_message( $args ) 
     {
         $ep_functions = new Eventprime_Basic_Functions;
+        $flag = false;
         $enable_event_time_to_user_timezone  = $ep_functions->ep_get_global_settings( 'enable_event_time_to_user_timezone' );
-        if( ! empty( $enable_event_time_to_user_timezone ) ) 
+        if( ! empty( $enable_event_time_to_user_timezone ) &&  $flag) 
         { 
             $show_timezone_message_on_event_page = $ep_functions->ep_get_global_settings( 'show_timezone_message_on_event_page' );
             if( ! empty( $show_timezone_message_on_event_page ) ) 
@@ -2233,6 +2252,44 @@ else
                    }
            }
    }
+
+   public function ep_gdpr_consent_checkbox($args)
+   {
+       $ep_functions = new Eventprime_Basic_Functions(); 
+       $enable_gdpr = $ep_functions->ep_get_global_settings( 'enable_gdpr_tools' );
+       $show_checkbox = $ep_functions->ep_get_global_settings('show_gdpr_consent_checkbox');
+       $privacy_default  = !empty(get_privacy_policy_url()) ? get_privacy_policy_url(): site_url().'/privacy-policy';
+       //var_dump($privacy_default);
+       if($enable_gdpr==1 && $show_checkbox==1)
+       {
+           $privacy_policy = $ep_functions->ep_get_global_settings('gdpr_privacy_policy_url');
+           $gdpr_text = $ep_functions->ep_get_global_settings('gdpr_consent_text') ?? esc_html__("I agree to the site's Privacy Policy.",'eventprime-event-calendar-management');
+           $privacy_policy_url = !empty($privacy_policy)?$privacy_policy:$privacy_default;
+           
+            ?>
+            <div class="ep-form-row ep-form-group ep-text-small ep-mb-3">
+                <div class="ep-box-col-12">
+                    <label for="ep_gdpr_consent" class="ep-form-label ep-checkbox-inline ep-d-flex ep-text-small">
+                        <input type="checkbox" name="ep_gdpr_consent" id="ep_gdpr_consent" value="1" class="ep-form-input ep-input-checkbox ep-mr-1" required>
+                        <?php echo esc_html(stripslashes($gdpr_text)); ?> <a href="<?php echo esc_url($privacy_policy_url);?>" target="_blank" class="ep-ml-1"><?php esc_html_e('View','eventprime-event-calendar-management');?></a>
+
+                    </label>  
+                </div>
+                 <div class="ep-error-message ep-box-col-12" id="ep_gdpr_consent_error"></div>                               
+            </div>
+            
+            <?php
+       }
+   }
+   
+   public function ep_show_gdpr_badge_on_footer()
+   {
+       $atts = array();
+       echo wp_kses_post($this->load_gdpr_badge($atts));
+
+   }
+   
+
 
 
 

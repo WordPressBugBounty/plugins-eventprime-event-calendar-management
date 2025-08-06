@@ -1,6 +1,7 @@
 <?php
 $ep_functions = new Eventprime_Basic_Functions;
 $ep_requests = new EP_Requests;
+$global_settings = $ep_functions->ep_get_global_settings();
 ?>
 <div class="ep-booking-container ep-box-wrap">
         <div class="ep-box-row">
@@ -390,6 +391,21 @@ $ep_requests = new EP_Requests;
                                         </div><?php
                                     }
                                     do_action('ep_after_booking_details_additional', $args);
+                                    
+                                    if($ep_guest_order_info)
+                                    {
+                                        
+                                        if ( $global_settings->enable_gdpr_tools && $global_settings->enable_gdpr_delete ) : ?>
+                                            <div class="ep-box-col-6 ep-box-col-md-3 ep-gdpr-action-box ep-mb-4">
+                                                <div class="ep-border ep-rounded ep-p-3 ep-mt-2">
+                                                    <div class="ep-fw-bold ep-mb-1"><?php esc_html_e( 'Delete Booking data', 'eventprime-event-calendar-management' ); ?></div>
+                                                    <p class="ep-text-small ep-mb-2"><?php esc_html_e( 'Instantly delete your EventPrime booking data.', 'eventprime-event-calendar-management' ); ?></p>
+                                                    <div class="ep-loader" id="ep_event_guest_delete_booking_loader" style="display:none;"></div>
+                                                    <button id="ep_delete_guest_booking_data" data-id="<?php echo esc_attr($order_id);?>" data-key="<?php echo esc_attr($order_key);?>" class="ep-btn ep-btn-danger ep-btn-sm"><?php esc_html_e( 'Delete', 'eventprime-event-calendar-management' ); ?></button>
+                                                </div>
+                                            </div>
+                                        <?php endif; 
+                                    }
                                     ?>
                                     
                                 </div>

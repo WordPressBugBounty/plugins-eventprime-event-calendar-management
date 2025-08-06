@@ -90,6 +90,9 @@ jQuery( function( $ ) {
             var ep_wc_products_count = ep_event_booking.booking_data.event.em_selectd_products.length;
         }
         var show_guest_booking_form = 0; var allow_process_for_payment_step = 0;
+        
+        
+        
         if( active_step == 1 ) {
             var attendees_data = $( '#ep_event_booking_attendee_section' ).find(
                 'input, select, textarea'
@@ -99,7 +102,19 @@ jQuery( function( $ ) {
             let invalid_email_string = get_translation_string( 'invalid_email' );
             let invalid_phone_string = get_translation_string( 'invalid_phone' );
             let invalid_number_string = get_translation_string( 'invalid_number' );
+            
+            const $gdprCheckbox = $('#ep_gdpr_consent');
 
+        // Check if GDPR checkbox exists
+        if ($gdprCheckbox.length && !$gdprCheckbox.is(':checked')) {
+            
+            $( '#ep_gdpr_consent_error' ).text( requireString );
+            document.getElementById( 'ep_gdpr_consent' ).focus();
+            error = 1;
+            filled_user_registration_detail = 0;
+            return false;
+        }
+            
             $( attendees_data ).each( function() {
                 let input_name = $( this ).attr( 'name' );
                 let attr_id = $( 'input[name="' + input_name + '"]' ).attr( 'id' );

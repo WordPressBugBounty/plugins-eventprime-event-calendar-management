@@ -19,7 +19,45 @@ class Eventprime_Global_Settings{
         $this->get_forms_setting_options();
         $this->get_license_setting_options();
         $this->ep_get_front_views_content_settings();
+        $this->get_gdpr_setting_options();
     }
+    
+    /**
+     * Merge all GDPR-related default settings
+    */
+    public function get_gdpr_setting_options() {
+
+       // Default to WP privacy policy page, or fallback to /privacy-policy
+       $privacy_url = function_exists( 'get_privacy_policy_url' )
+           ? get_privacy_policy_url()
+           : home_url( '/privacy-policy' );
+
+       $gdpr_options = array(
+           // Master toggle
+           'enable_gdpr_tools'           => '',   // '' = off, '1' = on
+
+           // Child toggles
+           'enable_gdpr_download'        => '',
+           'enable_gdpr_delete'          => '',
+           'enable_gdpr_download_request'        => '',
+           'enable_gdpr_delete_request'          => '',
+           'show_gdpr_consent_checkbox'  => '',
+           'show_gdpr_badge'             => '',
+
+           // Text & URLs
+           'gdpr_consent_text'           => "I agree to the site's Privacy Policy.",
+           'gdpr_privacy_policy_url'     => esc_url_raw( $privacy_url ),
+
+           // Data retention (days) – blank means disabled
+           'gdpr_retention_period'       => '',
+           'cookie_consent_message'       => 'We use cookies to ensure you get the best experience on our website.',
+           'cookie_consent_button_text'  => 'Accept',
+           'enable_cookie_consent_banner'=> '',
+
+       );
+
+       $this->setting_options = array_merge( $this->setting_options, $gdpr_options );
+   }
     
     /**
      * Merge all front end submission related settings
@@ -330,6 +368,7 @@ class Eventprime_Global_Settings{
             'admin_booking_confirm_email_attendees' => '',
             'ep_admin_email_to'                     => $admin_email,
             'ep_admin_email_from'                   => $admin_email,
+         
         );
         $email_options = apply_filters('ep_add_emailer_options',$email_options);
         $this->setting_options = array_merge( $this->setting_options, $email_options );
@@ -570,6 +609,7 @@ class Eventprime_Global_Settings{
         $tabs['forms']          = esc_html__( 'Forms', 'eventprime-event-calendar-management' );
         $tabs['license']        = esc_html__( 'Licenses', 'eventprime-event-calendar-management' );
         $tabs['extensions']     = esc_html__( 'Extensions', 'eventprime-event-calendar-management' );
+        $tabs['gdpr']     = esc_html__( 'GDPR', 'eventprime-event-calendar-management' );
         
         $this->ep_setting_tabs = array_keys( $tabs );
         $tabs_list['core'] = $tabs;
@@ -601,6 +641,7 @@ class Eventprime_Global_Settings{
         $options['form_list']            = $this->ep_settings_forms_list();
         $options['extensions']           = $this->ep_setting_extensions_list();
         $options['allowed_html']         = $ep_functions->eventprime_get_allowed_wpkses_html();
+        $options['gdpr']                 = $this->ep_get_gdpr_settings_content();
         if( in_array( $active_tab, $this->ep_setting_tabs ) ){
             include plugin_dir_path( __DIR__ ) .'/admin/partials/settings/settings-tab-'. $active_tab .'.php';
         }else{
@@ -650,7 +691,7 @@ class Eventprime_Global_Settings{
     public function ep_get_general_settings_sub_tabs() {
         $sub_tabs = array();
         $sub_tabs['regular']  = esc_html__( 'Setup', 'eventprime-event-calendar-management' );
-        $sub_tabs['timezone'] = esc_html__( 'Timezone', 'eventprime-event-calendar-management' );
+        //$sub_tabs['timezone'] = esc_html__( 'Timezone', 'eventprime-event-calendar-management' );
         $sub_tabs['external'] = esc_html__( 'Third-Party', 'eventprime-event-calendar-management' );
         $sub_tabs['seo']      = esc_html__( 'SEO', 'eventprime-event-calendar-management' );
         
@@ -796,6 +837,12 @@ class Eventprime_Global_Settings{
             }
             return apply_filters( 'ep_emailer_setting_add', $emailer_settings, $section );
         }
+    }
+    
+   
+    
+    public function ep_get_gdpr_settings_content(){
+        return '';
     }
     
     public function ep_get_front_view_settings_sub_tabs() {
@@ -1048,4 +1095,16 @@ class Eventprime_Global_Settings{
         echo '</select>';
     }
     
+    public function ep_fields_list_for_data_deletion_email()
+    {
+        echo '<select name="ep_field_list" class="ep_field_list" onchange="ep_insert_field_in_email(this.value)">';
+        echo '<option value="">' . esc_html__( 'Select A Field', 'eventprime-event-calendar-management' ) . '</option>';
+        
+        echo '<option value="{{user_name}}">' . esc_html__( 'User Name', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '<option value="{{user_email}}">' . esc_html__( 'User Email', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '<option value="{{site_name}}">' . esc_html__( 'Site Name', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '<option value="{{site_url}}">' . esc_html__( 'Site URL', 'eventprime-event-calendar-management' ) . '</option>';
+        
+        echo '</select>';
+    }
 }
