@@ -5,7 +5,7 @@ Tags: event calendar, organizer , event manager, tickets, event booking, event b
 Requires at least: 4.8
 Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 4.1.0.3
+Stable tag: 4.1.0.5
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
