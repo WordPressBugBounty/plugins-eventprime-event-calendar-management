@@ -40,41 +40,4 @@ jQuery( function( $ ) {
             });
         }
     });
-    
-    
-    // delete guest booking
-    $( document ).on( 'click', '#ep_delete_guest_booking_data', function() {
-        $( '#ep_event_guest_delete_booking_loader' ).show();
-        let booking_id = $( '#ep_delete_guest_booking_data' ).data( 'id' );
-        let order_key = $( '#ep_delete_guest_booking_data' ).data( 'key' );
-        if(booking_id && order_key ) {
-           
-            let data = { 
-                action    : 'ep_delete_guest_booking_data', 
-                security  : ep_event_booking_detail.booking_cancel_nonce,
-                booking_id: booking_id,
-                key       : order_key
-            };
-            $.ajax({
-                type        : "POST",
-                url         : eventprime.ajaxurl,
-                data        : data,
-                success     : function( response ) {
-                    $( '#ep_event_guest_delete_booking_loader' ).hide();
-                    if( response.success == true ) {
-                        show_toast( 'success', response.data.message );
-                        setTimeout( function() {
-                            //location.reload();
-                            window.location.href = response.data.redirect_url;
-
-                        }, 2000);
-                        
-                    } else{
-                        show_toast( 'error', response.data.error );
-                    }
-                }
-            });
-        }
-    });
-    
 });

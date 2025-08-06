@@ -1016,7 +1016,7 @@ class EventM_Notification_Service {
             if( empty( $global_setting->event_approved_email ) || is_null( $global_setting->event_approved_email ) ) {
                 ob_start();
                 include( plugin_dir_path( EP_PLUGIN_FILE ) . 'admin/partials/settings/emailers/mail/event_approved.html' );
-                $global_setting->event_approved_email = ob_get_clean();
+                $global_setting->event_submitted_email = ob_get_clean();
             }
             
             $this->configure_mail();
@@ -1071,6 +1071,4 @@ class EventM_Notification_Service {
         $html = '<div class="ep-ical-download em_color" title="'.esc_html__('+ iCal / Outlook export', 'eventprime-event-calendar-management').'"><a href="'.esc_url( $url ).'">'. esc_html__('+ iCal / Outlook export', 'eventprime-event-calendar-management').'</a></div>';
         return $html;
     }
-    
-
 }

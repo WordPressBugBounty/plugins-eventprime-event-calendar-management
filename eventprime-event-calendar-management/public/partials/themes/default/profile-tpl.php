@@ -72,12 +72,6 @@ $ep_requests = new EP_Requests;
                     <?php esc_html_e( 'My Account', 'eventprime-event-calendar-management');?>
                 </a>
             </li>
-            <li class="ep-list-group-item ep-tab-item ep-user-profile-my-data-tab" role="presentation">
-                <a href="javascript:void(0);" data-tag="ep-list-my-data" class="ep-list-group-item-ligh ep-tab-link">
-                    <?php esc_html_e( 'My Data', 'eventprime-event-calendar-management');?>
-                </a>
-            </li>
-            
         </ul>
     </div>
 
@@ -104,14 +98,7 @@ $ep_requests = new EP_Requests;
 
             $user_profile_data_file = $ep_requests->eventprime_get_ep_theme('profile/user-profile-data');
             include $user_profile_data_file;
-            ?>
-            <div class="ep-tab-content ep-item-hide ep-mx-3" id="ep-list-my-data" role="tabpanel" aria-labelledby="ep-list-my-data">
-            <?php
-            $user_my_data_file = $ep_requests->eventprime_get_ep_theme('profile/user-my-data');
-            include $user_my_data_file;
-            ?>
-            </div>
-                <?php
+            
             do_action('ep_profile_tabs_list_content', $args->current_user);
             do_action('ep_profile_tabs_list_additional_content', $args);
             ?>

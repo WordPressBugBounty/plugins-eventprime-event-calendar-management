@@ -13,8 +13,7 @@ wp_localize_script(
         '_nonce'                => wp_create_nonce( 'ep-frontend-nonce' ),
         'ajaxurl'               => admin_url( 'admin-ajax.php' ),
         'nonce_error'           => esc_html__( 'Please refresh the page and try again.', 'eventprime-event-calendar-management' ),
-        'delete_event_confirm'  => esc_html__( 'Are you sure you want to delete this event?', 'eventprime-event-calendar-management' ),
-        'delete_my_data_confirm'  => esc_html__( 'Are you sure you want to delete all bookings data?', 'eventprime-event-calendar-management' )
+        'delete_event_confirm'  => esc_html__( 'Are you sure you want to delete this event?', 'eventprime-event-calendar-management' )
     )
 );
 ?>

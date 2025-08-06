@@ -359,17 +359,6 @@ class EventM_Ajax_Service {
                     die;
                 }
                 
-                $enable_gdpr = $ep_functions->ep_get_global_settings( 'enable_gdpr_tools' );
-                $show_checkbox = $ep_functions->ep_get_global_settings('show_gdpr_consent_checkbox');
-                if($enable_gdpr==1 && $show_checkbox==1)
-                {
-                    if(!isset($data['ep_gdpr_consent']) || empty($data['ep_gdpr_consent']))
-                    {
-                        wp_send_json_error( array( 'error' => esc_html__( 'You must accept the Privacy Policy.', 'eventprime-event-calendar-management' ) ) );
-                        die;
-                    }
-                }
-                
                 $woocommerce_validate = $ep_functions->ep_validate_woocommerce_product_data($data);
                 if($woocommerce_validate===false)
                 {
@@ -469,11 +458,6 @@ class EventM_Ajax_Service {
                 update_post_meta( $new_post_id, 'em_name', $event_name );
                 update_post_meta( $new_post_id, 'em_status', $post_status );
                 update_post_meta( $new_post_id, 'em_payment_method', $payment_method );
-                if(isset($data['ep_gdpr_consent']))
-                {
-                    update_post_meta( $new_post_id, 'ep_gdpr_consent', $data['ep_gdpr_consent'] );
-                    update_post_meta( $new_post_id, 'ep_gdpr_consent_time', current_time('mysql'));
-                }
                 if( isset( $_POST['rid'] ) && ! empty( $_POST['rid'] ) ) {
                     update_post_meta( $new_post_id, 'em_random_order_id', sanitize_text_field( $_POST['rid'] ) );
                 }
@@ -1768,8 +1752,8 @@ class EventM_Ajax_Service {
                 wp_send_json_success( array( 'message' => esc_html__( 'Timezone updated successfully', 'eventprime-event-calendar-management' ) ) );
             } else{
                 //wp_send_json_error( array( 'error' => esc_html__( 'Unauthorized access. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
-                //setcookie( 'ep_user_timezone_meta', $time_zone, time() + (86400 * 30), "/");
-                //wp_send_json_success( array( 'message' => esc_html__( 'Timezone updated successfully', 'eventprime-event-calendar-management' ) ) );
+                setcookie( 'ep_user_timezone_meta', $time_zone, time() + (86400 * 30), "/");
+                wp_send_json_success( array( 'message' => esc_html__( 'Timezone updated successfully', 'eventprime-event-calendar-management' ) ) );
             }
         } else{
             wp_send_json_error( array( 'error' => esc_html__( 'Please select timezone and save.', 'eventprime-event-calendar-management' ) ) );
@@ -2945,157 +2929,4 @@ class EventM_Ajax_Service {
             }
         }
     }
-    
-    public function delete_user_bookings_data()
-    {
-        if ( ! is_user_logged_in() ) {
-            wp_send_json_error( array( 'error' => esc_html__( 'You must be logged in.', 'eventprime-event-calendar-management' ) ) );
-        }
-
-        if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'ep-frontend-nonce' ) ) {
-            wp_send_json_error( array( 'error' => esc_html__( 'Invalid request.', 'eventprime-event-calendar-management' ) ) );
-        }
-
-        $user = wp_get_current_user();
-        if ( ! $user || empty( $user->user_email ) ) {
-            wp_send_json_error( array( 'error' => esc_html__( 'Unable to identify user.', 'eventprime-event-calendar-management' ) ) );
-        }
-
-        $basic_function = new Eventprime_Basic_Functions();
-        
-        // Create request
-        $deleted_data = $basic_function->ep_privacy_delete_personal_data( $user->user_email );
-
-        if ( is_wp_error( $deleted_data ) ) {
-            wp_send_json_error( array( 'error' => $deleted_data->get_error_message() ) );
-        }
-
-        wp_send_json_success( array(
-            'message' => esc_html__( 'Your bookings data has been removed.', 'eventprime-event-calendar-management' )
-        ) );
-    }
-
-    public function export_user_bookings_data() 
-    {
-        if ( ! is_user_logged_in() ) {
-            wp_send_json_error( __( 'You must be logged in.', 'eventprime-event-calendar-management' ) );
-        }
-
-        if ( ! wp_verify_nonce( $_POST['nonce'], 'ep-frontend-nonce' ) ) {
-            wp_send_json_error( __( 'Security check failed.', 'eventprime-event-calendar-management' ) );
-        }
-
-        $user = wp_get_current_user();
-
-        // Call the same exporter function used in wp_privacy_personal_data_exporters
-        $ep_functions = new Eventprime_Basic_Functions;
-        $result   = $ep_functions->ep_privacy_export_personal_data( $user->user_email );
-
-        wp_send_json_success( array(
-            'filename' => 'eventprime-data-' . date( 'Y-m-d' ) . '.json',
-            'payload'  => $result['data'],
-        ) );
-    }
-    
-    public function request_data_erasure()
-    {
-        if ( ! is_user_logged_in() ) {
-            wp_send_json_error( array( 'error' => esc_html__( 'You must be logged in.', 'eventprime-event-calendar-management' ) ) );
-        }
-
-        if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'ep-frontend-nonce' ) ) {
-            wp_send_json_error( array( 'error' => esc_html__( 'Invalid request.', 'eventprime-event-calendar-management' ) ) );
-        }
-
-        $user = wp_get_current_user();
-        if ( ! $user || empty( $user->user_email ) ) {
-            wp_send_json_error( array( 'error' => esc_html__( 'Unable to identify user.', 'eventprime-event-calendar-management' ) ) );
-        }
-
-        // Create request
-        $request_id = wp_create_user_request( $user->user_email, 'remove_personal_data' );
-
-        if ( is_wp_error( $request_id ) ) {
-            wp_send_json_error( array( 'error' => $request_id->get_error_message() ) );
-        }
-
-        wp_send_user_request( $request_id );
-
-        wp_send_json_success( array(
-            'message' => esc_html__( 'Your data erasure request has been submitted. Please check your email to confirm.', 'eventprime-event-calendar-management' )
-        ) );
-    }
-    
-    public function request_data_export()
-    {
-         if ( ! is_user_logged_in() ) {
-            wp_send_json_error( array( 'error' => esc_html__( 'You must be logged in.', 'eventprime-event-calendar-management' ) ) );
-        }
-
-        if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'ep-frontend-nonce' ) ) {
-            wp_send_json_error( array( 'error' => esc_html__( 'Invalid request.', 'eventprime-event-calendar-management' ) ) );
-        }
-
-        $user = wp_get_current_user();
-        if ( ! $user || empty( $user->user_email ) ) {
-            wp_send_json_error( array( 'error' => esc_html__( 'Unable to identify user.', 'eventprime-event-calendar-management' ) ) );
-        }
-
-        // Create export request
-        $request_id = wp_create_user_request( $user->user_email, 'export_personal_data' );
-
-        if ( is_wp_error( $request_id ) ) {
-            wp_send_json_error( array( 'error' => $request_id->get_error_message() ) );
-        }
-
-        wp_send_user_request( $request_id );
-
-        wp_send_json_success( array(
-            'message' => esc_html__( 'Your data export request has been submitted. Please check your email to confirm.', 'eventprime-event-calendar-management' )
-        ) );
-    }
-    
-    public function delete_guest_booking_data()
-    {
-        $ep_functions = new Eventprime_Basic_Functions;
-        if( wp_verify_nonce( $_POST['security'], 'event-booking-cancellation-nonce' ) ) {
-            if( isset( $_POST['booking_id'] ) && isset($_POST['key']) ) {
-                $order_id = absint( $_POST['booking_id'] );
-                $key = sanitize_text_field($_POST['key']);
-                $order_key = get_post_meta($order_id, 'ep_order_key', true);
-                if(!empty($order_key) && $order_key == $key){
-                    wp_delete_post( $order_id, true );
-                    wp_send_json_success( array( 'message' => esc_html__( 'Booking delete Successfully.', 'eventprime-event-calendar-management' ), 'redirect_url' => esc_url( $ep_functions->ep_get_custom_page_url( 'profile_page' ) ) ) );
-                }
-                else
-                {
-                    wp_send_json_error( array( 'error' => esc_html__( 'You are not allowed to delete this booking', 'eventprime-event-calendar-management' ) ) );
-                
-                }
-            } 
-            else {
-                wp_send_json_error( array( 'error' => esc_html__( 'You are not allowed to delete this booking', 'eventprime-event-calendar-management' ) ) );
-                    
-            }
-            
-        } else{
-            wp_send_json_error( array( 'error' => esc_html__( 'Security check failed. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
-        }
-        
-        if( wp_verify_nonce( $_POST['security'], 'single-event-data-nonce' ) ) 
-        {
-            
-        }
-            $ep_functions = new Eventprime_Basic_Functions;
-            
-            $ticket_id = ( ! empty( $_POST['ticket_id'] ) ? absint( $_POST['ticket_id'] ) : '' );
-        $key = 
-                
-        $order_key = get_post_meta($order_id, 'ep_order_key', true);
-        if(!empty($order_key) && $order_key != $key){
-
-        }
-    }
-
-    
 }

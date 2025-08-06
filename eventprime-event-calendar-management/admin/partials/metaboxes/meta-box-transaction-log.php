@@ -15,12 +15,8 @@ $booking = $booking_controller->load_booking_detail( $booking_id );
         <button type="button" class="button" id="ep_show_booking_transaction_log"><?php esc_html_e( 'Transaction Log', 'eventprime-event-calendar-management' );?></button>
     </div>
     <span class="ep-booking-transaction-log" style="display: none;">
-        <?php if(isset($booking->em_payment_log) && !empty($booking->em_payment_log)): 
-            
-        echo "<pre>";
+        <?php echo "<pre>";
             echo esc_html( wp_json_encode($booking->em_payment_log, JSON_PRETTY_PRINT ) );
-        echo "</pre>";
-        endif;
-        ?>
+        echo "</pre>";?>
     </span>
 </div>

@@ -463,7 +463,7 @@ $sub_options = $global_settings->sub_options;
                     <option value="sort_by_events" <?php if( $global_options->sort_by_events_or_bookings == 'sort_by_events' ) { echo esc_attr( 'selected' );}?>><?php esc_html_e( 'Total no. Events', 'eventprime-event-calendar-management' );?></option>
                     <option value="sort_by_bookings" <?php if( $global_options->sort_by_events_or_bookings == 'sort_by_bookings' ) { echo esc_attr( 'selected' );}?>><?php esc_html_e( 'Total no. Bookings', 'eventprime-event-calendar-management' );?></option>
                 </select>     
-                <div class="ep-help-tip-info ep-my-2 ep-text-muted"></div>     <!-- Add a description here. -->
+                <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( '', 'eventprime-event-calendar-management' );?></div>     <!-- Add a description here. -->
             </td>
         </tr>
     </tbody>

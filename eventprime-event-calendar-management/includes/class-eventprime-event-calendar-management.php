@@ -434,12 +434,7 @@ class Eventprime_Event_Calendar_Management {
                 
                 $this->loader->add_filter( 'parse_query', $plugin_admin, 'ep_events_filters_arguments', 100, 1 );
                 $this->loader->add_action('save_post', $plugin_admin,'allow_single_term_selection', 10, 3);
-                $this->loader->add_filter('wp_privacy_personal_data_erasers', $plugin_admin, 'ep_privacy_personal_data_erasers',10,1);
-                $this->loader->add_filter('wp_privacy_personal_data_exporters',$plugin_admin,'ep_privacy_personal_data_exporters',10,1);
-                $this->loader->add_action('ep_update_retention_cron_schedule',$plugin_admin,'ep_update_retention_cron_schedule');
-                $this->loader->add_action( 'ep_gdpr_cleanup_hook', $plugin_admin,'ep_gdpr_cleanup_old_bookings' );
 
-                
 	}
 
 	/**
@@ -505,10 +500,7 @@ class Eventprime_Event_Calendar_Management {
                 $this->loader->add_action('template_redirect', $plugin_public,'ep_remove_post_navigation_action');
                 // iCal download
                 $this->loader->add_action( 'init', $plugin_public, 'get_ical_file', 9999 ); // iCal file download.
-                $this->loader->add_action('ep_event_booking_before_checkout_button', $plugin_public, 'ep_gdpr_consent_checkbox',1,1);
-                $this->loader->add_action('wp_footer', $plugin_public, 'ep_show_gdpr_badge_on_footer');
 
-                
         }
         
         private function add_ajax_request() {
@@ -570,12 +562,7 @@ class Eventprime_Event_Calendar_Management {
                 'get_calendar_event'                => true,
                 'check_offer_applied'               => true,
                 'update_tickets_data'               => true,
-                'export_user_bookings_data'         => false,
-                'request_data_erasure'              => false,
-                'request_data_export'               => false,
-                'delete_user_bookings_data'         => false,
-                'delete_guest_booking_data'         => true,
-                
+
             );
 
             foreach ( $ajax_requests as $action => $nopriv ) {

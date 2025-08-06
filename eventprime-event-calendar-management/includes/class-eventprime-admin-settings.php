@@ -55,10 +55,7 @@ class EventPrime_Admin_settings{
                         $this->save_checkout_registration_form_settings($form_data);
                     } elseif( $setting_type == 'front_event_details_settings'){
                         $this->save_front_event_details_settings($form_data);
-                    } elseif ( $setting_type == 'gdpr_settings' ) {
-                        $this->save_gdpr_settings( $form_data );
                     }
-                    
 
                     // hook for save global settings from extensions
                     do_action( 'ep_submit_global_setting' );
@@ -84,71 +81,6 @@ class EventPrime_Admin_settings{
         }
         
     }
-    
-    /**
-     * Save GDPR settings
-     *
-     * @param array $form_data Sanitized POST data.
-    */
-    public function save_gdpr_settings( $form_data ) {
-
-       $global_settings      = new Eventprime_Global_Settings;
-       $admin_notices        = new EventM_Admin_Notices;
-       $global_settings_data = $global_settings->ep_get_settings();
-       $global_settings_data->enable_gdpr_tools          = isset( $form_data['enable_gdpr_tools'] )          ? 1 : 0;
-       $global_settings_data->enable_gdpr_download       = isset( $form_data['enable_gdpr_download'] )       ? 1 : 0;
-       $global_settings_data->enable_gdpr_delete         = isset( $form_data['enable_gdpr_delete'] )         ? 1 : 0;
-       $global_settings_data->enable_gdpr_download_request      = isset( $form_data['enable_gdpr_download_request'] )       ? 1 : 0;
-       $global_settings_data->enable_gdpr_delete_request         = isset( $form_data['enable_gdpr_delete_request'] )         ? 1 : 0;
-       
-       $global_settings_data->show_gdpr_consent_checkbox = isset( $form_data['show_gdpr_consent_checkbox'] ) ? 1 : 0;
-       $global_settings_data->show_gdpr_badge            = isset( $form_data['show_gdpr_badge'] )            ? 1 : 0;
-       $global_settings_data->gdpr_consent_text = ! empty( $form_data['gdpr_consent_text'] )
-           ? sanitize_text_field( $form_data['gdpr_consent_text'] )
-           : esc_html__( "I agree to the site's Privacy Policy.", 'eventprime-event-calendar-management' );
-
-       $global_settings_data->gdpr_privacy_policy_url = ! empty( $form_data['gdpr_privacy_policy_url'] )
-           ? esc_url_raw( $form_data['gdpr_privacy_policy_url'] )
-           : esc_url_raw( function_exists( 'get_privacy_policy_url' ) ? get_privacy_policy_url() : home_url( '/privacy-policy' ) );
-
-       $global_settings_data->gdpr_retention_period = ( $form_data['gdpr_retention_period'] !== '' )
-           ? absint( $form_data['gdpr_retention_period'] )
-           : '';
-       
-       // Save Cookie Consent Settings
-        $global_settings_data->enable_cookie_consent_banner = isset( $form_data['enable_cookie_consent_banner'] ) ? 1 : 0;
-        $global_settings_data->cookie_consent_message = ! empty( $form_data['cookie_consent_message'] )
-            ? sanitize_textarea_field( $form_data['cookie_consent_message'] )
-            : esc_html__( 'We use cookies to ensure you get the best experience on our website.', 'eventprime-event-calendar-management' );
-
-        $global_settings_data->cookie_consent_button_text = ! empty( $form_data['cookie_consent_button_text'] )
-            ? sanitize_text_field( $form_data['cookie_consent_button_text'] )
-            : esc_html__( 'Accept', 'eventprime-event-calendar-management' );
-
-
-      
-
-       /*--------------------------------------------------------------
-       | Save + admin notice + redirect
-       --------------------------------------------------------------*/
-       $global_settings->ep_save_settings( $global_settings_data );
-       
-       $admin_notices->ep_add_notice(
-           'success',
-           esc_html__( 'GDPR settings saved successfully.', 'eventprime-event-calendar-management' )
-       );
-       
-       do_action( 'ep_update_retention_cron_schedule' );
-
-       $redirect_url = admin_url( 'edit.php?post_type=em_event&page=ep-settings&tab=gdpr' );
-       $redirect_url = add_query_arg( array(
-           'tab_nonce' => wp_create_nonce( 'ep_settings_tab' ),
-       ), $redirect_url );
-
-       wp_redirect( $redirect_url );
-       exit;
-   }
-
 
     /**
      * Save general settings - regular setting tab
@@ -182,8 +114,7 @@ class EventPrime_Admin_settings{
      * Save general settings - timezone setting tab
      */
     
-    public function save_timezone_settings($form_data)
-    {
+    public function save_timezone_settings($form_data){
         $global_settings = new Eventprime_Global_Settings;
         $admin_notices = new EventM_Admin_Notices;
         $global_settings_data = $global_settings->ep_get_settings();
