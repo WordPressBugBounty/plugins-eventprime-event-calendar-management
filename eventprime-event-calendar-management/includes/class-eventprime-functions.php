@@ -2133,7 +2133,7 @@ class Eventprime_Basic_Functions {
         if (!empty($this->ep_get_global_settings('enable_event_time_to_user_timezone'))) {
             $user_id = get_current_user_id();
             // if user is loggedin
-            if (!empty($user_id)) {
+            /* if (!empty($user_id)) {
                 // check from user meta
                 $user_timezone_meta = get_user_meta($user_id, 'ep_user_timezone_meta', true);
                 if (empty($user_timezone_meta)) {
@@ -2150,6 +2150,8 @@ class Eventprime_Basic_Functions {
                     $user_timezone_meta = $_COOKIE['ep_user_timezone_meta'];
                 }
             }
+             * 
+             */
             // if user did not save timezone then return site timezone
             if (empty($user_timezone_meta)) {
                 $user_timezone_meta = $this->ep_get_user_timezone();
@@ -12192,7 +12194,176 @@ public function ep_get_events( $fields ) {
             </span>
         <?php
     }
+    
+    public function ep_privacy_export_personal_data( $email_address, $page = 1 ) {
 
+       $user = get_user_by( 'email', $email_address );
+       if ( ! $user ) {
+           return array( 'data' => array(), 'done' => true );
+       }
+
+       /*---------------------------------------------
+        * 1.  Collect this page of bookings
+        *--------------------------------------------*/
+       $per_page       = 500;                         // WP core recommendation
+       $bookings_api   = new EventPrime_Bookings();
+       $all_bookings   = $bookings_api->get_user_all_bookings( $user->ID, true );
+
+       // Slice to current page
+       $offset         = ( $page - 1 ) * $per_page;
+       $bookings       = array_slice( $all_bookings, $offset, $per_page );
+
+       if ( empty( $bookings ) ) {
+           return array( 'data' => array(), 'done' => true );
+       }
+
+       /*---------------------------------------------
+        * 2.  Build header map once
+        *--------------------------------------------*/
+       $labels = array(
+           'id'              => __( 'Booking ID',        'eventprime-event-calendar-management' ),
+           'event'           => __( 'Event',            'eventprime-event-calendar-management' ),
+           'start'           => __( 'Start Date / Time','eventprime-event-calendar-management' ),
+           'end'             => __( 'End Date / Time',  'eventprime-event-calendar-management' ),
+           'tickets'         => __( 'Tickets',          'eventprime-event-calendar-management' ),
+           'attendees'      => __( 'Attendee Details', 'eventprime-event-calendar-management' ),
+           'total'           => __( 'Amount Paid',      'eventprime-event-calendar-management' ),
+           'gateway'         => __( 'Payment Gateway',  'eventprime-event-calendar-management' ),
+           'booking_status'  => __( 'Booking Status',   'eventprime-event-calendar-management' ),
+           'payment_status'  => __( 'Payment Status',   'eventprime-event-calendar-management' ),
+       );
+
+       $out = array();
+
+       /*---------------------------------------------
+        * 3.  Transform each booking → item_data
+        *--------------------------------------------*/
+       foreach ( $bookings as $booking ) {
+           
+           // Get attendees
+        $attendee_summary = '';
+        $attendee_count   = 0;
+
+        if ( ! empty( $booking->em_attendee_names ) ) {
+            $attendee_names = maybe_unserialize( $booking->em_attendee_names );
+
+            foreach ( $attendee_names as $ticket_id => $attendee_data ) {
+                $labels_list = $this->ep_get_booking_attendee_field_labels( $attendee_data[1] );
+
+                foreach ( $attendee_data as $attendee ) {
+                    $attendee_count++;
+                    $attendee_line = '';
+                    $serialize_attendee = print_r($attendee,true);
+                    foreach ( $labels_list as $label ) {
+                        if($attendee_line!='')
+                        {
+                            $attendee_line .= "| ";
+                        }
+                        $slug = $this->ep_get_slug_from_string( $label );
+                        $val  = isset( $attendee[ $slug ] ) && ! empty( $attendee[ $slug ] )
+                            ? $attendee[ $slug ]
+                            : '---';
+                         if ( $val === '---' ) {
+                            foreach ( $attendee as $sub_key => $sub_value ) {
+                                if ( is_array( $sub_value ) && isset( $sub_value[ $slug ] ) ) {
+                                    $val = $sub_value[ $slug ];
+                                    break;
+                                }
+                            }
+                        }
+
+                        $attendee_line .= "{$label}: {$val} ";
+                    }
+
+                    $attendee_summary .= "Attendee {$attendee_count}: {$attendee_line} \n";
+                }
+            }
+        }
+
+           // ----- minimal data extraction (adapt as needed) -----
+           $start = ! empty( $booking->event_data->em_start_date )
+               ? date_i18n( 'Y-m-d H:i', $booking->event_data->em_start_date )
+               : '';
+
+           $end   = ! empty( $booking->event_data->em_end_date )
+               ? date_i18n( 'Y-m-d H:i', $booking->event_data->em_end_date )
+               : '';
+
+           $item  = array(
+               'id'             => $booking->em_id,
+               'event'          => $booking->em_name,
+               'start'          => $start,
+               'end'            => $end,
+               'tickets'        => count( (array) $booking->em_attendee_names ),
+                'attendees'      => trim( $attendee_summary ),
+               'total'          => isset( $booking->em_order_info['booking_total'] )
+                                      ? $booking->em_order_info['booking_total']
+                                      : '',
+               'gateway'        => ucfirst( $booking->em_payment_method ?? 'N/A' ),
+               'booking_status' => ucfirst( $booking->em_status          ?? 'N/A' ),
+               'payment_status' => ucfirst( $booking->em_payment_log['payment_status']
+                                      ?? $booking->em_payment_log['offline_status']
+                                      ?? 'N/A' ),
+           );
+
+           // Convert to WP privacy format
+           $item_data = array();
+           foreach ( $item as $key => $value ) {
+               $item_data[] = array(
+                   'name'  => $labels[ $key ],
+                   'value' => (string) $value,
+               );
+           }
+
+           $out[] = array(
+               'group_id'    => 'eventprime',
+               'group_label' => __( 'EventPrime Bookings', 'eventprime-event-calendar-management' ),
+               'item_id'     => 'booking-' . $booking->em_id,
+               'data'        => $item_data,
+           );
+       }
+
+       /*---------------------------------------------
+        * 4.  Tell WP if more pages remain
+        *--------------------------------------------*/
+       $done = $offset + $per_page >= count( $all_bookings );
+
+       return array(
+           'data' => $out,
+           'done' => $done,
+       );
+   }
+
+
+    public function ep_privacy_delete_personal_data( $email_address, $page = 1 ) 
+    {
+
+        $user = get_user_by( 'email', $email_address );
+        if ( ! $user ) {
+            return array(
+                'items_removed'  => 0,
+                'items_retained' => 0,
+                'messages'       => array(),
+                'done'           => true,
+            );
+        }
+        $bookings = new EventPrime_Bookings();
+        $user_bookings      = $bookings->get_user_all_bookings( $user->ID,false );
+        //print_r($bookings);die;
+        $items_removed = 0;
+
+        foreach ( $user_bookings as $booking ) {
+            wp_delete_post( $booking->em_id, true );
+            $items_removed++;
+        }
+
+        return array(
+            'items_removed'  => $items_removed,
+            'items_retained' => 0,
+            'messages'       => array(),
+            'done'           => true,
+        );
+    }
 
     
 }

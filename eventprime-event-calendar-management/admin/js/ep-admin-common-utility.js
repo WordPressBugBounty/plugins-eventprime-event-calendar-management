@@ -247,6 +247,16 @@ function hide_show_google_share_setting(element, childId) {
     }
 }
 
+function ep_hide_show_child_setting(element, childId) {
+    
+    if (element.checked) {
+       jQuery('.' + childId).show(200);
+    } else {
+        jQuery('.' + childId).hide(200);
+    }
+}
+
+
 /*
  * Hide Show
  */

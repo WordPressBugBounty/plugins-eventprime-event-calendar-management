@@ -21,9 +21,9 @@ if ( $global_settings->enable_gdpr_tools && $global_settings->show_gdpr_badge) :
     <div class="ep-modal-dialog ep-modal-dialog-centered">
         <div class="ep-modal-content">
             <div class="ep-modal-body"> 
-                <div class="ep-box-row">
+                <div class="ep_gdpr_modal_wrap">
                     <h3 class="ep-modal-title ep-px-4 ep-pt-3 ep-mt-0 ep-mb-3"><?php esc_html_e( 'How Your Data Is Handled', 'eventprime-event-calendar-management' ); ?></h3>
-                    <a href="#" class="ep-modal-close close-popup" data-id="ep_gdpr_modal"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></a>
+                    <a href="#" class="ep-modal-close close-popup" ep-modal-close="ep_gdpr_modal" style="position: absolute;right: 9px;top: 16px;text-align: right;color:#3f3d3d"><span class="material-icons">close</span></a>
                     <ul id="ep-gdpr-modal-content" class="ep-gdpr-modal-content">
                  <?php if ( $global_settings->enable_gdpr_tools ) : ?>
                 <li><?php esc_html_e( 'This site is GDPR-compliant. You have access to your data and control over how it is used.', 'eventprime-event-calendar-management' ); ?></li>
