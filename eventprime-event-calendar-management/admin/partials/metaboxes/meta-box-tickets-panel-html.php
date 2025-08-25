@@ -106,7 +106,7 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                                                             <div class="ep-box-col-2 ep-p-3">
                                                                 <span><?php echo esc_html( $ep_functions->ep_price_with_position( $ticket->price ) );?></span>
                                                             </div>
-                                                            <div class="ep-box-col-3 ep-p-3">
+                                                            <div class="ep-box-col-3 ep-py-3">
                                                                 <span>
                                                                     <?php echo esc_html__( 'Capacity', 'eventprime-event-calendar-management' ) . ' ' . esc_html( $ticket->capacity ) . '/' . esc_html( $cat_data->capacity );?>
                                                                 </span>
@@ -195,7 +195,7 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                                             <div class="ep-box-col-1 ep-p-3">
                                                     <a href="javascript:void(0)" class="ep-ticket-row-edit ep-text-primary ep-cursor" data-parent_id="<?php echo esc_attr( $ticket_row_id );?>" title="<?php esc_html_e( 'Edit Ticket', 'eventprime-event-calendar-management' );?>">Edit</a>
                                             </div>
-                                            <div class="ep-box-col-1 ep-p-3">
+                                            <div class="ep-box-col-1 ep-py-3">
                                                 <a href="javascript:void(0)" class="ep-ticket-row-delete  ep-text-danger ep-cursor" data-parent_id="<?php echo esc_attr( $ticket_row_id );?>" title="<?php esc_html_e( 'Delete Ticket', 'eventprime-event-calendar-management' );?>">Delete</a>
                                             </div>
                                         </div>

@@ -56,13 +56,18 @@ $ep_functions = new Eventprime_Basic_Functions;
         <!-- <span class="material-icons-outlined ep-mr-3">notifications_active</span> -->
         <?php //wishlist
         do_action( 'ep_event_view_wishlist_icon', $args->event, 'event_detail' );
-
+        
         //calendar icon
         //do_action( 'ep_event_view_calendar_icon', $args->event, 'event_detail' );?>
-       
+        <?php if(!empty( $ep_functions->ep_get_global_settings( 'show_print_icon' ) )): ?>
+        <div class="ep-event-action ep_event_print_action ep-px-2 ep-d-flex ep-align-items-center ep-bg-white ep-rounded-tbl-right">
+                    <span class="material-icons-outlined ep-handle-fav ep-cursor ep-button-text-color ep-mr-3" onclick="window.print();">print</span>
+                </div>
+        <?php endif; ?>
         <div class="ep-sl-event-action ep-cursor ep-position-relative ep-event-ical-action ep-bg-white ep-d-flex ep-align-items-center">
                 <span class="material-icons-outlined ep-exp-dropbtn ep-mr-3 ep-cursor"><svg class="ep-btn-text-fill-color" xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000"><g><rect fill="none" height="24" width="24"/></g><g><path d="M19,4h-1V2h-2v2H8V2H6v2H5C3.89,4,3.01,4.9,3.01,6L3,20c0,1.1,0.89,2,2,2h14c1.1,0,2-0.9,2-2V6C21,4.9,20.1,4,19,4z M19,20 H5V10h14V20z M19,8H5V6h14V8z M9,14H7v-2h2V14z M13,14h-2v-2h2V14z M17,14h-2v-2h2V14z M9,18H7v-2h2V18z M13,18h-2v-2h2V18z M17,18 h-2v-2h2V18z"/></g></svg></span>
                 <ul class="ep-calendar-exp-dropdown-content ep-event-share ep-m-0 ep-p-0">
+                    
                     <li class="ep-event-social-icon">  <a href="javascript:void();"  id="ep_event_ical_export" title="<?php esc_html_e( '+ iCal Export','eventprime-event-calendar-management' ); ?>" data-event_id="<?php echo esc_attr( $args->event->id );?>"><?php esc_html_e( 'iCal Export','eventprime-event-calendar-management' ); ?></a></li>
                     <?php
                     // add to google calendar 
@@ -130,6 +135,8 @@ $ep_functions = new Eventprime_Basic_Functions;
                     if( ! empty( $outlook_lv_starts ) && ! empty( $outlook_lv_ends ) ) {?>
                         <li class="ep-event-social-icon">  <a href="<?php echo esc_url( $outlook_lv_url );?>" target="_blank" title="<?php esc_html_e( 'Outlook Live','eventprime-event-calendar-management' ); ?>"><?php esc_html_e( 'Outlook Live','eventprime-event-calendar-management' ); ?></a></li>
                     <?php } ?>
+                        
+                        
                 </ul>
 
         </div>

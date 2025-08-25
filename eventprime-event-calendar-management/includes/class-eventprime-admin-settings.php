@@ -809,6 +809,7 @@ class EventPrime_Admin_settings{
         $global_settings_data->show_qr_code_on_single_event       = ( ! empty( $form_data['show_qr_code_on_single_event'] ) ? 1 : 0 );
         $global_settings_data->hide_performers_section            = ( ! empty( $form_data['hide_performers_section'] ) ? 1 : 0 );
         $global_settings_data->hide_organizers_section            = ( ! empty( $form_data['hide_organizers_section'] ) ? 1 : 0 );
+        $global_settings_data->show_print_icon                    = ( ! empty( $form_data['show_print_icon'] ) ? 1 : 0 );
         $global_settings_data->event_detail_image_width           = ( ! empty( $form_data['event_detail_image_width'] ) ? $form_data['event_detail_image_width'] : '' );
         $global_settings_data->event_detail_image_height          = ( ! empty( $form_data['event_detail_image_height'] ) ? $form_data['event_detail_image_height'] : 'auto' );
         $global_settings_data->event_detail_image_height_custom   = ( ! empty( $form_data['event_detail_image_height_custom'] ) ? $form_data['event_detail_image_height_custom'] : '' );

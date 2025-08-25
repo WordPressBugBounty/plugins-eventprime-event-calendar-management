@@ -63,7 +63,7 @@ if( ! empty( $term ) ) {
     // get upcoming events for venue
     $paged = ( get_query_var('paged') ) ? get_query_var('paged') : 1;
     $args = array(
-        'orderby'        => 'em_start_date_time',
+        
         'posts_per_page' => $single_venue_event_limit,
         'offset'         => (int)( $paged - 1 ) * (int)$single_venue_event_limit,
         'paged'          => $paged,

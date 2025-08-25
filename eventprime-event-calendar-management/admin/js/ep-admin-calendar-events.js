@@ -89,9 +89,87 @@ jQuery( function( $ ) {
             },
             success: function(data) {
                 // clearTimeout(hideLoaderTimeout);
+                /*
                 if(data.data)
                 {
                     successCallback(data.data);
+                }
+                
+                /*
+ * ⚠️ Important Note:
+ * FullCalendar treats events differently depending on whether the "end" field
+ * has a time or is just a date string. 
+ *
+ * Problem:
+ * - For timed events, if "end" is passed as a plain date (YYYY-MM-DD) without time,
+ *   FullCalendar interprets it as an all-day or exclusive end, causing the event 
+ *   to appear on the wrong day (spilling into two days).
+ *
+ * Fix:
+ * - For timed events, always convert start/end into full ISO datetime strings.
+ * - For true all-day events, keep date-only but make the "end" exclusive 
+ *   (next day at 00:00) as per FullCalendar’s requirement.
+ *
+ * Example:
+ *   Bad → start: "2025-08-25 23:40", end: "2025-08-25"
+ *   Good → start: "2025-08-25T23:40:00", end: "2025-08-25T23:45:00"
+ *
+ * This normalization ensures one-day events are rendered correctly 
+ * and prevents them from showing on multiple days.
+ */
+               
+               
+                if (data.data) {
+                    const pad = n => String(n).padStart(2, '0');
+
+                    const toISO = (dateStr, timeStr) => {
+                        // timeStr like "11:45 PM" or "12:00 AM"
+                        const d = new Date(`${dateStr} ${timeStr}`);
+                        const y = d.getFullYear();
+                        const m = pad(d.getMonth() + 1);
+                        const da = pad(d.getDate());
+                        const h = pad(d.getHours());
+                        const mi = pad(d.getMinutes());
+                        return `${y}-${m}-${da}T${h}:${mi}:00`;
+                    };
+
+                    const addOneDayISODate = (dateStr) => {
+                        const d = new Date(`${dateStr}T00:00:00`);
+                        d.setDate(d.getDate() + 1);
+                        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+                    };
+
+                    const isDateOnly = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
+
+                    const normalized = data.data.map(e => {
+                        // Map WP field to FullCalendar
+                        e.allDay = (e.all_day === 1 || e.all_day === '1' || e.all_day === true);
+
+                        // START: add time if missing for timed events
+                        if (isDateOnly(e.start) && !e.allDay && e.start_time) {
+                            e.start = toISO(e.start, e.start_time);
+                        }
+                        // END: add time if missing for timed events
+                        if (isDateOnly(e.end) && !e.allDay && e.end_time) {
+                            e.end = toISO(e.end, e.end_time);
+                        }
+
+                        // For true all-day events, make end exclusive (next day)
+                        if (e.allDay) {
+                            // Ensure start is date-only for all-day
+                            if (!isDateOnly(e.start) && typeof e.event_start_date === 'string') {
+                                e.start = e.event_start_date; // YYYY-MM-DD
+                            }
+                            // Ensure end is exclusive date-only
+                            const baseEnd = isDateOnly(e.end) ? e.end
+                                          : (typeof e.event_end_date === 'string' ? e.event_end_date : e.start);
+                            e.end = addOneDayISODate(baseEnd);
+                        }
+
+                        return e;
+                    });
+
+                    successCallback(normalized);
                 }
                 setTimeout(function() {
                         jQuery('.ep-event-loader').hide();

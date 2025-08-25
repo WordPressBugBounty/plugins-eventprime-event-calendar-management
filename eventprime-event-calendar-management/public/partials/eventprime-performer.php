@@ -54,7 +54,6 @@ wp_enqueue_style( 'ep-responsive-slides-css' );
             $paged = ( get_query_var('paged') ) ? get_query_var('paged') : 1;
             // get upcoming events for performer
             $args = array(
-                'orderby'        => 'em_start_date_time',
                 'posts_per_page' => $single_performer_event_limit,
                 'offset'         => (int) ( $paged - 1 ) * (int)$single_performer_event_limit,
                 'paged'          => $paged,

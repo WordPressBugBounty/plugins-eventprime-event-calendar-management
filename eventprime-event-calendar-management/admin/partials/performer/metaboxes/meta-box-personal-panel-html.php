@@ -154,5 +154,8 @@ $em_is_featured        = get_post_meta( $post->ID, 'em_is_featured', true );
             </div>
         </div>
     </div>
+
+    <?php do_action("ep_extend_performer_personal_info", $post); ?>
+
         </div>
 </div>

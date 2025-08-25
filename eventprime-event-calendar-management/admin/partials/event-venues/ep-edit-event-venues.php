@@ -268,4 +268,5 @@
                 </div>
             </td>
         </tr>
+        <?php do_action("ep_extend_edit_event_venue_form", $term); ?>
         <?php wp_nonce_field( 'em_event_venue_nonce_action', 'em_event_venue_nonce_field' );

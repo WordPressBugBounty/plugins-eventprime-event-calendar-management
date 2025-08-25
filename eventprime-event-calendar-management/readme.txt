@@ -5,7 +5,7 @@ Tags: event calendar, organizer , event manager, tickets, event booking, event b
 Requires at least: 4.8
 Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 4.1.0.6
+Stable tag: 4.1.2.0
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -666,6 +666,17 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.1.2.0: August 25, 2025 =
+* Added: Print button option on event page for quick printing of event details.
+* Added: End time included in booking confirmation emails for better clarity.
+* Added: Event URL/details displayed on booking page to reduce attendee confusion.
+* Added: Sorting option for organizers and venues in admin and frontend.
+* Added: Calendar remains visible on frontend even when no events are available.
+* Fixed: Blurred image issue on calendar view.
+* Fixed: Venue-based event filtering on frontend calendar.
+* Fixed: Upcoming events order on venue detail page.
+* Fixed: Single-day events incorrectly spanning multiple days on calendar.
 
 = 4.1.1.0: August 08, 2025 =
 * Added full GDPR compliance tools
@@ -2171,6 +2182,17 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.1.2.0: August 25, 2025 =
+* Added: Print button option on event page for quick printing of event details.
+* Added: End time included in booking confirmation emails for better clarity.
+* Added: Event URL/details displayed on booking page to reduce attendee confusion.
+* Added: Sorting option for organizers and venues in admin and frontend.
+* Added: Calendar remains visible on frontend even when no events are available.
+* Fixed: Blurred image issue on calendar view.
+* Fixed: Venue-based event filtering on frontend calendar.
+* Fixed: Upcoming events order on venue detail page.
+* Fixed: Single-day events incorrectly spanning multiple days on calendar.
 
 = 4.1.1.0: August 08, 2025 =
 * Added full GDPR compliance tools

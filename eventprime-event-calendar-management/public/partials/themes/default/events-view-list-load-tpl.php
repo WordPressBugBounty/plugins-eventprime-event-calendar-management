@@ -1,7 +1,14 @@
 <?php
 $ep_requests = new EP_Requests;
 $basic_function = $ep_functions = new Eventprime_Basic_Functions;
-if( isset( $args->events ) && !empty( $args->events ) ) {?>
+if( !isset( $args->events ) || empty( $args->events ) ) {
+    ?>
+    <div class="ep-alert ep-alert-warning ep-mt-3">
+        <?php ( isset( $_GET['ep_search'] ) ) ? esc_html_e( 'No event found related to your search.', 'eventprime-event-calendar-management' ) : esc_html_e( 'Currently, there are no events planned. Please check back later.', 'eventprime-event-calendar-management' ); ?>
+    </div><?php
+    
+}
+?>
         <div class="ep-events ep-box-row ep-event-list-<?php echo esc_attr($args->display_style);?>-container <?php if( $args->display_style == 'masonry' ) { echo 'masonry-entry'; } ?> ep_events_front_views_<?php echo esc_attr( $args->display_style);?>_<?php echo esc_attr( $args->section_id);?>" id="ep_events_front_views_<?php echo esc_attr($args->display_style);?>">
             <?php
             switch ( $args->display_style ) {
@@ -35,12 +42,7 @@ if( isset( $args->events ) && !empty( $args->events ) ) {?>
 
             }?>
         </div>
-    <?php
-} else{?>
-    <div class="ep-alert ep-alert-warning ep-mt-3">
-        <?php ( isset( $_GET['ep_search'] ) ) ? esc_html_e( 'No event found related to your search.', 'eventprime-event-calendar-management' ) : esc_html_e( 'Currently, there are no events planned. Please check back later.', 'eventprime-event-calendar-management' ); ?>
-    </div><?php
-}?>
+    
 
 <?php
 // Load event load more template

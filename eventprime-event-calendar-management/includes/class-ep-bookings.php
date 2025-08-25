@@ -862,7 +862,7 @@ class EventPrime_Bookings {
                                                 for( $q = 1; $q <= $total_ticket_qty_count; $q ++ ) {?>
                                                     <div class="ep-event-booking-attendee ep-mb-3">
                                                         <div class="ep-event-booking-attendee-head ep-box-row ep-overflow-hidden ep-border ep-rounded-top  ep-mb-0">
-                                                            <div class="ep-box-col-12 ep-py-3 ep-d-flex ep-justify-content-between">
+                                                            <div class="ep-box-col-12 ep-p-3 ep-d-flex ep-justify-content-between">
                                                                 <span class="ep-fs-6 ep-fw-bold">
                                                                     <?php $ticket = $ep_functions->ep_global_settings_button_title( 'Ticket' );
                                                                     if( empty( $ticket ) ) {

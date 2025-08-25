@@ -104,9 +104,17 @@ $('.epTimePicker').timepicker(timepickerOptions);
 
 // Function to update end time picker based on selected start time and dates
 function updateEndTimePicker() {
-    const startTime = $('#em_start_time').val().trim();
-    const startDate = $('#em_start_date').val().trim();
-    const endDate = $('#em_end_date').val().trim();
+    
+//    const startTime = $('#em_start_time').val().trim();
+//    const startDate = $('#em_start_date').val().trim();
+//    const endDate = $('#em_end_date').val().trim();
+    
+    // read values safely (won't throw even if fields missing)
+    
+    const startTime = safeTrimValue('#em_start_time'); 
+    const startDate = safeTrimValue('#em_start_date');
+    const endDate   = safeTrimValue('#em_end_date');
+
 
     // Remove previous instance to prevent duplication
     $('#em_end_time').timepicker('remove');
@@ -122,6 +130,13 @@ function updateEndTimePicker() {
     $('#em_end_time').timepicker(endTimeOptions);
 }
 
+function safeTrimValue(selector) {
+    const $el = $(selector);
+    if (!$el.length) return '';             // element not in DOM yet
+    const v = $el.val();
+    return (v == null ? '' : String(v)).trim();
+  }
+  
 // Trigger update on document ready
 $(document).ready(function () {
     updateEndTimePicker();
@@ -3360,7 +3375,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
                     ticket_template += '<span>'+ ep_format_price_with_position( em_event_ticket_price || '0' )+'</span>';
                     
                     ticket_template += '</div>';
-                    ticket_template += '<div class="ep-box-col-3 ep-p-3">';
+                    ticket_template += '<div class="ep-box-col-3 ep-py-3">';
                         if( em_ticket_category_id ) {
                             ticket_template += '<span>' + em_event_meta_box_object.ticket_capacity_text + ' ' + em_event_ticket_qty + '/' + cat_capacity + '</span>';
                         } else{
@@ -3370,7 +3385,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
                     ticket_template += '<div class="ep-box-col-1 ep-p-3">';
                         ticket_template += ' <a href="javascript:void(0)" class="ep-ticket-row-edit ep-text-primary ep-cursor" data-parent_id="'+template_id+'" data-parent_category_id="'+em_ticket_category_id+'">Edit</a>';
                     ticket_template += '</div>';
-                    ticket_template += '<div class="ep-box-col-1 ep-p-3">';
+                    ticket_template += '<div class="ep-box-col-1 ep-py-3">';
                         ticket_template += '<span class="ep-ticket-row-delete ep-text-danger ep-cursor" data-parent_id="'+template_id+'">Delete</span>';
                     ticket_template += '</div>';
                 ticket_template += '</div>';

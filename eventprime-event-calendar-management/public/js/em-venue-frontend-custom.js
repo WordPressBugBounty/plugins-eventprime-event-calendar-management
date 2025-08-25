@@ -13,6 +13,8 @@ jQuery( function( $ ) {
         var display_style = $('#ep-venues-style').val();
         var limit = $('#ep-venues-limit').val();
         var cols = $('#ep-venues-cols').val();
+        var orderby = $('#ep-venues-orderby').val();
+        var order = $('ep-venues-order').val();
         var featured = $('#ep-venues-featured').val();
         var popular = $('#ep-venues-popular').val();
         var search = $('#ep-venues-search').val();
@@ -23,6 +25,8 @@ jQuery( function( $ ) {
         formData.append('display_style', display_style);
         formData.append('limit', limit);
         formData.append('cols', cols);
+        formData.append('orderby', orderby);
+        formData.append('order', order);
         formData.append('featured',featured);
         formData.append('popular',popular);
         formData.append('search',search);

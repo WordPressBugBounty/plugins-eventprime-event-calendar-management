@@ -40,7 +40,21 @@ $ext_list = $global_function->ep_list_all_exts();
                         </div>
                         <div class="ep-scblock ep-sc-parameters-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Parameters', 'eventprime-event-calendar-management'); ?></div> 
-                            <div class="ep-sc-dec ep-box-w-65"><ul><li>None</li></ul></div>
+                            <div class="ep-sc-dec ep-box-w-65">
+                                <ul>
+  <li><b>view</b> (string) — One of square_grid, staggered_grid, rows, slider, month, week, listweek, day.</li>
+  <li><b>id</b> (int) — Show a specific event by ID.</li>
+  <li><b>types</b> (string) — Comma-separated Event Type IDs.</li>
+  <li><b>sites</b> (string) — Comma-separated Event Site IDs.</li>
+  <li><b>show</b> (int) — Number of events to list per page.</li>
+  <li><b>upcoming</b> (0|1) — Show only upcoming events when set to 1.</li>
+  <li><b>disable_filter</b> (0|1) — Hide event filters when set to 1.</li>
+  <li><b>filter_elements</b> (string) — Comma-separated filter names (quick_search, date_range, event_type, venue, performer, organizer).</li>
+  <li><b>individual_events</b> (string) — Show events for yesterday, today, tomorrow, or this month.</li>
+  <li><b>order</b> (string) — Sort direction. Allowed: asc, desc.</li>
+</ul>
+
+                            </div>
                         </div>
                         <div class="ep-scblock ep-sc-description-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Description', 'eventprime-event-calendar-management'); ?></div> 
@@ -85,7 +99,18 @@ $ext_list = $global_function->ep_list_all_exts();
                         </div>
                         <div class="ep-scblock ep-sc-parameters-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Parameters', 'eventprime-event-calendar-management'); ?></div> 
-                            <div class="ep-sc-dec ep-box-w-65"><ul><li>None</li></ul></div>
+                            <div class="ep-sc-dec ep-box-w-65">
+                                <ul>
+  <li><b>display_style</b> (string) — One of grid, colored_grid, rows.</li>
+  <li><b>limit</b> (int) — Total event types to list (per page if load_more="1").</li>
+  <li><b>cols</b> (int) — Number of event types per row (grid layouts).</li>
+  <li><b>load_more</b> (0|1) — Show “Load more” button.</li>
+  <li><b>search</b> (0|1) — Show the search box.</li>
+  <li><b>featured</b> (0|1) — Show only featured types when set to 1.</li>
+  <li><b>popular</b> (0|1) — Show only popular types when set to 1.</li>
+</ul>
+
+                            </div>
                         </div>
                         <div class="ep-scblock ep-sc-description-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Description', 'eventprime-event-calendar-management'); ?></div> 
@@ -126,15 +151,28 @@ $ext_list = $global_function->ep_list_all_exts();
                     <div class="ep-scblock-hide" style="display: none;">
                         <div class="ep-scblock ep-sc-example-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Example', 'eventprime-event-calendar-management'); ?></div> 
-                            <div class="ep-sc-dec ep-box-w-65">[em_sites display_style="grid/colored_grid/rows" limit="{NUMBER}" cols="{NUMBER}" load_more="0 or 1" search="0 or 1" featured="0 or 1" popular="0 or 1"]</div>
+                            <div class="ep-sc-dec ep-box-w-65">[em_sites display_style="grid/colored_grid/rows" limit="{NUMBER}" cols="{NUMBER}" load_more="0 or 1" search="0 or 1" featured="0 or 1" popular="0 or 1" orderby="id/name/count" order="asc/desc"]</div>
                         </div>
                         <div class="ep-scblock ep-sc-parameters-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Parameters', 'eventprime-event-calendar-management'); ?></div> 
-                            <div class="ep-sc-dec ep-box-w-65"><ul><li>None</li></ul></div>
+                            <div class="ep-sc-dec ep-box-w-65">
+                                <ul>
+  <li><b>display_style</b> (string) — One of grid, colored_grid, rows.</li>
+  <li><b>limit</b> (int) — Total sites/locations to list (per page if load_more="1").</li>
+  <li><b>cols</b> (int) — Number of sites per row (grid layouts).</li>
+  <li><b>load_more</b> (0|1) — Show “Load more” button.</li>
+  <li><b>search</b> (0|1) — Show the search box.</li>
+  <li><b>featured</b> (0|1) — Show only featured sites when set to 1.</li>
+  <li><b>popular</b> (0|1) — Show only popular sites when set to 1.</li>
+  <li><b>orderby</b> (string) — Sort field. Allowed: name, id, count.</li>
+  <li><b>order</b> (string) — Sort direction. Allowed: ASC, DESC. Default depends on orderby.</li>
+</ul>
+
+                            </div>
                         </div>
                         <div class="ep-scblock ep-sc-description-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Description', 'eventprime-event-calendar-management'); ?></div> 
-                            <div class="ep-sc-dec ep-morelink ep-box-w-65">Displays the all Event Sites panel on the frontend where users can view the list of Event Sites at which events can take place. Use 'display_style', 'limit', 'cols', 'load_more', 'search', 'featured' and 'popular' attributes to set their default values. 'limit' will be use to list no. of sites/locations. 'cols' will be use to list no. of sites/locations in one column. 'load_more' for show/hide load more sites/locations. 'search' for hide/show search sites/locations. 'featured' for hide/show featured sites/locations. 'popular' for hide/show popular sites/locations.</b></div>
+                            <div class="ep-sc-dec ep-morelink ep-box-w-65">Displays the all Event Sites panel on the frontend where users can view the list of Event Sites at which events can take place. Use 'display_style', 'limit', 'cols', 'load_more', 'search', 'featured' and 'popular' attributes to set their default values. 'limit' will be use to list no. of sites/locations. 'cols' will be use to list no. of sites/locations in one column. 'load_more' for show/hide load more sites/locations. 'search' for hide/show search sites/locations. 'featured' for hide/show featured sites/locations. 'popular' for hide/show popular sites/locations. Use orderby and order to control the sort order of sites/locations.</b></div>
                         </div>
                     </div> 
                     <div class="ep-scblock ep-shorocode-show-more ep-d-flex ep-align-items-center ep-content-center ep-cursor">
@@ -171,15 +209,28 @@ $ext_list = $global_function->ep_list_all_exts();
                     <div class="ep-scblock-hide" style="display: none;">
                         <div class="ep-scblock ep-sc-example-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Example', 'eventprime-event-calendar-management'); ?></div> 
-                            <div class="ep-sc-dec ep-box-w-65">[em_event_organizers display_style="grid/colored_grid/rows" limit="{NUMBER}" cols="{NUMBER}" load_more="0 or 1" search="0 or 1" featured="0 or 1" popular="0 or 1"]</div>
+                            <div class="ep-sc-dec ep-box-w-65">[em_event_organizers display_style="grid/colored_grid/rows" limit="{NUMBER}" cols="{NUMBER}" load_more="0 or 1" search="0 or 1" featured="0 or 1" popular="0 or 1" orderby="id/name/count" order="asc/desc"]</div>
                         </div>
                         <div class="ep-scblock ep-sc-parameters-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Parameters', 'eventprime-event-calendar-management'); ?></div> 
-                            <div class="ep-sc-dec ep-box-w-65"><ul><li>None</li></ul></div>
+                            <div class="ep-sc-dec ep-box-w-65">
+                                <ul>
+  <li><b>display_style</b> (string) — One of grid, colored_grid, rows.</li>
+  <li><b>limit</b> (int) — Total organizers to list (per page if load_more="1").</li>
+  <li><b>cols</b> (int) — Number of organizers per row (grid layouts).</li>
+  <li><b>load_more</b> (0|1) — Show “Load more” button.</li>
+  <li><b>search</b> (0|1) — Show the search box.</li>
+  <li><b>featured</b> (0|1) — Show only featured organizers when set to 1.</li>
+  <li><b>popular</b> (0|1) — Show only popular organizers when set to 1.</li>
+  <li><b>orderby</b> (string) — Sort field. Allowed: name, id, count.</li>
+  <li><b>order</b> (string) — Sort direction. Allowed: ASC, DESC. Default depends on orderby.</li>
+</ul>
+
+                            </div>
                         </div>
                         <div class="ep-scblock ep-sc-description-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Description', 'eventprime-event-calendar-management'); ?></div> 
-                            <div class="ep-sc-dec ep-morelink ep-box-w-65">Displays the all Event Organizers panel on the frontend where users can view the categories and the number of events that belong to them. Use 'display_style', 'limit', 'cols', 'load_more', 'search', 'featured' and 'popular' attributes to set their default values. 'limit' will be use to list no. of event organizers. 'cols' will be use to list no. of event organizers in one column. 'load_more' for show/hide load more event organizers. 'search' for hide/show search event organizers. 'featured' for hide/show featured event organizers. 'popular' for hide/show popular event organizers.</b></div>
+                            <div class="ep-sc-dec ep-morelink ep-box-w-65">Displays the all Event Organizers panel on the frontend where users can view the categories and the number of events that belong to them. Use 'display_style', 'limit', 'cols', 'load_more', 'search', 'featured' and 'popular' attributes to set their default values. 'limit' will be use to list no. of event organizers. 'cols' will be use to list no. of event organizers in one column. 'load_more' for show/hide load more event organizers. 'search' for hide/show search event organizers. 'featured' for hide/show featured event organizers. 'popular' for hide/show popular event organizers. Use orderby and order to control the sort order of organizers.</b></div>
                         </div>
                     </div> 
                     <div class="ep-scblock ep-shorocode-show-more ep-d-flex ep-align-items-center ep-content-center ep-cursor">
@@ -220,7 +271,19 @@ $ext_list = $global_function->ep_list_all_exts();
                         </div>
                         <div class="ep-scblock ep-sc-parameters-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Parameters', 'eventprime-event-calendar-management'); ?></div> 
-                            <div class="ep-sc-dec ep-box-w-65"><ul><li>None</li></ul></div>
+                            <div class="ep-sc-dec ep-box-w-65">
+                                <ul>
+  <li><b>display_style</b> (string) — One of grid, colored_grid, rows.</li>
+  <li><b>limit</b> (int) — Total performers to list (per page if load_more="1").</li>
+  <li><b>cols</b> (int) — Number of performers per row.</li>
+  <li><b>load_more</b> (0|1) — Show “Load more” button.</li>
+  <li><b>search</b> (0|1) — Show the search box.</li>
+  <li><b>featured</b> (0|1) — Show only featured performers.</li>
+  <li><b>popular</b> (0|1) — Show only popular performers.</li>
+  <li><b>orderby</b> (string) — Sort field. Allowed: title, date, rand.</li>
+</ul>
+
+                            </div>
                         </div>
                         <div class="ep-scblock ep-sc-description-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Description', 'eventprime-event-calendar-management'); ?></div> 
@@ -268,7 +331,16 @@ $ext_list = $global_function->ep_list_all_exts();
                                 </div>
                                 <div class="ep-scblock ep-sc-parameters-row ep-d-flex ep-justify-content-between ep-py-2">
                                     <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Parameters', 'eventprime-event-calendar-management'); ?></div> 
-                                    <div class="ep-sc-dec ep-box-w-65"><ul><li>None</li></ul></div>
+                                    <div class="ep-sc-dec ep-box-w-65">
+                                        <ul>
+  <li><b>display_style</b> (string) — One of grid, colored_grid, rows.</li>
+  <li><b>limit</b> (int) — Total sponsors to list (per page if load_more="1").</li>
+  <li><b>cols</b> (int) — Number of sponsors per row.</li>
+  <li><b>load_more</b> (0|1) — Show “Load more” button.</li>
+  <li><b>search</b> (0|1) — Show the search box.</li>
+</ul>
+
+                                    </div>
                                 </div>
                                 <div class="ep-scblock ep-sc-description-row ep-d-flex ep-justify-content-between ep-py-2">
                                     <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Description', 'eventprime-event-calendar-management'); ?></div> 
@@ -316,7 +388,17 @@ $ext_list = $global_function->ep_list_all_exts();
                         </div>
                         <div class="ep-scblock ep-sc-parameters-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Parameters', 'eventprime-event-calendar-management'); ?></div> 
-                            <div class="ep-sc-dec ep-box-w-65"><ul><li>None</li></ul></div>
+                            <div class="ep-sc-dec ep-box-w-65">
+                                <ul>
+  <li><b>id</b> (int) — Event Type ID.</li>
+  <li><b>event_style</b> (string) — One of grid, rows, plain_list.</li>
+  <li><b>event_limit</b> (int) — Number of events to list.</li>
+  <li><b>event_cols</b> (int) — Number of events per row (grid).</li>
+  <li><b>load_more</b> (0|1) — Show “Load more” button.</li>
+  <li><b>hide_past_events</b> (0|1) — Hide past events when set to 1.</li>
+</ul>
+
+                            </div>
                         </div>
                         <div class="ep-scblock ep-sc-description-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Description', 'eventprime-event-calendar-management'); ?></div> 
@@ -364,7 +446,17 @@ $ext_list = $global_function->ep_list_all_exts();
                         </div>
                         <div class="ep-scblock ep-sc-parameters-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Parameters', 'eventprime-event-calendar-management'); ?></div> 
-                            <div class="ep-sc-dec ep-box-w-65"><ul><li>None</li></ul></div>
+                            <div class="ep-sc-dec ep-box-w-65">
+                                <ul>
+  <li><b>id</b> (int) — Event Site ID.</li>
+  <li><b>event_style</b> (string) — One of grid, rows, plain_list.</li>
+  <li><b>event_limit</b> (int) — Number of events to list.</li>
+  <li><b>event_cols</b> (int) — Number of events per row.</li>
+  <li><b>load_more</b> (0|1) — Show “Load more” button.</li>
+  <li><b>hide_past_events</b> (0|1) — Hide past events when set to 1.</li>
+</ul>
+
+                            </div>
                         </div>
                         <div class="ep-scblock ep-sc-description-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Description', 'eventprime-event-calendar-management'); ?></div> 
@@ -410,7 +502,17 @@ $ext_list = $global_function->ep_list_all_exts();
                         </div>
                         <div class="ep-scblock ep-sc-parameters-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Parameters', 'eventprime-event-calendar-management'); ?></div> 
-                            <div class="ep-sc-dec ep-box-w-65"><ul><li>None</li></ul></div>
+                            <div class="ep-sc-dec ep-box-w-65">
+                                <ul>
+  <li><b>id</b> (int) — Organizer ID.</li>
+  <li><b>event_style</b> (string) — One of grid, rows, plain_list.</li>
+  <li><b>event_limit</b> (int) — Number of events to list.</li>
+  <li><b>event_cols</b> (int) — Number of events per row.</li>
+  <li><b>load_more</b> (0|1) — Show “Load more” button.</li>
+  <li><b>hide_past_events</b> (0|1) — Hide past events when set to 1.</li>
+</ul>
+
+                            </div>
                         </div>
                         <div class="ep-scblock ep-sc-description-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Description', 'eventprime-event-calendar-management'); ?></div> 
@@ -456,7 +558,17 @@ $ext_list = $global_function->ep_list_all_exts();
                         </div>
                         <div class="ep-scblock ep-sc-parameters-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Parameters', 'eventprime-event-calendar-management'); ?></div> 
-                            <div class="ep-sc-dec ep-box-w-65"><ul><li>None</li></ul></div>
+                            <div class="ep-sc-dec ep-box-w-65">
+                                <ul>
+  <li><b>id</b> (int) — Performer ID.</li>
+  <li><b>event_style</b> (string) — One of grid, rows, plain_list.</li>
+  <li><b>event_limit</b> (int) — Number of events to list.</li>
+  <li><b>event_cols</b> (int) — Number of events per row.</li>
+  <li><b>load_more</b> (0|1) — Show “Load more” button.</li>
+  <li><b>hide_past_events</b> (0|1) — Hide past events when set to 1.</li>
+</ul>
+
+                            </div>
                         </div>
                         <div class="ep-scblock ep-sc-description-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Description', 'eventprime-event-calendar-management'); ?></div> 
@@ -511,7 +623,17 @@ $ext_list = $global_function->ep_list_all_exts();
 
                                 <div class="ep-scblock ep-sc-parameters-row ep-d-flex ep-justify-content-between ep-py-2">
                                     <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Parameters', 'eventprime-event-calendar-management'); ?></div> 
-                                    <div class="ep-sc-dec ep-box-w-65"><ul><li>None</li></ul></div>
+                                    <div class="ep-sc-dec ep-box-w-65">
+                                        <ul>
+  <li><b>id</b> (int) — Sponsor ID.</li>
+  <li><b>event_style</b> (string) — One of grid, rows, plain_list.</li>
+  <li><b>event_limit</b> (int) — Number of events to list.</li>
+  <li><b>event_cols</b> (int) — Number of events per row.</li>
+  <li><b>load_more</b> (0|1) — Show “Load more” button.</li>
+  <li><b>hide_past_events</b> (0|1) — Hide past events when set to 1.</li>
+</ul>
+
+                                    </div>
                                 </div>
 
 
@@ -566,7 +688,12 @@ $ext_list = $global_function->ep_list_all_exts();
                         </div>
                         <div class="ep-scblock ep-sc-parameters-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Parameters', 'eventprime-event-calendar-management'); ?></div> 
-                            <div class="ep-sc-dec ep-box-w-65"><ul><li>None</li></ul></div>
+                            <div class="ep-sc-dec ep-box-w-65">
+                                <ul>
+  <li><b>default</b> (string) — Choose which screen shows by default for logged-out users. Allowed: login, registration.</li>
+</ul>
+                                
+                            </div>
                         </div>
                         <div class="ep-scblock ep-sc-description-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Description', 'eventprime-event-calendar-management'); ?></div> 
@@ -612,7 +739,12 @@ $ext_list = $global_function->ep_list_all_exts();
                         </div>
                         <div class="ep-scblock ep-sc-parameters-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Parameters', 'eventprime-event-calendar-management'); ?></div> 
-                            <div class="ep-sc-dec ep-box-w-65"><ul><li>None</li></ul></div>
+                            <div class="ep-sc-dec ep-box-w-65">
+                                <ul>
+  <li>No parameters.</li>
+</ul>
+
+                            </div>
                         </div>
                         <div class="ep-scblock ep-sc-description-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Description', 'eventprime-event-calendar-management'); ?></div> 
@@ -658,7 +790,12 @@ $ext_list = $global_function->ep_list_all_exts();
                         </div>
                         <div class="ep-scblock ep-sc-parameters-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Parameters', 'eventprime-event-calendar-management'); ?></div> 
-                            <div class="ep-sc-dec ep-box-w-65"><ul><li>None</li></ul></div>
+                            <div class="ep-sc-dec ep-box-w-65">
+                                <ul>
+  <li>No parameters.</li>
+</ul>
+
+                            </div>
                         </div>
                         <div class="ep-scblock ep-sc-description-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Description', 'eventprime-event-calendar-management'); ?></div> 
@@ -704,7 +841,12 @@ $ext_list = $global_function->ep_list_all_exts();
                         </div>
                         <div class="ep-scblock ep-sc-parameters-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Parameters', 'eventprime-event-calendar-management'); ?></div> 
-                            <div class="ep-sc-dec ep-box-w-65"><ul><li>None</li></ul></div>
+                            <div class="ep-sc-dec ep-box-w-65">
+                                <ul>
+  <li>No parameters.</li>
+</ul>
+
+                            </div>
                         </div>
                         <div class="ep-scblock ep-sc-description-row ep-d-flex ep-justify-content-between ep-py-2">
                             <div class="ep-sc-title ep-fw-bold"><?php esc_html_e('Description', 'eventprime-event-calendar-management'); ?></div> 

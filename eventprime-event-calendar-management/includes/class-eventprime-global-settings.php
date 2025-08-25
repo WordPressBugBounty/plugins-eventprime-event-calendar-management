@@ -273,6 +273,7 @@ class Eventprime_Global_Settings{
             'hide_note_section'                  => 0,
             'hide_performers_section'            => 0,
             'hide_organizers_section'            => 0,
+            'show_print_icon'                    => 0,
             'event_detail_image_width'           => '',
             'event_detail_image_height'          => 'auto',
             'event_detail_image_height_custom'   => '',
@@ -1087,6 +1088,15 @@ class Eventprime_Global_Settings{
         echo '<option value="{{venue_url}}">' . esc_html__( 'URL', 'eventprime-event-calendar-management' ) . '</option>';
         echo '<option value="{{venue_image}}">' . esc_html__( 'Image', 'eventprime-event-calendar-management' ) . '</option>';
         echo '<option value="{{venue_address}}">' . esc_html__( 'Address', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '</optgroup>';
+         echo '<optgroup label="' . esc_attr__( 'Event Fields', 'eventprime-event-calendar-management' ) . '" >';
+        echo '<option value="{{name}}">' . esc_html__( 'Name', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '<option value="{{event_url}}">' . esc_html__( 'URL', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '<option value="{{fstart_date}}">' . esc_html__( 'Event Start Date', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '<option value="{{fend_date}}">' . esc_html__( 'Event End Date', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '<option value="{{em_start_time}}">' . esc_html__( 'Event Start Time', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '<option value="{{em_end_time}}">' . esc_html__( 'Event End Time', 'eventprime-event-calendar-management' ) . '</option>';
+        
         echo '</optgroup>';
         
         do_action( 'ep_extend_emailer_fields_list' );

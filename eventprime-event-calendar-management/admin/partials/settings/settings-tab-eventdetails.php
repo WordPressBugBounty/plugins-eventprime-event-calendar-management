@@ -168,6 +168,20 @@ $global_options = $global_settings->ep_get_settings();
                  <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( 'Enabling it will hide organizers section from the event detail page.', 'eventprime-event-calendar-management' );?></div>
             </td>
         </tr>
+        <tr valign="top">
+            <th scope="row" class="titledesc">
+                <label for="show_print_icon">
+                    <?php esc_html_e( 'Show Print Icon', 'eventprime-event-calendar-management' );?>
+                </label>
+            </th>
+            <td class="forminp forminp-text">
+                <label class="ep-toggle-btn">
+                    <input name="show_print_icon" id="show_print_icon" type="checkbox" value="1" <?php echo isset( $global_options->show_print_icon ) && $global_options->show_print_icon == 1 ? 'checked' : '';?>>
+                    <span class="ep-toogle-slider round"></span>
+                </label>
+                 <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( 'Enabling it will show print icon on the event detail page.', 'eventprime-event-calendar-management' );?></div>
+            </td>
+        </tr>
     </tbody>
 </table>
 

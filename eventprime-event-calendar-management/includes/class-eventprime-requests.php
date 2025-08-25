@@ -15,7 +15,7 @@ class EP_Requests {
             'post_type' => 'em_event',
             'orderby' => 'meta_value',
             'meta_key' => 'em_start_date_time',
-            'order' => 'DESC',
+            'order' => 'ASC',
             'posts_per_page' => $limit, // Number of posts per page
             'paged' => $paged, // Current page
             'tax_query' => array(

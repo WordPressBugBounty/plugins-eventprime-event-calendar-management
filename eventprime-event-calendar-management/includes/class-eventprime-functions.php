@@ -2500,7 +2500,7 @@ class Eventprime_Basic_Functions {
     }
 
     public function ep_social_sharing_fields() {
-        $social_sharing_fields = array('facebook' => 'Facebook', 'instagram' => 'Instagram', 'linkedin' => 'Linkedin', 'twitter' => 'Twitter', 'youtube' => 'Youtube');
+        $social_sharing_fields = apply_filters( 'ep_social_sharing_fields_key_values', array('facebook' => 'Facebook', 'instagram' => 'Instagram', 'linkedin' => 'Linkedin', 'twitter' => 'Twitter', 'youtube' => 'Youtube') ); 
         return $social_sharing_fields;
     }
 
@@ -2919,8 +2919,8 @@ class Eventprime_Basic_Functions {
     public function get_event_image_url($event_id) {
         $image_url = '';
         if (has_post_thumbnail($event_id)) {
-            if (is_array(wp_get_attachment_image_src(get_post_thumbnail_id($event_id), 'large'))) {
-                $image_url = wp_get_attachment_image_src(get_post_thumbnail_id($event_id), 'large')[0];
+            if (is_array(wp_get_attachment_image_src(get_post_thumbnail_id($event_id), 'full'))) {
+                $image_url = wp_get_attachment_image_src(get_post_thumbnail_id($event_id), 'full')[0];
             }
         }
         return $image_url;
@@ -6144,7 +6144,7 @@ class Eventprime_Basic_Functions {
                 $thumb_id = get_post_thumbnail_id( $event->id );
 
                 if( ! empty( $thumb_id ) ) {
-                    $featured_img_url_array = wp_get_attachment_image_src( $thumb_id, 'large', false);
+                    $featured_img_url_array = wp_get_attachment_image_src( $thumb_id, 'full', false);
                     if(!empty($featured_img_url_array))
                     {
                         $featured_img_url = $featured_img_url_array[0];

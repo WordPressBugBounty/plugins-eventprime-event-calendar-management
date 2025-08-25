@@ -809,3 +809,17 @@ ul.ep-event-share:after {
     color: #1279c2;
 }
 /*weather widget end */
+
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #ep_single_event_detail_page_content, #ep_single_event_detail_page_content * {
+        visibility: visible;
+    }
+    #ep_single_event_detail_page_content {
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+}

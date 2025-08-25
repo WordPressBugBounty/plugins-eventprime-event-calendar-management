@@ -174,4 +174,6 @@ $extensions = $ep_functions->ep_get_activate_extensions();
                     <?php esc_html_e('Check if you want to make this Venue featured.', 'eventprime-event-calendar-management'); ?>
                 </p>
             </label>
-        </div><?php wp_nonce_field( 'em_event_venue_nonce_action', 'em_event_venue_nonce_field' );
+        </div>
+        <?php do_action("ep_extend_add_event_venue_form"); ?>
+        <?php wp_nonce_field( 'em_event_venue_nonce_action', 'em_event_venue_nonce_field' );

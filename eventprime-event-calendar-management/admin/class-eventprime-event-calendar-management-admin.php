@@ -1938,6 +1938,7 @@ class Eventprime_Event_Calendar_Management_Admin {
         if ( !metadata_exists( 'term', $term_id, 'em_status' ) ) {
             update_term_meta( $term_id, 'em_status', 1 );
         }
+        do_action( "ep_after_save_venue_data", $term_id, $_POST ); 
     }
 
     public function add_event_venue_fields() {

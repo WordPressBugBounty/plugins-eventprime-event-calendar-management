@@ -150,3 +150,8 @@ span.ep-booking-status.ep-status-failed {
     border: 0px;
     padding: 4px 0px;
 }
+
+.ep-booking-transaction-log pre{
+    white-space: pre;
+    overflow-x: auto;
+}

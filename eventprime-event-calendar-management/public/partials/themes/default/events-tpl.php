@@ -56,7 +56,14 @@ do_action( 'ep_events_list_before_render_content', $event_data ); ?>
         <?php do_action( 'ep_events_list_before_content', $event_data ); ?>
 
         <div id="ep-events-content-container" class="ep-mt-4"><?php
-            if( isset( $event_data->events ) && !empty( $event_data->events ) ) {?>
+            if( !isset( $event_data->events ) || empty( $event_data->events ) ) {
+                ?>
+                <div class="ep-alert ep-alert-warning ep-mt-3">
+                    <?php ( isset( $_GET['ep_search'] ) ) ? esc_html_e( 'No event found related to your search.', 'eventprime-event-calendar-management' ) : esc_html_e( 'Currently, there are no events planned. Please check back later.', 'eventprime-event-calendar-management' ); ?>
+                </div><?php
+            }
+                
+                ?>
                 <div class="ep-events ep-box-row ep-event-list-<?php echo esc_attr( $event_data->display_style );?>-container <?php if( $event_data->display_style == 'masonry' ) { echo esc_attr( 'masonry-entry' ); } ?> ep_events_front_views_<?php echo esc_attr( $event_data->display_style);?>_<?php echo esc_attr( $event_data->section_id);?>" id="ep_events_front_views_<?php echo esc_attr( $event_data->display_style);?>" data-section_id="<?php echo esc_attr( $event_data->section_id);?>">
                     <?php
                     switch ( $event_data->display_style ) {
@@ -89,12 +96,7 @@ do_action( 'ep_events_list_before_render_content', $event_data ); ?>
                             break;
 
                     }?>
-                </div><?php
-            } else{?>
-                <div class="ep-alert ep-alert-warning ep-mt-3">
-                    <?php ( isset( $_GET['ep_search'] ) ) ? esc_html_e( 'No event found related to your search.', 'eventprime-event-calendar-management' ) : esc_html_e( 'Currently, there are no events planned. Please check back later.', 'eventprime-event-calendar-management' ); ?>
-                </div><?php
-            }?>
+                </div>
             <?php
             // Load event load more template
             if(!isset($args->display_style) || (isset($args->display_style) && $args->display_style!=='slider'))

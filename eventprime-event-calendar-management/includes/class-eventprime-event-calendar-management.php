@@ -408,11 +408,11 @@ class Eventprime_Event_Calendar_Management {
                 // EP Deactivation form 
                 $this->loader->add_action( 'admin_footer', $plugin_admin,'ep_deactivation_feedback_form' );
                 
-                $this->loader->add_action( 'in_plugin_update_message-'.EP_PLUGIN_BASE, $plugin_admin,'ep_in_plugin_update_message',10,2 );
+                //$this->loader->add_action( 'in_plugin_update_message-'.EP_PLUGIN_BASE, $plugin_admin,'ep_in_plugin_update_message',10,2 );
                 
                 $this->loader->add_action( 'wp_ajax_ep_dismissible_notice', $plugin_admin, 'ep_dismissible_notice_ajax' );
 		
-                $this->loader->add_action( 'admin_notices', $plugin_admin, 'ep_dismissible_notice' );
+                //$this->loader->add_action( 'admin_notices', $plugin_admin, 'ep_dismissible_notice' );
                 
                 //$this->loader->add_action( 'admin_notices', $plugin_admin, 'ep_dismissible_buddybot_promotion' );
                 

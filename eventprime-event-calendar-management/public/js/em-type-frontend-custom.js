@@ -13,6 +13,8 @@ jQuery( function( $ ) {
         var display_style = $('#ep-types-style').val();
         var limit = $('#ep-types-limit').val();
         var cols = $('#ep-types-cols').val();
+        var orderby = $('#ep-types-orderby').val();
+        var order = $('#ep-types-order').val();
         var featured = $('#ep-types-featured').val();
         var popular = $('#ep-types-popular').val();
         var search = $('#ep-types-search').val();
@@ -23,6 +25,8 @@ jQuery( function( $ ) {
         formData.append('display_style', display_style);
         formData.append('limit', limit);
         formData.append('cols', cols);
+        formData.append('orderby', orderby);
+        formData.append('order', order);
         formData.append('featured',featured);
         formData.append('popular',popular);
         formData.append('search',search);

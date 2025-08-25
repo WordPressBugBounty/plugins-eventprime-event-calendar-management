@@ -102,7 +102,7 @@ $sub_options = $global_settings->sub_options;
         </tr>
         <tr valign="top">
             <th colspan="2">
-                <em>Shortcode: </em><code>[em_event_organizers display_style="grid/colored_grid/rows" limit="{NUMBER}" cols="{NUMBER}" load_more="0 or 1" search="0 or 1" featured="0 or 1" popular="0 or 1"]</code>
+                <em>Shortcode: </em><code>[em_event_organizers display_style="grid/colored_grid/rows" limit="{NUMBER}" cols="{NUMBER}" load_more="0 or 1" search="0 or 1" featured="0 or 1" popular="0 or 1" orderby="id/name/count" order="asc/desc"]</code>
             </th>
         </tr>
     </tbody>

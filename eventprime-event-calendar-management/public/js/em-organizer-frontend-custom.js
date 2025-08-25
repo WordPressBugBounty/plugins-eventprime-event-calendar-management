@@ -45,6 +45,8 @@ jQuery( function( $ ) {
         var display_style = $('#ep-organizers-style').val();
         var limit = $('#ep-organizers-limit').val();
         var cols = $('#ep-organizers-cols').val();
+        var orderby = $('#ep-organizers-orderby').val();
+        var order = $('#ep-organizers-order').val();
         var featured = $('#ep-organizers-featured').val();
         var popular = $('#ep-organizers-popular').val();
         var search = $('#ep-organizers-search').val();
@@ -55,6 +57,8 @@ jQuery( function( $ ) {
         formData.append('display_style', display_style);
         formData.append('limit', limit);
         formData.append('cols', cols);
+        formData.append('orderby', orderby);
+        formData.append('order', order);
         formData.append('featured',featured);
         formData.append('popular',popular);
         formData.append('search',search);

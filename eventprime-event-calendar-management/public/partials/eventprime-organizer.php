@@ -54,7 +54,6 @@ $ep_functions = new Eventprime_Basic_Functions;
             // get upcoming events for organizer
             $paged = ( get_query_var('paged') ) ? get_query_var('paged') : 1;
             $args = array(
-                'orderby'        => 'em_start_date_time',
                 'posts_per_page' => $single_organizer_event_limit,
                 'offset'         => (int)( $paged - 1 ) * (int)$single_organizer_event_limit,
                 'paged'          => $paged,
