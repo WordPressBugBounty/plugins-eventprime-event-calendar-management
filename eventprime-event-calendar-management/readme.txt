@@ -5,7 +5,7 @@ Tags: event calendar, organizer , event manager, tickets, event booking, event b
 Requires at least: 4.8
 Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 4.1.2.0
+Stable tag: 4.1.2.1
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -666,6 +666,10 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.1.2.1: August 27, 2025 =
+* Fixed: Timezone & date handling across admin and frontend. 
+* Updated: Moment.js library to the latest stable build for improved compatibility.
 
 = 4.1.2.0: August 25, 2025 =
 * Added: Print button option on event page for quick printing of event details.
@@ -2182,6 +2186,10 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.1.2.1: August 27, 2025 =
+* Fixed: Timezone & date handling across admin and frontend. 
+* Updated: Moment.js library to the latest stable build for improved compatibility.
 
 = 4.1.2.0: August 25, 2025 =
 * Added: Print button option on event page for quick printing of event details.

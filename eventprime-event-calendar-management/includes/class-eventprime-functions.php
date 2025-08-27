@@ -1807,7 +1807,68 @@ class Eventprime_Basic_Functions {
             return '';
         }
     }
+    
     public function ep_convert_event_date_time_from_timezone($event, $format = '', $end = 0, $strict = 0) {
+    if ($event) {
+        $dp_format = $this->ep_get_datepicker_format();
+        if (!empty($strict) && !empty($format)) {
+            $dp_format = $format;
+        }
+ 
+        $date = $this->ep_timestamp_to_date($event->em_start_date, $dp_format);
+        $time_format = $this->ep_get_global_settings('time_format');
+        $start_time = $event->em_start_time;
+ 
+        if (empty($start_time)) {
+            $start_time = '12:00 am';
+            if (!empty($time_format) && $time_format == 'HH:mm') {
+                $start_time = '00:00 am';
+            }
+        }
+ 
+        if (!empty($end)) {
+            $date = $this->ep_timestamp_to_date($event->em_end_date, $dp_format);
+            $start_time = $event->em_end_time;
+            if (empty($start_time)) {
+                $start_time = '11:59 pm';
+            }
+        }
+ 
+        $site_timezone = $this->ep_get_site_timezone();
+        $datetime = $date . ' ' . $start_time;
+ 
+        $times = $this->ep_datetime_to_timestamp($datetime, 'Y-m-d h:i a', $site_timezone, 1);
+ 
+        // ✅ Safety check
+        if ($times && $times instanceof DateTime) {
+            $times->setTimeZone(new DateTimeZone($site_timezone));
+ 
+            if (!empty($strict) && !empty($format) && is_string($format)) {
+                $date = $times->format($format);
+            } else {
+                if (!empty($time_format) && $time_format == 'HH:mm') {
+                    $day_data   = $times->format('D');
+                    $date_data  = $times->format('d');
+                    $month_data = $times->format('M');
+                    $date       = $day_data . ', ' . $date_data . ' ' . $month_data;
+                    $date      .= ' ' . $times->format('H:i');
+                } else {
+                    $day_data   = $times->format('D');
+                    $date_data  = $times->format('d');
+                    $month_data = $times->format('M');
+                    $time_data  = $times->format('h:i A');
+                    $date       = $day_data . ', ' . $date_data . ' ' . $month_data . ', ' . $time_data;
+                }
+            }
+            return $date;
+        } else {
+            // fallback if timestamp conversion fails
+            return $date . ' ' . $start_time;
+        }
+    }
+}
+    
+    public function ep_convert_event_date_time_from_timezone_old($event, $format = '', $end = 0, $strict = 0) {
         if ($event) {
             $dp_format = $this->ep_get_datepicker_format();
             if (!empty($strict) && !empty($format)) {
@@ -1830,16 +1891,16 @@ class Eventprime_Basic_Functions {
                 }
             }
             $user_timezone = $this->ep_get_current_user_timezone();
-            if (!empty($user_timezone)) {
-                if (strpos($user_timezone, '+') !== false) {
-                    $exp_timezone = explode('+', $user_timezone)[1];
-                    $user_timezone = $this->get_site_timezone_from_offset($exp_timezone);
-                }
-                if (strpos($user_timezone, '-') !== false) {
-                    $exp_timezone = explode('-', $user_timezone)[1];
-                    $user_timezone = $this->get_site_timezone_from_offset($exp_timezone);
-                }
-            }
+//            if (!empty($user_timezone)) {
+//                if (strpos($user_timezone, '+') !== false) {
+//                    $exp_timezone = explode('+', $user_timezone)[1];
+//                    $user_timezone = $this->get_site_timezone_from_offset($exp_timezone);
+//                }
+//                if (strpos($user_timezone, '-') !== false) {
+//                    $exp_timezone = explode('-', $user_timezone)[1];
+//                    $user_timezone = $this->get_site_timezone_from_offset($exp_timezone);
+//                }
+//            }
             $site_timezone = $this->ep_get_site_timezone();
             if (!empty($user_timezone) && $user_timezone != $site_timezone && !empty($this->ep_get_global_settings('enable_event_time_to_user_timezone'))) {
                 $datetime = $date . ' ' . $start_time;
@@ -1935,14 +1996,14 @@ class Eventprime_Basic_Functions {
      */
 
     public function ep_get_site_timezone() {
-        $userTimezone = get_option('timezone_string');
-        if (empty($userTimezone)) {
-            $offset = (float) get_option('gmt_offset');
-            $userTimezone = $this->get_site_timezone_from_offset($offset);
-        }
-        if ($userTimezone == 'UTC') {
-            $userTimezone = date_default_timezone_get();
-        }
+        $userTimezone = wp_timezone_string();
+//        if (empty($userTimezone)) {
+//            $offset = (float) get_option('gmt_offset');
+//            $userTimezone = $this->get_site_timezone_from_offset($offset);
+//        }
+//        if ($userTimezone == 'UTC') {
+//            $userTimezone = date_default_timezone_get();
+//        }
         return $userTimezone;
     }
 
@@ -1994,6 +2055,94 @@ class Eventprime_Basic_Functions {
         return $date->getTimestamp();
     }
 
+    
+    /**
+    * Convert a date/time string to a Unix timestamp (UTC-based epoch).
+    *
+    * @param string      $datetime   The input date/time string (must match the derived format).
+    * @param string      $format     PHP date() style date part. Must be PHP tokens, not jQuery UI tokens.
+    * @param string      $timezone   Optional timezone identifier; falls back to site timezone, then UTC.
+    * @param int|bool    $full_date  If truthy, return DateTime object instead of timestamp.
+    * @param int|bool    $strict     If falsy, $format may be replaced by site datepicker format (must be PHP-compatible).
+    * @return int|DateTime|false
+    */
+    public function ep_datetime_to_timestamp_new($datetime, $format = 'Y-m-d', $timezone = '', $full_date = 0, $strict = 0) {
+       // 1) Resolve the date format (ensure it's PHP-compatible)
+       if (empty($strict)) {
+           // IMPORTANT: ep_get_datepicker_format() must return a **PHP** format (e.g., 'Y-m-d').
+           // If it returns a jQuery UI format, convert it before using.
+           $datepicker_fmt = $this->ep_get_datepicker_format();
+           if (!empty($datepicker_fmt)) {
+               $format = $datepicker_fmt; // assume already PHP tokens
+           }
+       }
+
+       $format = trim((string) $format);
+
+       // 2) Determine the time pattern based on global setting
+       $ui_time = $this->ep_get_global_settings('time_format');
+       if (empty($ui_time)) {
+           // Sensible default similar to jQuery timepicker 'h:mm tt'
+           $ui_time = 'h:mm tt';
+       }
+
+       // Normalize and detect 24h vs 12h
+       // Heuristics: any 'H' or 'HH' implies 24h; otherwise 12h.
+       $is_24h = (strpos($ui_time, 'H') !== false || strpos($ui_time, 'HH') !== false);
+
+       // Build PHP time format
+       // - Minutes in PHP is 'i'
+       // - 24h: 'H:i' (no meridiem)
+       // - 12h: 'h:i A' (or 'a' if you prefer lowercase)
+       $php_time = $is_24h ? 'H:i' : 'h:i A';
+
+       // If the incoming string includes a time portion, we must include time in the format.
+       // A simple heuristic: if $datetime has a colon (:), assume time is present.
+       // If not, keep it date-only.
+       $final_format = $format;
+       if (strpos($datetime, ':') !== false) {
+           $final_format = trim($format . ' ' . $php_time);
+       }
+
+       // 3) Choose timezone
+       if (!empty($timezone)) {
+           $tz = @new DateTimeZone($timezone);
+       } else {
+           $site_tz = $this->ep_get_site_timezone();
+           $tz = !empty($site_tz) ? @new DateTimeZone($site_tz) : new DateTimeZone('UTC');
+       }
+
+       // 4) Parse
+       $date = DateTime::createFromFormat($final_format, trim($datetime), $tz);
+
+       // 5) If parsing failed, try a couple of common fallbacks (seconds, lowercase meridiem)
+       if (!$date) {
+           // Try with seconds
+           if (strpos($final_format, 'H:i') !== false && strpos($datetime, ':') !== false) {
+               $try_fmt = str_replace('H:i', 'H:i:s', $final_format);
+               $date = DateTime::createFromFormat($try_fmt, trim($datetime), $tz);
+           } elseif (strpos($final_format, 'h:i A') !== false && strpos($datetime, ':') !== false) {
+               // Try lowercase meridiem
+               $try_fmt = str_replace('h:i A', 'h:i a', $final_format);
+               $date = DateTime::createFromFormat($try_fmt, trim($datetime), $tz);
+           }
+       }
+
+       // 6) Final failure check with error details (useful while developing)
+       if (!$date) {
+           // Uncomment for debugging logs if needed:
+           // $errors = DateTime::getLastErrors();
+           // error_log('ep_datetime_to_timestamp parse failed. Format: '.$final_format.' Input: '.$datetime.' Errors: '.print_r($errors,true));
+           return false;
+       }
+
+       if (!empty($full_date)) {
+           return $date;
+       }
+
+       return $date->getTimestamp();
+   }
+
     /**
      * Convert timestamp to date
      */
@@ -2009,7 +2158,7 @@ class Eventprime_Basic_Functions {
         return $datetime;
     }
 
-    public function ep_date_to_timestamp($date, $format = 'Y-m-d', $strict = 0, $with_time_zone = 0) {
+    public function ep_date_to_timestamp($date, $format = 'Y-m-d', $strict = 0, $with_time_zone = 1) {
         if (empty($strict)) {
             $format = $this->ep_get_datepicker_format();
         }
@@ -2032,16 +2181,9 @@ class Eventprime_Basic_Functions {
      * get current time
      */
     public function ep_get_current_timestamp() {
-        $user = wp_get_current_user();
-        $roles = (array) $user->roles;
-        $current_timestamp = current_time('timestamp');
-        if (!in_array('administrator', $roles)) {
-            $user_timezone = $this->ep_get_current_user_timezone();
-            if (!empty($user_timezone)) {
-                date_default_timezone_set($user_timezone);
-                $current_timestamp = time();
-            }
-        }
+        $site_timezone = $this->ep_get_site_timezone();
+        $current_timestamp = current_time( 'timestamp',$site_timezone );
+
         return $current_timestamp;
     }
 
@@ -2057,7 +2199,8 @@ class Eventprime_Basic_Functions {
                 $timezone_string = $this->get_site_timezone_from_offset($gmt_offset);
             }
         }
-        return $timezone_string;
+       
+        return $this-> ep_get_site_timezone();
     }
 
     /*
@@ -2179,7 +2322,8 @@ class Eventprime_Basic_Functions {
         if ($user_timezone_meta == 'UTC+0') {
             $user_timezone_meta = 'UTC';
         }
-        return $user_timezone_meta;
+        
+        return $this->ep_get_site_timezone();
     }
 
     public function ep_get_datepicker_format($language = 1) {
@@ -2380,8 +2524,11 @@ class Eventprime_Basic_Functions {
                 $end_date = $event_end_date;
                 if (!empty($event_end_time)) {
                     $end_date = $this->ep_timestamp_to_date($event_end_date);
+                    
                     $end_date .= ' ' . $event_end_time;
+                   
                     $end_date = $this->ep_datetime_to_timestamp($end_date);
+                    
                 }
                 if ($end_date < $this->ep_get_current_timestamp()) {
                     $expired = true;

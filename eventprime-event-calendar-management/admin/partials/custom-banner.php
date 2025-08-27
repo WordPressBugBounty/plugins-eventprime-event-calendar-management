@@ -2,13 +2,14 @@
 defined( 'ABSPATH' ) || exit;
 $ep_functions = new Eventprime_Basic_Functions;
 $activate_extensions = $ep_functions->ep_get_activate_extensions_free_paid();
+$extension_url = admin_url().'edit.php?post_type=em_event&page=ep-extensions';
 if( empty($activate_extensions['paid']) ) {?>
     <div class="ep-premium-banner-main emagic ep-box-w-100" style="float:left">
         <div class="ep-box-wrap" >
             <div class="ep-customize-banner-row ep-box-row">
                 <div class="ep-box-col-12">
                     <div class="ep-customize-banner-main">
-                    <a target="_blank" href="<?php echo esc_url( 'https://theeventprime.com/all-extensions/' );?>" class="ep-customize-banner-wrap ep-d-flex ep-justify-content-between ep-align-items-center ep-p-3 ep-box-w-100 ep-bg-white ep-text-center">
+                    <a href="<?php echo esc_url($extension_url);?>" class="ep-customize-banner-wrap ep-d-flex ep-justify-content-between ep-align-items-center ep-p-3 ep-box-w-100 ep-bg-white ep-text-center">
                         <div class="ep-customize-banner-logo">
                             <img width="128" src="<?php echo esc_url( plugin_dir_url(EP_PLUGIN_FILE) . 'admin/partials/images/ep-logo-icon.svg'); ?>" >
                         </div>

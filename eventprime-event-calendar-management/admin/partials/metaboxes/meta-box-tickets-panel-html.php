@@ -494,7 +494,7 @@ echo sprintf(
                                                          <label class="ep-form-label">
                                                              <?php esc_html_e('Choose Date', 'eventprime-event-calendar-management'); ?>
                                                          </label>
-                                                         <input type="text" class="ep-form-control ep_metabox_custom_date_picker" name="em_ticket_start_booking_date" id="ep_ticket_start_booking_date" data-start="today" data-end="event_end">
+                                                         <input type="text" class="ep-form-control ep_metabox_custom_date_picker" name="em_ticket_start_booking_date" id="ep_ticket_start_booking_date" data-start="" data-end="event_end">
                                                      </div>
                                                     <div class="ep-box-col-6 ep-mt-3 ep_ticket_start_booking_options ep_ticket_start_booking_custom_date">
                                                         <label class="ep-form-label">
@@ -573,7 +573,7 @@ echo sprintf(
                                                         <label class="ep-form-label">
                                                             <?php esc_html_e( 'Choose Date', 'eventprime-event-calendar-management' );?>
                                                         </label>
-                                                        <input type="text" class="ep-form-control ep_metabox_custom_date_picker" name="em_ticket_ends_booking_date" id="ep_ticket_ends_booking_date" data-start="today" data-end="event_end">
+                                                        <input type="text" class="ep-form-control ep_metabox_custom_date_picker" name="em_ticket_ends_booking_date" id="ep_ticket_ends_booking_date" data-start="" data-end="event_end">
                                                     </div>
 
                                                     <div class="ep-box-col-6 ep-mt-3 ep_ticket_ends_booking_options ep_ticket_ends_booking_custom_date">
