@@ -884,6 +884,7 @@ jQuery( function( $ ) {
 
     
     // reload signle page for upcoming date click
+    /*
     $( document ).on( 'click', 'input[name="em_single_event_ticket_date"]', function() {
         let no_load = $( this ).data( 'no_load' );
         if( no_load === 'no-load' ) return false;
@@ -956,7 +957,8 @@ jQuery( function( $ ) {
             }
         }); 
     });
-
+    */
+   
     // load event html on date click
     /* function ep_load_event_on_date_click( event_data, load_ticket = false ) {
         // image url

@@ -271,7 +271,7 @@ class Eventprime_Event_Calendar_Management {
                     $screen = get_current_screen();
 
                     // Check for the individual event edit screen
-                    if ('em_performer' === $screen->post_type || 'em_event' === $screen->post_type || 'em_booking' === $screen->post_type) {
+                    if ('em_performer' === $screen->post_type || 'em_booking' === $screen->post_type) {
                         add_action('admin_footer', function() {
                             do_action('ep_add_custom_banner');
                         });
@@ -282,7 +282,7 @@ class Eventprime_Event_Calendar_Management {
                     $screen = get_current_screen();
 
                     // Check for the new event creation screen
-                    if ('em_performer' === $screen->post_type || 'em_event' === $screen->post_type || 'em_booking' === $screen->post_type) {
+                    if ('em_performer' === $screen->post_type || 'em_booking' === $screen->post_type) {
                         add_action('admin_footer', function() {
                             do_action('ep_add_custom_banner');
                         });

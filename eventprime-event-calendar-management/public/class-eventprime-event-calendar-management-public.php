@@ -187,7 +187,8 @@ class Eventprime_Event_Calendar_Management_Public {
                 'trans_obj'            => $ep_functions->ep_define_common_field_errors(),
                 'event_wishlist_nonce' => wp_create_nonce( 'event-wishlist-action-nonce' ),
                 'security_nonce_failed'=> esc_html__( 'Security check failed. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ),
-                'datepicker_format'    => $datepicker_format
+                'datepicker_format'    => $datepicker_format,
+                'timezone' => $ep_functions->ep_get_site_timezone()
             )
         );
         wp_localize_script(
@@ -327,6 +328,45 @@ class Eventprime_Event_Calendar_Management_Public {
             return $html;
         }
     }
+    
+    public function ep_load_single_template_dynamic( $content ) {
+        static $in_filter = false;
+
+        // If we re-enter because template calls apply_filters('the_content'), let core filters run.
+        if ( $in_filter ) {
+            return $content;
+        }
+
+        if ( is_single() ) {
+            $in_filter = true;
+            $atts = array( 'id' => get_the_ID() );
+
+            switch ( get_post_type() ) {
+                case 'em_event':
+                    $content = $this->load_single_event( $atts );
+                    break;
+
+                case 'em_performer':
+                    $content = $this->load_single_performer( $atts );
+                    break;
+
+                case 'em_sponsor':
+                    $ep_functions = new Eventprime_Basic_Functions;
+                    $extensions = $ep_functions->ep_get_activate_extensions();
+                    if ( ! empty( $extensions ) && in_array( 'Eventprime_Event_Sponsor', $extensions, true ) ) {
+                        $sponsors = new Eventprime_Event_Sponsor_Public( $this->plugin_name, $this->version );
+                        $content  = $sponsors->load_single_sponsor( $atts );
+                    }
+                    break;
+            }
+
+            $in_filter = false;
+        }
+
+        return $content;
+    }
+
+    
     public function load_events($atts)
     {
         $event = get_query_var('event');
@@ -1249,7 +1289,7 @@ class Eventprime_Event_Calendar_Management_Public {
         return $template;
     }
     
-    public function ep_load_single_template_dynamic($content)
+    public function ep_load_single_template_dynamic_old($content)
     {
         
         //remove_filter( 'the_content', array( $this, 'ep_load_single_template_dynamic'),1000000000 );
@@ -1946,13 +1986,13 @@ else
                     if( count( $event->child_events ) > 0 ) {
                         $no_load = '';
                     }?>
-                    <input type="radio" class="ep-btn-check" name="em_single_event_ticket_date" id="ep_single_event_date1" autocomplete="off" data-event_id="<?php echo esc_attr( $event->id );?>" checked data-no_load="<?php echo esc_attr( $no_load );?>">
-                    <label class="ep-btn ep-text-small ep-fw-bold ep-py-1 ep-px-2 ep-btn-outline-secondary ep-border-2 ep-rounded-1 ep_event_ticket_date_option" id="ep_child_event_id_<?php echo esc_attr( $event->id );?>" for="ep_single_event_date1"><?php echo esc_html( $ep_functions->ep_timestamp_to_date( $event->em_start_date, 'd M', 1 ) );?></label>
+                    <div class="ep-btn ep-ticket-btn ep-ticket-active ep-text-small ep-fw-bold ep-py-1 ep-px-2 ep-btn-outline-secondary ep-border-2 ep-rounded-1 ep_event_ticket_date_option" id="ep_child_event_id_<?php echo esc_attr( $event->id );?>"><?php echo esc_html( $ep_functions->ep_timestamp_to_date( $event->em_start_date, 'd M', 1 ) );?></div>
                     <?php if( count( $event->child_events ) > 0 ) {
                         $ev = 2;
-                        foreach( $event->child_events as $events ) {?>
-                            <input type="radio" class="ep-btn-check" name="em_single_event_ticket_date" id="ep_single_event_date<?php echo esc_attr( $ev );?>" autocomplete="off" data-event_id="<?php echo esc_attr( $events->em_id );?>">
-                            <label class="ep-btn ep-text-small ep-fw-bold ep-py-1 ep-px-2 ep-btn-outline-secondary ep-border-2 ep-rounded-1 ep_event_ticket_date_option" id="ep_child_event_id_<?php echo esc_attr( $events->em_id );?>" for="ep_single_event_date<?php echo esc_attr( $ev );?>"><?php echo esc_html( $ep_functions->ep_timestamp_to_date( $events->em_start_date, 'd M', 1 ) );?></label><?php
+                        foreach( $event->child_events as $events ) {
+                            $event_link = $ep_functions->ep_get_custom_page_url('events_page', $events->em_id , 'event');
+                            ?>
+                            <a href="<?php echo esc_url($event_link); ?>" class="ep-btn ep-ticket-btn ep-text-small ep-fw-bold ep-py-1 ep-px-2 ep-btn-outline-secondary ep-border-2 ep-rounded-1 ep_event_ticket_date_option" id="ep_child_event_id_<?php echo esc_attr( $events->em_id );?>"><?php echo esc_html( $ep_functions->ep_timestamp_to_date( $events->em_start_date, 'd M', 1 ) );?></a><?php
                             $ev++;
                         }
                     }
@@ -1962,18 +2002,33 @@ else
                     $parent_event_start_date = get_post_meta( $parent_event_id, 'em_start_date', true );
                     $all_child_event_data = $ep_functions->ep_get_child_events( $parent_event_id, array( 'fields' => 'ids' ) );
                      //$all_child_event_data = $ep_functions->get_event_child_data_by_parent_id( $parent_event_id, array( 'em_start_date' ) );
-                    if( ! empty( $all_child_event_data ) && count( $all_child_event_data ) > 0 ) {?>
-                        <input type="radio" class="ep-btn-check" name="em_single_event_ticket_date" id="ep_single_event_date1" autocomplete="off" data-event_id="<?php echo esc_attr( $parent_event_id );?>">
-                        <label class="ep-btn ep-text-small ep-fw-bold ep-py-1 ep-px-2 ep-btn-outline-secondary ep-border-2 ep-rounded-1 ep_event_ticket_date_option" id="ep_child_event_id_<?php echo esc_attr( $parent_event_id );?>" for="ep_single_event_date1"><?php echo esc_html( $ep_functions->ep_timestamp_to_date( $parent_event_start_date, 'd M', 1 ) );?></label><?php
+                    if( ! empty( $all_child_event_data ) && count( $all_child_event_data ) > 0 ) { 
+                        $event_link = $ep_functions->ep_get_custom_page_url('events_page', $parent_event_id , 'event');
+                           
+                        ?>
+                        <a href="<?php echo esc_url($event_link);?>" class="ep-btn ep-ticket-btn  ep-text-small ep-fw-bold ep-py-1 ep-px-2 ep-btn-outline-secondary ep-border-2 ep-rounded-1 ep_event_ticket_date_option" id="ep_child_event_id_<?php echo esc_attr( $parent_event_id );?>">
+                                 <?php echo esc_html( $ep_functions->ep_timestamp_to_date( $parent_event_start_date, 'd M', 1 ) );?>
+                        </a><?php
                         $ev = 2;
                         foreach( $all_child_event_data as $child_events ) {
+                            $event_link = $ep_functions->ep_get_custom_page_url('events_page', $child_events , 'event');
+                           
                             $checked = '';
                             $em_start_date = get_post_meta( $child_events, 'em_start_date', true );
-                            if( $child_events == $event->id ) $checked = 'checked';?>
-                            <input type="radio" class="ep-btn-check" name="em_single_event_ticket_date" id="ep_single_event_date<?php echo esc_attr( $ev );?>" autocomplete="off" data-event_id="<?php echo esc_attr( $child_events );?>" <?php echo esc_attr( $checked );?>>
-                            <label class="ep-btn ep-text-small ep-fw-bold ep-py-1 ep-px-2 ep-btn-outline-secondary ep-border-2 ep-rounded-1 ep_event_ticket_date_option" id="ep_child_event_id_<?php echo esc_attr( $child_events );?>" for="ep_single_event_date<?php echo esc_attr( $ev );?>">
-                                <?php echo esc_html( $ep_functions->ep_timestamp_to_date( $em_start_date, 'd M', 1 ) );?>
-                            </label><?php
+                            if( $child_events == $event->id ) 
+                            { ?>
+                                <div class="ep-btn ep-ticket-btn ep-ticket-active ep-text-small ep-fw-bold ep-py-1 ep-px-2 ep-btn-outline-secondary ep-border-2 ep-rounded-1 ep_event_ticket_date_option" id="ep_child_event_id_<?php echo esc_attr( $child_events );?>"><?php echo esc_html( $ep_functions->ep_timestamp_to_date( $em_start_date, 'd M', 1 ) );?></div>
+                              <?php
+                            }
+                            else
+                            {  
+                            ?>
+                                <a href="<?php echo esc_url($event_link);?>" class="ep-btn ep-ticket-btn  ep-text-small ep-fw-bold ep-py-1 ep-px-2 ep-btn-outline-secondary ep-border-2 ep-rounded-1 ep_event_ticket_date_option" id="ep_child_event_id_<?php echo esc_attr( $child_events );?>">
+                                    <?php echo esc_html( $ep_functions->ep_timestamp_to_date( $em_start_date, 'd M', 1 ) );?>
+                                </a><?php
+                            }
+                                
+                           
                             $ev++;
                         }
                     }
@@ -2284,6 +2339,10 @@ else
    
    public function ep_show_gdpr_badge_on_footer()
    {
+       if ( ! post_type_exists( 'em_event' ) ) {
+            return;
+        }
+        
        $atts = array();
        echo wp_kses_post($this->load_gdpr_badge($atts));
 

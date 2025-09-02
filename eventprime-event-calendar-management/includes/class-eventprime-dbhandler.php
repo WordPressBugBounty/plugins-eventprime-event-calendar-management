@@ -1138,7 +1138,7 @@ class EP_DBhandler {
                             update_post_meta($post_id, 'em_recurrence_limit', $last_date_on);
                             
                             //$recurrence_limit = new DateTime('@' . $last_date_on);
-                            $timezone = new DateTimeZone(get_option('timezone_string') ?: 'UTC');
+                            $timezone = new DateTimeZone($ep_functions->ep_get_site_timezone());
 
                             $recurrence_limit = new DateTime('now', $timezone);
                             $recurrence_limit->setTimestamp($last_date_on);
@@ -1151,7 +1151,7 @@ class EP_DBhandler {
 //                        
 //                        $start_date_only->setTime(0, 0, 0, 0);
                         
-                        $timezone = new DateTimeZone(get_option('timezone_string') ?: 'UTC');
+                        $timezone = new DateTimeZone($ep_functions->ep_get_site_timezone());
 
                         $start_date_only = new DateTime('now', $timezone);
                         $start_date_only->setTimestamp($em_start_date);
@@ -1210,7 +1210,7 @@ class EP_DBhandler {
         
         $post_data = array();
         $post_data['em_id'] = $post['post_ID'];
-        $post_data['em_name'] = $post['post_title'];
+        $post_data['em_name'] = $post['post_title'] ?? 'no title';
         /* taxonomy update */
         //print_r($post['tax_input']);die;
         if (isset($post['tax_input']) && !empty($post['tax_input'])) {
@@ -2155,7 +2155,7 @@ class EP_DBhandler {
 //                            $recurrence_limit = new DateTime('@' . $last_date_on);
 //                            //$recurrence_limit->setTime( 0,0,0,0 );
 //                            $recurrence_limit_timestamp = $recurrence_limit->getTimestamp();
-                            $timezone = new DateTimeZone(get_option('timezone_string') ?: 'UTC');
+                            $timezone = new DateTimeZone($ep_functions->ep_get_site_timezone());
 
                             $recurrence_limit = new DateTime('now', $timezone);
                             $recurrence_limit->setTimestamp($last_date_on);
@@ -2167,7 +2167,7 @@ class EP_DBhandler {
 //                        $start_date_only = new DateTime('@' . $em_start_date);
 //                        $start_date_only->setTime(0, 0, 0, 0);
                         
-                        $timezone = new DateTimeZone( get_option('timezone_string') ?: 'UTC' );
+                        $timezone = new DateTimeZone( $ep_functions->ep_get_site_timezone());
 
                         $start_date_only = new DateTime('now', $timezone);
                         $start_date_only->setTimestamp($em_start_date);
@@ -2519,7 +2519,7 @@ class EP_DBhandler {
 //        $start_date = new DateTime('@' . $data['start_date']);
 //        $end_date = new DateTime('@' . $data['end_date']);
         
-        $timezone = new DateTimeZone( get_option( 'timezone_string' ) ?: 'UTC' );
+        $timezone = new DateTimeZone($ep_functions->ep_get_site_timezone());
 
         $start_date = new DateTime( 'now', $timezone );
         $start_date->setTimestamp( $data['start_date'] );
@@ -2605,7 +2605,7 @@ class EP_DBhandler {
 //            $start_date = new DateTime('@' . $data['start_date']);
 //            $end_date = new DateTime('@' . $data['end_date']);
             
-            $timezone = new DateTimeZone( get_option( 'timezone_string' ) ?: 'UTC' );
+            $timezone = new DateTimeZone($ep_functions->ep_get_site_timezone());
 
             $start_date = new DateTime( 'now', $timezone );
             $start_date->setTimestamp( $data['start_date'] );
@@ -2764,7 +2764,7 @@ class EP_DBhandler {
 //        $start_date = new DateTime('@' . $data['start_date']);
 //        $end_date = new DateTime('@' . $data['end_date']);
         
-        $timezone = new DateTimeZone( get_option( 'timezone_string' ) ?: 'UTC' );
+        $timezone = new DateTimeZone( $ep_functions->ep_get_site_timezone() ?? 'UTC' );
 
         $start_date = new DateTime( 'now', $timezone );
         $start_date->setTimestamp( $data['start_date'] );
@@ -2822,7 +2822,7 @@ class EP_DBhandler {
      * 
      * @param array $data Data.
      */
-    public function ep_event_yearly_recurrence($post, $data = array(), $post_data = array()) {
+    public function ep_event_yearly_recurrence_old($post, $data = array(), $post_data = array()) {
         $ep_functions = new Eventprime_Basic_Functions;
         $em_recurrence_yearly_day = isset($post_data['em_recurrence_yearly_day']) ? $post_data['em_recurrence_yearly_day'] : '';
         update_post_meta($post->ID, 'em_recurrence_yearly_day', $em_recurrence_yearly_day);
@@ -2843,7 +2843,7 @@ class EP_DBhandler {
 //        $start_date = new DateTime('@' . $data['start_date']);
 //        $end_date = new DateTime('@' . $data['end_date']);
         
-        $timezone = new DateTimeZone( get_option( 'timezone_string' ) ?: 'UTC' );
+        $timezone = new DateTimeZone($ep_functions->ep_get_site_timezone());
 
         $start_date = new DateTime( 'now', $timezone );
         $start_date->setTimestamp( $data['start_date'] );
@@ -2900,6 +2900,96 @@ class EP_DBhandler {
         }
     }
 
+    public function ep_event_yearly_recurrence($post, $data = array(), $post_data = array()) {
+        $ep_functions = new Eventprime_Basic_Functions;
+
+        $em_recurrence_yearly_day = $post_data['em_recurrence_yearly_day'] ?? '';
+        update_post_meta($post->ID, 'em_recurrence_yearly_day', $em_recurrence_yearly_day);
+        $data['em_recurrence_yearly_day'] = $em_recurrence_yearly_day;
+
+        if ($em_recurrence_yearly_day === 'day') {
+            $em_recurrence_yearly_weekno       = $post_data['em_recurrence_yearly_weekno'] ?? '';
+            $em_recurrence_yearly_fullweekday  = $post_data['em_recurrence_yearly_fullweekday'] ?? '';
+            $em_recurrence_yearly_monthday     = $post_data['em_recurrence_yearly_monthday'] ?? '';
+
+            update_post_meta($post->ID, 'em_recurrence_yearly_weekno', $em_recurrence_yearly_weekno);
+            update_post_meta($post->ID, 'em_recurrence_yearly_fullweekday', $em_recurrence_yearly_fullweekday);
+            update_post_meta($post->ID, 'em_recurrence_yearly_monthday', $em_recurrence_yearly_monthday);
+
+            $data['em_recurrence_yearly_weekno']      = $em_recurrence_yearly_weekno;
+            $data['em_recurrence_yearly_fullweekday'] = $em_recurrence_yearly_fullweekday;
+            $data['em_recurrence_yearly_monthday']    = $em_recurrence_yearly_monthday;
+            // we'll set em_recurrence_yearly_year globally below
+        }
+
+        $timezone = new DateTimeZone($ep_functions->ep_get_site_timezone());
+
+        $start_date = new DateTime('now', $timezone);
+        $start_date->setTimestamp((int)$data['start_date']);
+
+        $end_date = new DateTime('now', $timezone);
+        $end_date->setTimestamp((int)$data['end_date']);
+
+        // Ensure start_date_only exists (it’s used in the first while condition)
+        $data['start_date_only'] = $data['start_date_only'] ?? clone $start_date;
+
+        // Always initialize the yearly baseline from the event start_date in site TZ
+        $data['em_recurrence_yearly_year'] = isset($data['em_recurrence_yearly_year'])
+            ? (int)$data['em_recurrence_yearly_year']
+            : (int)$start_date->format('Y');
+
+        // Guard step to avoid notices
+        $data['recurrence_step'] = isset($data['recurrence_step']) ? (int)$data['recurrence_step'] : 1;
+
+        $modify_string = $this->get_date_modification_string($data);
+        $old_post_metas = get_post_custom($post->ID);
+
+        // First next occurrence modifier
+        $new_modify_string = $this->get_new_modify_string($start_date, $modify_string);
+
+        $counter = 0;
+
+        if (!empty($data['last_date_on'])) {
+            while ($data['start_date_only']->modify($new_modify_string)->getTimestamp() <= (int)$data['recurrence_limit_timestamp']) {
+                $start_date->modify($new_modify_string);
+                $end_date->modify($new_modify_string);
+
+                $child_start_date = $start_date->getTimestamp();
+                $child_end_date   = $end_date->getTimestamp();
+
+                $new_post_id = $this->ep_create_child_event($post, $child_start_date, $child_end_date, $counter, $post_data);
+                if (!empty($new_post_id) && is_int($new_post_id)) {
+                    update_post_meta($new_post_id, 'em_is_yearly_recurrence', 1);
+                    $counter++;
+                }
+
+                // advance year and recompute modifier
+                $data['em_recurrence_yearly_year'] += $data['recurrence_step'];
+                $modify_string   = $this->get_date_modification_string($data);
+                $new_modify_string = $this->get_new_modify_string($start_date, $modify_string);
+            }
+        } elseif (!empty($data['stop_after'])) {
+            while ($counter < (int)$data['stop_after']) {
+                $start_date->modify($new_modify_string);
+                $end_date->modify($new_modify_string);
+
+                $child_start_date = $start_date->getTimestamp();
+                $child_end_date   = $end_date->getTimestamp();
+
+                $new_post_id = $this->ep_create_child_event($post, $child_start_date, $child_end_date, $counter, $post_data);
+                if (!empty($new_post_id) && is_int($new_post_id)) {
+                    update_post_meta($new_post_id, 'em_is_yearly_recurrence', 1);
+                    $counter++;
+                }
+
+                $data['em_recurrence_yearly_year'] += $data['recurrence_step'];
+                $modify_string   = $this->get_date_modification_string($data);
+                $new_modify_string = $this->get_new_modify_string($start_date, $modify_string);
+            }
+        }
+    }
+
+    
     /**
      * Method to create advanced recurring events
      * 
@@ -2920,7 +3010,7 @@ class EP_DBhandler {
 //        $start_date = new DateTime('@' . $data['start_date']);
 //        $end_date = new DateTime('@' . $data['end_date']);
         
-        $timezone = new DateTimeZone( get_option( 'timezone_string' ) ?: 'UTC' );
+        $timezone = new DateTimeZone( $ep_functions->ep_get_site_timezone() );
 
         $start_date = new DateTime( 'now', $timezone );
         $start_date->setTimestamp( $data['start_date'] );
@@ -2986,7 +3076,7 @@ class EP_DBhandler {
 //                            $start_date = new DateTime('@' . $data['start_date']);
 //                            $end_date = new DateTime('@' . $data['end_date']);
                             
-                            $timezone = new DateTimeZone( get_option( 'timezone_string' ) ?: 'UTC' );
+                            $timezone = new DateTimeZone( $ep_functions->ep_get_site_timezone() );
 
                             $start_date = new DateTime( 'now', $timezone );
                             $start_date->setTimestamp( $data['start_date'] );
@@ -3039,7 +3129,7 @@ class EP_DBhandler {
 //                            $start_date = new DateTime('@' . $data['start_date']);
 //                            $end_date = new DateTime('@' . $data['end_date']);
                             
-                            $timezone = new DateTimeZone( get_option( 'timezone_string' ) ?: 'UTC' );
+                            $timezone = new DateTimeZone( $ep_functions->ep_get_site_timezone() );
 
                             $start_date = new DateTime( 'now', $timezone );
                             $start_date->setTimestamp( $data['start_date'] );
@@ -3076,7 +3166,7 @@ class EP_DBhandler {
 //            $start_date = new DateTime('@' . $data['start_date']);
 //            $end_date = new DateTime('@' . $data['end_date']);
             
-            $timezone = new DateTimeZone( get_option( 'timezone_string' ) ?: 'UTC' );
+            $timezone = new DateTimeZone( $ep_functions->ep_get_site_timezone() );
 
             $start_date = new DateTime( 'now', $timezone );
             $start_date->setTimestamp( $data['start_date'] );
@@ -3110,7 +3200,7 @@ class EP_DBhandler {
 //                    $start_date = new DateTime('@' . $data['start_date']);
 //                    $end_date = new DateTime('@' . $data['end_date']);
                     
-                    $timezone = new DateTimeZone( get_option( 'timezone_string' ) ?: 'UTC' );
+                    $timezone = new DateTimeZone( $ep_functions->ep_get_site_timezone() );
 
                     $start_date = new DateTime( 'now', $timezone );
                     $start_date->setTimestamp( $data['start_date'] );

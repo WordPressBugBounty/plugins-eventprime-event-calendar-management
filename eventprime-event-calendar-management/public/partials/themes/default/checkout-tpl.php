@@ -413,9 +413,9 @@ if( $ep_functions->ep_get_global_settings('checkout_reg_google_recaptcha') == 1 
                                             $term_option = $em_event_checkout_fixed_fields['em_event_checkout_fixed_terms_option'];
                                             $term_content = $em_event_checkout_fixed_fields['em_event_checkout_fixed_terms_content'];?>
                                             <div class="ep-event-booking-attendee-section ep-box-row ep-border ep-rounded ep-mb-4 ep-bg-white">
-                                                <div class="ep-box-col-9 ep-p-3">
+                                                <div class="ep-box-col-12 ep-p-3">
                                                     <input name="ep_booking_attendee_fixed_term_field" type="checkbox" id="ep_booking_attendee_fixed_term_field" required="required" value="">
-                                                    <label for="ep_booking_attendee_fixed_term_field" class="form-label ep-text-small">
+                                                    <label for="ep_booking_attendee_fixed_term_field" class="form-label ep-text-small ep-text-break">
                                                         <?php echo esc_html( $em_event_checkout_fixed_fields['em_event_checkout_fixed_terms_label'] );?>
                                                     </label>
                                                     <span>
@@ -436,7 +436,9 @@ if( $ep_functions->ep_get_global_settings('checkout_reg_google_recaptcha') == 1 
                                                                             </div>
                                                                             <div class="ep-box-row">
                                                                                 <div class="ep-box-col-12 ep-px-4 ep-py-1">
+                                                                                    <div class="ep_checkout_attendee-term-content ep-text-break">
                                                                                     <?php echo wp_kses_post($term_content); ?>
+                                                                                    <div>
                                                                                 </div>
                                                                             </div>
                                                                         </div>

@@ -850,6 +850,7 @@ function ep_load_calendar_view(search_param='')
         }
         
         if( calendarEl ) {
+            console.log(eventprime.timezone)
             var calendar = new FullCalendar.Calendar( calendarEl, {
                 headerToolbar: {
                     left: 'prevYear,prev,next,nextYear today',
@@ -867,6 +868,7 @@ function ep_load_calendar_view(search_param='')
                 navLinks: true, // can click day/week names to navigate views
                 dayMaxEvents: day_max_events, // allow "more" link when too many events
                 editable: false,
+                timeZone:eventprime.timezone,
                 height: "auto",
                 events: function(info, successCallback, failureCallback) {
         // Calculate the start and end dates of the current month

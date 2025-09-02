@@ -6224,7 +6224,7 @@ class Eventprime_Basic_Functions {
                 $start_date       = $this->ep_timestamp_to_date( $event->em_start_date, 'Y-m-d', 1 );
                 $ev['start']      = $start_date;
                 if( ! empty( $event->em_start_time ) && $this->ep_show_event_date_time( 'em_start_time', $event ) ) {
-                    $st_time = gmdate( "H:i", strtotime( $event->em_start_time ) );
+                    $st_time = wp_date( "H:i", strtotime( $event->em_start_time ) );
                     $st_time = explode( ' ', $st_time )[0];
                     $ev['start'] .= ' '. $st_time;
                 }
@@ -6234,11 +6234,11 @@ class Eventprime_Basic_Functions {
                 $end_date   = $this->ep_timestamp_to_date( $event->em_end_date, 'Y-m-d', 1 );
                 $ev['end']  = $end_date;
                 if( ! empty( $event->em_start_date ) && $event->em_start_date == $event->em_end_date ) {
-                    $ev['event_day']  = gmdate( 'l', $event->em_start_date );
+                    $ev['event_day']  = wp_date( 'l', $event->em_start_date );
                 }
                 if( $this->ep_show_event_date_time( 'em_end_time', $event ) ) {
                     if( ! empty( $event->em_end_time ) ) {
-                        $end_time = gmdate( "H:i", strtotime( $event->em_end_time ) );
+                        $end_time = wp_date( "H:i", strtotime( $event->em_end_time ) );
                         $end_time = explode( ' ', $end_time )[0];
                         $ev['end'] .= ' '. $end_time;
                     } else{
@@ -6255,7 +6255,7 @@ class Eventprime_Basic_Functions {
                     if( ! empty( $event->em_hide_event_start_time ) && ! empty( $event->em_hide_event_end_time ) ) {
                         if( $this->ep_is_multidate_event( $event ) ) {
                             if( ! empty( $event->em_end_time ) ) {
-                                $end_time = gmdate( "H:i", strtotime( $event->em_end_time ) );
+                                $end_time = wp_date( "H:i", strtotime( $event->em_end_time ) );
                                 $end_time = explode( ' ', $end_time )[0];
                                 $ev['end'] .= ' '. $end_time;
                             }else{

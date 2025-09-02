@@ -853,7 +853,7 @@ class Eventprime_Event_Calendar_Management_Admin {
 					'slug'       => $ep_functions->ep_get_seo_page_url( 'event' ),
 					'with_front' => true,
 				),
-                //'show_in_rest'        => true,
+                                //'show_in_rest'        => true,
 			)
         );
 
@@ -4148,7 +4148,7 @@ class Eventprime_Event_Calendar_Management_Admin {
     public function add_eventprime_admin_footer_banner() {
          $ep_functions = new Eventprime_Basic_Functions();
         $current_page  = $ep_functions->eventprime_check_is_ep_dashboard_page();
-        $array         = array( 'events', 'event_edit', 'ep-event-calendar', 'em_event_type', 'em_venue', 'em_event_organizer', 'performers', 'performer_edit', 'bookings', 'booking_edit', 'ep-events-reports', 'ep-bulk-emails', 'ep-publish-shortcodes', 'ep-import-export', 'ep-settings' );
+        $array         = array( 'events', 'ep-event-calendar', 'em_event_type', 'em_venue', 'em_event_organizer', 'performers', 'performer_edit', 'bookings', 'booking_edit', 'ep-events-reports', 'ep-bulk-emails', 'ep-publish-shortcodes', 'ep-import-export', 'ep-settings' );
         if ( !empty( $current_page ) && in_array( $current_page, $array ) ) {
             do_action( 'ep_add_custom_support_text' );
         }

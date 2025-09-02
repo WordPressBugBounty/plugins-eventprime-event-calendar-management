@@ -3,7 +3,7 @@
 }
 
 .post-type-em_event #ep_event_register_meta_boxes .emagic .ep_event_metabox{
-    overflow: visible;
+    
 }
 #ep_event_register_meta_boxes .inside{
     padding: 0;
@@ -493,6 +493,19 @@ table.ep-attendee-fields-modal-table {
     cursor: pointer;
     pointer-events: none;
 }
+
+
+#poststuff #ep_event_register_meta_boxes .postbox-header h2.hndle{
+    font-size: 14px;
+    padding: 8px 12px;
+    margin: 0;
+    line-height: 1.4;
+}
+
+#poststuff #ep_event_register_meta_boxes .postbox-header{
+    border-bottom: 1px solid #ddd;
+}
+
 /* Disable event setting drag end*/
 
 /*-- enabled metabox drag---*/
@@ -721,4 +734,23 @@ ul#ep-ticket-Tabs .ep-tab-item a.ep-tab-link.ep-tab-active {
         min-height: 100px;
   }
   
+  body.ep-modal-open-body .interface-interface-skeleton__header,
+  body.ep-modal-open-body .interface-complementary-area.editor-sidebar{
+      z-index: 0;
+  }
+  
+  body.ep-modal-open-body .interface-complementary-area__fill{
+      display: none;
+  }
+  
+  body.ep-modal-open-body .ep-modal-view{}
+  
 /**-- Ticket Modal Ends---**/
+
+
+.checkout-field-options span.em-event-checkout-fixed-terms-content{
+    white-space: normal;
+    word-break: break-all;
+    display: inline-block;
+    width: 100%;
+}

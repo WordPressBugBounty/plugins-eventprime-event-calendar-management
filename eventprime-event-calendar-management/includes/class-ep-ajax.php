@@ -2722,11 +2722,12 @@ class EventM_Ajax_Service {
     {
         $ep_functions = new Eventprime_Basic_Functions;
         // Create a DateTime object from the string
-        $startdate = new DateTime($_POST['start']);
+        $timezone = new DateTimeZone($ep_functions->ep_get_site_timezone());
+        $startdate = new DateTime($_POST['start'],$timezone);
         $format = $ep_functions->ep_get_datepicker_format();
         $formattedstartDate = $startdate->format($format);
         
-        $enddate = new DateTime($_POST['end']);
+        $enddate = new DateTime($_POST['end'],$timezone);
         $formattedendDate = $enddate->format($format);
 
         $start = $formattedstartDate;

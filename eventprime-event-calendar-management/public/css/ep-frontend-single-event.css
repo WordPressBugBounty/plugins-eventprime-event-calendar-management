@@ -13,6 +13,33 @@
     border-width: 1px;
 }
 
+.emagic .ep-btn-group.ep-ticket-btn-radio .ep-btn.ep-ticket-btn{
+    min-width: 74px;
+    line-height: 21px;
+    max-width: 78px;
+    border-radius: 0.375rem !important;
+    margin-right: 5px;
+    border-width: 1px;
+}
+
+.emagic .ep-btn-group.ep-ticket-btn-radio .ep-btn.ep-ticket-btn .ep-ticket-active{
+    
+}
+
+.emagic .ep-btn-group.ep-ticket-btn-radio .ep-btn.ep-ticket-btn.ep-ticket-active:before{
+    font-family: 'Material Icons Outlined';
+    content: "\e876";
+    position: absolute;
+    top: -6px;
+    left: -5px;
+    font-size: 1.25rem!important;
+    --ep-text-opacity: 1;
+    color: rgba(var(--ep-warning-color),var(--ep-text-opacity))!important;
+    background-color: #fff;
+    line-height: 16px;
+    border-radius:  var(--ep-border-radius-sm)
+}
+
 .emagic .ep-ticket-btn-radio input[type=radio] {
     visibility: hidden;
 }

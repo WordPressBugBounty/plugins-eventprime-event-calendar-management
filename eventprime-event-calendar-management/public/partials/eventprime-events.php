@@ -113,6 +113,7 @@ wp_localize_script(
             'organizers' => $ep_functions->ep_global_settings_button_title('Organizers'),
             'list_week_btn_text' => esc_html__('Agenda', 'eventprime-event-calendar-management'),
             'hide_time_on_front_calendar' => $ep_functions->ep_get_global_settings( 'hide_time_on_front_calendar' ),
+            'timezone' => $ep_functions->ep_get_site_timezone()
         )
 );
 
@@ -128,7 +129,8 @@ wp_localize_script(
             'currency_symbol' => $currency_symbol,
             'ajaxurl' => admin_url('admin-ajax.php'),
             'trans_obj' => $ep_functions->ep_define_common_field_errors(),
-            'datepicker_format'    => $datepicker_format
+            'datepicker_format'    => $datepicker_format,
+            'timezone' => $ep_functions->ep_get_site_timezone()
         )
 );
 
