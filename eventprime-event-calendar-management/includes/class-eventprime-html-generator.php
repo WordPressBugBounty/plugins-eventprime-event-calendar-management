@@ -463,7 +463,7 @@ class Eventprime_html_Generator {
                         </tr><?php 
                     }?>
                     <tr>
-                        <td class="label"><?php esc_html_e( 'Ticket Total:', 'eventprime-event-calendar-management' );?></td>
+                        <td class="label"><?php esc_html_e( 'Total:', 'eventprime-event-calendar-management' );?></td>
                         <td width="1%"></td>
                         <td class="ep-ticket-total-amount">
                             <span>

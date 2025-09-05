@@ -5,7 +5,7 @@ $global_function =  new Eventprime_Basic_Functions();
 <div class="emagic">
     <div class="ep-exts-bundle-banner ep-box-wrap ep-text-center ep-mt-5">
         <a href="https://theeventprime.com/all-extensions/" target="_blank" class="ep-inline-block">
-            <img class="ep-extension-bundle" alt="<?php echo esc_attr( 'EventPrime Extension Bundle');?>" src="<?php echo esc_url( plugin_dir_url( __DIR__ ) . 'images/ep-extensions-banner.png'); ?>" >
+            <img class="ep-extension-bundle" alt="<?php echo esc_attr( 'EventPrime Extension Bundle');?>" src="<?php echo esc_url( plugin_dir_url( __DIR__ ) . 'images/ep-extension-banner.png'); ?>" >
         </a>
     </div>
 
@@ -92,7 +92,7 @@ $global_function =  new Eventprime_Basic_Functions();
     
     <div class="ep-exts-bundle-banner ep-box-wrap ep-text-center ep-mt-5">
         <a href="https://theeventprime.com/all-extensions/" target="_blank" class="ep-inline-block">
-            <img  class="ep-extension-bundle" alt="<?php echo esc_attr( 'EventPrime Extension Bundle');?>" src="<?php echo esc_url( plugin_dir_url( __DIR__ ) . 'images/ep-extensions-banner.png'); ?>" >
+            <img  class="ep-extension-bundle" alt="<?php echo esc_attr( 'EventPrime Extension Bundle');?>" src="<?php echo esc_url( plugin_dir_url( __DIR__ ) . 'images/ep-extension-banner.png'); ?>" >
         </a>
     </div>
     

@@ -5,7 +5,7 @@ Tags: event calendar, organizer , event manager, tickets, event booking, event b
 Requires at least: 4.8
 Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 4.1.3.0
+Stable tag: 4.1.3.1
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -667,10 +667,15 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 == Changelog ==
 
+= 4.1.3.1 – September 5, 2025 =
+* Fixed: Calendar time display based on timezone settings.
+* Fixed: Calendar title formatting.
+* Fixed: Ticket availability issue when event end date is not set.
+
 = 4.1.3.0 – September 2, 2025 =
-* Fixed Elementor compatibility – the "Edit with Elementor" option now works correctly.
-* Fixed Breakdance editor conflict.
-* Fixed recurring events timezone issue – resolved the problem causing recurring events to shift one day earlier due to timezone differences in some cases.
+* Fixed: Elementor compatibility – the "Edit with Elementor" option now works correctly.
+* Fixed: Breakdance editor conflict.
+* Fixed: Recurring events timezone issue – resolved the problem causing recurring events to shift one day earlier due to timezone differences in some cases.
 
 = 4.1.2.1: August 27, 2025 =
 * Fixed: Timezone & date handling across admin and frontend. 
@@ -2192,10 +2197,15 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 == Upgrade Notice ==
 
+= 4.1.3.1 – September 5, 2025 =
+* Fixed: Calendar time display based on timezone settings.
+* Fixed: Calendar title formatting.
+* Fixed: Ticket availability issue when event end date is not set.
+
 = 4.1.3.0 – September 2, 2025 =
-* Fixed Elementor compatibility – the "Edit with Elementor" option now works correctly.
-* Fixed Breakdance editor conflict.
-* Fixed recurring events timezone issue – resolved the problem causing recurring events to shift one day earlier due to timezone differences in some cases.
+* Fixed: Elementor compatibility – the "Edit with Elementor" option now works correctly.
+* Fixed: Breakdance editor conflict.
+* Fixed: Recurring events timezone issue – resolved the problem causing recurring events to shift one day earlier due to timezone differences in some cases.
 
 = 4.1.2.1: August 27, 2025 =
 * Fixed: Timezone & date handling across admin and frontend. 

@@ -3013,6 +3013,8 @@ class Eventprime_Event_Calendar_Management_Admin {
             );
         }
 
+        $meta_query = apply_filters( 'ep_new_add_booking_filter_query', $meta_query );
+
         // Apply the meta_query only if filters were set
         if ( !empty( $meta_query ) ) {
             $query->set( 'meta_query', $meta_query );

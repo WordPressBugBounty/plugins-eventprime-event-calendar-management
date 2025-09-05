@@ -109,13 +109,9 @@ $global_settings = $ep_functions->ep_get_global_settings();
 
                         <?php 
                         $users = (array) $user->ID;
-                        $ep_show_booking_detail_page_event = get_post_meta($args->em_event, 'ep_show_booking_detail_page_event', true);
+
+                        $ep_show_booking_detail_page_event = apply_filters('ep_show_booking_detail_page_event', 1, $args->em_event);
                        
-                    if ($ep_show_booking_detail_page_event=='') {
-                        $ep_show_booking_detail_page_event = isset($options['global']->ep_show_booking_detail_page) 
-                            ? $options['global']->ep_show_booking_detail_page 
-                            : "";
-                    }
                         // print_r($ep_show_booking_detail_page_event);
                         if($ep_show_booking_detail_page_event == 0 && (!empty(array_intersect($ep_event_allowed_roles, $roles)) || !empty(array_intersect($ep_event_allowed_individuals, $users)))) { ?>
                         <?php } 
@@ -158,6 +154,10 @@ $global_settings = $ep_functions->ep_get_global_settings();
                                 }
 
                                 // User data
+                                $booking_user_id = ! empty( $args->em_payment_log['ep_event_booking_user_id'] ) ? absint( $args->em_payment_log['ep_event_booking_user_id'] ) : absint( $args->em_user );
+                                if( ! empty( $booking_user_id ) ) {
+                                    $user = get_user_by( 'id', $booking_user_id );
+                                }
                                 if( ! empty( $user ) && $user->ID && ! empty( $user->data ) ) {?>
                                     <div class="ep-text-small ep-mt-4">
                                         <div>

@@ -2151,7 +2151,15 @@ class Eventprime_Basic_Functions {
         if (!empty($timestamp)) {
             if (empty($strict)) {
                 $format = $this->ep_get_datepicker_format();
-                $format = $format . ' h:i a';
+                $time_format = $this->ep_get_global_settings( 'time_format' );
+                if( ! empty( $time_format ) && $time_format == 'HH:mm' ) {
+                    $timeIn24HourFormat = ' H:i';
+                }
+                else
+                {
+                    $timeIn24HourFormat = ' h:i A';
+                }
+                $format = $format . $timeIn24HourFormat;
             }
             $datetime = wp_date($format, $timestamp);
         }
@@ -6223,29 +6231,21 @@ class Eventprime_Basic_Functions {
             if( ! empty( $event->em_start_date ) ) {
                 $start_date       = $this->ep_timestamp_to_date( $event->em_start_date, 'Y-m-d', 1 );
                 $ev['start']      = $start_date;
-                if( ! empty( $event->em_start_time ) && $this->ep_show_event_date_time( 'em_start_time', $event ) ) {
-                    $st_time = wp_date( "H:i", strtotime( $event->em_start_time ) );
-                    $st_time = explode( ' ', $st_time )[0];
-                    $ev['start'] .= ' '. $st_time;
-                }
+               if( ! empty( $event->em_start_time ) && $this->ep_show_event_date_time( 'em_start_time', $event ) ) {
+                 $ev['start'] = $this->ep_timestamp_to_datetime($event->em_start_date_time,'Y-m-d H:i', 1 );
+               }
+                
                 $ev['start_time'] = ( ! empty( $event->em_start_time ) ? $event->em_start_time : '' );
             }
             if( ! empty( $event->em_end_date ) ) {
                 $end_date   = $this->ep_timestamp_to_date( $event->em_end_date, 'Y-m-d', 1 );
                 $ev['end']  = $end_date;
+                
                 if( ! empty( $event->em_start_date ) && $event->em_start_date == $event->em_end_date ) {
                     $ev['event_day']  = wp_date( 'l', $event->em_start_date );
                 }
                 if( $this->ep_show_event_date_time( 'em_end_time', $event ) ) {
-                    if( ! empty( $event->em_end_time ) ) {
-                        $end_time = wp_date( "H:i", strtotime( $event->em_end_time ) );
-                        $end_time = explode( ' ', $end_time )[0];
-                        $ev['end'] .= ' '. $end_time;
-                    } else{
-                        if( $this->ep_is_multidate_event( $event ) ) {
-                            $ev['end'] .= ' 11:59';
-                        }
-                    }
+                    $ev['end'] = $this->ep_timestamp_to_datetime($event->em_end_date_time,'Y-m-d H:i', 1 );
                 } else{
                     if( empty( $event->em_hide_event_start_time ) ) {
                         if( $this->ep_is_multidate_event( $event ) ) {
@@ -6984,10 +6984,16 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
                             //print_r($book_start_date);die;
                             if( ! empty( $starts->start_time ) ) {
                                 $book_start_date .= ' ' . $starts->start_time;
-                                $book_start_timestamp = $this->ep_datetime_to_timestamp( $book_start_date );
-                            } else{
-                                $book_start_timestamp = $this->ep_date_to_timestamp( $book_start_date );
                             }
+                            else
+                            {
+                                $book_start_date .= ' ' . '12:00 AM';
+                                
+                            } 
+                            $book_start_timestamp = $this->ep_datetime_to_timestamp( $book_start_date );
+                            //$book_start_timestamp = $this->ep_date_to_timestamp( $book_start_date );
+                            
+                            
                             if( empty( $min_start ) || $book_start_timestamp < $min_start ) {
                                 $min_start = $book_start_timestamp;
                             }
@@ -7091,14 +7097,26 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
                             $book_end_date = $ends->end_date;
                             if( ! empty( $ends->end_time ) ) {
                                 $book_end_date .= ' ' . $ends->end_time;
-                                $book_end_timestamp = $this->ep_datetime_to_timestamp( $book_end_date );
-                            } else{
-                                $book_end_timestamp = $this->ep_date_to_timestamp( $book_end_date );
                             }
+                            else
+                            {
+                                $book_end_date .= ' ' . '11:59 PM' ;
+                            }
+                            
+                            $book_end_timestamp = $this->ep_datetime_to_timestamp( $book_end_date );
+                     
                             if( empty( $max_end ) || $book_end_timestamp < $max_end ) {
                                 $max_end = $book_end_timestamp;
                             }
                         }
+                        else
+                        {
+                            $book_end_timestamp = $this->ep_timestamp_to_date( $event->em_end_date );
+                            $book_end_timestamp .= ' ' . $event->em_end_time;
+                            $book_end_timestamp = $this->ep_datetime_to_timestamp( $book_end_timestamp );
+                            $max_end = $book_end_timestamp;
+                        }
+                        
                     } elseif( $booking_type == 'relative_date' ) {
                         $days         = ( ! empty( $ends->days ) ? $ends->days : 1 );
                         $days_option  = ( ! empty( $ends->days_option ) ? $ends->days_option : 'before' );

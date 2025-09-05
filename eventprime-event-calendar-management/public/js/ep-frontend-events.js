@@ -337,7 +337,7 @@ jQuery( function( $ ) {
     if( $('#ep-filter-event-tags').length ) {
         $( document ).on( 'change', '#ep-filter-event-tags', function() {
             let filter_value = $( '#ep-filter-event-tags' ).val();
-            console.log(filter_value)
+            //console.log(filter_value)
             if(filter_value.length == 0){
                 event_filters_selection_remove(event_search_params, 'event_tags');
                 $('#ep_event_tags').remove(); 
@@ -850,7 +850,7 @@ function ep_load_calendar_view(search_param='')
         }
         
         if( calendarEl ) {
-            console.log(eventprime.timezone)
+            //console.log(eventprime.timezone)
             var calendar = new FullCalendar.Calendar( calendarEl, {
                 headerToolbar: {
                     left: 'prevYear,prev,next,nextYear today',
@@ -994,24 +994,7 @@ function ep_load_calendar_view(search_param='')
                 },
                 firstDay: em_front_event_object.start_of_week,
                 locale: em_front_event_object.local,
-                titleFormat: function (info) {
-                    if ( info.date.timeZoneOffset < 0 ) {       // -ve UTC 
-                        var start = formatDate(new Date(info.start.marker.getTime() + 86400000), em_front_event_object.local, eventprime.global_settings.calendar_title_format); 
-                        var end = formatDate(new Date(info.end.marker.getTime()), em_front_event_object.local, eventprime.global_settings.calendar_title_format);
-                    } else if ( info.date.timeZoneOffset > 0 ) {    // +ve UTC
-                        var start = formatDate(info.start.marker, em_front_event_object.local, eventprime.global_settings.calendar_title_format); 
-                        var end = formatDate(new Date(info.end.marker.getTime() - 86400000), em_front_event_object.local, eventprime.global_settings.calendar_title_format);
-                    } else {
-                        var start = formatDate(info.start.marker, em_front_event_object.local, eventprime.global_settings.calendar_title_format); 
-                        var end = formatDate(info.end.marker, em_front_event_object.local, eventprime.global_settings.calendar_title_format);
-                    }
-
-                    if (start === end) {
-                        return start;
-                    } else {
-                        return start + ' – ' + end;
-                    }
-                }, 
+                titleFormat: { year: 'numeric', month: 'long', day: 'numeric' },
                 dayHeaderFormat: { weekday: column_header_format },
                 eventDidMount: function(info) {
                     let light_bg_color = '';
@@ -1074,6 +1057,10 @@ function ep_load_calendar_view(search_param='')
                         if( fc_list_event_title ) {
                             fc_list_event_title.style.color = textColor;
                         }
+                    }
+                    
+                    if( em_front_event_object.hide_time_on_front_calendar == 1 ) {
+                        $(info.el).find('.fc-event-time').hide();
                     }
                     $( info.el ).append( info.event.extendedProps.popup_html );
                 },
