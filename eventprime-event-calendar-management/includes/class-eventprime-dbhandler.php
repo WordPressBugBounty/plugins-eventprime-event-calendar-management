@@ -1342,6 +1342,7 @@ class EP_DBhandler {
         $post_data['em_event_max_tickets_per_user'] = (isset($post['em_event_max_tickets_per_user'])) ? sanitize_text_field($post['em_event_max_tickets_per_user']) : '';
         $post_data['em_event_max_tickets_per_order'] = (isset($post['em_event_max_tickets_per_order'])) ? sanitize_text_field($post['em_event_max_tickets_per_order']) : '';
         $post_data['em_event_max_tickets_reached_message'] = (isset($post['em_event_max_tickets_reached_message'])) ? sanitize_textarea_field($post['em_event_max_tickets_reached_message']) : '';
+        $post_data['em_restrict_no_of_bookings_per_user'] = (isset($post['em_restrict_no_of_bookings_per_user'])) ? absint($post['em_restrict_no_of_bookings_per_user']) : '';
         // save social info
         $em_social_links = array();
         if (isset($post['em_social_links']) && count($post['em_social_links']) > 0) {

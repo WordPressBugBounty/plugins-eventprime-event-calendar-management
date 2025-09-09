@@ -12014,56 +12014,73 @@ public function ep_get_events( $fields ) {
         $max_tickets_limit_per_user = isset($event->em_event_max_tickets_per_user)?(int)$event->em_event_max_tickets_per_user:0;
         $max_tickets_limit_per_order = isset($event->em_event_max_tickets_per_order)?(int)$event->em_event_max_tickets_per_order:0;
         $max_ticket_reached_message = ( isset($event->em_event_max_tickets_reached_message) && ! empty($event->em_event_max_tickets_reached_message))?$event->em_event_max_tickets_reached_message:esc_html__('You have already reached the maximum ticket limit for this event and cannot purchase additional tickets.','eventprime-event-calendar-management');
+        $em_restrict_no_of_bookings_per_user = isset($event->em_restrict_no_of_bookings_per_user) ? $event->em_restrict_no_of_bookings_per_user:0;
         $return = array(true,'');
-        //var_dump($max_tickets_limit_per_user);die;
-        if($max_tickets_limit_per_user > 0)
-        {
-            $event_id= $event->em_id;
-            $bookings_by_user = 0;
+
+        if( !empty($em_restrict_no_of_bookings_per_user) ) {
             if(is_user_logged_in())
             {
                 $user_id = get_current_user_id();
             }
-
             if(!empty($user_id))
             {
-                $bookings= $this->eventprime_check_event_booking_by_user($event_id, $user_id);
-                $bookings_by_user = $bookings['total_attendees'];
-            }
-            //print_r($bookings_by_user);die;
-            if($max_tickets_limit_per_user > $bookings_by_user)
-            {
-               $max_tickets = $max_tickets_limit_per_user - $bookings_by_user;
-               $message = sprintf(esc_html__('You can only purchase up to %d more tickets for this event. Please click the Cancel button to return to the event page and update your ticket selection.', 'eventprime-event-calendar-management'),$max_tickets);
-               $return = array($max_tickets,$message);
-            }
-            else
-            {
-                $return = array(false,$max_ticket_reached_message);
+                $bookings = $this->eventprime_check_event_booking_by_user($event->em_id, $user_id);
+                if( $bookings['total_booking'] >= $em_restrict_no_of_bookings_per_user )
+                {
+                    $return = array(false,sprintf( esc_html__('Booking limit reached!','eventprime-event-calendar-management'), $em_restrict_no_of_bookings_per_user ) );
+                }
             }
         }
-        
-        //if(!is_bool($return[0]))
-        if($max_tickets_limit_per_order > 0)
-        {
-            if(!is_bool($return[0]))
+
+        if ( $return[0] !== false ) {
+            if($max_tickets_limit_per_user > 0)
             {
-                if($return[0] > $max_tickets_limit_per_order)
+                $event_id= $event->em_id;
+                $bookings_by_user = 0;
+                if(is_user_logged_in())
+                {
+                    $user_id = get_current_user_id();
+                }
+    
+                if(!empty($user_id))
+                {
+                    $bookings= $this->eventprime_check_event_booking_by_user($event_id, $user_id);
+                    $bookings_by_user = $bookings['total_attendees'];
+                }
+                if($max_tickets_limit_per_user > $bookings_by_user)
+                {
+                   $max_tickets = $max_tickets_limit_per_user - $bookings_by_user;
+                   $message = sprintf(esc_html__('You can only purchase up to %d more tickets for this event. Please click the Cancel button to return to the event page and update your ticket selection.', 'eventprime-event-calendar-management'),$max_tickets);
+                   $return = array($max_tickets,$message);
+                }
+                else
+                {
+                    $return = array(false,$max_ticket_reached_message);
+                }
+            }
+            
+            //if(!is_bool($return[0]))
+            if($max_tickets_limit_per_order > 0)
+            {
+                if(!is_bool($return[0]))
+                {
+                    if($return[0] > $max_tickets_limit_per_order)
+                    {
+                        $max_tickets = $max_tickets_limit_per_order;
+                        $message = sprintf(esc_html__('A maximum of %d tickets are allowed per order for this event.', 'eventprime-event-calendar-management'),$max_tickets);
+                        $return = array($max_tickets,$message);
+                    }
+                    
+                }
+                elseif($return[0]!==false)
                 {
                     $max_tickets = $max_tickets_limit_per_order;
                     $message = sprintf(esc_html__('A maximum of %d tickets are allowed per order for this event.', 'eventprime-event-calendar-management'),$max_tickets);
                     $return = array($max_tickets,$message);
                 }
                 
+    
             }
-            elseif($return[0]!==false)
-            {
-                $max_tickets = $max_tickets_limit_per_order;
-                $message = sprintf(esc_html__('A maximum of %d tickets are allowed per order for this event.', 'eventprime-event-calendar-management'),$max_tickets);
-                $return = array($max_tickets,$message);
-            }
-            
-
         }
         
         return $return;

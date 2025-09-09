@@ -5,7 +5,7 @@ Tags: event calendar, organizer , event manager, tickets, event booking, event b
 Requires at least: 4.8
 Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 4.1.3.1
+Stable tag: 4.1.4.0
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -666,6 +666,9 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.1.4.0 – September 9, 2025 =
+* Added: Option to restrict number of bookings per user for an event.
 
 = 4.1.3.1 – September 5, 2025 =
 * Fixed: Calendar time display based on timezone settings.
@@ -2196,6 +2199,9 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.1.4.0 – September 9, 2025 =
+* Added: Option to restrict number of bookings per user for an event.
 
 = 4.1.3.1 – September 5, 2025 =
 * Fixed: Calendar time display based on timezone settings.
