@@ -1744,7 +1744,37 @@ class Eventprime_Basic_Functions {
 }
 
 
-    public function ep_get_event_date_time_diff($event) {
+/**
+ * Compact duration like "1d 4h 30m" from start/end UNIX timestamps.
+ *
+ * Expects $event->em_start_ts and $event->em_end_ts (ints, seconds).
+ */
+public function ep_get_event_date_time_diff( $event ) {
+    if ( empty( $event->em_start_date_time ) || empty( $event->em_end_date_time ) ) {
+        return '';
+    }
+
+    
+    // Build DateTimes from timestamps in WP tz (no parsing of strings).
+    $user_timezone = $this->ep_get_site_timezone();
+    $tz = new DateTimeZone($user_timezone);
+    $start = ( new DateTimeImmutable( '@' . intval( $event->em_start_date_time ) ) )->setTimezone( $tz );
+    $end   = ( new DateTimeImmutable( '@' . intval( $event->em_end_date_time ) ) )->setTimezone( $tz );
+
+    if ( $start > $end ) { [$start, $end] = [$end, $start]; }
+
+    $d = $start->diff( $end );
+
+    $out = '';
+    if ( $d->y ) $out .= $d->y . 'y ';
+    if ( $d->m ) $out .= $d->m . 'm ';
+    if ( $d->d ) $out .= $d->d . 'd ';
+    if ( $d->h ) $out .= $d->h . 'h ';
+    if ( $d->i ) $out .= $d->i . 'm';
+    return trim( $out );
+}
+
+    public function ep_get_event_date_time_diff_old($event) {
         $date_diff = '';
         if (!empty($event->em_start_date) && !empty($event->em_end_date)) {
             $start_date = $this->ep_timestamp_to_date($event->em_start_date, 'Y-m-d', 1);
@@ -4956,20 +4986,41 @@ class Eventprime_Basic_Functions {
         if( isset( $atts['sites'] ) && ! empty( $atts['sites'] ) ) {
             $venue_ids = explode( ',', $atts['sites'] );
         }
+        
         if( isset( $_POST['event_venues_ids'] ) && ! empty( $_POST['event_venues_ids'] ) ) {
             $venue_ids = explode( ',', $_POST['event_venues_ids'] );
         }
+//        if ( ! empty( $venue_ids ) ) {
+//            $filter_venues_ids = array('relation'     => 'OR');
+//            foreach ($venue_ids as $venue_id){
+//                $filter_venues_ids[]= array(
+//                    'key'     => 'em_venue',
+//                    'value'   =>  serialize( array($venue_id) ),
+//                    'compare' => '='
+//                );
+//            }
+//            $params['meta_query'][] = $filter_venues_ids;
+//        }
+        
+        // Filter events by Venue taxonomy term IDs
         if ( ! empty( $venue_ids ) ) {
-            $filter_venues_ids = array('relation'     => 'OR');
-            foreach ($venue_ids as $venue_id){
-                $filter_venues_ids[]= array(
-                    'key'     => 'em_venue',
-                    'value'   =>  serialize( array($venue_id) ),
-                    'compare' => '='
-                );
+            // Ensure it's an array of ints
+            $venue_ids = array_map( 'absint', (array) $venue_ids );
+
+            // Initialize tax_query if needed (keeps other tax filters intact)
+            if ( empty( $params['tax_query'] ) ) {
+                $params['tax_query'] = array( 'relation' => 'AND' );
             }
-            $params['meta_query'][] = $filter_venues_ids;
+
+            $params['tax_query'][] = array(
+                'taxonomy'         => 'em_venue',      // <-- change if your taxonomy slug differs
+                'field'            => 'term_id',
+                'terms'            => $venue_ids,      // match ANY of these IDs
+                'operator'         => 'IN',
+                'include_children' => false,           // set true if you want child venues included
+            );
         }
+
         $events_data['venue_ids'] = $venue_ids;
         // individual events argument
         $events_data['i_events'] = '';
@@ -9427,6 +9478,10 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
 
     // generate slug from the string
     public function ep_get_slug_from_string( $string ) {
+        if(empty($string) || !is_string($string))
+        {
+            return '';
+        }
         // Strip html tags
         $text = strip_tags($string);
         // Replace non letter or digits by -

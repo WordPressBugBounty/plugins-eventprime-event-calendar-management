@@ -9,7 +9,9 @@
 $settings          = new Eventprime_Global_Settings;
 $ep_functions = new Eventprime_Basic_Functions;
 ?>
-<?php foreach ( $args->events->posts as $event ) {
+<?php 
+if( isset( $args->events->posts ) && !empty( $args->events->posts ) ) {
+foreach ( $args->events->posts as $event ) {
     $is_event_expired = $ep_functions->check_event_has_expired($event);
     $options = array();
     $options['global'] = $settings->ep_get_settings();
@@ -138,4 +140,8 @@ $ep_functions = new Eventprime_Basic_Functions;
             <?php do_action( 'ep_event_view_after_event_button', $event );?>
         </div>
     </div>
-<?php } ?>
+<?php 
+
+    } 
+}
+?>

@@ -3935,6 +3935,7 @@ class Eventprime_Event_Calendar_Management_Admin {
 			$ep_activator    = new Eventprime_Event_Calendar_Management_Activator();
 			foreach ( $object_ids as $event_id ) {
 				$post_id = $basic_functions->eventprime_duplicate_post( $event_id );
+                                $event = $basic_functions->get_single_event_detail($post_id);
 				// fetch ticket category and ticket data from custom tables
 				$em_ticket_category_data = $basic_functions->get_event_ticket_category( $event_id );
 				$solo_tickets            = $basic_functions->get_event_solo_ticket( $event_id );
@@ -4064,7 +4065,7 @@ class Eventprime_Event_Calendar_Management_Admin {
 						$ticket_data['is_default']     = 1;
 						$ticket_data['is_event_price'] = 0;
 						$ticket_data['icon']           = isset( $ticket->icon ) ? absint( $ticket->icon ) : '';
-						$ticket_data['priority']       = $cat_ticket_priority;
+						$ticket_data['priority']       = $tic;
 						$ticket_data['status']         = 1;
 						$ticket_data['created_at']     = wp_date( 'Y-m-d H:i:s', time() );
 						// new

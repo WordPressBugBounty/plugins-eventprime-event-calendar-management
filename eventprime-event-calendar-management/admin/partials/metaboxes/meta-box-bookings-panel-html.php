@@ -54,7 +54,7 @@ $extensions = $ep_functions->ep_get_activate_extensions();
                         <label class="ep-form-check-label" for="ep-external-bookings">
                             <?php esc_html_e('Third-party bookings', 'eventprime-event-calendar-management'); ?>
                             <div class="ep-text-muted ep-text-small">
-                                <?php esc_html_e('Users will be redirected to a third-party ticket booking website defined by you.', 'eventprime-event-calendar-management'); ?>
+                                <?php esc_html_e('Users will be redirected to a third-party ticket booking website defined by you.', 'eventprime-event-calendar-management'); $ep_functions->ep_documentation_link_read_more_html('https://theeventprime.com/how-to-enable-third-party-booking-for-wordpress-event/'); ?>
                             </div>
                         </label>
                     </div>
@@ -177,7 +177,7 @@ $extensions = $ep_functions->ep_get_activate_extensions();
                                 </div>
                             </div>
                             <div class="ep-text-muted ep-text-small">
-                                <?php esc_html_e('Fixed fee (per booking) for this event which is added to total ticket price during checkout.', 'eventprime-event-calendar-management'); ?>
+                                <?php esc_html_e('Fixed fee (per booking) for this event which is added to total ticket price during checkout.', 'eventprime-event-calendar-management'); $ep_functions->ep_documentation_link_read_more_html('https://theeventprime.com/how-to-add-event-fee-to-an-event-on-wordpress-site/'); ?> 
                             </div>
                         </div>
                     </div>
@@ -193,7 +193,7 @@ $extensions = $ep_functions->ep_get_activate_extensions();
                                     <label class="ep-event-booking-hide-status">
                                     <?php esc_html_e('Hide Booking Status', 'eventprime-event-calendar-management'); ?>
                                     <div class="ep-text-muted ep-text-small">
-                                        <?php esc_html_e('Hide current booking status for this event on events listing view.', 'eventprime-event-calendar-management'); ?>
+                                        <?php esc_html_e('Hide current booking status for this event on events listing view.', 'eventprime-event-calendar-management'); $ep_functions->ep_documentation_link_read_more_html('https://theeventprime.com/how-to-hide-event-tickets-availability-status-on-wordpress/') ?>
                                     </div>
                                 </label>
                             </div>

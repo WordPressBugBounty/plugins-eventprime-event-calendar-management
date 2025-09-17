@@ -65,7 +65,7 @@ $em_end_date = $ep_functions->ep_timestamp_to_date( $em_end_date, $date_format )
 
             <div class="ep-box-col-3 ep-items-end ep-meta-box-data">
                 <label class="ep-form-label"><?php esc_html_e('Start Time (optional)', 'eventprime-event-calendar-management'); ?>
-                    <span class="ep-help-tip" tooltip="<?php esc_html_e( 'The time at which the event starts. This is optional.  If entered, the time will be visible on the event page and the event listing page unless you choose to hide it. You can set format for time from Settings. This option is disabled if you select It\'s an all day event.', 'eventprime-event-calendar-management' );?>" tooltip-position="bottom"  ep-icon-position="relative"></span>
+                    <span class="ep-help-tip" tooltip="<?php esc_html_e( "The time at which the event starts. This is optional. If entered, the time will be visible on the event page and the event listing page unless you choose to hide it. You can set format for time from Settings. This option is disabled if you select 'It's an all day event'. ", 'eventprime-event-calendar-management' );?>" tooltip-position="bottom"  ep-icon-position="relative"></span>
                     <span id="ep-start-time-hidden" class="material-icons ep-text-muted" style="display: none;">visibility_off</span>
                 </label>
                 <div class="ep-event-start-time">
@@ -78,7 +78,7 @@ $em_end_date = $ep_functions->ep_timestamp_to_date( $em_end_date, $date_format )
                     <input class="ep-form-check-input" type="checkbox" name="em_hide_event_start_time" id="ep_hide_event_time" value="1" <?php if( absint( $em_hide_event_start_time ) == 1 ) { echo 'checked="checked"'; }?> <?php echo esc_attr( $disabled_fields_for_all_day );?>>
                     <label class="ep-form-check-label" for="ep_hide_event_time">
                         <?php esc_html_e( 'Hide Start Time', 'eventprime-event-calendar-management' );?>
-                        <span class="ep-help-tip" tooltip="<?php esc_html_e( 'Hide event\'s starting time from frontend users. This option is disabled if you select It\'s an all day event.', 'eventprime-event-calendar-management' );?>" tooltip-position="bottom"  ep-icon-position="relative"></span>
+                        <span class="ep-help-tip" tooltip="<?php esc_html_e( "Hide event's starting time from frontend users. This option is disabled if you select 'It's an all day event'. ", 'eventprime-event-calendar-management' );?>" tooltip-position="bottom"  ep-icon-position="relative"></span>
                     </label>
                 </div>
             </div>
@@ -111,7 +111,7 @@ $em_end_date = $ep_functions->ep_timestamp_to_date( $em_end_date, $date_format )
         <div class="ep-box-row ep-py-3 ep-mb-3 ep-items-end">
             <div class="ep-box-col-3 ep-meta-box-data">
                 <label class="ep-form-label"> <?php esc_html_e( 'End Date', 'eventprime-event-calendar-management' ); ?>
-                   <span class="ep-help-tip" tooltip="<?php esc_html_e( 'The day this event ends. The date will be visible on the event page and the event listing page unless you choose to hide it. You can set format for frontend date from Settings → Frontend Views. This option is disabled if you select It\'s an all day event.', 'eventprime-event-calendar-management' );?>" tooltip-position="bottom"  ep-icon-position="relative"></span>
+                   <span class="ep-help-tip" tooltip="<?php esc_html_e( "The day this event ends. The date will be visible on the event page and the event listing page unless you choose to hide it. You can set format for frontend date from Settings → Frontend Views. This option is disabled if you select 'It's an all day event'.", 'eventprime-event-calendar-management' );?>" tooltip-position="bottom"  ep-icon-position="relative"></span>
                     <span id="ep-end-date-hidden" class="material-icons ep-text-muted" style="display: none;">visibility_off</span>
                 </label>
                 <div class="ep-event-end-date">
@@ -121,7 +121,7 @@ $em_end_date = $ep_functions->ep_timestamp_to_date( $em_end_date, $date_format )
             
             <div class="ep-box-col-3 ep-meta-box-data">
                 <label class="ep-form-label"><?php esc_html_e( 'End Time (optional)', 'eventprime-event-calendar-management' ); ?>
-                    <span class="ep-help-tip" tooltip="<?php esc_html_e( 'The time at which the event ends. This is optional.  If entered, the time will be visible on the event page and the event listing page unless you choose to hide it. The end time is also used to calculate and publish the duration of the event on the frontend event page. You can set format for time from Settings. This option is disabled if you select It\'s an all day event.', 'eventprime-event-calendar-management' );?>" tooltip-position="bottom"  ep-icon-position="relative"></span>
+                    <span class="ep-help-tip" tooltip="<?php esc_html_e( " The time at which the event ends. This is optional. If entered, the time will be visible on the event page and the event listing page unless you choose to hide it. The end time is also used to calculate and publish the duration of the event on the frontend event page. You can set format for time from Settings. This option is disabled if you select 'It's an all day event'. ", 'eventprime-event-calendar-management' );?>" tooltip-position="bottom"  ep-icon-position="relative"></span>
                     <span id="ep-end-time-hidden" class="material-icons ep-text-muted" style="display: none;">visibility_off</span>
                 </label>
                 <div class="ep-event-start-time">
@@ -142,7 +142,7 @@ $em_end_date = $ep_functions->ep_timestamp_to_date( $em_end_date, $date_format )
                 <div class="ep-form-check ep-form-check-inline ep-mb-0">
                     <input class="ep-form-check-input date-check" type="checkbox" name="em_hide_end_date" id="ep-hide-end-date" value="1" <?php if( absint( $em_hide_end_date ) == 1 ) { echo 'checked="checked"'; }?> <?php echo esc_attr( $disabled_fields_for_all_day );?>>
                     <label class="ep-form-check-label" for="ep-hide-end-date"><?php esc_html_e( 'Hide End Date', 'eventprime-event-calendar-management' ); ?>
-                    <span class="ep-help-tip" tooltip="<?php esc_html_e( 'Hide event\'s ending date from frontend users. This option is disabled if you select It\'s an all day event.', 'eventprime-event-calendar-management' );?>" tooltip-position="bottom"  ep-icon-position="relative"></span></label>
+                    <span class="ep-help-tip" tooltip="<?php esc_html_e( "Hide event end date from frontend users. This option is disabled if you select 'It's an all day event'. ", 'eventprime-event-calendar-management' );?>" tooltip-position="bottom"  ep-icon-position="relative"></span></label>
                 </div>
             </div> 
         </div>
@@ -178,8 +178,9 @@ $em_end_date = $ep_functions->ep_timestamp_to_date( $em_end_date, $date_format )
                   <div class="ep-form-check ep-form-check-inline">
                     <input class="ep-form-check-input" type="checkbox" name="em_event_more_dates" id="ep-add-more-dates" value="1" <?php if( absint( $em_event_more_dates ) == 1 ) { echo 'checked="checked"'; }?> >
                     <label class="ep-form-check-label" for="ep-add-more-dates"><?php esc_html_e( 'Additional relevant dates', 'eventprime-event-calendar-management' ); ?>
-                    <span class="ep-help-tip" tooltip="<?php esc_html_e( 'Additional dates allow you to label and save certain dates related to this event (apart from the start and the end dates). Labels of these dates appear inside dropdown with certain date based options, for example tickets sale start date, offer start date etc. You can save a date here, and reuse it without entering the date again for different options. If you modify a date here, it will be updated for all options automatically, wherever it is used.', 'eventprime-event-calendar-management' );?>" tooltip-position="bottom"  ep-icon-position="relative"></span>
+                    <span class="ep-help-tip" tooltip="<?php esc_html_e( "Additional dates allow you to label and save certain dates related to the Event (apart from start and end dates). These labels appear in date-based options, such as ticket sales start, ticket sales end, booking start, and booking end. Read Date & Time full guide for more information. Once saved, a date can be reused across options, and any update will automatically reflect wherever it is applied.", 'eventprime-event-calendar-management' );?>" tooltip-position="bottom"  ep-icon-position="relative"></span>
                     </label>
+                    <?php $ep_functions->ep_documentation_link_read_more_html('https://theeventprime.com/how-to-add-additional-dates-to-an-event-in-wordpress/');?>
                 </div>  
             </div>
         </div>

@@ -217,7 +217,7 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                 <div class="ep-modal-body">
                     <div class="ep-modal-titlebar ep-d-flex ep-items-center">
                         <h3 class="ep-modal-title ep-px-3 ">
-                            <?php esc_html_e('Add Tickets Category', 'eventprime-event-calendar-management'); ?>
+                            <?php esc_html_e('Add Tickets Category', 'eventprime-event-calendar-management');  ?> 
                         </h3>
                         <a href="#" class="ep-modal-close close-popup" data-id="ep-ticket-category-modal">&times;</a>
                     </div>
@@ -229,7 +229,8 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                                     </label>
                                     <input type="text" class="ep-form-control" name="em_ticket_category_name" id="ep_ticket_category_name">
                                     <div class="ep-text-muted ep-text-small">
-                                        <?php esc_html_e('Category name will be visible to users while selecting tickets.', 'eventprime-event-calendar-management'); ?>
+                                        <?php esc_html_e('Category name will be visible to users while selecting tickets.', 'eventprime-event-calendar-management'); ?><?php $ep_functions->ep_documentation_link_read_more_html('https://theeventprime.com/how-to-create-ticket-categories-for-wordpress-events/');?>
+                        
                                     </div>
                                     <div id="ep_ticket_category_name_error" class="ep-error-message"></div>
                                 </div> 
@@ -266,11 +267,12 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                 <div class="ep-modal-body">    
                     <div class="ep-modal-titlebar ep-d-flex ep-items-center ep-border-0">
                         <h3 class="ep-modal-title ep-px-4 ep-pt-3"><?php esc_html_e( 'Add Ticket Type', 'eventprime-event-calendar-management' );?></h3>
+                        
                         <a href="#" class="ep-modal-close close-popup" data-id="ep_event_ticket_tier_modal"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></a>
                     </div>  
                     <div class="ep-modal-content-wrap ep-box-wrap">
                         <div class="ep-box-row ep-p-3">
-      
+                            
                             <div class="ep-box-col-3 ep-box-pl-0">
                                 <ul class="ep-nav-pills ep-nav ep-nav-tabs ep-flex-column ep-m-0 ep-border-0" id="ep-ticket-Tabs" role="tablist">
                                     <li class="ep-tab-item ep-mx-0" role="presentation"><a href="javascript:void(0)" data-tag="ep-ticket-details" id="ep-ticket-details-tab" class="ep-tab-link ep-border-0 ep-rounded-1 ep-px-2 ep-box-w-100 ep-tab-active"> <?php esc_html_e('Details','eventprime-event-calendar-management');?></a></li>
@@ -290,7 +292,17 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                                 <!--Tab content Details--->
                                 
                                 <div class="ep-tab-content ep-ticket-details ep-tab-active" id="ep-ticket-details"  role="tabpanel" > 
+                                    <div class="ep-article-guide ep-ticket-type-guide ep-text-end">
+                                       
+                                            <strong><?php esc_html_e( 'Ticket Type', 'eventprime-event-calendar-management' );?>:</strong>
+                                           <?php $ep_functions->ep_documentation_link_read_more_html('https://theeventprime.com/how-to-create-ticket-types-for-events-using-eventprime/',__('Read full guide','eventprime-event-calendar-management'));?>
+                                            
+                                   
+                                    </div>
+                                      
+                                    
                                 <div class="ep-box-row">
+
                                  <div class="ep-box-col-12">
                                 <label class="ep-form-label">
                                     <?php esc_html_e( 'Name', 'eventprime-event-calendar-management' );?> <i><?php esc_html_e( '(required)', 'eventprime-event-calendar-management' );?></i>
@@ -382,7 +394,7 @@ echo sprintf(
                             <div class="ep-additional-ticket-fee-wrapper ep-box-w-100" id="ep_additional_ticket_fee_wrapper"></div>
                             
                                             <div class="ep-box-col-12">
-                                                <p class="ep-text-small ep-text-muted"><?php esc_html_e('Add optional fees to be charged per ticket. Each fee consists of a label and a value, and will be added to the base price. You can create multiple fees (e.g., service charges, facility fees). These apply individually to every ticket purchased and will be visible to the user while purchasing tickets.','eventprime-event-calendar-management'); ?></p>
+                                                <p class="ep-text-small ep-text-muted"><?php esc_html_e('Add optional fees to be charged per ticket. Each fee consists of a label and a value, and will be added to the base price. You can create multiple fees (e.g., service charges, facility fees). These apply individually to every ticket purchased and will be visible to the user while purchasing tickets.','eventprime-event-calendar-management'); $ep_functions->ep_documentation_link_read_more_html('https://theeventprime.com/how-to-add-additional-fees-to-wordpress-event-tickets/'); ?></p>
                                             </div>
                                         </div>
                                         
@@ -429,7 +441,7 @@ echo sprintf(
                                           <div class="ep-box-col-12">
                                               <h2 class="ep-m-0 ep-p-0 ep-fw-bold"><?php esc_html_e('Tickets Availability Period','eventprime-event-calendar-management');?></h2>
                                               <div class="ep-text-small ep-text-muted">
-                                                  <?php esc_html_e('Choose the start and the end dates between which this ticket type will be available for booking. You can skip this section if you wish to start selling tickets as soon as the event is published.','eventprime-event-calendar-management');?>
+                                                  <?php esc_html_e('Choose the start and the end dates between which this ticket type will be available for booking. You can skip this section if you wish to start selling tickets as soon as the event is published.','eventprime-event-calendar-management'); $ep_functions->ep_documentation_link_read_more_html('https://theeventprime.com/how-to-set-ticket-sale-dates-for-wordpress-events/'); ?>
                                               </div>
                                           </div>
                                           
@@ -754,7 +766,7 @@ echo sprintf(
                                             <div class="ep-box-col-12">
                                                 <h2 class="ep-m-0 ep-p-0 ep-fw-bold"><?php esc_html_e('Offers','eventprime-event-calendar-management');?></h2>
                                                 <p class="ep-text-small ep-text-muted">
-                                                    <?php esc_html_e('Control who can see this ticket type. You can selectively make this ticket type available to specific group of visitors.','eventprime-event-calendar-management');?>
+                                                    <?php esc_html_e('Control who can see this ticket type. You can selectively make this ticket type available to specific group of visitors.','eventprime-event-calendar-management'); $ep_functions->ep_documentation_link_read_more_html('https://theeventprime.com/how-to-add-offers-to-wordpress-events/'); ?>
                                                 </p>
                                             </div>
                                           

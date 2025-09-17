@@ -2249,7 +2249,10 @@ else
                                                    $event_url = $event->event_url;
                                                    $event_content = preg_replace('#<a[^>]*href="((?!/)[^"]+)">[^<]+</a>#', '$0 ( $1 )', $event->description);
                                                    $event_content = str_replace("<p>", "\\n", $event_content);
-                                                   $event_content = strip_shortcodes(strip_tags($event_content));
+                                                   if(!empty($event_content))
+                                                   {
+                                                        $event_content = strip_shortcodes(strip_tags($event_content));
+                                                   }
                                                    $event_content = str_replace("\r\n", "\\n", $event_content);
                                                    $event_content = str_replace("\n", "\\n", $event_content);
                                                    $event_content = preg_replace('/(<script[^>]*>.+?<\/script>|<style[^>]*>.+?<\/style>)/s', '', $event_content);

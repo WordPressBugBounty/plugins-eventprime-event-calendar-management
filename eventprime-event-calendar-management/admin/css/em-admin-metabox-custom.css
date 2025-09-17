@@ -754,3 +754,18 @@ ul#ep-ticket-Tabs .ep-tab-item a.ep-tab-link.ep-tab-active {
     display: inline-block;
     width: 100%;
 }
+
+
+.ep-article-guide{
+    font-size: 12px;
+}
+
+.ep-ticket-type-guide{
+    position: absolute;
+    right: 0px;
+    top: -16px;
+}
+
+.ep-article-guide .dashicons{
+    font-size: 18px;
+}

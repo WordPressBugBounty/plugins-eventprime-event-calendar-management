@@ -2,7 +2,7 @@
 $ep_functions = new Eventprime_Basic_Functions;
 $global_settings = $ep_functions->ep_get_global_settings();
 
-if ( $global_settings->enable_gdpr_tools && $global_settings->show_gdpr_badge) : ?>
+if ( isset($global_settings->enable_gdpr_tools) && $global_settings->enable_gdpr_tools ==1 && isset($global_settings->show_gdpr_badge) && $global_settings->show_gdpr_badge==1) : ?>
 
 <div id="ep-gdpr-badge" data-ep-modal-open="ep-gdpr-modal" class="ep-modal-open" style="display:inline;position:fixed;bottom:20px;right:20px;z-index:999999; font-size: 7px;">
     <div class="ep-gdpr-badge is-small w-inline-block">

@@ -98,7 +98,8 @@ $ep_functions = new Eventprime_Basic_Functions;
                     if( ! empty( $outlook_starts ) ) {
                         $outlook_ends = $ep_functions->ep_convert_event_date_time_to_timestamp( $args->event, 'end' );
                     }
-                    $outlook_details = urlencode( wp_kses_post( $args->event->description ) );
+                    //$outlook_details = urlencode( wp_kses_post( $args->event->description ) );
+                    $outlook_details = '';
                     $outlook_url = ($outlook_starts) ? 'https://outlook.office365.com/owa/?path=/calendar/action/compose&subject=' . rawurlencode( esc_attr( $args->event->name ) ) . '&startdt='.date( 'Y-m-d\TH:i:s', $outlook_starts ).'&enddt='.date( 'Y-m-d\TH:i:s', $outlook_ends ):'';
                     if ( ! empty( $args->event->venue_details ) ) {
                         $location = urlencode( $args->event->venue_details->em_address );
@@ -120,7 +121,8 @@ $ep_functions = new Eventprime_Basic_Functions;
                     if( ! empty( $outlook_lv_starts ) ) {
                         $outlook_lv_ends = $ep_functions->ep_convert_event_date_time_to_timestamp( $args->event, 'end' );
                     }
-                    $outlook_lv_details = urlencode( wp_kses_post( $args->event->description ) );
+                    //$outlook_lv_details = urlencode( wp_kses_post( $args->event->description ) );
+                    $outlook_lv_details = '';
                     $outlook_lv_url = ($outlook_lv_starts) ? "https://outlook.live.com/owa/?path=/calendar/action/compose&startdt=".date( 'Ymd\THis\Z', $outlook_lv_starts )."&enddt=".date( 'Ymd\THis\Z', $outlook_lv_ends )."&subject=".rawurlencode( esc_attr( $args->event->name ) ): '';
                     if ( ! empty( $args->event->venue_details ) ) {
                         $location = urlencode( $args->event->venue_details->em_address );

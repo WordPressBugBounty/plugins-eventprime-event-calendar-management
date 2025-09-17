@@ -12,7 +12,9 @@ $ep_functions = new Eventprime_Basic_Functions;
 ?>
 <div class="ep-event-res-slider ep-box-col-12 ep-p-0 ep-m-0">
 
-    <?php foreach ($args->events->posts as $event){ 
+    <?php 
+if( isset( $args->events->posts ) && !empty( $args->events->posts ) ) {
+    foreach ($args->events->posts as $event){ 
         $is_event_expired = $ep_functions->check_event_has_expired($event);
         $options = array();
         $options['global'] = $settings->ep_get_settings();
@@ -131,7 +133,9 @@ $ep_functions = new Eventprime_Basic_Functions;
                 } ?>
             </div>
         </div><?php 
-    } ?>
+    } 
+}
+    ?>
     
   
 </div>
