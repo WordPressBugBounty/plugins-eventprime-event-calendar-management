@@ -3926,226 +3926,226 @@ class Eventprime_Event_Calendar_Management_Admin {
      */
 
     public function ep_duplicate_event_bulk_action_handler( $redirect, $doaction, $object_ids ) {
-		if ( $doaction !== 'duplicate_event' ) {
+        if ( $doaction !== 'duplicate_event' ) {
             return $redirect;
-		}
-		if ( ! empty( $object_ids ) ) {
-			$basic_functions = new Eventprime_Basic_Functions();
-			$dbhandler       = new EP_DBhandler();
-			$ep_activator    = new Eventprime_Event_Calendar_Management_Activator();
-			foreach ( $object_ids as $event_id ) {
-				$post_id = $basic_functions->eventprime_duplicate_post( $event_id );
-                                $event = $basic_functions->get_single_event_detail($post_id);
-				// fetch ticket category and ticket data from custom tables
-				$em_ticket_category_data = $basic_functions->get_event_ticket_category( $event_id );
-				$solo_tickets            = $basic_functions->get_event_solo_ticket( $event_id );
-				// save category
-				if ( isset( $em_ticket_category_data ) && ! empty( $em_ticket_category_data ) ) {
-					$cat_priority = 1;
-					foreach ( $em_ticket_category_data as $cat ) {
-						$save_data               = array();
-						$save_data['event_id']   = $post_id;
-						$save_data['name']       = $cat->name;
-						$save_data['capacity']   = $cat->capacity;
-						$save_data['priority']   = 1;
-						$save_data['status']     = 1;
-						$save_data['created_by'] = get_current_user_id();
-						$save_data['created_at'] = wp_date( 'Y-m-d H:i:s', time() );
-						foreach ( $save_data as $key => $value ) {
-							$arg[] = $ep_activator->get_db_table_field_type( 'TICKET_CATEGORIES', $key );
-						}
-						$cat_id = $dbhandler->insert_row( 'TICKET_CATEGORIES', $save_data, $arg );
-						$cat_priority++;
-						//save tickets
-						if ( isset( $cat->tickets ) && ! empty( $cat->tickets ) ) {
-							$cat_ticket_priority = 1;
-							foreach ( $cat->tickets as $ticket ) {
-								$ticket_data                   = array();
-								$ticket_data['category_id']    = $cat_id;
-								$ticket_data['event_id']       = $post_id;
-								$ticket_data['name']           = addslashes( $ticket->name );
-								$ticket_data['description']    = isset( $ticket->description ) ? addslashes( $ticket->description ) : '';
-								$ticket_data['price']          = isset( $ticket->price ) ? $ticket->price : 0;
-								$ticket_data['special_price']  = '';
-								$ticket_data['capacity']       = isset( $ticket->capacity ) ? absint( $ticket->capacity ) : 0;
-								$ticket_data['is_default']     = 1;
-								$ticket_data['is_event_price'] = 0;
-								$ticket_data['icon']           = isset( $ticket->icon ) ? absint( $ticket->icon ) : '';
-								$ticket_data['priority']       = $cat_ticket_priority;
-								$ticket_data['status']         = 1;
-								$ticket_data['created_at']     = wp_date( 'Y-m-d H:i:s', time() );
-								// new
-								$ticket_data['additional_fees']        = ( isset( $ticket->ep_additional_ticket_fee_data ) && ! empty( $ticket->ep_additional_ticket_fee_data ) ) ? wp_json_encode( $ticket->ep_additional_ticket_fee_data ) : '';
-								$ticket_data['allow_cancellation']     = isset( $ticket->allow_cancellation ) ? absint( $ticket->allow_cancellation ) : 0;
-								$ticket_data['show_remaining_tickets'] = isset( $ticket->show_remaining_tickets ) ? absint( $ticket->show_remaining_tickets ) : 0;
-								// date
-								$start_date = array();
-								if ( isset( $ticket->booking_starts ) && ! empty( $ticket->booking_starts ) ) {
-									$booking_starts             = json_decode( $ticket->booking_starts );
-									$start_date['booking_type'] = $booking_starts->booking_type;
-									if ( $booking_starts->booking_type == 'custom_date' ) {
-										if ( isset( $booking_starts->start_date ) && ! empty( $booking_starts->start_date ) ) {
-											$start_date['start_date'] = $booking_starts->start_date;
-										}
-										if ( isset( $booking_starts->start_time ) && ! empty( $booking_starts->start_time ) ) {
-											$start_date['start_time'] = $booking_starts->start_time;
-										}
-									} elseif ( $booking_starts->booking_type == 'event_date' ) {
-										$start_date['event_option'] = $booking_starts->event_option;
-									} elseif ( $booking_starts->booking_type == 'relative_date' ) {
-										if ( isset( $booking_starts->days ) && ! empty( $booking_starts->days ) ) {
-											$start_date['days'] = $booking_starts->days;
-										}
-										if ( isset( $booking_starts->days_option ) && ! empty( $booking_starts->days_option ) ) {
-											$start_date['days_option'] = $booking_starts->days_option;
-										}
-										$start_date['event_option'] = $booking_starts->event_option;
-									}
-								}
-								$ticket_data['booking_starts'] = wp_json_encode( $start_date );
-								// end date
-								$end_date = array();
-								if ( isset( $ticket->booking_ends ) && ! empty( $ticket->booking_ends ) ) {
-									$booking_ends             = json_decode( $ticket->booking_ends );
-									$end_date['booking_type'] = $booking_ends->booking_type;
-									if ( $booking_ends->booking_type == 'custom_date' ) {
-										if ( isset( $booking_ends->end_date ) && ! empty( $booking_ends->end_date ) ) {
-											$end_date['end_date'] = $booking_ends->end_date;
-										}
-										if ( isset( $booking_ends->end_time ) && ! empty( $booking_ends->end_time ) ) {
-											$end_date['end_time'] = $booking_ends->end_time;
-										}
-									} elseif ( $booking_ends->booking_type == 'event_date' ) {
-										$end_date['event_option'] = $booking_ends->event_option;
-									} elseif ( $booking_ends->booking_type == 'relative_date' ) {
-										if ( isset( $booking_ends->end_date ) && ! empty( $booking_ends->end_date ) ) {
-											$end_date['days'] = $booking_ends->end_date;
-										}
-										if ( isset( $booking_ends->end_time ) && ! empty( $booking_ends->end_time ) ) {
-											$end_date['days_option'] = $booking_ends->end_time;
-										}
-										$end_date['event_option'] = $booking_ends->event_option;
-									}
-								}
-								$ticket_data['booking_ends']              = wp_json_encode( $end_date );
-								$ticket_data['show_ticket_booking_dates'] = ( isset( $ticket->show_ticket_booking_dates ) ) ? 1 : 0;
-								$ticket_data['min_ticket_no']             = isset( $ticket->min_ticket_no ) ? $ticket->min_ticket_no : 0;
-								$ticket_data['max_ticket_no']             = isset( $ticket->max_ticket_no ) ? $ticket->max_ticket_no : 0;
-								// offer
-								if ( isset( $ticket->offers ) && ! empty( $ticket->offers ) ) {
-									$ticket_data['offers'] = $ticket->offers;
-								}
-								$ticket_data['multiple_offers_option']       = ( isset( $ticket->multiple_offers_option ) && !empty( $ticket->multiple_offers_option ) ) ? $ticket->multiple_offers_option : '';
-								$ticket_data['multiple_offers_max_discount'] = ( isset( $ticket->multiple_offers_max_discount ) && !empty( $ticket->multiple_offers_max_discount ) ) ? $ticket->multiple_offers_max_discount : '';
-								$ticket_data['ticket_template_id']           = ( isset( $ticket->ticket_template_id ) && !empty( $ticket->ticket_template_id ) ) ? $ticket->ticket_template_id : '';
+        }
+        if ( ! empty( $object_ids ) ) {
+                $basic_functions = new Eventprime_Basic_Functions();
+                $dbhandler       = new EP_DBhandler();
+                $ep_activator    = new Eventprime_Event_Calendar_Management_Activator();
+                foreach ( $object_ids as $event_id ) {
+                        $post_id = $basic_functions->eventprime_duplicate_post( $event_id );
+                        $event = $basic_functions->get_single_event_detail($post_id);
+                        // fetch ticket category and ticket data from custom tables
+                        $em_ticket_category_data = $basic_functions->get_event_ticket_category( $event_id );
+                        $solo_tickets            = $basic_functions->get_event_solo_ticket( $event_id );
+                        // save category
+                        if ( isset( $em_ticket_category_data ) && ! empty( $em_ticket_category_data ) ) {
+                                $cat_priority = 1;
+                                foreach ( $em_ticket_category_data as $cat ) {
+                                        $save_data               = array();
+                                        $save_data['event_id']   = $post_id;
+                                        $save_data['name']       = $cat->name;
+                                        $save_data['capacity']   = $cat->capacity;
+                                        $save_data['priority']   = 1;
+                                        $save_data['status']     = 1;
+                                        $save_data['created_by'] = get_current_user_id();
+                                        $save_data['created_at'] = wp_date( 'Y-m-d H:i:s', time() );
+                                        foreach ( $save_data as $key => $value ) {
+                                                $arg[] = $ep_activator->get_db_table_field_type( 'TICKET_CATEGORIES', $key );
+                                        }
+                                        $cat_id = $dbhandler->insert_row( 'TICKET_CATEGORIES', $save_data, $arg );
+                                        $cat_priority++;
+                                        //save tickets
+                                        if ( isset( $cat->tickets ) && ! empty( $cat->tickets ) ) {
+                                                $cat_ticket_priority = 1;
+                                                foreach ( $cat->tickets as $ticket ) {
+                                                        $ticket_data                   = array();
+                                                        $ticket_data['category_id']    = $cat_id;
+                                                        $ticket_data['event_id']       = $post_id;
+                                                        $ticket_data['name']           = addslashes( $ticket->name );
+                                                        $ticket_data['description']    = isset( $ticket->description ) ? addslashes( $ticket->description ) : '';
+                                                        $ticket_data['price']          = isset( $ticket->price ) ? $ticket->price : 0;
+                                                        $ticket_data['special_price']  = '';
+                                                        $ticket_data['capacity']       = isset( $ticket->capacity ) ? absint( $ticket->capacity ) : 0;
+                                                        $ticket_data['is_default']     = 1;
+                                                        $ticket_data['is_event_price'] = 0;
+                                                        $ticket_data['icon']           = isset( $ticket->icon ) ? absint( $ticket->icon ) : '';
+                                                        $ticket_data['priority']       = $cat_ticket_priority;
+                                                        $ticket_data['status']         = 1;
+                                                        $ticket_data['created_at']     = wp_date( 'Y-m-d H:i:s', time() );
+                                                        // new
+                                                        $ticket_data['additional_fees']        = ( isset( $ticket->ep_additional_ticket_fee_data ) && ! empty( $ticket->ep_additional_ticket_fee_data ) ) ? wp_json_encode( $ticket->ep_additional_ticket_fee_data ) : '';
+                                                        $ticket_data['allow_cancellation']     = isset( $ticket->allow_cancellation ) ? absint( $ticket->allow_cancellation ) : 0;
+                                                        $ticket_data['show_remaining_tickets'] = isset( $ticket->show_remaining_tickets ) ? absint( $ticket->show_remaining_tickets ) : 0;
+                                                        // date
+                                                        $start_date = array();
+                                                        if ( isset( $ticket->booking_starts ) && ! empty( $ticket->booking_starts ) ) {
+                                                                $booking_starts             = json_decode( $ticket->booking_starts );
+                                                                $start_date['booking_type'] = $booking_starts->booking_type;
+                                                                if ( $booking_starts->booking_type == 'custom_date' ) {
+                                                                        if ( isset( $booking_starts->start_date ) && ! empty( $booking_starts->start_date ) ) {
+                                                                                $start_date['start_date'] = $booking_starts->start_date;
+                                                                        }
+                                                                        if ( isset( $booking_starts->start_time ) && ! empty( $booking_starts->start_time ) ) {
+                                                                                $start_date['start_time'] = $booking_starts->start_time;
+                                                                        }
+                                                                } elseif ( $booking_starts->booking_type == 'event_date' ) {
+                                                                        $start_date['event_option'] = $booking_starts->event_option;
+                                                                } elseif ( $booking_starts->booking_type == 'relative_date' ) {
+                                                                        if ( isset( $booking_starts->days ) && ! empty( $booking_starts->days ) ) {
+                                                                                $start_date['days'] = $booking_starts->days;
+                                                                        }
+                                                                        if ( isset( $booking_starts->days_option ) && ! empty( $booking_starts->days_option ) ) {
+                                                                                $start_date['days_option'] = $booking_starts->days_option;
+                                                                        }
+                                                                        $start_date['event_option'] = $booking_starts->event_option;
+                                                                }
+                                                        }
+                                                        $ticket_data['booking_starts'] = wp_json_encode( $start_date );
+                                                        // end date
+                                                        $end_date = array();
+                                                        if ( isset( $ticket->booking_ends ) && ! empty( $ticket->booking_ends ) ) {
+                                                                $booking_ends             = json_decode( $ticket->booking_ends );
+                                                                $end_date['booking_type'] = $booking_ends->booking_type;
+                                                                if ( $booking_ends->booking_type == 'custom_date' ) {
+                                                                        if ( isset( $booking_ends->end_date ) && ! empty( $booking_ends->end_date ) ) {
+                                                                                $end_date['end_date'] = $booking_ends->end_date;
+                                                                        }
+                                                                        if ( isset( $booking_ends->end_time ) && ! empty( $booking_ends->end_time ) ) {
+                                                                                $end_date['end_time'] = $booking_ends->end_time;
+                                                                        }
+                                                                } elseif ( $booking_ends->booking_type == 'event_date' ) {
+                                                                        $end_date['event_option'] = $booking_ends->event_option;
+                                                                } elseif ( $booking_ends->booking_type == 'relative_date' ) {
+                                                                        if ( isset( $booking_ends->end_date ) && ! empty( $booking_ends->end_date ) ) {
+                                                                                $end_date['days'] = $booking_ends->end_date;
+                                                                        }
+                                                                        if ( isset( $booking_ends->end_time ) && ! empty( $booking_ends->end_time ) ) {
+                                                                                $end_date['days_option'] = $booking_ends->end_time;
+                                                                        }
+                                                                        $end_date['event_option'] = $booking_ends->event_option;
+                                                                }
+                                                        }
+                                                        $ticket_data['booking_ends']              = wp_json_encode( $end_date );
+                                                        $ticket_data['show_ticket_booking_dates'] = ( isset( $ticket->show_ticket_booking_dates ) ) ? 1 : 0;
+                                                        $ticket_data['min_ticket_no']             = isset( $ticket->min_ticket_no ) ? $ticket->min_ticket_no : 0;
+                                                        $ticket_data['max_ticket_no']             = isset( $ticket->max_ticket_no ) ? $ticket->max_ticket_no : 0;
+                                                        // offer
+                                                        if ( isset( $ticket->offers ) && ! empty( $ticket->offers ) ) {
+                                                                $ticket_data['offers'] = $ticket->offers;
+                                                        }
+                                                        $ticket_data['multiple_offers_option']       = ( isset( $ticket->multiple_offers_option ) && !empty( $ticket->multiple_offers_option ) ) ? $ticket->multiple_offers_option : '';
+                                                        $ticket_data['multiple_offers_max_discount'] = ( isset( $ticket->multiple_offers_max_discount ) && !empty( $ticket->multiple_offers_max_discount ) ) ? $ticket->multiple_offers_max_discount : '';
+                                                        $ticket_data['ticket_template_id']           = ( isset( $ticket->ticket_template_id ) && !empty( $ticket->ticket_template_id ) ) ? $ticket->ticket_template_id : '';
 
-								$format = array();
-								foreach ( $ticket_data as $key => $value ) {
-									$format[] = $ep_activator->get_db_table_field_type( 'TICKET', $key );
-								}
-								$result = $dbhandler->insert_row( 'TICKET', $ticket_data, $format );
-								$cat_ticket_priority++;
-							}
-							update_post_meta( $post_id, 'em_enable_booking', 'bookings_on' );
-						}
-					}
-				}
-				// save tickets
-				if ( isset( $solo_tickets ) && ! empty( $solo_tickets ) ) {
-					$tic = 0;
-					foreach ( $solo_tickets as $ticket ) {
-						$ticket_data                   = array();
-						$ticket_data['category_id']    = 0;
-						$ticket_data['event_id']       = $post_id;
-						$ticket_data['name']           = addslashes( $ticket->name );
-						$ticket_data['description']    = isset( $ticket->description ) ? addslashes( $ticket->description ) : '';
-						$ticket_data['price']          = isset( $ticket->price ) ? $ticket->price : 0;
-						$ticket_data['special_price']  = '';
-						$ticket_data['capacity']       = isset( $ticket->capacity ) ? absint( $ticket->capacity ) : 0;
-						$ticket_data['is_default']     = 1;
-						$ticket_data['is_event_price'] = 0;
-						$ticket_data['icon']           = isset( $ticket->icon ) ? absint( $ticket->icon ) : '';
-						$ticket_data['priority']       = $tic;
-						$ticket_data['status']         = 1;
-						$ticket_data['created_at']     = wp_date( 'Y-m-d H:i:s', time() );
-						// new
-						$ticket_data['additional_fees']        = ( isset( $ticket->ep_additional_ticket_fee_data ) && ! empty( $ticket->ep_additional_ticket_fee_data ) ) ? wp_json_encode( $ticket->ep_additional_ticket_fee_data ) : '';
-						$ticket_data['allow_cancellation']     = isset( $ticket->allow_cancellation ) ? absint( $ticket->allow_cancellation ) : 0;
-						$ticket_data['show_remaining_tickets'] = isset( $ticket->show_remaining_tickets ) ? absint( $ticket->show_remaining_tickets ) : 0;
-						// date
-						$start_date = array();
-						if ( isset( $ticket->booking_starts ) && ! empty( $ticket->booking_starts ) ) {
-							$booking_starts             = json_decode( $ticket->booking_starts );
-							$start_date['booking_type'] = $booking_starts->booking_type;
-							if ( $booking_starts->booking_type == 'custom_date' ) {
-								if ( isset( $booking_starts->start_date ) && ! empty( $booking_starts->start_date ) ) {
-									$start_date['start_date'] = $booking_starts->start_date;
-								}
-								if ( isset( $booking_starts->start_time ) && ! empty( $booking_starts->start_time ) ) {
-									$start_date['start_time'] = $booking_starts->start_time;
-								}
-							} elseif ( $booking_starts->booking_type == 'event_date' ) {
-								$start_date['event_option'] = $booking_starts->event_option;
-							} elseif ( $booking_starts->booking_type == 'relative_date' ) {
-								if ( isset( $booking_starts->days ) && ! empty( $booking_starts->days ) ) {
-									$start_date['days'] = $booking_starts->days;
-								}
-								if ( isset( $booking_starts->days_option ) && ! empty( $booking_starts->days_option ) ) {
-									$start_date['days_option'] = $booking_starts->days_option;
-								}
-								$start_date['event_option'] = $booking_starts->event_option;
-							}
-						}
-						$ticket_data['booking_starts'] = wp_json_encode( $start_date );
-						// end date
-						$end_date = array();
-						if ( isset( $ticket->booking_ends ) && ! empty( $ticket->booking_ends ) ) {
-							$booking_ends             = json_decode( $ticket->booking_ends );
-							$end_date['booking_type'] = $booking_ends->booking_type;
-							if ( $booking_ends->booking_type == 'custom_date' ) {
-								if ( isset( $booking_ends->end_date ) && ! empty( $booking_ends->end_date ) ) {
-									$end_date['end_date'] = $booking_ends->end_date;
-								}
-								if ( isset( $booking_ends->end_time ) && ! empty( $booking_ends->end_time ) ) {
-									$end_date['end_time'] = $booking_ends->end_time;
-								}
-							} elseif ( $booking_ends->booking_type == 'event_date' ) {
-								$end_date['event_option'] = $booking_ends->event_option;
-							} elseif ( $booking_ends->booking_type == 'relative_date' ) {
-								if ( isset( $booking_ends->end_date ) && ! empty( $booking_ends->end_date ) ) {
-									$end_date['days'] = $booking_ends->end_date;
-								}
-								if ( isset( $booking_ends->end_time ) && ! empty( $booking_ends->end_time ) ) {
-									$end_date['days_option'] = $booking_ends->end_time;
-								}
-								$end_date['event_option'] = $booking_ends->event_option;
-							}
-						}
-						$ticket_data['booking_ends']              = wp_json_encode( $end_date );
-						$ticket_data['show_ticket_booking_dates'] = ( isset( $ticket->show_ticket_booking_dates ) ) ? 1 : 0;
-						$ticket_data['min_ticket_no']             = isset( $ticket->min_ticket_no ) ? $ticket->min_ticket_no : 0;
-						$ticket_data['max_ticket_no']             = isset( $ticket->max_ticket_no ) ? $ticket->max_ticket_no : 0;
-						// offer
-						if ( isset( $ticket->offers ) && ! empty( $ticket->offers ) ) {
-							$ticket_data['offers'] = $ticket->offers;
-						}
-						$ticket_data['multiple_offers_option']       = ( isset( $ticket->multiple_offers_option ) && !empty( $ticket->multiple_offers_option ) ) ? $ticket->multiple_offers_option : '';
-						$ticket_data['multiple_offers_max_discount'] = ( isset( $ticket->multiple_offers_max_discount ) && !empty( $ticket->multiple_offers_max_discount ) ) ? $ticket->multiple_offers_max_discount : '';
-						$ticket_data['ticket_template_id']           = ( isset( $ticket->ticket_template_id ) && !empty( $ticket->ticket_template_id ) ) ? $ticket->ticket_template_id : '';
+                                                        $format = array();
+                                                        foreach ( $ticket_data as $key => $value ) {
+                                                                $format[] = $ep_activator->get_db_table_field_type( 'TICKET', $key );
+                                                        }
+                                                        $result = $dbhandler->insert_row( 'TICKET', $ticket_data, $format );
+                                                        $cat_ticket_priority++;
+                                                }
+                                                update_post_meta( $post_id, 'em_enable_booking', 'bookings_on' );
+                                        }
+                                }
+                        }
+                        // save tickets
+                        if ( isset( $solo_tickets ) && ! empty( $solo_tickets ) ) {
+                                $tic = 0;
+                                foreach ( $solo_tickets as $ticket ) {
+                                        $ticket_data                   = array();
+                                        $ticket_data['category_id']    = 0;
+                                        $ticket_data['event_id']       = $post_id;
+                                        $ticket_data['name']           = addslashes( $ticket->name );
+                                        $ticket_data['description']    = isset( $ticket->description ) ? addslashes( $ticket->description ) : '';
+                                        $ticket_data['price']          = isset( $ticket->price ) ? $ticket->price : 0;
+                                        $ticket_data['special_price']  = '';
+                                        $ticket_data['capacity']       = isset( $ticket->capacity ) ? absint( $ticket->capacity ) : 0;
+                                        $ticket_data['is_default']     = 1;
+                                        $ticket_data['is_event_price'] = 0;
+                                        $ticket_data['icon']           = isset( $ticket->icon ) ? absint( $ticket->icon ) : '';
+                                        $ticket_data['priority']       = $tic;
+                                        $ticket_data['status']         = 1;
+                                        $ticket_data['created_at']     = wp_date( 'Y-m-d H:i:s', time() );
+                                        // new
+                                        $ticket_data['additional_fees']        = ( isset( $ticket->ep_additional_ticket_fee_data ) && ! empty( $ticket->ep_additional_ticket_fee_data ) ) ? wp_json_encode( $ticket->ep_additional_ticket_fee_data ) : '';
+                                        $ticket_data['allow_cancellation']     = isset( $ticket->allow_cancellation ) ? absint( $ticket->allow_cancellation ) : 0;
+                                        $ticket_data['show_remaining_tickets'] = isset( $ticket->show_remaining_tickets ) ? absint( $ticket->show_remaining_tickets ) : 0;
+                                        // date
+                                        $start_date = array();
+                                        if ( isset( $ticket->booking_starts ) && ! empty( $ticket->booking_starts ) ) {
+                                                $booking_starts             = json_decode( $ticket->booking_starts );
+                                                $start_date['booking_type'] = $booking_starts->booking_type;
+                                                if ( $booking_starts->booking_type == 'custom_date' ) {
+                                                        if ( isset( $booking_starts->start_date ) && ! empty( $booking_starts->start_date ) ) {
+                                                                $start_date['start_date'] = $booking_starts->start_date;
+                                                        }
+                                                        if ( isset( $booking_starts->start_time ) && ! empty( $booking_starts->start_time ) ) {
+                                                                $start_date['start_time'] = $booking_starts->start_time;
+                                                        }
+                                                } elseif ( $booking_starts->booking_type == 'event_date' ) {
+                                                        $start_date['event_option'] = $booking_starts->event_option;
+                                                } elseif ( $booking_starts->booking_type == 'relative_date' ) {
+                                                        if ( isset( $booking_starts->days ) && ! empty( $booking_starts->days ) ) {
+                                                                $start_date['days'] = $booking_starts->days;
+                                                        }
+                                                        if ( isset( $booking_starts->days_option ) && ! empty( $booking_starts->days_option ) ) {
+                                                                $start_date['days_option'] = $booking_starts->days_option;
+                                                        }
+                                                        $start_date['event_option'] = $booking_starts->event_option;
+                                                }
+                                        }
+                                        $ticket_data['booking_starts'] = wp_json_encode( $start_date );
+                                        // end date
+                                        $end_date = array();
+                                        if ( isset( $ticket->booking_ends ) && ! empty( $ticket->booking_ends ) ) {
+                                                $booking_ends             = json_decode( $ticket->booking_ends );
+                                                $end_date['booking_type'] = $booking_ends->booking_type;
+                                                if ( $booking_ends->booking_type == 'custom_date' ) {
+                                                        if ( isset( $booking_ends->end_date ) && ! empty( $booking_ends->end_date ) ) {
+                                                                $end_date['end_date'] = $booking_ends->end_date;
+                                                        }
+                                                        if ( isset( $booking_ends->end_time ) && ! empty( $booking_ends->end_time ) ) {
+                                                                $end_date['end_time'] = $booking_ends->end_time;
+                                                        }
+                                                } elseif ( $booking_ends->booking_type == 'event_date' ) {
+                                                        $end_date['event_option'] = $booking_ends->event_option;
+                                                } elseif ( $booking_ends->booking_type == 'relative_date' ) {
+                                                        if ( isset( $booking_ends->end_date ) && ! empty( $booking_ends->end_date ) ) {
+                                                                $end_date['days'] = $booking_ends->end_date;
+                                                        }
+                                                        if ( isset( $booking_ends->end_time ) && ! empty( $booking_ends->end_time ) ) {
+                                                                $end_date['days_option'] = $booking_ends->end_time;
+                                                        }
+                                                        $end_date['event_option'] = $booking_ends->event_option;
+                                                }
+                                        }
+                                        $ticket_data['booking_ends']              = wp_json_encode( $end_date );
+                                        $ticket_data['show_ticket_booking_dates'] = ( isset( $ticket->show_ticket_booking_dates ) ) ? 1 : 0;
+                                        $ticket_data['min_ticket_no']             = isset( $ticket->min_ticket_no ) ? $ticket->min_ticket_no : 0;
+                                        $ticket_data['max_ticket_no']             = isset( $ticket->max_ticket_no ) ? $ticket->max_ticket_no : 0;
+                                        // offer
+                                        if ( isset( $ticket->offers ) && ! empty( $ticket->offers ) ) {
+                                                $ticket_data['offers'] = $ticket->offers;
+                                        }
+                                        $ticket_data['multiple_offers_option']       = ( isset( $ticket->multiple_offers_option ) && !empty( $ticket->multiple_offers_option ) ) ? $ticket->multiple_offers_option : '';
+                                        $ticket_data['multiple_offers_max_discount'] = ( isset( $ticket->multiple_offers_max_discount ) && !empty( $ticket->multiple_offers_max_discount ) ) ? $ticket->multiple_offers_max_discount : '';
+                                        $ticket_data['ticket_template_id']           = ( isset( $ticket->ticket_template_id ) && !empty( $ticket->ticket_template_id ) ) ? $ticket->ticket_template_id : '';
 
-						$format = array();
-						foreach ( $ticket_data as $key => $value ) {
-							$format[] = $ep_activator->get_db_table_field_type( 'TICKET', $key );
-						}
-						$result = $dbhandler->insert_row( 'TICKET', $ticket_data, $format );
-						$tic++;
-					}
-				}
+                                        $format = array();
+                                        foreach ( $ticket_data as $key => $value ) {
+                                                $format[] = $ep_activator->get_db_table_field_type( 'TICKET', $key );
+                                        }
+                                        $result = $dbhandler->insert_row( 'TICKET', $ticket_data, $format );
+                                        $tic++;
+                                }
+                        }
 
-				do_action( 'ep_duplicate_event_extension_data', $event, $post_id );
-			}
-		}
-         wp_redirect( $redirect );
+                        do_action( 'ep_duplicate_event_extension_data', $event, $post_id );
+                }
+        }
+         return $redirect;
     }
 
     public function add_eventprime_admin_footer_banner() {

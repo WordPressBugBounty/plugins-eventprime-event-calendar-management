@@ -1621,6 +1621,7 @@ class EventM_Ajax_Service {
             $status = sanitize_text_field($_POST['status']);
             $booking_controller = new EventPrime_Bookings;
             $response = $booking_controller->update_status( $booking_id, $status);
+            do_action('ep_booking_after_status_updated', $booking_id, $status);
             wp_send_json_success( $response );
         }else{
             wp_send_json_error();

@@ -1,4 +1,6 @@
 <?php
+do_action('ep_before_checkout_tpl_content', $args); 
+
 $ep_functions = new Eventprime_Basic_Functions;
 $ep_requests = new EP_Requests;
 $is_recaptcha_enabled = 0;
@@ -7,7 +9,10 @@ if( $ep_functions->ep_get_global_settings('checkout_reg_google_recaptcha') == 1 
     <script src='https://www.google.com/recaptcha/api.js'></script><?php 
 }
 ?>
-<?php if( ! empty( $args->tickets ) && ! empty( $args->event ) && ! empty( $args->event->em_id ) ) {?>
+<?php if( ! empty( $args->tickets ) && ! empty( $args->event ) && ! empty( $args->event->em_id ) ) {
+    $is_able_to_purchase = $ep_functions->ep_check_event_restrictions( $args->event ); 
+    
+    ?>
     <?php $checkout_text = $ep_functions->ep_global_settings_button_title('Checkout'); ?>
     <div class="emagic ep-position-relative" id="ep_event_checkout_page">
         <?php do_action( 'ep_add_loader_section' );?>
