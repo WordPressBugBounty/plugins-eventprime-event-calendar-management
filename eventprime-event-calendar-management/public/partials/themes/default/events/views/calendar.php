@@ -8,7 +8,14 @@
  */
 $ep_functions = new Eventprime_Basic_Functions;
 
-//print_r($args);die;
+//print_r($args);
+if(!isset($args->event_types) || empty($args->event_types))
+{
+    if($ep_functions->ep_get_global_settings('show_event_types_on_calendar')==1 || $ep_functions->ep_get_global_settings( 'disable_filter_options' ) != 1 )
+    {
+         $args->event_types=  $ep_functions->ep_get_terms_with_meta_on_all_events_page('em_event_type',array( 'id', 'name', 'em_color', 'em_type_text_color' ));
+    }
+}
 ?>
 
 <div id="ep_event_calendar" class="ep-mb-5 ep-box-col-12"></div>

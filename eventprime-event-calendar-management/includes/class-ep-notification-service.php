@@ -598,6 +598,9 @@ class EventM_Notification_Service {
                                     break;
                                 }
                             }
+                            $at_val = apply_filters('ep_booking_attendees_filter_value',$at_val,$labels,$booking_attendees_val[0],$booking_attendees_val,$booking_attendees);
+                            $labels = apply_filters('ep_booking_attendees_filter_labels',$labels,$label_keys,$at_val,$booking_attendees_val[0],$booking_attendees_val,$booking_attendees);
+                                    
                             $attendee_name_html .= '<span>'. esc_html__( $labels, 'eventprime-event-calendar-management' ) .' : '. $at_val .' </span><br/>';
                         }
                         $attendee_name_html .= '</td>';
@@ -718,6 +721,9 @@ class EventM_Notification_Service {
                                     break;
                                 }
                             }
+                            $at_val = apply_filters('ep_booking_attendees_filter_value',$at_val,$labels,$booking_attendees_val[0],$booking_attendees_val,$booking_attendees);
+                            $labels = apply_filters('ep_booking_attendees_filter_labels',$labels,$label_keys,$at_val,$booking_attendees_val[0],$booking_attendees_val,$booking_attendees);
+                                    
                             $attendee_name_html .= '<span>'. esc_html__( $labels, 'eventprime-event-calendar-management' ) .' : '. $at_val .' </span><br/>';
                         }
                         $attendee_name_html .= '</td>';
@@ -855,6 +861,9 @@ class EventM_Notification_Service {
                                     break;
                                 }
                             }
+                            $at_val = apply_filters('ep_booking_attendees_filter_value',$at_val,$labels,$booking_attendees_val[0],$booking_attendees_val,$booking_attendees);
+                            $labels = apply_filters('ep_booking_attendees_filter_labels',$labels,$label_keys,$at_val,$booking_attendees_val[0],$booking_attendees_val,$booking_attendees);
+                                    
                             $attendee_name_html .= '<span>'. esc_html__( $labels, 'eventprime-event-calendar-management' ) .' : '. $at_val .' </span><br/>';
                         }
                         $attendee_name_html .= '</td>';

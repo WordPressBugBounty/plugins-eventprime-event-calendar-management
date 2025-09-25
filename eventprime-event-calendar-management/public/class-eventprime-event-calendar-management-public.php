@@ -299,10 +299,9 @@ class Eventprime_Event_Calendar_Management_Public {
         }
     }
 
-    public function load_gdpr_badge($atts)
+    public function load_gdpr_badge()
     {
-        $template = 'eventprime-gdpr-badge';
-        return $this->eventprime_get_template_html($template, $atts);
+        include 'partials/eventprime-gdpr-badge.php';
     }
     
     public function load_single_event($atts)
@@ -337,7 +336,7 @@ class Eventprime_Event_Calendar_Management_Public {
             return $content;
         }
 
-        if ( is_single() ) {
+        if ( is_single() && in_the_loop()) {
             $in_filter = true;
             $atts = array( 'id' => get_the_ID() );
 
@@ -2342,13 +2341,9 @@ else
    
    public function ep_show_gdpr_badge_on_footer()
    {
-       if ( ! post_type_exists( 'em_event' ) ) {
-            return;
+       if ( post_type_exists( 'em_event' ) ) {
+           $this->load_gdpr_badge();
         }
-        
-       $atts = array();
-       echo wp_kses_post($this->load_gdpr_badge($atts));
-
    }
    
 

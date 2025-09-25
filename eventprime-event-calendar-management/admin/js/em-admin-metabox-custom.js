@@ -523,6 +523,13 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
         if( !en_val ) {
             $( '#em_end_date' ).val( st_val );
         }
+        // Compare dates
+        let startDate = new Date(st_val);
+        let endDate = new Date(en_val);
+
+        if (endDate < startDate) {
+            $('#em_end_date').val(st_val);
+        }
     });
 
     // show/hide event start and end time on all day
