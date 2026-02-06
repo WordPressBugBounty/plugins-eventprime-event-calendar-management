@@ -892,13 +892,18 @@ class EventM_Ajax_Service {
             $event_description = wp_kses_post( stripslashes( $data['em_descriptions'] ) );
             
             if( isset( $data['event_id'] ) && ! empty( $data['event_id'] ) ) {
-                $post_id = $data['event_id'];
+                $post_id = absint( $data['event_id'] );
                 if(empty(get_post($post_id)) || get_post_type($post_id) != 'em_event' ){
                     wp_send_json_error( array( 'error' => esc_html__( 'There is some issue with event. Please try later.', 'eventprime-event-calendar-management' ) ) );
                 }
-                if(!empty($guest_submission) && get_post_meta($post_id, 'em_user_submitted', true) != get_current_user_id()){
-                       wp_send_json_error( array( 'error' => esc_html__( 'Event does not belong to you.', 'eventprime-event-calendar-management' ) ) );
-                
+                $current_user_id = get_current_user_id();
+                $post_author_id = (int) get_post_field( 'post_author', $post_id );
+                $submitted_user_id = (int) get_post_meta( $post_id, 'em_user', true );
+                $can_edit = current_user_can( 'edit_post', $post_id )
+                    || ( $current_user_id > 0 && $post_author_id === $current_user_id )
+                    || ( $current_user_id > 0 && $submitted_user_id === $current_user_id );
+                if ( ! $can_edit ) {
+                    wp_send_json_error( array( 'error' => esc_html__( 'You are not allowed to edit this event.', 'eventprime-event-calendar-management' ) ) );
                 }
                 $post_update = array(
                     'ID'         => $post_id,
@@ -1760,41 +1765,55 @@ class EventM_Ajax_Service {
 
 
     public function upload_file_media(){
-        if(isset($_FILES["file"]) && !empty($_FILES["file"])){
-            $extension = pathinfo( $_FILES["file"]["name"], PATHINFO_EXTENSION );
-            if( $extension != 'jpg' && $extension != 'jpeg' && $extension != 'png' && $extension != 'gif' ) {
-                wp_send_json_error( array( 'errors' => array( 'Only Image File Allowed.' ) ) );
-            }
-            $file = $_FILES['file'];
-            $filename = $file['name'];
-            $tmp_name = $file['tmp_name'];
-            $upload_dir = wp_upload_dir();
-            if (move_uploaded_file($file["tmp_name"], $upload_dir['path'] . "/" . $filename)) {
-                $uploaded_file['file_name'] = $filename;
-                $uploaded_file['upload_url'] = $upload_dir['url'] . "/" . $filename;
-                $wp_filetype = wp_check_filetype($filename, null );
-                $attachment = array(
-                    'guid'           => $uploaded_file['upload_url'],
-                    'post_mime_type' => $wp_filetype['type'],
-                    'post_title'     => preg_replace( '/\.[^.]+$/', '', $filename ),
-                    'post_content'   => '',
-                    'post_status'    => 'inherit'
-                );
-                $attachment_id = wp_insert_attachment( $attachment, $upload_dir['path'] . "/" . $filename );
-                if ( ! is_wp_error( $attachment_id ) ) {
-                    require_once(ABSPATH . "wp-admin" . '/includes/file.php');
-                    $attachment_data = wp_generate_attachment_metadata( $attachment_id, $upload_dir['path'] . "/" . $filename );
-                    wp_update_attachment_metadata( $attachment_id,  $attachment_data );
-                    $returnData['success'] = array( 'attachment_id' => $attachment_id );
-                }
-            }
-            else{
-                $returnData['errors'] = __($upload_file['error']);
-            }
+        if ( ! isset( $_POST['security'] ) || ! wp_verify_nonce( $_POST['security'], 'ep-frontend-event-submission-nonce' ) ) {
+            wp_send_json_error( array( 'errors' => array( esc_html__( 'Security check failed.', 'eventprime-event-calendar-management' ) ) ) );
         }
-        if( isset( $returnData['success'] ) ) {
+
+        if ( empty( $_FILES['file'] ) || empty( $_FILES['file']['name'] ) ) {
+            wp_send_json_error( array( 'errors' => array( esc_html__( 'No file provided.', 'eventprime-event-calendar-management' ) ) ) );
+        }
+
+        $file = $_FILES['file'];
+        $allowed_mimes = array(
+            'jpg|jpeg|jpe' => 'image/jpeg',
+            'png'          => 'image/png',
+            'gif'          => 'image/gif',
+        );
+        $filecheck = wp_check_filetype_and_ext( $file['tmp_name'], $file['name'], $allowed_mimes );
+        if ( empty( $filecheck['ext'] ) || empty( $filecheck['type'] ) ) {
+            wp_send_json_error( array( 'errors' => array( esc_html__( 'Only image files are allowed.', 'eventprime-event-calendar-management' ) ) ) );
+        }
+
+        require_once( ABSPATH . 'wp-admin/includes/file.php' );
+        require_once( ABSPATH . 'wp-admin/includes/image.php' );
+
+        $upload_overrides = array(
+            'test_form' => false,
+            'mimes'     => $allowed_mimes,
+        );
+        $uploaded = wp_handle_upload( $file, $upload_overrides );
+        if ( isset( $uploaded['error'] ) ) {
+            wp_send_json_error( array( 'errors' => array( $uploaded['error'] ) ) );
+        }
+
+        $safe_name = sanitize_file_name( $file['name'] );
+        $attachment = array(
+            'guid'           => $uploaded['url'],
+            'post_mime_type' => $filecheck['type'],
+            'post_title'     => preg_replace( '/\.[^.]+$/', '', $safe_name ),
+            'post_content'   => '',
+            'post_status'    => 'inherit'
+        );
+        $attachment_id = wp_insert_attachment( $attachment, $uploaded['file'] );
+        if ( ! is_wp_error( $attachment_id ) ) {
+            $attachment_data = wp_generate_attachment_metadata( $attachment_id, $uploaded['file'] );
+            wp_update_attachment_metadata( $attachment_id, $attachment_data );
+            $returnData['success'] = array( 'attachment_id' => $attachment_id );
+        }
+
+        if ( isset( $returnData['success'] ) ) {
             wp_send_json_success( $returnData['success'] );
-        }else{
+        } else {
             wp_send_json_success( $returnData );
         }
     }

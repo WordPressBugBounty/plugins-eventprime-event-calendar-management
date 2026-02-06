@@ -144,10 +144,22 @@ class Eventprime_Basic_Functions {
             if (!empty($enable_seo_urls) && !empty($permalink)) {
                 $url = get_permalink($id);
                 if ($type == 'term') {
+                    $term = null;
                     if (empty($taxonomy)) {
-                        $taxonomy = get_term($id)->taxonomy;
+                        $term = get_term($id);
+                        if (!is_wp_error($term) && $term && !empty($term->taxonomy)) {
+                            $taxonomy = $term->taxonomy;
+                        }
                     }
-                    $url = get_term_link($id, $taxonomy);
+                    if (empty($term)) {
+                        $term = get_term($id, $taxonomy);
+                    }
+                    if (!is_wp_error($term) && $term && !empty($term->term_id)) {
+                        $term_link = get_term_link($term);
+                        if (!is_wp_error($term_link)) {
+                            $url = $term_link;
+                        }
+                    }
                 }
             }
         }
@@ -14017,6 +14029,13 @@ public function ep_get_events( $fields ) {
             'messages'       => array(),
             'done'           => true,
         );
+    }
+    
+    public function get_event_id_from_ticket_id($ticket_id)
+    {
+        $DBhandler = new EP_DBhandler();
+        $event_id = $DBhandler->get_value('TICKET','event_id', $ticket_id);
+        return $event_id;
     }
 
     

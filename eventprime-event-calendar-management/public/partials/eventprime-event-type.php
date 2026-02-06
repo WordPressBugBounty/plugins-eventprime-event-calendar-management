@@ -11,6 +11,7 @@ if ( !isset( $atts['id'] ) || empty( $atts['id'] ) ) { ?>
 }
         $event_type_id            = absint( $atts['id'] );
         $term                     = get_term( $event_type_id );
+        $event_types_data         = array();
         if( ! empty( $term ) ) {
             wp_enqueue_script(
                 'ep-eventtypes-details',
@@ -26,7 +27,7 @@ if ( !isset( $atts['id'] ) || empty( $atts['id'] ) ) { ?>
                 )
             );
             
-            $event_types_data         = array();
+            
             $event_types_data['term'] = $term;
             $event_types_data['event_type'] = $ep_functions->get_single_event_type( $term->term_id );
             // upcoming events
@@ -86,6 +87,7 @@ if ( !isset( $atts['id'] ) || empty( $atts['id'] ) ) { ?>
             plugin_dir_url( EP_PLUGIN_FILE ) . 'public/css/ep-frontend-views.css',
             false, EVENTPRIME_VERSION
         );
+        //var_dump($event_type_data);die;
         $args = (object)$event_types_data;
 ?>
 <div class="emagic">
