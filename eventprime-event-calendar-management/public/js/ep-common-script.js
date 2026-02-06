@@ -162,7 +162,69 @@ jQuery( function( $ ) {
         var tagid = $(this).data('tag');
         $( '.ep-profile-event-tabs-content' ).addClass( 'ep-item-hide' );
         $( '#'+tagid).removeClass( 'ep-item-hide' );
-    });  
+    }); 
+    
+    // Tab click handler
+    $(document).on('click', '.ep-global-tab-link', function () {
+        var $tabWrapper = $(this).closest('.ep-global-tab-wrapper');
+
+        // Remove active class from all tabs in this wrapper
+        $tabWrapper.find('.ep-global-tab-link').removeClass('ep-global-tab-active');
+        $(this).addClass('ep-global-tab-active');
+
+        // Get the target class name from data-tag
+        var tagClass = $(this).data('tag');
+
+        // Hide all tab contents in this wrapper
+        $tabWrapper.find('.ep-global-tab-content').addClass('ep-item-hide');
+
+        // Show the targeted content in this wrapper
+        $tabWrapper.find('.' + tagClass).removeClass('ep-item-hide');
+    });
+
+    function ep_init_global_tabs($root) {
+        var $ctx = ($root && $root.length) ? $root : $(document);
+
+        $ctx.find('.ep-global-tab-wrapper').each(function () {
+            var $tabWrapper = $(this);
+            var $firstTab = $tabWrapper.find('.ep-global-tab-item .ep-global-tab-link').first();
+            var firstTagClass = $firstTab.data('tag');
+
+            if ($firstTab.length) {
+                $tabWrapper.find('.ep-global-tab-link').removeClass('ep-global-tab-active');
+                $firstTab.addClass('ep-global-tab-active');
+
+                $tabWrapper.find('.ep-global-tab-content').addClass('ep-item-hide');
+                $tabWrapper.find('.' + firstTagClass).removeClass('ep-item-hide');
+            }
+        });
+    }
+
+    // Activate first tab on page load.
+    ep_init_global_tabs($(document));
+
+    // Re-init tabs when single event content is reloaded (recurring date switch).
+    $(document).on('ajaxSuccess.epGlobalTabs', function (event, xhr, settings) {
+        if (!settings || !settings.data) {
+            return;
+        }
+
+        var data = settings.data;
+        var isSingleEventReload = false;
+
+        if (typeof data === 'string') {
+            isSingleEventReload = (data.indexOf('action=ep_load_event_single_page') !== -1);
+        } else if (typeof data === 'object' && data.action) {
+            isSingleEventReload = (data.action === 'ep_load_event_single_page');
+        }
+
+        if (!isSingleEventReload) {
+            return;
+        }
+
+        ep_init_global_tabs($('#ep_single_event_detail_page_content'));
+    });
+
     // Tabmenu End
     
 });
@@ -210,7 +272,7 @@ function get_translation_string( key ) {
  * 
  * @return {bool} URL is valid or invalid
  */
-function is_valid_url( url ) {
+function is_valid_url_old( url ) {
     var urlPattern = new RegExp('^(https?:\\/\\/)?' + // validate protocol
             '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // validate domain name
             '((\\d{1,3}\\.){3}\\d{1,3}))' + // validate OR ip (v4) address
@@ -218,6 +280,36 @@ function is_valid_url( url ) {
             '(\\?[;&a-z\\d%_.~+=-]*)?' + // validate query string
             '(\\#[-a-z\\d_]*)?$', 'i'); // validate fragment locator
     return !!urlPattern.test( url );
+}
+
+function is_valid_url( url ) {
+    if (typeof url !== 'string') return false;
+    var v = url.trim();
+    if (!v) return false;
+
+    // Accept URLs without protocol (like your old regex): add http:// to parse
+    var hasProtocol = /^[a-zA-Z][a-zA-Z0-9+\-.]*:\/\//.test(v);
+    var candidate = hasProtocol ? v : 'http://' + v;
+
+    try {
+        var u = new URL(candidate);
+
+        // If protocol was provided, only accept http/https (old regex did http/https only)
+        if (hasProtocol && u.protocol !== 'http:' && u.protocol !== 'https:') return false;
+
+        // Host must be either IPv4 or domain with a dot + TLD >= 2 chars (like old regex)
+        var host = u.hostname;
+        var isIPv4 = /^(25[0-5]|2[0-4]\d|[01]?\d?\d)(\.(25[0-5]|2[0-4]\d|[01]?\d?\d)){3}$/.test(host);
+        var isDomain = /^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(host) && /\.[a-z]{2,}$/i.test(host);
+
+        if (!isIPv4 && !isDomain) return false;
+
+        // Optional port/path/query/hash are already handled by URL parsing
+        // If we reach here, treat as valid (same boolean return style as before)
+        return true;
+    } catch (e) {
+        return false;
+    }
 }
 
 /**

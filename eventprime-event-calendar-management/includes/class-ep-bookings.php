@@ -845,9 +845,9 @@ class EventPrime_Bookings {
                         <div class="ep-box-row">
                             <div class="ep-box-col-12 ep-text-small ep-col-order-1">
                                 <!-- Attendees Info Section -->
-                                <?php if( ! empty( $booking->em_attendee_names ) ) {?>
+                                <?php if( ! empty( $booking->em_attendee_names ) ) {?>               
                                     <div id="ep_event_booking_attendee_section">
-                                        <div class="ep-mb-3">
+                                         <div class="ep-mb-3">
                                             <?php esc_html_e( 'Please update the attendees details below:', 'eventprime-event-calendar-management' );?>
                                         </div>
                                         <?php $ticket_num = $num = 1;

@@ -143,11 +143,17 @@
 
 /*---Override Theme's CSS End---*/
 
-
+#ep-search-filters{    width: calc(100% - 30px) !important;}
 #ep-search-filters .ep-input-group #filter-date-from,
 #ep-search-filters .ep-input-group #filter-date-to{
     margin-bottom: 0px;
     width: 1%;
+    background-image: none;
+}
+
+.wp-theme-hestia #ep_event_calendar .fc-header-toolbar .fc-toolbar-chunk{
+    display: flex;
+    margin-right: 8px;
 }
 
 .ep-box-search-form-wrap .ep-btn-group button span {
@@ -1378,6 +1384,16 @@ ul.ep-event-share li.ep-event-social-icon:first-child svg {
     overflow-x: auto;
     display: inline-table;
 }
+
+.theme-coral-dark #ep_event_calendar .fc-list-sticky .fc-scroller table.fc-list-table{
+    display: table;
+    margin: 0px;
+}
+
+.ep-dark-mode-enabled #ep_event_calendar .fc-list-sticky .fc-scroller table.fc-list-table  tbody>tr:first-child th{
+    background-color: rgb(0 0 0 / 20%);
+}
+
 /* Calendar Coral dark theme fixes end */
 
 /*-- Slider Responsive--*/

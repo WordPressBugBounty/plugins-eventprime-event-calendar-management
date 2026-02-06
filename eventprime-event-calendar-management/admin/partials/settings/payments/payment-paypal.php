@@ -40,5 +40,18 @@ if( ! empty( $global_options->paypal_processor ) ) {
 
             </td>
         </tr>
+        <tr valign="top" class="" id="ep_modern_paypal_secret_child">
+            <th scope="row" class="titledesc">
+                <label for="paypal_client_secret">
+                    <?php esc_html_e( 'Paypal Client Secret', 'eventprime-event-calendar-management' );?>
+                </label>
+            </th>
+            <td class="forminp forminp-text">
+                <input name="paypal_client_secret" class="regular-text" id="paypal_client_secret" type="password" autocomplete="new-password" value="<?php echo isset( $global_options->paypal_client_secret ) ? esc_attr( $global_options->paypal_client_secret ) : ''; ?>">
+                <div class="ep-help-tip-info ep-my-2 ep-text-muted">
+                    <?php esc_html_e( 'Required for server-side PayPal order verification.', 'eventprime-event-calendar-management' );?>
+                </div>
+            </td>
+        </tr>
     </tbody>
 </table>

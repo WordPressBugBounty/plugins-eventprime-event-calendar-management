@@ -15,7 +15,8 @@ $booking = $booking_controller->load_booking_detail( $booking_id );
     <?php if( ! empty( $booking->em_attendee_names ) && count( $booking->em_attendee_names ) > 0 ) {?>
         <div class="ep-border-bottom">
             <div class="ep-py-3 ep-ps-3 ep-fw-bold ep-text-uppercase ep-text-small">
-                <?php esc_html_e( 'Attendees', 'eventprime-event-calendar-management' );?>
+                <?php $attendee_heading = apply_filters( 'ep_attendee_details_heading', esc_html__( 'Attendees', 'eventprime-event-calendar-management' ),  $booking);
+                echo esc_html( $attendee_heading );?>
             </div>
         </div>
         <?php $booking_attendees_field_labels = array();

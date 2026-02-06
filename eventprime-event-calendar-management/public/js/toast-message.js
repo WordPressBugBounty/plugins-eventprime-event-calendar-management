@@ -3,7 +3,7 @@ function show_toast( type, message, heading = true ) {
     if( type == 'error' ) {
         heading_data = '';
         if( heading ) {
-            heading_data = 'Error';
+            heading_data = eventprime_toast.error;
         }
         jQuery.toast({
             heading: heading_data,
@@ -18,7 +18,7 @@ function show_toast( type, message, heading = true ) {
     if( type == 'success' ) {
         heading_data = '';
         if( heading ) {
-            heading_data = 'Success';
+            heading_data = eventprime_toast.success;
         }
         jQuery.toast({
             heading: heading_data,
@@ -33,7 +33,7 @@ function show_toast( type, message, heading = true ) {
     if( type == 'warning' ) {
         heading_data = '';
         if( heading ) {
-            heading_data = 'Warning';
+            heading_data = eventprime_toast.warning;
         }
         jQuery.toast({
             heading: heading_data,
@@ -52,7 +52,7 @@ function show_admin_toast( type, message, heading = true ) {
     if( type == 'error' ) {
         heading_data = '';
         if( heading ) {
-            heading_data = 'Error';
+            heading_data = eventprime_toast.error;
         }
         jQuery.toast({
             heading: heading_data,
@@ -67,7 +67,7 @@ function show_admin_toast( type, message, heading = true ) {
     if( type == 'success' ) {
         heading_data = '';
         if( heading ) {
-            heading_data = 'Success';
+            heading_data = eventprime_toast.success;
         }
         jQuery.toast({
             heading: heading_data,
@@ -82,7 +82,7 @@ function show_admin_toast( type, message, heading = true ) {
     if( type == 'warning' ) {
         heading_data = '';
         if( heading ) {
-            heading_data = 'Warning';
+            heading_data = eventprime_toast.warning;
         }
         jQuery.toast({
             heading: heading_data,

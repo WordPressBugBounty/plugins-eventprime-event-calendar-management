@@ -170,6 +170,17 @@ class Eventprime_Event_Calendar_Management_Public {
         wp_enqueue_script('ep-toast-js',plugin_dir_url(__FILE__) . 'js/jquery.toast.min.js',array('jquery'), $this->version);
         wp_enqueue_script('ep-toast-message-js',plugin_dir_url(__FILE__) . 'js/toast-message.js',array('jquery'), $this->version);
 
+        wp_localize_script(
+            'ep-toast-message-js', 
+            'eventprime_toast', 
+            array(
+               'error'=> esc_html__( 'Error', 'eventprime-event-calendar-management' ),
+               'success'=> esc_html__( 'Success', 'eventprime-event-calendar-management' ),
+               'warning'=> esc_html__( 'Warning', 'eventprime-event-calendar-management' ),
+            )
+        );
+
+        
         $ep_functions = new Eventprime_Basic_Functions;
         wp_enqueue_style('em-front-common-utility', plugin_dir_url( __FILE__ ) . 'css/em-front-common-utility.css', array(), $this->version, 'all' );
         wp_enqueue_script('ep-common-script', plugin_dir_url(__FILE__) . 'js/ep-common-script.js', array('jquery'), $this->version);
@@ -553,9 +564,119 @@ class Eventprime_Event_Calendar_Management_Public {
         return $this->eventprime_get_template_html($template, $atts);
     }
     
+    public function ep_event_add_event_booking_button( $event ) {
+        $settings = new Eventprime_Basic_Functions;
+        $global_options = $settings->ep_get_global_settings();
+
+        $em_custom_link = get_post_meta( $event->id, 'em_custom_link', true );
+        $url = ( $global_options->redirect_third_party == 1 && $event->em_enable_booking == 'external_bookings' )
+            ? esc_url( $em_custom_link )
+            : esc_url( $event->event_url );
+
+        if ( $event && ! empty( $event->id ) ) {
+            $view_details_text = $settings->ep_global_settings_button_title( 'View Details' );
+            $new_tab = ! empty( $settings->ep_get_global_settings( 'open_detail_page_in_new_tab' ) );
+
+            $target_attr = $new_tab ? ' target="_blank" rel="noopener"' : '';
+
+            if ( $settings->check_event_has_expired( $event ) ) { ?>
+                <a href="<?php echo esc_url( $event->event_url ); ?>"<?php echo $target_attr; ?>>
+                    <div class="ep-btn ep-btn-dark ep-box-w-100 ep-my-0 ep-py-2">
+                        <span class="ep-fw-bold ep-text-small"><?php echo esc_html( $view_details_text ); ?></span>
+                    </div>
+                </a>
+            <?php } else {
+                if ( ! empty( $event->em_enable_booking ) ) {
+                    if ( $event->em_enable_booking === 'bookings_off' ) { ?>
+                        <a href="<?php echo esc_url( $event->event_url ); ?>"<?php echo $target_attr; ?>>
+                            <div class="ep-btn ep-btn-dark ep-box-w-100 ep-my-0 ep-py-2">
+                                <span class="ep-fw-bold ep-text-small"><?php echo esc_html( $view_details_text ); ?></span>
+                            </div>
+                        </a>
+                    <?php } elseif ( $event->em_enable_booking === 'external_bookings' ) {
+                        // Respect per-event new-window toggle for external bookings
+                        $ext_target = empty( $event->em_custom_link_new_browser ) ? '' : ' target="_blank" rel="noopener"'; ?>
+                        <a href="<?php echo esc_url( $url ); ?>"<?php echo $ext_target; ?>>
+                            <div class="ep-btn ep-btn-dark ep-box-w-100 ep-my-0 ep-py-2">
+                                <span class="ep-fw-bold ep-text-small"><?php echo esc_html( $view_details_text ); ?></span>
+                            </div>
+                        </a>
+                    <?php } else {
+                        // Internal bookings: derive status + free/buy label robustly
+                        if ( ! empty( $event->all_tickets_data ) ) {
+                            $status = $settings->check_for_booking_status( $event->all_tickets_data, $event );
+                            if ( ! empty( $status ) ) {
+                                if ( $status['status'] === 'not_started' ) { ?>
+                                    <div class="ep-btn ep-btn-light ep-box-w-100 ep-my-0 ep-py-2">
+                                        <span class="material-icons-outlined ep-align-middle ep-text-muted ep-fs-6">history_toggle_off</span>
+                                        <span class="ep-text-muted ep-text-smaller"><em><?php echo esc_html( $status['message'] ); ?></em></span>
+                                    </div>
+                                <?php } elseif ( $status['status'] === 'off' ) { ?>
+                                    <div class="ep-btn ep-btn-light ep-box-w-100 ep-my-0 ep-py-2">
+                                        <span class="material-icons-outlined ep-align-middle ep-text-muted ep-fs-6">block</span>
+                                        <span class="ep-text-muted ep-text-small"><em><?php echo esc_html( $status['message'] ); ?></em></span>
+                                    </div>
+                                <?php } else {
+                                    // status "on": compute free/buy from price (no string compare)
+                                    $tpr = isset( $event->ticket_price_range ) ? $event->ticket_price_range : array();
+                                    $multiple = isset( $tpr['multiple'] ) && (int) $tpr['multiple'] === 1;
+
+                                    $min_price = null;
+                                    if ( $multiple ) {
+                                        if ( isset( $tpr['min'] ) && is_numeric( $tpr['min'] ) ) {
+                                            $min_price = (float) $tpr['min'];
+                                        }
+                                        
+                                        if ( isset( $tpr['max'] ) && is_numeric( $tpr['max'] ) ) {
+                                            $max_price = (float) $tpr['max'];
+                                            if($max_price==0.0)
+                                            {
+                                                $multiple = false;
+                                            }
+                                        }
+                                        
+                                        
+                                        
+                                    } else {
+                                        if ( isset( $tpr['price'] ) && is_numeric( $tpr['price'] ) ) {
+                                            $min_price = (float) $tpr['price'];
+                                        }
+                                    }
+                                    $is_free = ( $min_price !== null && $min_price == 0.0 && !$multiple);
+
+                                    $btn_class = $is_free ? 'ep-btn-dark' : 'ep-btn-warning';
+                                    $btn_label = $is_free
+                                        ? $settings->ep_global_settings_button_title( 'Free' )
+                                        : $settings->ep_global_settings_button_title( 'Buy Tickets' );
+                                    ?>
+                                    <a href="<?php echo esc_url( $event->event_url ); ?>"<?php echo $target_attr; ?>>
+                                        <div class="ep-btn <?php echo esc_attr( $btn_class ); ?> ep-box-w-100 ep-my-0 ep-p-2">
+                                            <span class="ep-fw-bold ep-text-small"><?php echo $btn_label; ?></span>
+                                        </div>
+                                    </a>
+                                <?php }
+                            }
+                        } else { ?>
+                            <a href="<?php echo esc_url( $event->event_url ); ?>"<?php echo $target_attr; ?>>
+                                <div class="ep-btn ep-btn-dark ep-box-w-100 ep-my-0 ep-py-2">
+                                    <span class="ep-fw-bold ep-text-small"><?php echo esc_html( $view_details_text ); ?></span>
+                                </div>
+                            </a>
+                        <?php }
+                    }
+                } else { ?>
+                    <a href="<?php echo esc_url( $event->event_url ); ?>"<?php echo $target_attr; ?>>
+                        <div class="ep-btn ep-btn-dark ep-box-w-100 ep-my-0 ep-py-2">
+                            <span class="ep-fw-bold ep-text-small"><?php echo esc_html( $view_details_text ); ?></span>
+                        </div>
+                    </a>
+                <?php }
+            }
+        }
+    }
+
     
-    
-    public function ep_event_add_event_booking_button( $event ) 
+    public function ep_event_add_event_booking_button_old( $event ) 
     {
         $options = array();
         $settings = new Eventprime_Basic_Functions;
@@ -787,28 +908,28 @@ class Eventprime_Event_Calendar_Management_Public {
             $args->fes_event_performer_req = false;
             $args->fes_event_organizer_req = false;
             if( ! empty( $frontend_submission_required ) ) {
-                if(isset($frontend_submission_required['fes_event_description'])){
+                if(isset($frontend_submission_required['fes_event_description'])  && !empty($frontend_submission_required['fes_event_description'])){
                     $args->fes_event_description_req = true;
                 }
-                if(isset($frontend_submission_required['fes_event_booking'])){
+                if(isset($frontend_submission_required['fes_event_booking'])  && !empty($frontend_submission_required['fes_event_booking'])){
                     $args->fes_event_booking_req = true;
                 }
-                if(isset($frontend_submission_required['fes_booking_price'])){
+                if(isset($frontend_submission_required['fes_booking_price'])  && !empty($frontend_submission_required['fes_booking_price'])){
                     $args->fes_booking_price_req = true;
                 }
-                if(isset($frontend_submission_required['fes_event_link'])){
+                if(isset($frontend_submission_required['fes_event_link'])  && !empty($frontend_submission_required['fes_event_link'])){
                     $args->fes_event_link_req = true;
                 }
-                if(isset($frontend_submission_required['fes_event_type'])){
+                if(isset($frontend_submission_required['fes_event_type'])  && !empty($frontend_submission_required['fes_event_type'])){
                     $args->fes_event_type_req = true;
                 }
-                if(isset($frontend_submission_required['fes_event_location'])){
+                if(isset($frontend_submission_required['fes_event_location'])  && !empty($frontend_submission_required['fes_event_location'])){
                     $args->fes_event_location_req = true;
                 }
-                if(isset($frontend_submission_required['fes_event_performer'])){
+                if(isset($frontend_submission_required['fes_event_performer'])  && !empty($frontend_submission_required['fes_event_performer'])){
                     $args->fes_event_performer_req = true;
                 }
-                if(isset($frontend_submission_required['fes_event_organizer'])){
+                if(isset($frontend_submission_required['fes_event_organizer'])  && !empty($frontend_submission_required['fes_event_organizer'])){
                     $args->fes_event_organizer_req = true;
                 }
             }
@@ -828,7 +949,7 @@ class Eventprime_Event_Calendar_Management_Public {
             }
 
             //Event Performers lists
-            $event_performers = $ep_functions->get_performer_all_data();;
+            $event_performers = $ep_functions->get_performer_all_data();
             $args->event_performers = new stdClass();
             if(count($event_performers)){
                 $args->event_performers = $event_performers;
@@ -1400,7 +1521,7 @@ class Eventprime_Event_Calendar_Management_Public {
                 }
             }
             if( $page == 'event_detail' ) {?>
-                <div class="ep-event-action ep_event_wishlist_action ep-px-2 ep-d-flex ep-align-items-center ep-bg-white ep-rounded-tbl-right" id="ep_event_wishlist_action_<?php echo esc_attr( $event->id );?>" data-event_id="<?php echo esc_attr( $event->id );?>" title="<?php echo esc_attr($wish_title);?>">
+                <div class="ep-event-action ep_event_wishlist_action ep-px-2 ep-d-flex ep-align-items-center ep-rounded-tbl-right" id="ep_event_wishlist_action_<?php echo esc_attr( $event->id );?>" data-event_id="<?php echo esc_attr( $event->id );?>" title="<?php echo esc_attr($wish_title);?>">
                     <span class="material-icons-outlined ep-handle-fav ep-cursor ep-button-text-color ep-mr-3 <?php if( $event->event_in_user_wishlist == true ) { echo esc_html( 'ep-text-danger' ); }?>"><?php if( $event->event_in_user_wishlist == true ) { echo esc_html('favorite'); } else{ echo esc_html('favorite_border'); }?></span>
                 </div><?php
             } else{?>
@@ -1415,6 +1536,8 @@ class Eventprime_Event_Calendar_Management_Public {
     
     public function ep_event_add_social_sharing_icon( $event, $page ) 
     {
+        if ( ! class_exists( 'Eventprime_Advanced_Social_Sharing' ) ) 
+        {
         $ep_functions = new Eventprime_Basic_Functions;
         if ( ! empty( $ep_functions->ep_get_global_settings( 'social_sharing' ) ) ) 
         {
@@ -1486,6 +1609,7 @@ class Eventprime_Event_Calendar_Management_Public {
                     </div><?php
                 }
             }
+        }
         }
     }
     
@@ -1683,12 +1807,97 @@ class Eventprime_Event_Calendar_Management_Public {
             }
         }
     }
+    
+    public function ep_event_add_event_price( $event, $view = '' ) 
+    {
+        $ep_functions = new Eventprime_Basic_Functions;
 
-    public function ep_event_add_event_price( $event, $view = '' ) {
+        // helper: true if numeric and exactly zero
+        $is_zero = static function( $v ) {
+            return isset($v) && is_numeric($v) && (float)$v == 0.0;
+        };
+
+        // helper: true if numeric and > 0
+        $is_positive = static function( $v ) {
+            return isset($v) && is_numeric($v) && (float)$v > 0.0;
+        };
+
+        // render price label (single place to keep logic consistent)
+        $render_price = function( $price ) use ( $ep_functions, $is_zero, $is_positive ) {
+            if ( $is_positive( $price ) ) {
+                echo esc_html( $ep_functions->ep_price_with_position( (float)$price ) );
+            } else {
+                // treat 0, "0", "0.0", "0.00", null, '' as Free
+                $ep_functions->ep_show_free_event_price( 0 );
+            }
+        };
+
+        if ( ! empty( $view ) && $view === 'card' ) { ?>
+            <div class="ep-event-list-price ep-text-dark ep-di-flex ep-align-items-center ep-mt-auto">
+            <?php if ( $event && ! empty( $event->id ) && $event->em_enable_booking !== 'external_bookings' ) {
+                if ( ! empty( $event->ticket_price_range ) ) { ?>
+                    <span class="material-icons-outlined ep-align-middle ep-fs-5 ep-mr-1">confirmation_number</span>
+                    <?php
+                    $tpr = $event->ticket_price_range;
+                    $multiple = isset($tpr['multiple']) && (int)$tpr['multiple'] === 1;
+                    $min = isset($tpr['min']) ? $tpr['min'] : null;
+                    $max = isset($tpr['max']) ? $tpr['max'] : null;
+                    $price = isset($tpr['price']) ? $tpr['price'] : null;
+
+                    if ( $multiple ) {
+                        if ( isset($min, $max) && (float)$min == (float)$max ) { ?>
+                            <span class="ep-fw-bold ep-ml-1"> <?php $render_price( $min ); ?> </span>
+                        <?php } else { ?>
+                            <?php esc_html_e( 'Starting from', 'eventprime-event-calendar-management' ); ?>
+                            <span class="ep-fw-bold ep-ml-1">
+                                <?php echo esc_html( $ep_functions->ep_price_with_position( $min ) ); ?>
+                            </span>
+                        <?php }
+                    } else { ?>
+                        <span class="ep-fw-bold ep-ml-1"> <?php echo ' '; $render_price( $price ); ?> </span>
+                    <?php }
+                } else {
+                    echo '&nbsp;';
+                }
+            } ?>
+            </div>
+        <?php } else {
+            if ( $event && ! empty( $event->id ) && $event->em_enable_booking !== 'external_bookings' ) {
+                if ( ! empty( $event->ticket_price_range ) ) { ?>
+                    <div class="ep-event-list-price ep-my-2 ep-text-dark ep-align-items-center ep-d-flex ep-justify-content-end">
+                        <span class="material-icons-outlined ep-align-middle ep-fs-5 ep-mr-1">confirmation_number</span>
+                        <?php
+                        $tpr = $event->ticket_price_range;
+                        $multiple = isset($tpr['multiple']) && (int)$tpr['multiple'] === 1;
+                        $min = isset($tpr['min']) ? $tpr['min'] : null;
+                        $max = isset($tpr['max']) ? $tpr['max'] : null;
+                        $price = isset($tpr['price']) ? $tpr['price'] : null;
+
+                        if ( $multiple ) {
+                            if ( isset($min, $max) && (float)$min == (float)$max ) { ?>
+                                <span class="ep-fw-bold ep-lh-0 ep-ml-1"> <?php echo ' '; $render_price( $min ); ?> </span>
+                            <?php } else { ?>
+                                <?php esc_html_e( 'Starting from', 'eventprime-event-calendar-management' ); ?>
+                                <span class="ep-fw-bold ep-lh-0 ep-ml-1">
+                                   <?php echo esc_html( $ep_functions->ep_price_with_position( $min ) ); ?>
+                                </span>
+                            <?php }
+                        } else { ?>
+                            <span class="ep-fw-bold ep-lh-0 ep-ml-1"> <?php echo ' '; $render_price( $price ); ?> </span>
+                        <?php } ?>
+                    </div>
+                <?php }
+            }
+        }
+    }
+
+
+    public function ep_event_add_event_price_old( $event, $view = '' ) {
         $ep_functions = new Eventprime_Basic_Functions;
         if( ! empty( $view ) && $view == 'card' ) {?>
             <div class="ep-event-list-price ep-text-dark ep-di-flex ep-align-items-center ep-mt-auto"><?php
                 if( $event && ! empty( $event->id ) && $event->em_enable_booking != 'external_bookings' ) { 
+                    var_dump($event->ticket_price_range);
                     if ( ! empty( $event->ticket_price_range ) ) {?>
                         <span class="material-icons-outlined ep-align-middle ep-fs-5 ep-mr-1">confirmation_number</span><?php
                         if ( isset( $event->ticket_price_range['multiple'] ) && $event->ticket_price_range['multiple'] == 1 ) { 
@@ -1702,7 +1911,7 @@ class Eventprime_Event_Calendar_Management_Public {
                                     }?>
                                 </span><?php
                             } else{?>
-                                <?php esc_html_e( 'Starting', 'eventprime-event-calendar-management' );?>
+                                <?php esc_html_e( 'Starting from', 'eventprime-event-calendar-management' );?>
                                 <span class="ep-fw-bold ep-ml-1">
                                     <?php echo ' ' . esc_html( $ep_functions->ep_price_with_position( $event->ticket_price_range['min'] ) ); ?>
                                 </span><?php
@@ -1738,7 +1947,7 @@ class Eventprime_Event_Calendar_Management_Public {
                                     }?>
                                 </span><?php
                             } else{?>
-                                <?php esc_html_e( 'Starting', 'eventprime-event-calendar-management' );?>
+                                <?php esc_html_e( 'Starting from', 'eventprime-event-calendar-management' );?>
                                 <span class="ep-fw-bold ep-lh-0 ep-ml-1">
                                     <?php echo ' ' . esc_html( $ep_functions->ep_price_with_position( $event->ticket_price_range['min'] ) ); ?>
                                 </span><?php

@@ -196,9 +196,9 @@ class Eventprime_html_Generator {
         $field .= '</label></div>';
         $field .= '<div class="ep-box-col-11 ep-sub-field-terms-url-options">';
         if ($term_option == 'url') {
-            $field .= '<input type="url" name="em_event_checkout_terms_url" id="em_event_checkout_terms_url" class="ep-form-control ep-event-terms-options" placeholder="' . esc_html__('Enter URL', 'eventprime-event-calendar-management') . '" value="' . esc_attr($term_content) . '">';
+            $field .= '<input type="text" name="em_event_checkout_terms_url" id="em_event_checkout_terms_url" class="ep-form-control ep-event-terms-options" placeholder="' . esc_html__('Enter URL (https://www.example.com/XYZ/)', 'eventprime-event-calendar-management') . '" value="' . esc_attr($term_content) . '">';
         } else {
-            $field .= '<input type="url" name="em_event_checkout_terms_url" id="em_event_checkout_terms_url" class="ep-form-control ep-event-terms-options" placeholder="' . esc_html__('Enter URL', 'eventprime-event-calendar-management') . '" disabled>';
+            $field .= '<input type="text" name="em_event_checkout_terms_url" id="em_event_checkout_terms_url" class="ep-form-control ep-event-terms-options" placeholder="' . esc_html__('Enter URL (https://www.example.com/XYZ/)', 'eventprime-event-calendar-management') . '" disabled>';
         }
         $field .= '<div class="ep-error-message" id="ep_fixed_field_url_option_error"></div>';
         $field .= '</div>';

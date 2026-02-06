@@ -141,7 +141,6 @@
 
 .ep-border-right-2 {
     --ep-border-width: 2px;
-
 }
 
 
@@ -181,7 +180,6 @@
     --ep-text-opacity: 1;
     color: rgba(var(--ep-white-color),var(--ep-text-opacity))!important;
 }
-
 
 .ep-text-muted {
     opacity: 1;
@@ -259,7 +257,6 @@ body .emagic h6 {
 }
 
 
-
 /*--Typography End--*/
 
 
@@ -321,7 +318,7 @@ body .emagic h6 {
 }
 
 .ep-z-index {
-    z-index: 999
+    z-index: 999;
 
 }
 
@@ -336,7 +333,6 @@ body .emagic h6 {
 
 .ep-metabox-title h2 {
 }
-
 
 /*--MetaBox Title End--*/
 
@@ -457,7 +453,6 @@ body .emagic h6 {
 .ep-pb-2 {
     padding-bottom: 0.5rem ;
 }
-
 
 /*-- Paddings End:--*/
 
@@ -677,7 +672,6 @@ body .emagic h6 {
     vertical-align: bottom!important;
 }
 
-
 /*---Aligments End*/
 
 
@@ -698,7 +692,7 @@ input.ep-disabled-input {
 /*--Element Hide--*/
 
 .ep-item-hide{
-    display:none
+    display:none;
 }
 
 .ep-d-none{
@@ -768,9 +762,7 @@ select.ep-form-control + span.select2-container {
 #ep_setting_form input.ep-form-control {
 }
 
-#ep_setting_form .ep-modal-view select.ep-form-control {
-
-}
+#ep_setting_form .ep-modal-view select.ep-form-control {}
 
 #ep_setting_form select#eventprime_theme{
       text-transform: capitalize;
@@ -949,7 +941,6 @@ label.ep-form-check-label {
 
 }
 
-
 @media (min-width: 540px){
 
     /*-- Other CSS----*/
@@ -1046,6 +1037,8 @@ label.ep-form-check-label {
         flex: 0 0 100%;
         max-width: 100%;
     }
+    
+}
 
     .emagic * {
         box-sizing: border-box;
@@ -1097,7 +1090,6 @@ label.ep-form-check-label {
 
 
     /*background color Ends:---*/
-
 
 
     /*---Borders--- ---*/
@@ -1281,7 +1273,6 @@ label.ep-form-check-label {
         line-height: 1.2;
         font-style: normal;
     }
-
 
 
     /*--Typography End--*/
@@ -1481,7 +1472,6 @@ label.ep-form-check-label {
     }
 
 
-
     /*-- Paddings End:--*/
 
     /*-- Margins--*/
@@ -1569,7 +1559,6 @@ label.ep-form-check-label {
         margin-left: 0.5rem!important;
         margin-right: 0.5rem!important;
     }
-
 
     .ep-mx-3{
         margin-left: 1rem!important;
@@ -2063,7 +2052,7 @@ label.ep-form-check-label {
 
     }
 
-    @media (min-width: 992px){
+@media (min-width: 992px){
 
         .ep-box-col-md-4 {
             -ms-flex: 0 0 33.33333%;
@@ -2150,6 +2139,12 @@ label.ep-form-check-label {
         .ep-box-col-12 {
             -ms-flex: 0 0 100%;
             flex: 0 0 100%;
+            max-width: 100%;
+        }
+        
+        .ep-box-col {
+            -ms-flex: 1 0 0;
+            flex: 1 0 0;
             max-width: 100%;
         }
 
@@ -2267,6 +2262,13 @@ label.ep-form-check-label {
     .ep-g-3, .ep-gx-3 {
         --ep-gutter-x: 1rem;
     }
+    
+     .ep-g-2, .ep-gy-2 {
+        --ep-gutter-y: 0.5rem;
+    }
+    .ep-g-2, .ep-gx-2 {
+        --ep-gutter-x: 0.5rem;
+    }
 
     /*--Gutter Spacing--*/
 
@@ -2291,7 +2293,7 @@ label.ep-form-check-label {
 
     .ep-tab-link.ep-tab-active{
         padding: 0px;
-        margin: 0px
+        margin: 0px;
     }
 
     .ep-nav-pills .ep-tab-item .ep-tab-link,
@@ -2486,6 +2488,7 @@ label.ep-form-check-label {
         cursor: pointer;
         text-decoration: none;
         color: #8b8b8b;
+        box-shadow: none !important;
 
     }
 
@@ -2792,7 +2795,6 @@ label.ep-form-check-label {
 
 
 
-
     /*--Toggle ---*/
 
 
@@ -2859,11 +2861,7 @@ label.ep-form-check-label {
 
     /*--Toogle End---*/
 
-
-
-
-
-
+    
     /*--Help Tip CSS--*/
 
     .ep-help-tip-info {
@@ -3040,7 +3038,6 @@ label.ep-form-check-label {
     .ep-md-text-center {
         text-align: center!important;
     }
-}
 
 
 /*--Custom Col--*/
@@ -4014,6 +4011,9 @@ table.ep-setting-table-main th {
 #ep_plugin_feedback_form_modal .ep-modal-titlebar .ep-modal-close{
     margin-top: -30px;
 }
+#ep_plugin_feedback_form_modal .popup-content.ep-modal-wrap {
+    width:100% !important;
+}
 
 /*-- Notice ---*/
 
@@ -4049,6 +4049,7 @@ table.ep-setting-table-main th {
     font-size:13px;
     width: auto;
 }
+
 .ep-read-more a .dashicons:before,
 .ep-article-notice a .dashicons:before{
     padding-top: 4px;

@@ -68,6 +68,7 @@ jQuery(function($){
         if( dates ) {
             let data = { 
                 action      : 'ep_eventprime_reports_filter',
+                security    : ep_admin_reports.nonce,
                 ep_filter_date : dates,
                 event_id    : event_id,
             };
@@ -95,6 +96,7 @@ jQuery(function($){
         if( dates ) {
             let data = { 
                 action      : 'ep_eventprime_reports_filter',
+                security    : ep_admin_reports.nonce,
                 ep_filter_date : dates,
                 event_id    : event_id,
                 paged       : paged,

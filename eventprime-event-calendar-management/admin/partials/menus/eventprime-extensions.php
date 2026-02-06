@@ -30,6 +30,7 @@ $global_function =  new Eventprime_Basic_Functions();
                 </div>
             </div>
         </div>
+        
     </div>
 
     <div class="ep-extensions-box-wrap ep-box-wrap">
@@ -58,7 +59,7 @@ $global_function =  new Eventprime_Basic_Functions();
                                 </div> 
                                 
                                 <div class="ep-box-col-9">
-                                    <div class="ep-card-title ep-fs-6 ep-md-text-start ep-sm-text-center ep-xsm-text-center ep-fw-bold ep-mb-1"> <?php echo esc_html( $ext );?></div>
+                                    <div class="ep-card-title ep-fs-6 ep-md-text-start ep-sm-text-center ep-xsm-text-center ep-fw-bold ep-mb-1"> <?php echo esc_html( $ext_details['title'] );?></div>
                                     <div class="ep-ext-box-description">
                                         <p class="ep-col-desc"><?php 
                                         if( ! empty( $ext_details['desc'] ) ) {

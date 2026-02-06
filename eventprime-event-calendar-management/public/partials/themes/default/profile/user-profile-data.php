@@ -2,6 +2,15 @@
 $ep_functions = new Eventprime_Basic_Functions;
 ?>
 <div class="ep-tab-content ep-item-hide ep-mx-3" id="ep-list-profile" role="tabpanel" aria-labelledby="ep-list-profile">
+    
+            <div class="ep-box-row">
+            <div class="ep-box-col-12 ep-border-left ep-border-3 ep-ps-3 ep-mb-4 ep-border-warning">
+                <span class="ep-text-uppercase ep-fw-bold ep-text-small">
+                    <?php esc_html_e( 'My Account', 'eventprime-event-calendar-management');?>
+                </span>
+            </div>
+        </div>
+    
     <div class="ep-box-row ep-text-small ep-mb-4">
         <div class="ep-box-col-3 ep-m-0 ep-p-0">
             <?php esc_html_e( 'Name', 'eventprime-event-calendar-management' ); ?>:

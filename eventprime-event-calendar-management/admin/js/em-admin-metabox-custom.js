@@ -211,9 +211,40 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
 
         // validate post before save
         var form = $("form[name='post']");
+        if ( form.length && !$( '#ep_requested_post_status' ).length ) {
+            form.append( '<input type="hidden" id="ep_requested_post_status" name="ep_requested_post_status" value="">' );
+        }
+        if ( form.length && !$( '#ep_requested_action' ).length ) {
+            form.append( '<input type="hidden" id="ep_requested_action" name="ep_requested_action" value="">' );
+        }
+
+        // capture intended status before any modal flow can re-submit the form
+        $( document ).on( 'click mousedown keydown', '#publish, #save-post, #post-preview, .preview.button, a.preview', function() {
+            var requestedStatus = $( '#post_status' ).val() || $( '#hidden_post_status' ).val() || '';
+            var isPublishClick = $( this ).attr( 'id' ) === 'publish';
+            var isPreviewClick = $( this ).attr( 'id' ) === 'post-preview' || $( this ).is( '.preview, .preview.button' ) || $( this ).attr( 'name' ) === 'preview';
+            $( '#ep_requested_action' ).val( isPreviewClick ? 'preview' : 'save' );
+            if ( isPublishClick ) {
+                var publishButtonVal = $( '#publish' ).val();
+                if ( publishButtonVal === 'Publish' && requestedStatus === 'draft' ) {
+                    requestedStatus = 'publish';
+                } else if ( publishButtonVal === 'Schedule' ) {
+                    requestedStatus = 'future';
+                }
+            }
+            $( '#ep_requested_post_status' ).val( requestedStatus );
+        });
         $(form).submit(function (e) {
             // e.preventDefault();
             var formError = 0;
+            var requestedAction = $( '#ep_requested_action' ).val();
+            if ( !requestedAction && e && e.originalEvent && e.originalEvent.submitter ) {
+                var $submitter = $( e.originalEvent.submitter );
+                if ( $submitter.is( '#post-preview, .preview, .preview.button' ) || $submitter.attr( 'name' ) === 'preview' ) {
+                    requestedAction = 'preview';
+                    $( '#ep_requested_action' ).val( requestedAction );
+                }
+            }
             
             // check if event start date empty
             let em_start_date = $( '#em_start_date' ).val();
@@ -247,6 +278,8 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
                     document.getElementById( 'em_start_time' ).focus();
                     formError = 1;
                 }
+            } else {
+                em_end_time = '11:59 PM'; 
             }
 
             //Modifying Date Format for Moment js 
@@ -292,7 +325,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
 
             // check for child events and then ask for update the children
             let child_events_count = $( '#ep_event_count_child_events' ).val();
-            if( child_events_count > 0 && formError == 0 ) {
+            if( child_events_count > 0 && formError == 0 && requestedAction !== 'preview' ) {
                 let child_events_update_confirm = $( '#ep_event_child_events_update_confirm' ).val();
                 if( !child_events_update_confirm ) {
                     formError = 1;
@@ -353,6 +386,11 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
                 $( '#ep_event_child_events_update_confirm' ).val( 'update_children' );
             } else{
                 $( '#ep_event_child_events_update_confirm' ).val( 'no-update' );
+            }
+            var requestedStatus = $( '#ep_requested_post_status' ).val();
+            if ( requestedStatus ) {
+                $( '#post_status' ).val( requestedStatus );
+                $( '#hidden_post_status' ).val( requestedStatus );
             }
             $( form ).submit();
         });
@@ -512,6 +550,9 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
             $( "#"+panelSrc ).show();
             if( panelSrc == 'ep_event_checkout_fields_data' ) {
                 $( '#ep_event_attendee_fields_data' ).show();
+                $('#ep_event_booking_fields_data').hide();
+                $('.ep_event_booking_fields_wrap a').removeClass( 'ep-tab-active' );
+                $('.ep_event_attendee_fields_wrap a').addClass( 'ep-tab-active' );
             }
         }
     });
@@ -1358,12 +1399,14 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
     
     // add checkout fixed fields
     $( document ).on( 'click', '#ep_save_checkout_fixed_fields', function() {
+        //console.log('step1');
         let em_fixed_content_html = '';
         $( '#ep_event_checkout_fixed_fields_modal .ep-error-message' ).html( '' );
         let booking_fields_exists = '';
         if( $( '#em_event_checkout_fixed_terms' ).is( ':checked' ) ){
             booking_fields_exists = 1;
         }
+        //console.log('step2');
         var original_data = $( '#ep_event_checkout_booking_fields_table' ).find(
 			'input, select, textarea'
 		);
@@ -1371,23 +1414,29 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
         if( booking_fields_data.length > 0 && booking_fields_data[0] ){
             booking_fields_exists = 1;
         }
+        //console.log('step3');
         if( booking_fields_exists ){
+            //console.log('step4');
             let requireString = get_translation_string( 'required' );
             if( $( '#em_event_checkout_fixed_terms' ).is( ':checked' ) ){
+                //console.log('step5');
                 let em_event_checkout_fixed_terms = $( '#em_event_checkout_fixed_terms' ).val();
                 let em_event_checkout_terms_label = $( '#em_event_checkout_terms_label' ).val();
                 if( !em_event_checkout_terms_label ) {
+                    //console.log('step6');
                     $( '#ep_event_checkout_fixed_fields_modal #ep_fixed_field_label_error' ).html( requireString );
                     document.getElementById( 'em_event_checkout_terms_label' ).focus();
                     return false;
                 }
                 let em_event_checkout_terms_option = $( 'input[name="em_event_checkout_terms_option"]:checked' ).val();
                 if( !em_event_checkout_terms_option ) {
+                    //console.log('step7');
                     $( '#ep_event_checkout_fixed_fields_modal #ep_event_fixed_field_bottom_error' ).html( em_event_meta_box_object.fixed_field_term_option_required );
                     return false;
                 }
                 let em_event_checkout_terms_options_value = '';
                 if( em_event_checkout_terms_option == 'page' ) {
+                    //console.log('step8');
                     em_event_checkout_terms_options_value = $( '#em_event_checkout_terms_page' ).val();
                     if( !em_event_checkout_terms_options_value ) {
                         $( '#ep_event_checkout_fixed_fields_modal #ep_fixed_field_page_option_error' ).html( requireString );
@@ -1395,19 +1444,23 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
                         return false;
                     }
                 } else if( em_event_checkout_terms_option == 'url' ) {
+                    //console.log('step8');
                     em_event_checkout_terms_options_value = $( '#em_event_checkout_terms_url' ).val();
                     if( !em_event_checkout_terms_options_value ) {
+                        //console.log('step9');
                         $( '#ep_event_checkout_fixed_fields_modal #ep_fixed_field_url_option_error' ).html( requireString );
                         document.getElementById( 'em_event_checkout_terms_url' ).focus();
                         return false;
                     }
                     if( !is_valid_url( em_event_checkout_terms_options_value ) ) {
+                        //console.log('step10');
                         let invalidUrlString = get_translation_string( 'invalid_url' );
                         $( '#ep_event_checkout_fixed_fields_modal #ep_fixed_field_url_option_error' ).html( invalidUrlString );
                         document.getElementById( 'em_event_checkout_terms_url' ).focus();
                         return false;
                     }
                 } else if( em_event_checkout_terms_option == 'content' ) {
+                    //console.log('step11');
                     if( $( '#description' ).is(':visible') ) {
                         em_event_checkout_terms_options_value = $('#description').val();
                     } else{
@@ -2875,7 +2928,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
                 return false; 
             }
 
-        } else if ( ticketDateStartType == 'relative_date' ) {
+        /*} else if ( ticketDateStartType == 'relative_date' ) {
             let daysVal = $('#ep_ticket_start_booking_days').val();
             let daysOptionVal = $('#ep_ticket_start_booking_days_option').val();
             let eventOptionVal = $('#ep_ticket_start_booking_event_option').val();
@@ -2897,7 +2950,94 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
                 relStartDateObj.setDate( relStartDateObj.getDate() +  daysVal);
             }
             ticketAvailStartTimeStamp = relStartDateObj.getTime();             
-        } else {
+        } */
+            
+            } else if (ticketDateStartType === 'relative_date') {
+    // Read inputs safely
+    const daysRaw        = $('#ep_ticket_start_booking_days').val();
+    const daysOptionVal  = ($('#ep_ticket_start_booking_days_option').val() || '').toLowerCase(); // 'before' | 'after'
+    let   eventOptionVal = ($('#ep_ticket_start_booking_event_option').val() || '').toLowerCase(); // 'event_start' | 'event_ends'
+    const daysVal        = parseInt(daysRaw, 10) || 0;
+
+    // Normalize common typo
+    if (eventOptionVal === 'event_end') eventOptionVal = 'event_ends';
+
+    // Helpers
+    const pad = n => (n < 10 ? '0' + n : '' + n);
+
+    const to24h = (t) => {
+        // Accept "HH:mm", "H:mm", or "hh:mm AM/PM"
+        if (!t) return { h: 0, m: 0 };
+        let s = t.trim();
+        let mer = null;
+
+        // Extract AM/PM if present
+        const mMer = s.match(/\s*(am|pm)\s*$/i);
+        if (mMer) {
+            mer = mMer[1].toLowerCase();
+            s = s.replace(/\s*(am|pm)\s*$/i, '');
+        }
+
+        const parts = s.split(':');
+        let h = parseInt(parts[0], 10);
+        let m = parseInt(parts[1] || '0', 10);
+
+        if (Number.isNaN(h)) h = 0;
+        if (Number.isNaN(m)) m = 0;
+
+        if (mer) {
+            // 12-hour -> 24-hour
+            if (mer === 'am') {
+                if (h === 12) h = 0;
+            } else { // pm
+                if (h !== 12) h += 12;
+            }
+        }
+        // Clamp
+        h = Math.max(0, Math.min(23, h));
+        m = Math.max(0, Math.min(59, m));
+
+        return { h, m };
+    };
+
+    const buildDate = (dateStr, timeStr) => {
+        if (!dateStr) return null;
+        const { h, m } = to24h(timeStr);
+        // Build ISO-like string to avoid locale parser quirks
+        const iso = `${dateStr}T${pad(h)}:${pad(m)}:00`;
+        const d = new Date(iso);
+        return Number.isNaN(d.getTime()) ? null : d;
+    };
+
+    // Choose event start/end
+    let relStartDateObj = null;
+    if (eventOptionVal === 'event_start') {
+        relStartDateObj = buildDate($('#em_start_date').val(), $('#em_start_time').val());
+    } else if (eventOptionVal === 'event_ends') {
+        relStartDateObj = buildDate($('#em_end_date').val(), $('#em_end_time').val());
+    } else {
+        // Fallback to event start if unknown value
+        relStartDateObj = buildDate($('#em_start_date').val(), $('#em_start_time').val());
+    }
+
+    // Guard against missing/invalid dates
+    if (!relStartDateObj) {
+        // Optionally show a user-facing warning here
+        // e.g., epAdminNotice('Please set a valid Event Start/End date and time.');
+        return; // stop validation flow to prevent JS error
+    }
+
+    // Shift the date
+    if (daysOptionVal === 'before') {
+        relStartDateObj.setDate(relStartDateObj.getDate() - daysVal);
+    } else if (daysOptionVal === 'after') {
+        relStartDateObj.setDate(relStartDateObj.getDate() + daysVal);
+    }
+    ticketAvailStartTimeStamp = relStartDateObj.getTime();
+}
+
+        
+        else {
             let evStartDate = $('#em_start_date').val(); 
             let evStartTime = $('#em_start_time').val(); 
             let evStartDateObj = new Date(evStartDate + ' ' + evStartTime);
@@ -3603,7 +3743,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
             let booking_starts = ticket_row_data.booking_starts;
             if( booking_starts ) {
                 booking_starts = JSON.parse( booking_starts );
-                console.log(booking_starts);
+                //console.log(booking_starts);
                 //$( '#ep_ticket_start_booking_type' ).val( booking_starts.em_ticket_start_booking_type );
                 $('input[name="em_ticket_start_booking_type"][value="' + booking_starts.em_ticket_start_booking_type + '"]')
                 .prop('checked', true).trigger('change');

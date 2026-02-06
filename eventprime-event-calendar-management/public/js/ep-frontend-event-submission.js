@@ -347,6 +347,22 @@ jQuery( function( $ ) {
             }
         }
         $( '#em_descriptions' ).val( em_desc );
+        if( $( '#new_performer_description' ).length ) {
+            var new_performer_desc = get_tinymce_content('new_performer_description');
+            $( '#new_performer_description' ).val( new_performer_desc );
+        }
+        if( $( '#new_event_organizer_description' ).length ) {
+            var new_organizer_desc = get_tinymce_content('new_event_organizer_description');
+            $( '#new_event_organizer_description' ).val( new_organizer_desc );
+        }
+        if( $( '#new_event_type_description' ).length ) {
+            var new_event_type_desc = get_tinymce_content('new_event_type_description');
+            $( '#new_event_type_description' ).val( new_event_type_desc );
+        }
+        if( $( '#new_venue_description' ).length ) {
+            var new_venue_desc = get_tinymce_content('new_venue_description');
+            $( '#new_venue_description' ).val( new_venue_desc );
+        }
 
         if($('#em_start_date').val() === ''){
             show_toast( 'error', em_event_fes_object.event_start_date_error );
@@ -475,7 +491,41 @@ jQuery( function( $ ) {
                         if(ep_new_performer_name === ''){
                             show_toast( 'error', em_event_fes_object.event_performer_name_error );
                             return false;  
-                        } 
+                        }
+                        if( $('input[name="new_performer_type"]:checked').length === 0 ) {
+                            show_toast( 'error', get_translation_string( 'required' ) );
+                            return false;
+                        }
+                        $( '.ep-performers-phone input[type="tel"]' ).each(function() {
+                            let phoneValue = $( this ).val();
+                            if( phoneValue && !is_valid_phone( phoneValue ) ) {
+                                show_toast( 'error', get_translation_string( 'invalid_phone' ) );
+                                $( this ).focus();
+                                validated = false;
+                                return false;
+                            }
+                        });
+                        if( validated === false ) { return false; }
+                        $( '.ep-performers-email input[type="email"]' ).each(function() {
+                            let emailValue = $( this ).val();
+                            if( emailValue && !is_valid_email( emailValue ) ) {
+                                show_toast( 'error', get_translation_string( 'invalid_email' ) );
+                                $( this ).focus();
+                                validated = false;
+                                return false;
+                            }
+                        });
+                        if( validated === false ) { return false; }
+                        $( '.ep-performers-website input[type="url"]' ).each(function() {
+                            let urlValue = $( this ).val();
+                            if( urlValue && !is_valid_url( urlValue ) ) {
+                                show_toast( 'error', get_translation_string( 'invalid_url' ) );
+                                $( this ).focus();
+                                validated = false;
+                                return false;
+                            }
+                        });
+                        if( validated === false ) { return false; }
                     }
                 }
                 
@@ -501,11 +551,152 @@ jQuery( function( $ ) {
                         if(ep_new_organizer_name === ''){
                             show_toast( 'error', em_event_fes_object.event_organizer_name_error );
                             return false;  
-                        } 
+                        }
+                        $( '.ep-organizers-phone input[type="text"]' ).each(function() {
+                            let phoneValue = $( this ).val();
+                            if( phoneValue && !is_valid_phone( phoneValue ) ) {
+                                show_toast( 'error', get_translation_string( 'invalid_phone' ) );
+                                $( this ).focus();
+                                validated = false;
+                                return false;
+                            }
+                        });
+                        if( validated === false ) { return false; }
+                        $( '.ep-organizers-email input[type="email"]' ).each(function() {
+                            let emailValue = $( this ).val();
+                            if( emailValue && !is_valid_email( emailValue ) ) {
+                                show_toast( 'error', get_translation_string( 'invalid_email' ) );
+                                $( this ).focus();
+                                validated = false;
+                                return false;
+                            }
+                        });
+                        if( validated === false ) { return false; }
+                        $( '.ep-organizers-website input[type="text"]' ).each(function() {
+                            let urlValue = $( this ).val();
+                            if( urlValue && !is_valid_url( urlValue ) ) {
+                                show_toast( 'error', get_translation_string( 'invalid_url' ) );
+                                $( this ).focus();
+                                validated = false;
+                                return false;
+                            }
+                        });
+                        if( validated === false ) { return false; }
                     }
                 }
                 
             }
+        }
+
+        // validate add-new entities even if not required
+        if( $("#ep_event_type").length && $('#ep_event_type').val() === 'new_event_type' ) {
+            if($("#ep_new_event_type_name").length) {
+                var ep_new_event_type_name_force = $('#ep_new_event_type_name').val();
+                if(ep_new_event_type_name_force === ''){
+                    show_toast( 'error', em_event_fes_object.event_type_name_error );
+                    return false;
+                }
+            }
+        }
+
+        if( $("#ep_venue").length && $('#ep_venue').val() === 'new_venue' ) {
+            if($("#ep_new_venue").length) {
+                var ep_new_venue_force = $('#ep_new_venue').val();
+                if(ep_new_venue_force === ''){
+                    show_toast( 'error', em_event_fes_object.event_venue_name_error );
+                    return false;
+                }
+            }
+            if( $("#ep_seating_type").length ) {
+                var ep_seating_type = $('#ep_seating_type').val();
+                if( !ep_seating_type ) {
+                    show_toast( 'error', em_event_fes_object.venue_seating_required );
+                    return false;
+                }
+            }
+            // address is optional (same as admin); no required validation
+        }
+
+        if( $("#ep_new_performer").length && $('#ep_new_performer').val() === '1' ) {
+            var ep_new_performer_name_force = $('#ep_new_performer_name').val();
+            if(ep_new_performer_name_force === ''){
+                show_toast( 'error', em_event_fes_object.event_performer_name_error );
+                return false;
+            }
+            if( $('input[name="new_performer_type"]:checked').length === 0 ) {
+                show_toast( 'error', get_translation_string( 'required' ) );
+                return false;
+            }
+            validated = true;
+            $( '.ep-performers-phone input[type="tel"]' ).each(function() {
+                let phoneValue = $( this ).val();
+                if( phoneValue && !is_valid_phone( phoneValue ) ) {
+                    show_toast( 'error', get_translation_string( 'invalid_phone' ) );
+                    $( this ).focus();
+                    validated = false;
+                    return false;
+                }
+            });
+            if( validated === false ) { return false; }
+            $( '.ep-performers-email input[type="email"]' ).each(function() {
+                let emailValue = $( this ).val();
+                if( emailValue && !is_valid_email( emailValue ) ) {
+                    show_toast( 'error', get_translation_string( 'invalid_email' ) );
+                    $( this ).focus();
+                    validated = false;
+                    return false;
+                }
+            });
+            if( validated === false ) { return false; }
+            $( '.ep-performers-website input[type="url"]' ).each(function() {
+                let urlValue = $( this ).val();
+                if( urlValue && !is_valid_url( urlValue ) ) {
+                    show_toast( 'error', get_translation_string( 'invalid_url' ) );
+                    $( this ).focus();
+                    validated = false;
+                    return false;
+                }
+            });
+            if( validated === false ) { return false; }
+        }
+
+        if( $("#ep_new_organizer").length && $('#ep_new_organizer').val() === '1' ) {
+            var ep_new_organizer_name_force = $('#ep_new_organizer_name').val();
+            if(ep_new_organizer_name_force === ''){
+                show_toast( 'error', em_event_fes_object.event_organizer_name_error );
+                return false;
+            }
+            validated = true;
+            $( '.ep-organizers-phone input[type="text"]' ).each(function() {
+                let phoneValue = $( this ).val();
+                if( phoneValue && !is_valid_phone( phoneValue ) ) {
+                    show_toast( 'error', get_translation_string( 'invalid_phone' ) );
+                    $( this ).focus();
+                    validated = false;
+                    return false;
+                }
+            });
+            if( validated === false ) { return false; }
+            $( '.ep-organizers-email input[type="email"]' ).each(function() {
+                let emailValue = $( this ).val();
+                if( emailValue && !is_valid_email( emailValue ) ) {
+                    show_toast( 'error', get_translation_string( 'invalid_email' ) );
+                    $( this ).focus();
+                    validated = false;
+                    return false;
+                }
+            });
+            if( validated === false ) { return false; }
+            $( '.ep-organizers-website input[type="text"]' ).each(function() {
+                let urlValue = $( this ).val();
+                if( urlValue && !is_valid_url( urlValue ) ) {
+                    show_toast( 'error', get_translation_string( 'invalid_url' ) );
+                    $( this ).focus();
+                    validated = false;
+                    return false;
+                }
+            });
+            if( validated === false ) { return false; }
         }
 
         let em_enable_booking = $( 'input[name=em_enable_booking]:checked' ).val();
@@ -1006,11 +1197,14 @@ jQuery( function( $ ) {
         }
         // min ticket number
         let em_min_ticket_no = tickets_data.get( 'min_ticket_no' );
+        if( em_min_ticket_no == 0 ){
+            $( '#ep_event_ticket_min_ticket_error' ).html( em_event_fes_object.min_ticket_no_zero_error );
+            document.getElementById( 'ep_min_ticket_no' ).focus();
+            return false;
+        }
         if( em_min_ticket_no ){
             ticket_tier_data.min_ticket_no = em_min_ticket_no;
-        }
-        else
-        {
+        } else{
             $( '#ep_event_ticket_min_ticket_error' ).html( requireString );
             document.getElementById( 'ep_min_ticket_no' ).focus();
             return false;
@@ -1032,9 +1226,7 @@ jQuery( function( $ ) {
                 }
             }
             ticket_tier_data.max_ticket_no = em_max_ticket_no;
-        }
-        else
-        {
+        } else{
             $( '#ep_event_ticket_max_ticket_error' ).html( requireString );
             document.getElementById( 'ep_max_ticket_no' ).focus();
             return false;
@@ -1517,13 +1709,15 @@ function fes_event_sites_changed(element){
     if(jQuery(element).val() == 'new_venue'){
         jQuery('#ep_add_new_event_sites_child').show(300);
         jQuery("#ep_new_venue").attr('required','required');
-        jQuery("#em-pac-input").attr('required','required');
+        // address is optional (same as admin)
         jQuery("#ep_seating_type").attr('required','required');
-        setupMap();
+        if( typeof google !== 'undefined' && jQuery("#map").length ) {
+            setupMap();
+        }
     }else{
         jQuery('#ep_add_new_event_sites_child').hide(200);
         jQuery("#ep_new_venue").removeAttr('required');
-        jQuery("#em-pac-input").removeAttr('required');
+        // address is optional (same as admin)
         jQuery("#ep_seating_type").removeAttr('required');
     }
 }
@@ -1541,6 +1735,7 @@ function fes_event_type_changed(element){
 }
 
 function ep_venue_seating_change(element){
+    /*
     if(jQuery(element).val() == 'standings'){
         jQuery('#ep_seating_type_child').show(300);
         jQuery('#ep_standing_capacity').attr('required','required');
@@ -1548,6 +1743,7 @@ function ep_venue_seating_change(element){
         jQuery('#ep_seating_type_child').hide(200);
         jQuery('#ep_standing_capacity').removeAttr('required');
     }
+    */
 }
 function fes_add_new_performer_show(element){
     jQuery('#ep_new_performer').val('1');
@@ -1584,11 +1780,22 @@ function fes_age_group_changed(element){
     }
 }
 function fes_load_age_slider(){
+    var minAge = 18;
+    var maxAge = 25;
+    var customAgeGroupVal = jQuery( "#ep-new_event_type_custom_group" ).val();
+    if( customAgeGroupVal ) {
+        customAgeGroupVal = customAgeGroupVal.split( '-' );
+        minAge = jQuery.trim( customAgeGroupVal[0] );
+        maxAge = jQuery.trim( customAgeGroupVal[1] );
+    } else{
+        jQuery( "#ep-new_event_type_custom_group" ).val( minAge + " - " + maxAge );
+    }
+
     jQuery( "#ep-custom-group-range" ).slider({
         range: true,
         min: 0,
         max: 100,
-        values: [ 18, 25 ],
+        values: [ minAge, maxAge ],
         slide: function( event, ui ) {
             jQuery( "#ep-new_event_type_custom_group" ).val( ui.values[ 0 ] + " - " + ui.values[ 1 ] );
         }
@@ -1668,7 +1875,7 @@ function updateLatLngInput(place, map){
     jQuery("#em_lat").val(lat);
     jQuery("#em_lng").val(lang);
     jQuery("#em_zoom_level").val(zoom_level);
-    let address_components = place.address_components;
+    let address_components = place.address_components || [];
     for( let i = 0; i < address_components.length; i++ ){
         let atype = address_components[i].types;
         if( atype.indexOf('administrative_area_level_1') > -1 ){
@@ -1701,7 +1908,12 @@ function upload_file_media(element){
         contentType: false,
         processData: false,
         success: function(response){
-            jQuery(element).closest('div').find('.ep-hidden-attachment-id').val(response.data.attachment_id);
+            var attachmentId = response && response.data ? response.data.attachment_id : '';
+            var hiddenInput = jQuery(element).siblings('.ep-hidden-attachment-id');
+            if( hiddenInput.length === 0 ) {
+                hiddenInput = jQuery(element).closest('div').find('.ep-hidden-attachment-id');
+            }
+            hiddenInput.val( attachmentId );
         }
     });
 }

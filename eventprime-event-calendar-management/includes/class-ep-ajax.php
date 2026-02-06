@@ -161,14 +161,24 @@ class EventM_Ajax_Service {
     }
     
     public function submit_payment_setting(){  
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( array( 'message' => esc_html__( 'You are not allowed to manage payment settings.', 'eventprime-event-calendar-management' ) ) );
+        }
+
+        if ( ! check_ajax_referer( 'ep-payment-settings', 'security', false ) ) {
+            wp_send_json_error( array( 'message' => esc_html__( 'Security check failed. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
+        }
+
         $payment_gateway = apply_filters( 'ep_payments_gateways_list', array() );
         $global_settings = new Eventprime_Global_Settings;
         $global_settings_data = $global_settings->ep_get_settings();
+        $payment_method = '';
+        $method_status  = 0;
         $form_data = $_POST;
         if( isset( $form_data ) && isset( $form_data['em_payment_type'] ) ) {
             if( $form_data['em_payment_type'] == 'basic' ) {
                 $payment_method = isset( $form_data['payment_method'] ) && ! empty( $form_data['payment_method'] ) ? sanitize_text_field( $form_data['payment_method'] ) : '';
-                $method_status = $form_data['method_status'];
+                $method_status = isset( $form_data['method_status'] ) ? absint( $form_data['method_status'] ) : 0;
                 $nonce = wp_create_nonce('ep_settings_tab');
                 if( ! empty( $method_status ) ) {
                     if( $payment_method == 'paypal_processor' ) {
@@ -557,31 +567,165 @@ class EventM_Ajax_Service {
      * Method call from paypal approval
      */
     public function paypal_sbpr() {
-        if( isset( $_POST ) && ! empty( $_POST ) ) {
-            $ep_functions = new Eventprime_Basic_Functions;
-            $data       = $ep_functions->ep_sanitize_input($_POST['data']);
-            $booking_id = absint( $_POST['order_id'] );
-            $order_info = maybe_unserialize(get_post_meta($booking_id,'em_order_info',true));
-            
-            if( ! empty( $booking_id ) && ! empty( $data ) && $order_info['booking_total'] == $data['purchase_units'][0]['amount']['value']) {
-                $data['payment_gateway'] = 'paypal';
-                $data['payment_status']  = strtolower( $data['status'] );
-                $data['total_amount']    = $data['purchase_units'][0]['amount']['value'];
-                $data['currency']        = $ep_functions->ep_get_global_settings('currency');
-                $booking_controller = new EventPrime_Bookings;
-                $booking_controller->confirm_booking( $booking_id, $data );
-                //$return_url = esc_url( add_query_arg( array( 'order_id' => $booking_id ), get_permalink( ep_get_global_settings( 'booking_details_page' ) ) ) );
-                $redirect        = add_query_arg( array( 'order_id' => $booking_id ), esc_url( get_permalink( $ep_functions->ep_get_global_settings( 'booking_details_page' ) ) ) );
-                $return_url       = apply_filters( 'ep_booking_redirection_url', $redirect, $booking_id );
-        
-                $response = array( 'status' => 'success', 'redirect' => $return_url );
-                wp_send_json_success($response);
-            }
-            else
-            {
-                wp_send_json_error( array( 'error' => esc_html__( 'Something went wrong', 'eventprime-event-calendar-management' ) ) );
-            }
+        if ( ! check_ajax_referer( 'flush_event_booking_timer_nonce', 'security', false ) ) {
+            wp_send_json_error( array( 'error' => esc_html__( 'Security check failed. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
         }
+
+        if ( empty( $_POST ) ) {
+            wp_send_json_error( array( 'error' => esc_html__( 'Data Not Found', 'eventprime-event-calendar-management' ) ) );
+        }
+
+        $ep_functions  = new Eventprime_Basic_Functions;
+        $data          = $ep_functions->ep_sanitize_input( $_POST['data'] ?? array() );
+        if ( ! is_array( $data ) ) {
+            wp_send_json_error( array( 'error' => esc_html__( 'Invalid payment data.', 'eventprime-event-calendar-management' ) ) );
+        }
+        $booking_id    = absint( $_POST['order_id'] ?? 0 );
+
+        $payment_amount = $data['purchase_units'][0]['amount']['value'] ?? '';
+        $paypal_order_id = isset( $data['id'] ) ? sanitize_text_field( $data['id'] ) : ( isset( $data['order_id'] ) ? sanitize_text_field( $data['order_id'] ) : '' );
+
+        if ( empty( $booking_id ) || empty( $data ) || $payment_amount === '' ) {
+            wp_send_json_error( array( 'error' => esc_html__( 'Invalid payment data.', 'eventprime-event-calendar-management' ) ) );
+        }
+
+        $order_info = maybe_unserialize( get_post_meta( $booking_id, 'em_order_info', true ) );
+        $booking_status = get_post_meta( $booking_id, 'em_status', true );
+        $booking_user = absint( get_post_meta( $booking_id, 'em_user', true ) );
+
+        if ( ! empty( $booking_user ) && get_current_user_id() !== $booking_user ) {
+            wp_send_json_error( array( 'error' => esc_html__( 'You are not allowed to confirm this booking.', 'eventprime-event-calendar-management' ) ) );
+        }
+
+        if ( empty( $order_info['booking_total'] ) ) {
+            wp_send_json_error( array( 'error' => esc_html__( 'Payment amount mismatch.', 'eventprime-event-calendar-management' ) ) );
+        }
+
+        if ( ! empty( $booking_status ) && strtolower( $booking_status ) === 'completed' ) {
+            wp_send_json_error( array( 'error' => esc_html__( 'Booking already completed.', 'eventprime-event-calendar-management' ) ) );
+        }
+
+        $verify = $this->verify_paypal_order( $paypal_order_id, $order_info['booking_total'], $ep_functions->ep_get_global_settings( 'currency' ), $booking_id );
+        if ( is_wp_error( $verify ) ) {
+            wp_send_json_error( array( 'error' => $verify->get_error_message() ) );
+        }
+
+        $payment_status = strtolower( $verify['status'] );
+        $payment_amount = $verify['amount'];
+
+        $data['payment_gateway'] = 'paypal';
+        $data['payment_status']  = $payment_status;
+        $data['total_amount']    = $payment_amount;
+        $data['currency']        = $verify['currency'];
+
+        $booking_controller = new EventPrime_Bookings;
+        $booking_controller->confirm_booking( $booking_id, $data );
+
+        $redirect   = add_query_arg( array( 'order_id' => $booking_id ), esc_url( get_permalink( $ep_functions->ep_get_global_settings( 'booking_details_page' ) ) ) );
+        $return_url = apply_filters( 'ep_booking_redirection_url', $redirect, $booking_id );
+
+        $response = array( 'status' => 'success', 'redirect' => $return_url );
+        wp_send_json_success( $response );
+    }
+
+    private function verify_paypal_order( $paypal_order_id, $expected_amount, $expected_currency, $booking_id ) {
+        if ( empty( $paypal_order_id ) ) {
+            return new WP_Error( 'ep_paypal_missing_order', esc_html__( 'Missing PayPal order id.', 'eventprime-event-calendar-management' ) );
+        }
+
+        $ep_functions = new Eventprime_Basic_Functions;
+        $client_id = $ep_functions->ep_get_global_settings( 'paypal_client_id' );
+        $client_secret = $this->get_paypal_client_secret( $booking_id );
+
+        if ( empty( $client_id ) || empty( $client_secret ) ) {
+            return new WP_Error( 'ep_paypal_missing_credentials', esc_html__( 'PayPal client credentials are not configured.', 'eventprime-event-calendar-management' ) );
+        }
+
+        $is_test = $ep_functions->ep_get_global_settings( 'payment_test_mode' );
+        $base = ! empty( $is_test ) ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
+
+        $token_response = wp_remote_post(
+            $base . '/v1/oauth2/token',
+            array(
+                'headers' => array(
+                    'Authorization' => 'Basic ' . base64_encode( $client_id . ':' . $client_secret ),
+                    'Content-Type'  => 'application/x-www-form-urlencoded',
+                ),
+                'body'    => array( 'grant_type' => 'client_credentials' ),
+                'timeout' => 20,
+            )
+        );
+
+        if ( is_wp_error( $token_response ) ) {
+            return new WP_Error( 'ep_paypal_token_error', esc_html__( 'Unable to authenticate with PayPal.', 'eventprime-event-calendar-management' ) );
+        }
+
+        $token_body = json_decode( wp_remote_retrieve_body( $token_response ), true );
+        $access_token = is_array( $token_body ) && ! empty( $token_body['access_token'] ) ? $token_body['access_token'] : '';
+        if ( empty( $access_token ) ) {
+            return new WP_Error( 'ep_paypal_token_error', esc_html__( 'Unable to authenticate with PayPal.', 'eventprime-event-calendar-management' ) );
+        }
+
+        $order_response = wp_remote_get(
+            $base . '/v2/checkout/orders/' . rawurlencode( $paypal_order_id ),
+            array(
+                'headers' => array(
+                    'Authorization' => 'Bearer ' . $access_token,
+                    'Content-Type'  => 'application/json',
+                ),
+                'timeout' => 20,
+            )
+        );
+
+        if ( is_wp_error( $order_response ) ) {
+            return new WP_Error( 'ep_paypal_order_error', esc_html__( 'Unable to verify PayPal order.', 'eventprime-event-calendar-management' ) );
+        }
+
+        $order_body = json_decode( wp_remote_retrieve_body( $order_response ), true );
+        if ( ! is_array( $order_body ) || empty( $order_body['status'] ) ) {
+            return new WP_Error( 'ep_paypal_order_error', esc_html__( 'Unable to verify PayPal order.', 'eventprime-event-calendar-management' ) );
+        }
+
+        $status = strtoupper( $order_body['status'] );
+        if ( $status !== 'COMPLETED' ) {
+            return new WP_Error( 'ep_paypal_not_completed', esc_html__( 'Payment not completed.', 'eventprime-event-calendar-management' ) );
+        }
+
+        $amount = '';
+        $currency = '';
+        if ( ! empty( $order_body['purchase_units'][0]['amount'] ) ) {
+            $amount = $order_body['purchase_units'][0]['amount']['value'] ?? '';
+            $currency = $order_body['purchase_units'][0]['amount']['currency_code'] ?? '';
+        }
+
+        if ( $amount === '' || $currency === '' ) {
+            return new WP_Error( 'ep_paypal_order_error', esc_html__( 'Unable to verify PayPal order.', 'eventprime-event-calendar-management' ) );
+        }
+
+        $amount_float = (float) $amount;
+        $expected_float = (float) $expected_amount;
+        if ( abs( $amount_float - $expected_float ) > 0.01 ) {
+            return new WP_Error( 'ep_paypal_amount_mismatch', esc_html__( 'Payment amount mismatch.', 'eventprime-event-calendar-management' ) );
+        }
+
+        if ( ! empty( $expected_currency ) && strtoupper( $currency ) !== strtoupper( $expected_currency ) ) {
+            return new WP_Error( 'ep_paypal_currency_mismatch', esc_html__( 'Payment currency mismatch.', 'eventprime-event-calendar-management' ) );
+        }
+
+        return array(
+            'status'   => strtolower( $status ),
+            'amount'   => $amount_float,
+            'currency' => $currency,
+        );
+    }
+
+    private function get_paypal_client_secret( $booking_id ) {
+        $ep_functions = new Eventprime_Basic_Functions;
+        $client_secret = $ep_functions->ep_get_global_settings( 'paypal_client_secret' );
+        if ( empty( $client_secret ) && defined( 'EP_PAYPAL_CLIENT_SECRET' ) ) {
+            $client_secret = EP_PAYPAL_CLIENT_SECRET;
+        }
+        return apply_filters( 'ep_paypal_client_secret', $client_secret, $booking_id );
     }
 
     /**
@@ -636,7 +780,10 @@ class EventM_Ajax_Service {
      * Add booking Notes
      */
     public function booking_add_notes(){
-        if( isset( $_POST['booking_id'] ) && isset($_POST['note']) && !empty(trim($_POST['note']))) {
+        if (!isset($_POST['security']) || !wp_verify_nonce($_POST['security'], 'ep_booking_nonce')) {
+            wp_die('Security check failed');
+        }
+        if( isset( $_POST['booking_id'] ) && isset($_POST['note']) && !empty(trim($_POST['note'])) && current_user_can('manage_options')) {
             $booking_id = absint( $_POST['booking_id'] );
             $note = sanitize_text_field($_POST['note']);
             $booking_controller = new EventPrime_Bookings();
@@ -783,7 +930,7 @@ class EventM_Ajax_Service {
             $em_start_date = isset( $data['em_start_date'] ) ? $ep_functions->ep_date_to_timestamp( sanitize_text_field( $data['em_start_date'] ) ) : '';
             update_post_meta($post_id, 'em_start_date', $em_start_date);
             
-            $em_start_time = isset( $data['em_start_time'] ) ? sanitize_text_field( $data['em_start_time'] ) : '';
+            $em_start_time = ( isset( $data['em_start_time'] ) && ! empty( $data['em_start_time'] ) ) ? sanitize_text_field( $data['em_start_time'] ) : '12:00 AM';
             update_post_meta($post_id, 'em_start_time', $em_start_time);
             
             $em_hide_event_start_time = isset( $data['em_hide_event_start_time'] ) && !empty($data['em_hide_event_start_time'] ) ? 1 : 0;
@@ -795,7 +942,7 @@ class EventM_Ajax_Service {
             $em_end_date = isset( $data['em_end_date'] ) ? $ep_functions->ep_date_to_timestamp( sanitize_text_field( $data['em_end_date'] ) ) : $em_start_date;
             update_post_meta($post_id, 'em_end_date', $em_end_date);
             
-            $em_end_time = isset( $data['em_end_time'] ) ? sanitize_text_field( $data['em_end_time'] ) : '';
+            $em_end_time = ( isset( $data['em_end_time'] ) && ! empty( $data['em_end_time'] ) ) ? sanitize_text_field( $data['em_end_time'] ) : '11:59 PM';
             update_post_meta($post_id, 'em_end_time', $em_end_time);
             
             $em_hide_event_end_time = isset( $data['em_hide_event_end_time'] ) && !empty($data['em_hide_event_end_time']) ? 1 : 0;
@@ -891,9 +1038,9 @@ class EventM_Ajax_Service {
                         if( empty( $type_term ) ) {
                             $type_data->em_color = isset($data['new_event_type_background_color']) ? sanitize_text_field($data['new_event_type_background_color']) : '#FF5599';
                             $type_data->em_type_text_color = isset($data['new_event_type_text_color']) ? sanitize_text_field($data['new_event_type_text_color']) : '#43CDFF';
-                            $type_data->em_age_group = isset($data['ep_new_event_type_age_group']) ? sanitize_text_field($data['ep_new_event_type_age_group']) : 'all';
-                            $type_data->custom_age = isset($data['ep-new_event_type_custom_group']) ? sanitize_text_field($data['ep-new_event_type_custom_group']) : '';
-                            $type_data->description = isset($data['new_event_type_description']) ? $data['new_event_type_description'] : '';
+                            $type_data->em_age_group = isset($data['new_event_type_age_group']) ? sanitize_text_field($data['new_event_type_age_group']) : 'all';
+                            $type_data->em_custom_group = isset($data['new_event_type_custom_group']) ? sanitize_text_field($data['new_event_type_custom_group']) : '';
+                            $type_data->description = isset($data['new_event_type_description']) ? wp_kses_post($data['new_event_type_description']) : '';
                             $type_data->em_image_id = isset($data['event_type_image_id']) ? $data['event_type_image_id'] : '';
                             $em_event_type_id = $ep_functions->create_event_types((array)$type_data);
                         } else{
@@ -933,9 +1080,10 @@ class EventM_Ajax_Service {
                             $venue_data->em_established = isset($data['em_established']) ? sanitize_text_field($data['em_established']) : '';
                             $venue_data->standing_capacity = isset($data['standing_capacity']) ? sanitize_text_field($data['standing_capacity']) : '';
                             $venue_data->em_seating_organizer = isset($data['em_seating_organizer']) ? sanitize_text_field($data['em_seating_organizer']) : '';
-                            $venue_data->em_facebook_page = isset($data['em_facebook_page']) ? sanitize_text_field($data['em_facebook_page']) : '';
-                            $venue_data->em_instagram_page = isset($data['em_instagram_page']) ? sanitize_text_field($data['em_instagram_page']) : '';
+                            $venue_data->em_facebook_page = isset($data['em_facebook_page']) ? esc_url_raw($data['em_facebook_page']) : '';
+                            $venue_data->em_instagram_page = isset($data['em_instagram_page']) ? esc_url_raw($data['em_instagram_page']) : '';
                             $venue_data->em_image_id = isset($data['venue_attachment_id']) ? sanitize_text_field($data['venue_attachment_id']) : '';
+                            $venue_data->description = isset($data['new_venue_description']) ? wp_kses_post($data['new_venue_description']) : '';
                             $em_venue_id = $ep_functions->create_venue((array)$venue_data);
                         } else{
                             $em_venue_id = $location_term->term_id;
@@ -953,7 +1101,7 @@ class EventM_Ajax_Service {
                 update_post_meta( $post_id, 'em_organizer', $org );
             }
             if( isset( $data['new_organizer'] ) && $data['new_organizer'] == 1 ) {
-                $organizer_name = isset( $data['new_organizer_name'] ) ? $data['new_organizer_name'] : '';
+                $organizer_name = isset( $data['new_organizer_name'] ) ? sanitize_text_field($data['new_organizer_name']) : '';
                 if( ! empty( $organizer_name ) ) {
                     $organizer = get_term_by( 'name', $organizer_name, 'em_event_organizer' );
                     if( ! empty( $organizer ) ) {
@@ -963,17 +1111,17 @@ class EventM_Ajax_Service {
                         $org_data->name = $organizer_name;
                         
                         if( isset( $data['em_organizer_phones'] ) && ! empty( $data['em_organizer_phones'] ) ) {
-                            $org_data->em_organizer_phones = $data['em_organizer_phones'];
+                            $org_data->em_organizer_phones = array_map( 'sanitize_text_field', (array) $data['em_organizer_phones'] );
                         }
                         if( isset( $data['em_organizer_emails'] ) && ! empty( $data['em_organizer_emails'] ) ) {
-                            $org_data->em_organizer_emails = $data['em_organizer_emails'];
+                            $org_data->em_organizer_emails = array_map( 'sanitize_email', (array) $data['em_organizer_emails'] );
                         }
                         if( isset( $data['em_organizer_websites'] ) && ! empty( $data['em_organizer_websites'] ) ) {
-                            $org_data->em_organizer_websites = $data['em_organizer_websites'];
+                            $org_data->em_organizer_websites = array_map( 'esc_url_raw', (array) $data['em_organizer_websites'] );
                         }
-                        $org_data->description = isset( $data['new_event_organizer_description'] ) ? $data['new_event_organizer_description'] : '';
+                        $org_data->description = isset( $data['new_event_organizer_description'] ) ? wp_kses_post($data['new_event_organizer_description']) : '';
                         $org_data->em_image_id = isset( $data['org_attachment_id'] ) ? $data['org_attachment_id'] : '';
-                        $org_data->em_social_links = isset( $data['em_per_social_links'] ) ? $data['em_per_social_links'] : '';
+                        $org_data->em_social_links = isset( $data['em_social_links'] ) ? array_map( 'esc_url_raw', (array) $data['em_social_links'] ) : '';
                         $org[] = $ep_functions->create_organizer( (array)$org_data );
                     }
                 }
@@ -982,7 +1130,7 @@ class EventM_Ajax_Service {
             if( ! empty( $org ) ) {
                 foreach( $org as $organizer ) {
                     if( ! empty( $organizer ) ) {
-                        wp_set_object_terms( $post_id, intval( $organizer ), 'em_organizer' );
+                        wp_set_object_terms( $post_id, intval( $organizer ), 'em_event_organizer' );
                     }
                 }
             }
@@ -993,25 +1141,26 @@ class EventM_Ajax_Service {
                 update_post_meta( $post_id, 'em_performer', $performers );
             }
             if( isset( $data['new_performer'] ) && $data['new_performer'] == 1 ) {
-                $performer_name = isset( $data['new_performer_name'] ) ? $data['new_performer_name'] : '';
+                $performer_name = isset( $data['new_performer_name'] ) ? sanitize_text_field($data['new_performer_name']) : '';
                 if( ! empty( $performer_name ) ) {
                     $performer_data = new stdClass();
                     $performer_data->name = $performer_name;
                     $performer_data->em_type = isset( $data['new_performer_type'] ) ? sanitize_text_field( $data['new_performer_type'] ) : 'person';
                     $performer_data->em_role = isset( $data['new_performer_role'] ) ? sanitize_text_field( $data['new_performer_role'] ) : '';
+                    $performer_data->em_display_front = 1;
 
                     if(isset($data['em_performer_phones']) && !empty($data['em_performer_phones'])){
-                        $performer_data->em_performer_phones = $data['em_performer_phones'];
+                        $performer_data->em_performer_phones = array_map( 'sanitize_text_field', (array) $data['em_performer_phones'] );
                     }
                     if(isset($data['em_performer_emails']) && !empty($data['em_performer_emails'])){
-                        $performer_data->em_performer_emails = $data['em_performer_emails'];
+                        $performer_data->em_performer_emails = array_map( 'sanitize_email', (array) $data['em_performer_emails'] );
                     }
                     if(isset($data['em_performer_websites']) && !empty($data['em_performer_websites'])){
-                        $performer_data->em_performer_websites = $data['em_performer_websites'];
+                        $performer_data->em_performer_websites = array_map( 'esc_url_raw', (array) $data['em_performer_websites'] );
                     }
-                    $performer_data->description = isset($data['qt_new_performer_description']) ? $data['qt_new_performer_description'] : '';
+                    $performer_data->description = isset($data['new_performer_description']) ? wp_kses_post($data['new_performer_description']) : '';
                     $performer_data->thumbnail = isset($data['performer_attachment_id']) ? $data['performer_attachment_id'] : '';
-                    $performer_data->em_social_links = isset($data['em_social_links']) ? $data['em_social_links'] : '';
+                    $performer_data->em_social_links = isset($data['em_social_links']) ? array_map( 'esc_url_raw', (array) $data['em_social_links'] ) : '';
                     $performers[] = $ep_functions->insert_performer_post_data((array)$performer_data);
                 }
                 update_post_meta( $post_id, 'em_performer', $performers );
@@ -1022,8 +1171,10 @@ class EventM_Ajax_Service {
             $dbhandler = new EP_DBhandler;
             $cat_table_name = 'TICKET_CATEGORIES';
             $price_options_table = 'TICKET';
+            $em_ticket_category_data = array();
             if( isset( $data['em_ticket_category_data'] ) && ! empty( $data['em_ticket_category_data'] ) ) {
-                $em_ticket_category_data = json_decode( stripslashes( $data['em_ticket_category_data'] ), true) ;
+                $em_ticket_category_data = json_decode( stripslashes( $data['em_ticket_category_data'] ), true );
+                $em_ticket_category_data = $this->sanitize_serialized_payloads( $em_ticket_category_data );
             }
             if( ! empty( $em_ticket_category_data ) ) {
                 $cat_priority = 1;
@@ -1073,7 +1224,11 @@ class EventM_Ajax_Service {
                                     $ticket_data['icon'] 		   		   = isset( $ticket['icon'] ) ? absint( $ticket['icon'] ) : '';
                                     $ticket_data['priority'] 	   		   = $cat_ticket_priority;
                                     $ticket_data['updated_at'] 	   		   = wp_date("Y-m-d H:i:s", time());
-                                    $ticket_data['additional_fees']    	   = ( isset( $ticket['ep_additional_ticket_fee_data'] ) && !empty( $ticket['ep_additional_ticket_fee_data'] ) ) ? json_encode( $ticket['ep_additional_ticket_fee_data'] ) : '';
+                                    $additional_fees = array();
+                                    if( isset( $ticket['ep_additional_ticket_fee_data'] ) && ! empty( $ticket['ep_additional_ticket_fee_data'] ) ) {
+                                        $additional_fees = $this->sanitize_serialized_payloads( $ticket['ep_additional_ticket_fee_data'] );
+                                    }
+                                    $ticket_data['additional_fees']    	   = ! empty( $additional_fees ) ? wp_json_encode( $additional_fees ) : '';
                                     $ticket_data['allow_cancellation'] 	   = isset( $ticket['allow_cancellation'] ) ? absint( $ticket['allow_cancellation'] ) : 0;
                                     $ticket_data['show_remaining_tickets'] = isset( $ticket['show_remaining_tickets'] ) ? absint( $ticket['show_remaining_tickets'] ) : 0;
                                     // date
@@ -1146,7 +1301,11 @@ class EventM_Ajax_Service {
                                     $ticket_data['created_at'] 	   = wp_date("Y-m-d H:i:s", time());
 
                                     // new
-                                    $ticket_data['additional_fees']    = ( isset( $ticket['ep_additional_ticket_fee_data'] ) && !empty( $ticket['ep_additional_ticket_fee_data'] ) ) ? json_encode( $ticket['ep_additional_ticket_fee_data'] ) : '';
+                                    $additional_fees = array();
+                                    if( isset( $ticket['ep_additional_ticket_fee_data'] ) && ! empty( $ticket['ep_additional_ticket_fee_data'] ) ) {
+                                        $additional_fees = $this->sanitize_serialized_payloads( $ticket['ep_additional_ticket_fee_data'] );
+                                    }
+                                    $ticket_data['additional_fees']    = ! empty( $additional_fees ) ? wp_json_encode( $additional_fees ) : '';
                                     $ticket_data['allow_cancellation'] = isset( $ticket['allow_cancellation'] ) ? absint( $ticket['allow_cancellation'] ) : 0;
                                     $ticket_data['show_remaining_tickets'] = isset( $ticket['show_remaining_tickets'] ) ? absint( $ticket['show_remaining_tickets'] ) : 0;
                                     // date
@@ -1220,7 +1379,11 @@ class EventM_Ajax_Service {
                                 $ticket_data['created_at'] 	   = wp_date("Y-m-d H:i:s", time());
 
                                 // new
-                                $ticket_data['additional_fees']    = ( isset( $ticket['ep_additional_ticket_fee_data'] ) && !empty( $ticket['ep_additional_ticket_fee_data'] ) ) ? json_encode( $ticket['ep_additional_ticket_fee_data'] ) : '';
+                                $additional_fees = array();
+                                if( isset( $ticket['ep_additional_ticket_fee_data'] ) && ! empty( $ticket['ep_additional_ticket_fee_data'] ) ) {
+                                    $additional_fees = $this->sanitize_serialized_payloads( $ticket['ep_additional_ticket_fee_data'] );
+                                }
+                                $ticket_data['additional_fees']    = ! empty( $additional_fees ) ? wp_json_encode( $additional_fees ) : '';
                                 $ticket_data['allow_cancellation'] = isset( $ticket['allow_cancellation'] ) ? absint( $ticket['allow_cancellation'] ) : 0;
                                 $ticket_data['show_remaining_tickets'] = isset( $ticket['show_remaining_tickets'] ) ? absint( $ticket['show_remaining_tickets'] ) : 0;
                                 // date
@@ -1299,7 +1462,8 @@ class EventM_Ajax_Service {
 
             // save tickets
             if( isset( $data['em_ticket_individual_data'] ) && ! empty( $data['em_ticket_individual_data'] ) ) {
-                $em_ticket_individual_data = json_decode( stripslashes( $data['em_ticket_individual_data'] ), true) ;
+                $em_ticket_individual_data = json_decode( stripslashes( $data['em_ticket_individual_data'] ), true );
+                $em_ticket_individual_data = $this->sanitize_serialized_payloads( $em_ticket_individual_data );
                 if( isset( $em_ticket_individual_data ) && ! empty( $em_ticket_individual_data ) ) {
                     foreach( $em_ticket_individual_data as $ticket ) {
                         $ticket = $sanitizer->sanitize($ticket);
@@ -1314,7 +1478,11 @@ class EventM_Ajax_Service {
                                 $ticket_data['capacity'] 	   = isset( $ticket['capacity'] ) ? absint( $ticket['capacity'] ) : 0;
                                 $ticket_data['icon'] 		   = isset( $ticket['icon'] ) ? absint( $ticket['icon'] ) : '';
                                 $ticket_data['updated_at'] 	   = wp_date("Y-m-d H:i:s", time());
-                                $ticket_data['additional_fees']    = ( isset( $ticket['ep_additional_ticket_fee_data'] ) && !empty( $ticket['ep_additional_ticket_fee_data'] ) ) ? json_encode( $ticket['ep_additional_ticket_fee_data'] ) : '';
+                                $additional_fees = array();
+                                if( isset( $ticket['ep_additional_ticket_fee_data'] ) && ! empty( $ticket['ep_additional_ticket_fee_data'] ) ) {
+                                    $additional_fees = $this->sanitize_serialized_payloads( $ticket['ep_additional_ticket_fee_data'] );
+                                }
+                                $ticket_data['additional_fees']    = ! empty( $additional_fees ) ? wp_json_encode( $additional_fees ) : '';
                                 $ticket_data['allow_cancellation'] = isset( $ticket['allow_cancellation'] ) ? absint( $ticket['allow_cancellation'] ) : 0;
                                 $ticket_data['show_remaining_tickets'] = isset( $ticket['show_remaining_tickets'] ) ? absint( $ticket['show_remaining_tickets'] ) : 0;
                                 // date
@@ -1388,7 +1556,11 @@ class EventM_Ajax_Service {
                                 $ticket_data['created_at'] 	   = wp_date("Y-m-d H:i:s", time());
 
                                 // new
-                                $ticket_data['additional_fees']    = ( isset( $ticket['ep_additional_ticket_fee_data'] ) && !empty( $ticket['ep_additional_ticket_fee_data'] ) ) ? json_encode( $ticket['ep_additional_ticket_fee_data'] ) : '';
+                                $additional_fees = array();
+                                if( isset( $ticket['ep_additional_ticket_fee_data'] ) && ! empty( $ticket['ep_additional_ticket_fee_data'] ) ) {
+                                    $additional_fees = $this->sanitize_serialized_payloads( $ticket['ep_additional_ticket_fee_data'] );
+                                }
+                                $ticket_data['additional_fees']    = ! empty( $additional_fees ) ? wp_json_encode( $additional_fees ) : '';
                                 $ticket_data['allow_cancellation'] = isset( $ticket['allow_cancellation'] ) ? absint( $ticket['allow_cancellation'] ) : 0;
                                 $ticket_data['show_remaining_tickets'] = isset( $ticket['show_remaining_tickets'] ) ? absint( $ticket['show_remaining_tickets'] ) : 0;
                                 // date
@@ -1463,7 +1635,11 @@ class EventM_Ajax_Service {
                             $ticket_data['created_at'] 	   = wp_date("Y-m-d H:i:s", time());
 
                             // new
-                            $ticket_data['additional_fees']    = ( isset( $ticket['ep_additional_ticket_fee_data'] ) && !empty( $ticket['ep_additional_ticket_fee_data'] ) ) ? json_encode( $ticket['ep_additional_ticket_fee_data'] ) : '';
+                            $additional_fees = array();
+                            if( isset( $ticket['ep_additional_ticket_fee_data'] ) && ! empty( $ticket['ep_additional_ticket_fee_data'] ) ) {
+                                $additional_fees = $this->sanitize_serialized_payloads( $ticket['ep_additional_ticket_fee_data'] );
+                            }
+                            $ticket_data['additional_fees']    = ! empty( $additional_fees ) ? wp_json_encode( $additional_fees ) : '';
                             $ticket_data['allow_cancellation'] = isset( $ticket['allow_cancellation'] ) ? absint( $ticket['allow_cancellation'] ) : 0;
                             $ticket_data['show_remaining_tickets'] = isset( $ticket['show_remaining_tickets'] ) ? absint( $ticket['show_remaining_tickets'] ) : 0;
                             // date
@@ -1565,6 +1741,21 @@ class EventM_Ajax_Service {
         } else{
             wp_send_json_error( array( 'error' => esc_html__( 'Security check failed. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
         }
+    }
+
+    private function sanitize_serialized_payloads( $value ) {
+        if ( is_array( $value ) ) {
+            foreach ( $value as $key => $item ) {
+                $value[ $key ] = $this->sanitize_serialized_payloads( $item );
+            }
+            return $value;
+        }
+
+        if ( is_string( $value ) && function_exists( 'is_serialized' ) && is_serialized( $value ) ) {
+            return '';
+        }
+
+        return $value;
     }
 
 
@@ -2115,6 +2306,9 @@ class EventM_Ajax_Service {
      * Cancel the migration process
      */
     public function eventprime_cancel_migration() {
+        if( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( array( 'message' => esc_html__( 'You are not allowed to perform this action.', 'eventprime-event-calendar-management' ) ) );
+        }
         if( wp_verify_nonce( $_POST['security'], 'ep-migration-nonce' ) ) {
             /* $ep_deactivate_extensions_on_migration = get_option( 'ep_deactivate_extensions_on_migration ');
             if( ! empty( $ep_deactivate_extensions_on_migration ) ) {
@@ -2134,6 +2328,9 @@ class EventM_Ajax_Service {
      * Reload user sectionon the checkout page
      */
     public function reload_checkout_user_section() {
+        if ( ! check_ajax_referer( 'flush_event_booking_timer_nonce', 'security', false ) ) {
+            wp_send_json_error( array( 'message' => esc_html__( 'Security check failed. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
+        }
         $ep_functions = new Eventprime_Basic_Functions;
         if( ! empty( $_POST['userId'] ) ) {
             $user_id = $_POST['userId'];
@@ -2166,12 +2363,23 @@ class EventM_Ajax_Service {
     }
     
     public function eventprime_reports_filter(){
+        if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'publish_em_events' ) && ! current_user_can( 'edit_em_event' ) ) {
+            wp_send_json_error( array( 'message' => esc_html__( 'You are not allowed to access reports.', 'eventprime-event-calendar-management' ) ) );
+        }
+
+        if ( ! check_ajax_referer( 'ep-admin-reports', 'security', false ) ) {
+            wp_send_json_error( array( 'message' => esc_html__( 'Security check failed. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
+        }
         $report_controller = new EventM_Report_Controller_List;
         $filter_data = $report_controller->eventprime_report_filters();
         wp_send_json_success($filter_data);
     }
-
+    
     public function set_default_payment_processor(){
+        if( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( array( 'message' => esc_html__( 'You are not allowed to manage payment settings.', 'eventprime-event-calendar-management' ) ) );
+        }
+
         if( wp_verify_nonce( $_POST['security'], 'ep-default-payment-processor' ) ) {
             $global_settings = new Eventprime_Global_Settings;
             $global_settings_data = $global_settings->ep_get_settings();
@@ -2189,6 +2397,9 @@ class EventM_Ajax_Service {
     public function booking_export_all(){
         $data = $_POST;
         if(!empty($data)){
+            if( ! check_ajax_referer( 'ep_booking_nonce', 'security', false ) ) {
+                wp_send_json_error( array( 'message' => esc_html__( 'Security check failed. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
+            }
             if(is_user_logged_in() && (current_user_can('edit_em_event') || current_user_can('edit_posts'))){
                 $booking_controller = new EventPrime_Bookings;
                 echo $booking_controller->export_bookings_all($data);
@@ -2218,6 +2429,9 @@ class EventM_Ajax_Service {
     
     public function calendar_events_drag_event_date(){
         $ep_functions = new Eventprime_Basic_Functions;
+        if ( ! check_ajax_referer( 'ep-frontend-nonce', 'security', false ) ) {
+            wp_send_json_error( array( 'message' => esc_html__( 'Security check failed. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
+        }
         if( isset( $_POST['id'] ) && ! empty( $_POST['id'] ) ) {
             if( !empty( get_post( $_POST['id'] ) ) && get_post_type( $_POST['id'] ) == 'em_event' ){ 
                 
@@ -2236,7 +2450,7 @@ class EventM_Ajax_Service {
         
     }
     public function calendar_events_delete(){
-        if( !wp_verify_nonce( '_wpnonce', 'ep-admin-calendar-action' ) ) {
+        if( ! check_ajax_referer( 'ep-frontend-nonce', 'security', false ) ) {
             wp_send_json_error( array( 'message' => esc_html__( 'Security check failed. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
         }
         if(current_user_can('manage_options') && isset( $_POST['event_id'] ) && ! empty( $_POST['event_id'] ) ) {
@@ -2260,6 +2474,9 @@ class EventM_Ajax_Service {
 
     public function eventprime_activate_license()
         {
+            if ( ! current_user_can( 'manage_options' ) ) {
+                wp_send_json_error( array( 'message' => esc_html__( 'You are not allowed to manage licenses.', 'eventprime-event-calendar-management' ) ) );
+            }
             $retrieved_nonce = filter_input( INPUT_POST, 'nonce' );
             
             if ( !wp_verify_nonce( $retrieved_nonce, 'ep-license-nonce' ) ) {
@@ -2287,6 +2504,9 @@ class EventM_Ajax_Service {
     }
 
     public function eventprime_deactivate_license(){
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( array( 'message' => esc_html__( 'You are not allowed to manage licenses.', 'eventprime-event-calendar-management' ) ) );
+        }
         
         $retrieved_nonce = filter_input( INPUT_POST, 'nonce' );
             if ( !wp_verify_nonce( $retrieved_nonce, 'ep-license-nonce' ) ) {
@@ -2301,7 +2521,19 @@ class EventM_Ajax_Service {
             $response = array();
             if( isset( $ep_license_deactivate ) && ! empty( $ep_license_deactivate ) ){
                 $license = new EventPrime_License();
-                $response = $license->ep_deactivate_license($license_key,$item_id,$item_key);
+                $response = $license->ep_deactivate_extension_license($license_key,$item_id);
+                $all_license_data = get_option('metagauss_license_data', []);
+                if(isset($all_license_data[$license_key]))
+                {
+                    unset($all_license_data[$license_key]);
+                    update_option('metagauss_license_data', $all_license_data);
+                }
+
+                delete_option($item_key.'_license_response');
+                delete_option($item_key. '_license_status');
+                delete_option($item_key. '_license_key');
+                delete_option($item_key. '_item_id');
+                delete_option($item_key.'_license_id' );
                 wp_send_json_success( $response );
             }
             else
@@ -2721,6 +2953,9 @@ class EventM_Ajax_Service {
     
     public function get_calendar_event()
     {
+        if ( ! check_ajax_referer( 'ep-frontend-nonce', 'security', false ) ) {
+            wp_send_json_error( array( 'message' => esc_html__( 'Security check failed. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
+        }
         $ep_functions = new Eventprime_Basic_Functions;
         // Create a DateTime object from the string
         $timezone = new DateTimeZone($ep_functions->ep_get_site_timezone());
@@ -2852,17 +3087,36 @@ class EventM_Ajax_Service {
             if( isset( $atts['sites'] ) && ! empty( $atts['sites'] ) ) {
                 $venue_ids = explode( ',', $atts['sites'] );
             }
-            if ( ! empty( $venue_ids ) ) {
-                $filter_venues_ids = array('relation'     => 'OR');
-                foreach ($venue_ids as $venue_id){
-                    $filter_venues_ids[]= array(
-                        'key'     => 'em_venue',
-                        'value'   =>  serialize( array($venue_id) ),
-                        'compare' => '='
-                    );
-                }
-                $params['meta_query'][] = $filter_venues_ids;
+//            if ( ! empty( $venue_ids ) ) {
+//                $filter_venues_ids = array('relation'     => 'OR');
+//                foreach ($venue_ids as $venue_id){
+//                    $filter_venues_ids[]= array(
+//                        'key'     => 'em_venue',
+//                        'value'   =>  serialize( array($venue_id) ),
+//                        'compare' => '='
+//                    );
+//                }
+//                $params['meta_query'][] = $filter_venues_ids;
+//            }
+            
+            // Filter events by Venue taxonomy term IDs
+        if ( ! empty( $venue_ids ) ) {
+            // Ensure it's an array of ints
+            $venue_ids = array_map( 'absint', (array) $venue_ids );
+
+            // Initialize tax_query if needed (keeps other tax filters intact)
+            if ( empty( $params['tax_query'] ) ) {
+                $params['tax_query'] = array( 'relation' => 'AND' );
             }
+
+            $params['tax_query'][] = array(
+                'taxonomy'         => 'em_venue',      // <-- change if your taxonomy slug differs
+                'field'            => 'term_id',
+                'terms'            => $venue_ids,      // match ANY of these IDs
+                'operator'         => 'IN',
+                'include_children' => false,           // set true if you want child venues included
+            );
+        }
             
             // individual events argument
         $events_data['i_events'] = '';
@@ -2947,6 +3201,444 @@ class EventM_Ajax_Service {
             }
         }
     }
+    
+    public function check_license_status()
+    {
+        if( !wp_verify_nonce( $_POST['nonce'], 'ep-license-nonce' ) ) 
+        {
+            wp_send_json_error([
+                'error' => 'invalid_nonce',
+                'message' => esc_html__('Failed security checks.', 'eventprime-event-calendar-management')
+            ]);
+        }
+        
+        $global_settings = new Eventprime_Global_Settings;
+        $license = new EventPrime_License();
+        $admin_notices = new EventM_Admin_Notices;
+        $global_settings->ep_get_settings();
+        $license_key = (! empty($_POST['ep_license_key'])) ? sanitize_text_field($_POST['ep_license_key']) : '';
+
+        
+        // Fetch license data from server
+        //print_r($license_key);
+        if (empty($license_key)) {
+            wp_send_json_error([
+                'error' => 'invalid_license',
+                'message' => esc_html__('Invalid license key.', 'eventprime-event-calendar-management')
+            ]);
+        }
+        $response = $this->mg_edd_remote_get_extensions($license_key);
+       // print_r($response);die;
+
+         
+        // Handle failed or unreachable server
+        if (empty($response)) {
+            wp_send_json_error([
+                'error' => 'connection',
+                'message' => esc_html__('Unable to connect to the license server. Please upload a .json license file.', 'eventprime-event-calendar-management')
+            ]);
+        }
+
+        // Handle known license key errors
+        if (isset($response['error']) || (isset($response['success']) && $response['success'] === false)) {
+            wp_send_json_error([
+                'message' => $response['error'] ?? esc_html__('Unable to retrieve license data.', 'eventprime-event-calendar-management')
+            ]);
+        }
+
+
+        // Get plugins and filter only those that can be activated
+        $valid_plugins = [];
+        $error_messages = [];
+
+        if (isset($response['plugins']) && is_array($response['plugins'])) {
+            
+
+            // Save only activatable plugins
+            $all_license_data = get_option('metagauss_license_data', []);
+            $all_license_data[$license_key] = [
+                'plugins' => $response['plugins']
+            ];
+            update_option('metagauss_license_data', $all_license_data);
+            // Save global settings (even if license is invalid — optional: move this below if you want conditional save)
+            //$global_settings->ep_save_settings($global_settings_data);
+
+            // Return success with only the activatable plugins
+            wp_send_json_success([
+                'plugins' => $valid_plugins,
+                'license_key' => $license_key,
+                'html' => esc_html__('License verified successfully.', 'eventprime-event-calendar-management')
+            ]);
+        } else {
+            wp_send_json_error([
+                'message' => esc_html__('Invalid license data received.', 'eventprime-event-calendar-management'),
+                'response' => $response
+            ]);
+        }
+
+    }
+    
+    public function save_license_settings() {
+        if( !wp_verify_nonce( $_POST['nonce'], 'ep-license-nonce' ) ) 
+        {
+            wp_send_json_error([
+                'error' => 'invalid_nonce',
+                'message' => esc_html__('Failed security checks.', 'eventprime-event-calendar-management')
+            ]);
+        }
+        
+        $global_settings = new Eventprime_Global_Settings;
+        $license = new EventPrime_License();
+        $admin_notices = new EventM_Admin_Notices;
+        $global_settings_data = $global_settings->ep_get_settings();
+        $global_settings_data->ep_license_key = $license_key = (! empty($_POST['ep_license_key'])) ? sanitize_text_field($_POST['ep_license_key']) : '';
+
+        
+        // Fetch license data from server
+        //print_r($license_key);
+        if (empty($license_key)) {
+            wp_send_json_error([
+                'error' => 'invalid_license',
+                'message' => esc_html__('Invalid license key.', 'eventprime-event-calendar-management')
+            ]);
+        }
+        $response = $this->mg_edd_remote_get_extensions($license_key);
+       // print_r($response);die;
+
+         
+        // Handle failed or unreachable server
+        if (empty($response)) {
+            wp_send_json_error([
+                'error' => 'connection',
+                'message' => esc_html__('Unable to connect to the license server. Please upload a .json license file.', 'eventprime-event-calendar-management')
+            ]);
+        }
+
+        // Handle known license key errors
+        if (isset($response['error']) || (isset($response['success']) && $response['success'] === false)) {
+            wp_send_json_error([
+                'message' => $response['error'] ?? esc_html__('Unable to retrieve license data.', 'eventprime-event-calendar-management')
+            ]);
+        }
+
+
+        // Get plugins and filter only those that can be activated
+        $valid_plugins = [];
+        $error_messages = [];
+
+        if (isset($response['plugins']) && is_array($response['plugins'])) {
+            foreach ($response['plugins'] as $id => $plugin) {
+                if (!empty($plugin['can_activate'])) {
+                    $valid_plugins[$id] = $plugin;
+                } else {
+                    $error_messages[] = $plugin['name'] . ': ' . ($plugin['message'] ?? esc_html__('Cannot activate this license.', 'eventprime-event-calendar-management'));
+                }
+            }
+
+            if (empty($valid_plugins)) {
+                // None of the plugins can be activated — don't save
+                
+                wp_send_json_error([
+                    'message' =>  $error_messages[0]
+                ]);
+            }
+
+            // Save only activatable plugins
+            $all_license_data = get_option('metagauss_license_data', []);
+            $all_license_data[$license_key] = [
+                'plugins' => $valid_plugins
+            ];
+            update_option('metagauss_license_data', $all_license_data);
+            // Save global settings (even if license is invalid — optional: move this below if you want conditional save)
+            $global_settings->ep_save_settings($global_settings_data);
+
+            // Return success with only the activatable plugins
+            wp_send_json_success([
+                'plugins' => $valid_plugins,
+                'license_key' => $license_key,
+                'html' => esc_html__('License verified successfully.', 'eventprime-event-calendar-management')
+            ]);
+        } else {
+            wp_send_json_error([
+                'message' => esc_html__('Invalid license data received.', 'eventprime-event-calendar-management'),
+                'response' => $response
+            ]);
+        }
+    }
+
+    
+    public function deactivate_bundle_license()
+    {
+        if( wp_verify_nonce( $_POST['nonce'], 'ep-license-nonce' ) ) 
+        {
+            
+            
+            if (!current_user_can('manage_options')) {
+                wp_send_json_error('Permission denied.');
+            }
+            
+            $license = new EventPrime_License();
+            $license_key = sanitize_text_field($_POST['ep_license']);
+            $license_data = get_option('metagauss_license_data', []);
+
+            if (!isset($license_data[$license_key])) {
+                wp_send_json_error('License key not found.');
+            }
+            
+            $site_url = preg_replace( '/^https?:\/\/(www\.)?/', '', site_url() );
+            
+            $request = wp_remote_post( 'https://theeventprime.com/wp-json/custom/v1/deactivate-all', [
+                'timeout' => 20,
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+                'body'    => wp_json_encode([
+                    'license_key' => $license_key,
+                    'site_url' => $site_url
+                ]),
+            ] );
+            
+            $license_plugins = $license_data[$license_key]['plugins'];
+            $status = array();
+            foreach($license_plugins as $download_id =>$license_info)
+            {
+                $ext_license_key = isset($license_info->license_key)?$license_info->license_key:'';
+                
+                $item_key = $license->ep_get_extension_key_by_download_id($download_id);
+                //$response = $license->ep_deactivate_license($ext_license_key, $download_id,$item_key);
+                delete_option($item_key.'_license_response');
+                delete_option($item_key. '_license_status');
+                delete_option($item_key. '_license_key');
+                delete_option($item_key. '_item_id');
+                delete_option($item_key.'_license_id' );
+                delete_option($item_key.'_'.$ext_license_key);
+                
+               
+            }
+
+            unset($license_data[$license_key]); // Remove entire license record
+            update_option('metagauss_license_data', $license_data);
+
+             wp_send_json_success([
+                'plugins' => $request,
+                'license_key' => $license_key,
+                'html' => esc_html__('License deactivated successfully.', 'eventprime-event-calendar-management')
+            ]);
+        }
+        else
+        {
+            wp_send_json_error('Security checks failed.');
+        }
+    }
+    
+    public function mg_edd_remote_get_extensions($license ) {
+        $site_url = preg_replace( '/^https?:\/\/(www\.)?/', '', site_url() );
+
+        $request = wp_remote_post( 'https://theeventprime.com/wp-json/custom/v1/extensions', [
+            'timeout' => 20,
+            'headers' => [
+                'Content-Type' => 'application/json',
+            ],
+            'body'    => wp_json_encode([
+                'license_key' => $license,
+                'site_url' => $site_url
+            ]),
+        ] );
+
+        if ( is_wp_error( $request ) ) {
+            error_log('[License Server Connection Error] ' . $request->get_error_message());
+            return [];
+        }
+
+        return json_decode( wp_remote_retrieve_body( $request ), true );
+    }
+    
+    public function install_remote_plugin() {
+        if ( ! check_ajax_referer( 'ep-license-nonce', 'nonce', false ) ) {
+            wp_send_json_error( 'Security checks failed.' );
+        }
+        if ( ! current_user_can( 'install_plugins' ) ) {
+            wp_send_json_error( 'Permission denied' );
+        }
+
+        $plugin_url = esc_url_raw($_POST['plugin_url'] ?? '');
+
+        if ( empty($plugin_url) ) {
+            wp_send_json_error( 'Missing plugin URL' );
+        }
+     
+            $license_key = sanitize_text_field(filter_input( INPUT_POST, 'license_key' ));
+            $item_id = sanitize_text_field(filter_input( INPUT_POST, 'itemid' ));
+            $item_key = sanitize_text_field(filter_input( INPUT_POST, 'key' ));
+            update_option( $item_key.'_license_key', $license_key );
+            update_option( $item_key.'_license_id', $item_id );
+            $license = new EventPrime_License();
+            $response = $license->ep_activate_extension_license($license_key,$item_id);
+            //wp_send_json_error( array( 'message' => $response) );
+            if ($response['status']) 
+            {
+                // Store license info
+                update_option($item_key.'_license_response', $response['data'] );
+                update_option($item_key. '_license_status', 'valid');
+                update_option($item_key. '_license_key', $license_key);
+                update_option($item_key. '_item_id', $item_id);
+                update_option($item_key.'_license_id', $item_id );
+            } else {
+                wp_send_json_error( array( 'message' => $response['message']) );
+            }
+            
+
+        include_once ABSPATH . 'wp-admin/includes/file.php';
+        include_once ABSPATH . 'wp-admin/includes/misc.php';
+        include_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+        include_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+        include_once ABSPATH . 'wp-admin/includes/class-wp-upgrader-skins.php';
+
+        $upgrader = new Plugin_Upgrader( new Automatic_Upgrader_Skin() );
+        $result = $upgrader->install($plugin_url);
+
+        $plugin_file = $upgrader->plugin_info(); // Path to main plugin file
+        activate_plugin($plugin_file);
+
+        if ( is_wp_error( $result ) ) {
+            wp_send_json_error( array( 'message' => $result->get_error_message()) );
+        }
+        
+        
+         wp_send_json_success( array( 'message' => esc_html__('Plugin installed and  activated.','eventprime-event-calendar-management')));
+            
+        
+    }
+    
+    public function activate_plugin() {
+        //check_ajax_referer('ep_license_nonce');
+        if( wp_verify_nonce( $_POST['nonce'], 'ep-license-nonce' ) ) 
+        {
+            if (!current_user_can('activate_plugins')) {
+                wp_send_json_error('Permission denied.');
+            }
+
+            $plugin = sanitize_text_field($_POST['plugin']);
+            $full_path = $this->ep_get_full_plugin_path_by_file($plugin);
+
+            if (!$full_path || !file_exists(WP_PLUGIN_DIR . '/' . $full_path)) {
+                wp_send_json_error('Plugin not found.');
+            }
+
+            $result = activate_plugin($full_path);
+
+            if (is_wp_error($result)) {
+                wp_send_json_error($result->get_error_message());
+            }
+
+            wp_send_json_success('Plugin activated.');
+        }
+        else
+        {
+            wp_send_json_error('Security checks failed.');
+        }
+    }
+
+    public function deactivate_plugin() {
+        //check_ajax_referer('ep_license_nonce');
+        if( wp_verify_nonce( $_POST['nonce'], 'ep-license-nonce' ) ) 
+        {
+            if (!current_user_can('activate_plugins')) {
+                wp_send_json_error('Permission denied.');
+            }
+
+            $plugin = sanitize_text_field($_POST['plugin']);
+            $full_path = $this->ep_get_full_plugin_path_by_file($plugin);
+
+            if (!$full_path || !file_exists(WP_PLUGIN_DIR . '/' . $full_path)) {
+                wp_send_json_error('Plugin not found.');
+            }
+
+            deactivate_plugins($full_path);
+            wp_send_json_success('Plugin deactivated.');
+        }
+        else
+        {
+            wp_send_json_error('Security checks failed.');
+        }
+    }
+    
+   
+    public function ep_get_full_plugin_path_by_file($file_name) {
+        if (!function_exists('get_plugins')) {
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
+
+        $plugins = get_plugins();
+
+        foreach ($plugins as $path => $data) {
+            if (basename($path) === $file_name) {
+                return $path; 
+            }
+        }
+
+        return false; // not found
+    }
+    
+   
+    public function upload_license_file() 
+    {
+        
+        $license_json = $_POST['license_data'] ?? '';
+        if (empty($license_json)) {
+            wp_send_json_error(['message' => 'No license data provided.']);
+        }
+
+        $license_data = json_decode(stripslashes($license_json), true);
+        if (json_last_error() !== JSON_ERROR_NONE || empty($license_data) || !is_array($license_data)) {
+            wp_send_json_error(['message' => 'Invalid license data format.']);
+        }
+
+        $all_license_data = get_option('metagauss_license_data', []);
+        $i=0;
+        foreach ($license_data as $license_key => $data) {
+            
+            if (empty($license_key)) {
+                
+                wp_send_json_error([
+                    'message' => esc_html__('License key not found.', 'eventprime-event-calendar-management'),
+                    
+                ]);
+            }
+            
+            if (!isset($data['plugins']) || !is_array($data['plugins'])) {
+                 wp_send_json_error([
+                    'message' => esc_html__('Invalid license data received.', 'eventprime-event-calendar-management'),
+                    
+                ]);
+            }
+            
+            if($i==0)
+            {
+                $license_primary_key = $license_key;
+            }
+            $i++;
+
+            // Save to DB
+            $all_license_data[$license_key] = [
+                'plugins' => $data['plugins']
+            ];
+            
+           
+            
+        }
+        
+        update_option('metagauss_license_data', $all_license_data);
+        update_option('metagauss_manual_license_data', 1);
+        
+        wp_send_json_success([
+                'plugins' => $all_license_data[$license_primary_key]['plugins'],
+                'license_key' => $license_primary_key,
+                'html' => esc_html__('License verified successfully.', 'eventprime-event-calendar-management')
+            ]);
+    }
+
+
     
     public function delete_user_bookings_data()
     {
@@ -3101,3 +3793,4 @@ class EventM_Ajax_Service {
 
     
 }
+

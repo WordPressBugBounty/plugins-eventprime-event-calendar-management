@@ -16,6 +16,10 @@ class Eventprime_Basic_Functions {
         //$this->global_settings = get_option('em_global_settings');
     }
 
+     private function is_gd_extension_available() {
+        return extension_loaded('gd') && (function_exists('imagecreatetruecolor') || function_exists('imagecreate'));
+    }
+    
     public function eventprime_check_is_ep_dashboard_page() {
         $page = false;
         global $pagenow;
@@ -1692,6 +1696,7 @@ class Eventprime_Basic_Functions {
                 "twilio_service_id",
                 "twilio_number",
                 "zapier_api_key",
+                "paypal_client_secret"
             ];
             $exclude_fields = apply_filters('ep_extend_global_exclude_fields', $exclude_fields, $global_options);
             foreach($exclude_fields as $field) {
@@ -1838,7 +1843,71 @@ public function ep_get_event_date_time_diff( $event ) {
         }
     }
     
-    public function ep_convert_event_date_time_from_timezone($event, $format = '', $end = 0, $strict = 0) {
+    public function ep_convert_event_date_time_from_timezone( $event, $format = '', $end = 0, $strict = 0 ) {
+        if ( empty( $event ) ) {
+            return '';
+        }
+
+        // 1) Pick a base date + time string
+        $dp_format  = $this->ep_get_datepicker_format();
+        if ( ! empty( $strict ) && ! empty( $format ) ) {
+            $dp_format = $format; // only used when we must display exactly $format
+        }
+
+        $time_format_setting = $this->ep_get_global_settings( 'time_format' ); // 'HH:mm' or 12h
+        $site_timezone       = $this->ep_get_site_timezone();
+
+        // Determine date (string) from stored timestamp
+        if ( ! empty( $end ) ) {
+            $date_str  = $this->ep_timestamp_to_date( $event->em_end_date, $dp_format );
+            $time_str  = ! empty( $event->em_end_time ) ? $event->em_end_time : '11:59 pm';
+        } else {
+            $date_str  = $this->ep_timestamp_to_date( $event->em_start_date, $dp_format );
+            if ( ! empty( $event->em_start_time ) ) {
+                $time_str = $event->em_start_time;
+            } else {
+                // Pick a sane default based on 24h/12h preference
+                $time_str = ( $time_format_setting === 'HH:mm' ) ? '00:00' : '12:00 am';
+            }
+        }
+
+        // 2) Build a DateTime in site timezone from date + time
+        // NOTE: ep_datetime_to_timestamp returns DateTime (per your check below)
+        // The parse format must match what ep_timestamp_to_date() emitted. If your datepicker format differs,
+        // you likely normalize inside ep_datetime_to_timestamp already. Keep that as-is.
+        $dt = $this->ep_datetime_to_timestamp( $date_str . ' ' . $time_str, 'Y-m-d h:i a', $site_timezone, 1 );
+
+        if ( $dt && $dt instanceof DateTime ) {
+            $dt->setTimeZone( new DateTimeZone( $site_timezone ) );
+            $unix = $dt->getTimestamp();
+
+            // 3) Decide the output format (use WP tokens so wp_date() can translate)
+            if ( ! empty( $strict ) && is_string( $format ) && $format !== '' ) {
+                // Caller provided exact format; print it localized
+                return wp_date( $format, $unix );
+            }
+
+            // Default: "D, d M h:i A" (12h) or "D, d M H:i" (24h), with localized month/day names
+            $out_fmt = ( $time_format_setting === 'HH:mm' )
+                ? 'D, d M H:i'
+                : 'D, d M h:i A';
+
+            return wp_date( $out_fmt, $unix );
+        }
+
+        // 4) Fallback (parsing failed). Still try to localize date part if we have a raw timestamp.
+        // If you can access raw timestamps directly, prefer returning wp_date() on those:
+        if ( empty( $end ) && ! empty( $event->em_start_date ) ) {
+            return wp_date( ( $time_format_setting === 'HH:mm' ? 'D, d M H:i' : 'D, d M h:i A' ), (int) $event->em_start_date );
+        } elseif ( ! empty( $event->em_end_date ) ) {
+            return wp_date( ( $time_format_setting === 'HH:mm' ? 'D, d M H:i' : 'D, d M h:i A' ), (int) $event->em_end_date );
+        }
+
+        // Last resort: return the concatenated strings (non-translated).
+        return trim( $date_str . ' ' . $time_str );
+    }
+
+    public function ep_convert_event_date_time_from_timezone_old2($event, $format = '', $end = 0, $strict = 0) {
     if ($event) {
         $dp_format = $this->ep_get_datepicker_format();
         if (!empty($strict) && !empty($format)) {
@@ -2685,7 +2754,7 @@ public function ep_get_event_date_time_diff( $event ) {
     }
 
     public function ep_social_sharing_fields() {
-        $social_sharing_fields = apply_filters( 'ep_social_sharing_fields_key_values', array('facebook' => 'Facebook', 'instagram' => 'Instagram', 'linkedin' => 'Linkedin', 'twitter' => 'Twitter', 'youtube' => 'Youtube') ); 
+        $social_sharing_fields = apply_filters( 'ep_social_sharing_fields_key_values', array('facebook' => 'Facebook', 'instagram' => 'Instagram', 'linkedin' => 'Linkedin', 'twitter' => '  X (formerly Twitter)', 'youtube' => 'Youtube') ); 
         return $social_sharing_fields;
     }
 
@@ -3573,6 +3642,9 @@ public function ep_get_event_date_time_diff( $event ) {
     }
 
     public function get_event_qr_code($event) {
+        if (!$this->is_gd_extension_available()) {
+            return '';
+        }
         $image_url = '';
         if (!empty($event) && isset($event->event_url) && !empty($event->event_url)) {
             $url = $event->event_url;
@@ -3629,6 +3701,13 @@ public function ep_get_event_date_time_diff( $event ) {
                 $event->fstart_date = $this->ep_convert_event_date_time_from_timezone($event, 'd M', 0, 1);
                 $event->fend_date = $this->ep_convert_event_date_time_from_timezone($event, 'd M', 1, 1);
             }
+            
+            $event->em_start_date_formated = (!empty($event->em_start_date) ) ? $this->ep_timestamp_to_date( $event->em_start_date, $this->ep_get_datepicker_format(), 1 ) : '';
+            $event->em_end_date_formated = (!empty($event->em_end_date) ) ? $this->ep_timestamp_to_date( $event->em_end_date, $this->ep_get_datepicker_format(), 1 ) : '';
+            $event->em_start_time_formated = (!empty($event->em_start_time) ) ? $this->ep_convert_time_with_format( $event->em_start_time ) : '';
+            $event->em_end_time_formated = (!empty($event->em_end_time) ) ? $this->ep_convert_time_with_format( $event->em_end_time ) : '';
+                    
+                    
             $event->start_end_diff = $this->ep_get_event_date_time_diff($event);
             $event->event_url = $this->ep_get_custom_page_url('events_page', $event->id, 'event');
             $event->ticket_categories = $this->get_event_ticket_category($event->id);
@@ -3655,6 +3734,7 @@ public function ep_get_event_date_time_diff( $event ) {
             $event->em_event_checkout_booking_fields = $this->get_event_checkout_booking_fields($event);
             $event->event_in_user_wishlist = $this->check_event_in_user_wishlist($event->id);
         }
+        $event = apply_filters( 'ep_get_event_custom_checkout_fields', $event );
         return $event;
     }
     
@@ -3969,18 +4049,18 @@ public function ep_get_event_date_time_diff( $event ) {
 
     // list all extension
     public function ep_list_all_exts() {
-        $exts = array('Live Seating', 'Events Import Export', 'Stripe Payments', 'Offline Payments', 'WooCommerce Integration', 'Event Sponsors', 'Attendees List', 'EventPrime Invoices', 'Coupon Codes', 'Guest Bookings', 'EventPrime Zoom Integration', 'Event List Widgets', 'Admin Attendee Bookings', 'EventPrime MailPoet', 'Twilio Text Notifications', 'Event Tickets', 'Zapier Integration', 'Advanced Reports', 'Advanced Checkout Fields', 'Elementor Integration', 'Mailchimp Integration', 'User Feedback', 'RSVP', 'WooCommerce Checkout', 'Ratings and Reviews','Attendee Event Check In','Waiting List','HoneyPot Security','Turnstile Antispam Security','Event Reminder Emails','Demo Data');
+        $exts = array('Live Seating', 'Events Import Export', 'Stripe Payments', 'Offline Payments', 'WooCommerce Integration', 'Event Sponsors', 'Attendees List', 'EventPrime Invoices', 'Coupon Codes', 'Guest Bookings', 'EventPrime Zoom Integration', 'Event List Widgets', 'Admin Attendee Bookings', 'EventPrime MailPoet', 'Twilio Text Notifications', 'Event Tickets', 'Zapier Integration', 'Advanced Reports', 'Advanced Checkout Fields', 'Elementor Integration', 'Mailchimp Integration', 'User Feedback', 'RSVP', 'WooCommerce Checkout', 'Ratings and Reviews','Attendee Event Check In','Waiting List','HoneyPot Security','Turnstile Antispam Security','Event Reminder Emails','Demo Data','Square Payments','hCaptcha Security','Advanced Seat Plan Builder','Group Booking','Advanced Social Sharing','Event Countdown Timer','Join Chat Integration','Event Map View','Multi-Session Events');
         return $exts;
     }
 
     // get premium extension list
     public function ep_load_premium_extension_list() {
-        $premium_ext_list = array('Live Seating', 'Stripe Payments', 'Offline Payments', 'Event Sponsors', 'Attendees List', 'EventPrime Invoices', 'Coupon Codes', 'Guest Bookings', 'EventPrime Zoom Integration', 'Event List Widgets', 'Admin Attendee Bookings', 'EventPrime MailPoet', 'Twilio Text Notifications', 'Event Tickets', 'Advanced Reports', 'Advanced Checkout Fields', 'Mailchimp Integration', 'User Feedback', 'RSVP', 'WooCommerce Checkout', 'Ratings and Reviews','Attendee Event Check In','Waiting List','HoneyPot Security','Turnstile Antispam Security','Event Reminder Emails');
+        $premium_ext_list = array('Live Seating', 'Stripe Payments', 'Offline Payments', 'Event Sponsors', 'Attendees List', 'EventPrime Invoices', 'Coupon Codes', 'Guest Bookings', 'EventPrime Zoom Integration', 'Event List Widgets', 'Admin Attendee Bookings', 'EventPrime MailPoet', 'Twilio Text Notifications', 'Event Tickets', 'Advanced Reports', 'Advanced Checkout Fields', 'Mailchimp Integration', 'User Feedback', 'RSVP', 'WooCommerce Checkout', 'Ratings and Reviews','Attendee Event Check In','Waiting List','Turnstile Antispam Security','Event Reminder Emails','Square Payments','hCaptcha Security','Advanced Seat Plan Builder','Group Booking','Advanced Social Sharing','Event Countdown Timer','Join Chat Integration','Event Map View','Multi-Session Events');
         return $premium_ext_list;
     }
 
     // load extensions data
-    function em_get_more_extension_data($plugin_name) {
+    public function em_get_more_extension_data_old($plugin_name) {
         $data['is_activate'] = $data['is_installed'] = $data['url'] = '';
         $data['button'] = 'Download';
         $data['class_name'] = 'ep-install-now-btn';
@@ -3999,6 +4079,7 @@ public function ep_get_event_date_time_diff( $event ) {
         switch ($plugin_name) {
             case 'Live Seating':
                 $data['url'] = 'https://theeventprime.com/all-extensions/live-seating/';
+                $data['title'] = 'Live Seating';
                 if (in_array('eventprime-live-seating.php', $installed_plugin_file)) {
                     $data['button'] = 'Activate';
                     $data['class_name'] = 'ep-activate-now-btn';
@@ -4020,6 +4101,7 @@ public function ep_get_event_date_time_diff( $event ) {
                 break;
             case 'Event Sponsors':
                 $data['url'] = 'https://theeventprime.com/all-extensions/event-sponsors/';
+                $data['title'] = 'Event Sponsors';
                 if (in_array('event-sponsor.php', $installed_plugin_file)) {
                     $data['button'] = 'Activate';
                     $data['class_name'] = 'ep-activate-now-btn';
@@ -4159,7 +4241,7 @@ public function ep_get_event_date_time_diff( $event ) {
                 if ($data['is_activate']) {
                     $data['button'] = '';
                     $data['class_name'] = 'ep-option-now-btn';
-                    $data['url'] = admin_url('admin.php?page=em_global_settings');
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings');
                 }
                 $data['is_free'] = !$this->ep_check_for_premium_extension('Event List Widgets');
                 $data['image'] = 'event_list_widgets_icon.png';
@@ -4243,7 +4325,7 @@ public function ep_get_event_date_time_diff( $event ) {
                 if ($data['is_activate']) {
                     $data['button'] = '';
                     $data['class_name'] = 'ep-option-now-btn';
-                    $data['url'] = admin_url('admin.php?page=em_global_settings');
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings');
                 }
                 $data['is_free'] = !$this->ep_check_for_premium_extension('WooCommerce Integration');
                 $data['image'] = 'woocommerce_integration_icon.png';
@@ -4355,7 +4437,7 @@ public function ep_get_event_date_time_diff( $event ) {
                 $data['desc'] = "An EventPrime extension that generate events tickets.";
                 break;
             case 'Advanced Reports':
-                $data['url'] = '';
+                $data['url'] = 'https://theeventprime.com/all-extensions/advanced-reports-events/';
                 if (in_array('advanced-reports.php', $installed_plugin_file)) {
                     $data['button'] = 'Activate';
                     $data['class_name'] = 'ep-activate-now-btn';
@@ -4411,7 +4493,7 @@ public function ep_get_event_date_time_diff( $event ) {
                 if ($data['is_activate']) {
                     $data['button'] = '';
                     $data['class_name'] = 'ep-option-now-btn';
-                    $data['url'] = admin_url('admin.php?page=em_global_settings');
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings');
                 }
                 $data['is_free'] = !$this->ep_check_for_premium_extension('Elementor Integration');
                 $data['image'] = 'elementor-integration.png';
@@ -4629,6 +4711,48 @@ public function ep_get_event_date_time_diff( $event ) {
                 $data['image'] = 'ep-event-reminder-emails-icon.png';
                 $data['desc'] = "The Event Reminder Emails extension for EventPrime automatically sends reminder emails to attendees before an event starts.";
                 break;
+            case 'Square Payments':
+                $data['url'] = 'https://theeventprime.com/all-extensions/square-payments/';
+                if (in_array('square-payment-integration.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('square-payment-integration.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Square_Payment_Integration");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=payments&section=square');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Square Payments');
+                $data['image'] = 'ep-square-icon.png';
+                $data['desc'] = "Enable secure and seamless event payments with Square. This extension integrates Square with EventPrime, providing a smooth checkout experience for your attendees.";
+                break;
+            case 'hCaptcha Security':
+                $data['url'] = 'https://theeventprime.com/all-extensions/hcaptcha-security/';
+                if (in_array('eventprime-hcaptcha-integration.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-hcaptcha-integration.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Hcaptcha_Integration");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=hcaptcha-security-settings');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('hCaptcha Security');
+                $data['image'] = 'hcaptcha-integration.png';
+                $data['desc'] = "This extension adds hCaptcha to login, registration, and event booking forms, securing them against bots and automated abuse.";
+                break;
             case 'Demo Data':
                 $data['url'] = 'https://theeventprime.com/all-extensions/demo-data/';
                 if (in_array('eventprime-demo-data.php', $installed_plugin_file)) {
@@ -4653,9 +4777,956 @@ public function ep_get_event_date_time_diff( $event ) {
         }
         return $data;
     }
+    
+
+    public function em_get_more_extension_data($plugin_name) 
+    {
+        $data['is_activate'] = $data['is_installed'] = $data['url'] = '';
+        $data['button'] = 'Download';
+        $data['class_name'] = 'ep-install-now-btn';
+
+        if (!function_exists('get_plugins')) {
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
+
+        $installed_plugins = get_plugins();
+        $installed_plugin_file = $installed_plugin_url = array();
+
+        if (!empty($installed_plugins)) {
+            foreach ($installed_plugins as $key => $value) {
+                $exp = explode('/', $key);
+                $installed_plugin_file[] = end($exp);
+                $installed_plugin_url[] = $key;
+            }
+        }
+
+        switch ($plugin_name) {
+            case 'Live Seating':
+                $data['url'] = 'https://theeventprime.com/all-extensions/live-seating/';
+                $data['title'] = 'Live Seating';
+                if (in_array('eventprime-live-seating.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-live-seating.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists('Eventprime_Live_Seating');
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=live-seating-settings');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Live Seating');
+                $data['image'] = 'live_seating_icon.png';
+                $data['desc'] = "Add live seat selection on your events and provide seat based tickets to your event attendees. Set a seating arrangement for all your Event Sites with specific rows, columns, and walking aisles using EventPrime's very own Event Site Seating Builder.";
+                break;
+
+            case 'Event Sponsors':
+                $data['url'] = 'https://theeventprime.com/all-extensions/event-sponsors/';
+                $data['title'] = 'Sponsors';
+                if (in_array('event-sponsor.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('event-sponsor.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Event_Sponsor");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=frontviews&sub_tab=sponsors');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Event Sponsors');
+                $data['image'] = 'event_sponsors_icon.png';
+                $data['desc'] = "Add Sponsor(s) to your events. Upload Sponsor logos and they will appear on the event page alongside all other details of the event.";
+                break;
+
+            case 'Stripe Payments':
+                $data['url'] = 'https://theeventprime.com/all-extensions/stripe-payments/';
+                $data['title'] = 'Stripe Payments';
+                if (in_array('eventprime-stripe.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-stripe.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Event_Stripe");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=payments&section=stripe');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Stripe Payments');
+                $data['image'] = 'stripe_payments_icon.png';
+                $data['desc'] = "Start accepting Event Booking payments using the Stripe Payment Gateway. By integrating Stripe with EventPrime, event attendees can now pay with their credit cards while you receive the payment in your Stripe account.";
+                break;
+
+            case 'Offline Payments':
+                $data['url'] = 'https://theeventprime.com/all-extensions/offline-payments/';
+                $data['title'] = 'Offline Payments';
+                if (in_array('eventprime-offline.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-offline.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Offline");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=payments&section=offline');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Offline Payments');
+                $data['image'] = 'offline_payments_icon.png';
+                $data['desc'] = "Don't want to use any online payment gateway to collect your event booking payments? Don't worry. With the Offline Payments extension, you can accept event bookings online while you collect booking payments from attendees offline.";
+                break;
+
+            case 'Attendees List':
+                $data['url'] = 'https://theeventprime.com/all-extensions/attendees-list/';
+                $data['title'] = 'Attendees List';
+                if (in_array('eventprime-attendees-list.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-attendees-list.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Attendees_List");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=attendees-list-settings');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Attendees List');
+                $data['image'] = 'attendee_list_icon.png';
+                $data['desc'] = "Display names of your Event Attendees on the Event page. Or within the new Attendees List widget.";
+                break;
+
+            case 'Coupon Codes':
+                $data['url'] = 'https://theeventprime.com/all-extensions/coupon-codes/';
+                $data['title'] = 'Discount Coupons';
+                if (in_array('event-coupons.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('event-coupons.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Event_Coupons");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?edit.php?post_type=em_coupon');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Coupon Codes');
+                $data['image'] = 'coupon_code_icon.png';
+                $data['desc'] = "Create and activate coupon codes for allowing Attendees for book for events at a discount. Set discount type and limits on coupon code usage, or deactivate at will.";
+                break;
+
+            case 'Guest Bookings':
+                $data['url'] = 'https://theeventprime.com/all-extensions/guest-bookings/';
+                $data['title'] = 'Guest Bookings';
+                if (in_array('eventprime-guest-booking.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-guest-booking.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Guest_Booking");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=forms&section=guest_booking');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Guest Bookings');
+                $data['image'] = 'guest_bookings_icon.png';
+                $data['desc'] = "Allow attendees to complete their event bookings without registering or logging in.";
+                break;
+
+            case 'Event List Widgets':
+                $data['url'] = 'https://theeventprime.com/all-extensions/event-list-widgets/';
+                $data['title'] = 'Event List Widget';
+                if (in_array('eventprime-list-widgets.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-list-widgets.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_List_Widgets");
+                if ($data['is_activate']) {
+                    $data['button'] = '';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Event List Widgets');
+                $data['image'] = 'event_list_widgets_icon.png';
+                $data['desc'] = "Add 3 new Event Listing widgets to your website. These are the Popular Events list, Featured Events list, and Related Events list widgets.";
+                break;
+
+            case 'Admin Attendee Bookings':
+                $data['url'] = 'https://theeventprime.com/all-extensions/admin-attendee-bookings/';
+                $data['title'] = 'Admin Bookings';
+                if (in_array('eventprime-admin-attendee-booking.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-admin-attendee-booking.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Admin_Attendee_Booking");
+                if ($data['is_activate']) {
+                    $data['button'] = '';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('admin.php?page=em_bookings');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Admin Attendee Bookings');
+                $data['image'] = 'admin_attendee_booking_icon.png';
+                $data['desc'] = "Admins can now create custom attendee bookings from the backend EventPrime dashboard.";
+                break;
+
+            case 'Events Import Export':
+                $data['url'] = 'https://theeventprime.com/all-extensions/events-import-export/';
+                $data['title'] = 'Import Export';
+                if (in_array('events-import-export.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('events-import-export.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Event_Import_Export");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-import-export');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Events Import Export');
+                $data['image'] = 'event_import_export_icon.png';
+                $data['desc'] = "Import or export events in popular file formats like CSV, ICS, XML and JSON.";
+                break;
+
+            case 'EventPrime MailPoet':
+                $data['url'] = 'https://theeventprime.com/all-extensions/mailpoet-integration/';
+                $data['title'] = 'MailPoet Integration';
+                if (in_array('eventprime-mailpoet.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-mailpoet.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Event_Mailpoet");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('admin.php?page=em_mailpoet');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('EventPrime MailPoet');
+                $data['image'] = 'mailpoet_icon.png';
+                $data['desc'] = "Connect and engage with your users by subscribing event attendees to MailPoet lists. Users can opt-in multiple newsletters during checkout and can also manage subscriptions in user account area.";
+                break;
+
+            case 'WooCommerce Integration':
+                $data['url'] = 'https://theeventprime.com/all-extensions/woocommerce-integration/';
+                $data['title'] = 'WooCommerce Integration';
+                if (in_array('woocommerce-integration.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('woocommerce-integration.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Woocommerce_Integration");
+                if ($data['is_activate']) {
+                    $data['button'] = '';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('WooCommerce Integration');
+                $data['image'] = 'woocommerce_integration_icon.png';
+                $data['desc'] = "This extension allows you to add optional and/ or mandatory products to your events. You can define quantity or let users chose it themselves. Fully integrates with EventPrime checkout experience and WooCommerce order management.";
+                break;
+
+            case 'EventPrime Zoom Integration':
+                $data['url'] = 'https://theeventprime.com/all-extensions/zoom-integration/';
+                $data['title'] = 'Zoom Integration';
+                if (in_array('eventprime-zoom-meetings.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-zoom-meetings.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Zoom_Meetings");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=zoom-meetings');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('EventPrime Zoom Integration');
+                $data['image'] = 'zoom_integration_icon.png';
+                $data['desc'] = "This extension seamlessly creates virtual events to be conducted on Zoom through the EventPrime plugin. The extension provides easy linking of your website to that of Zoom. Commence and let the attendees join the event with a single click.";
+                break;
+
+            case 'Zapier Integration':
+                $data['url'] = 'https://theeventprime.com/all-extensions/zapier-integration/';
+                $data['title'] = 'Zapier Integration';
+                if (in_array('event-zapier.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('event-zapier.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Zapier_Integration");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=zapier-settings');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Zapier Integration');
+                $data['image'] = 'zapier_integration_icon.png';
+                $data['desc'] = "Extend the power of EventPrime using Zapier's powerful automation tools! Connect with over 3000 apps by building custom templates using EventPrime triggers.";
+                break;
+
+            case 'EventPrime Invoices':
+                $data['url'] = 'https://theeventprime.com/all-extensions/invoices/';
+                $data['title'] = 'Invoices';
+                if (in_array('event-invoices.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('event-invoices.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Event_Invoices");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=invoice');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('EventPrime Invoices');
+                $data['image'] = 'event_invoices_icon.png';
+                $data['desc'] = "Allows fully customizable PDF invoices, complete with your company branding, to be generated and emailed with booking details to your users.";
+                break;
+
+            case 'Twilio Text Notifications':
+                $data['url'] = 'https://theeventprime.com/all-extensions/twilio-text-notifications/';
+                $data['title'] = 'Twilio Text Notifications';
+                if (in_array('sms-integration.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('sms-integration.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Twilio_Text_Notification");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=sms-settings');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Twilio Text Notifications');
+                $data['image'] = 'twilio_icon.png';
+                $data['desc'] = "Keep your users engaged with text/ SMS notification system. Creating Twilio account is quick and easy. With this extension installed, you will be able to configure admin and user notifications separately, with personalized content.";
+                break;
+
+            case 'Event Tickets':
+                $data['url'] = 'https://theeventprime.com/all-extensions/event-tickets/';
+                $data['title'] = 'Event Tickets';
+                if (in_array('event-tickets.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('event-tickets.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Event_Tickets");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_ticket');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Event Tickets');
+                $data['image'] = 'event_tickets_icon.png';
+                $data['desc'] = "An EventPrime extension that generate events tickets.";
+                break;
+
+            case 'Advanced Reports':
+                $data['url'] = 'https://theeventprime.com/all-extensions/advanced-reports-events/';
+                $data['title'] = 'Advanced Reports';
+                if (in_array('advanced-reports.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('advanced-reports.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Advanced_Reports");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-events-reports');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Advanced Reports');
+                $data['image'] = 'advanced-reports.png';
+                $data['desc'] = "Stay updated on all the Revenue and Bookings coming your way through EventPrime. The Advanced Reports extension empowers you with data and graphs that you need to know how much your events are connecting with their audience.";
+                break;
+
+            case 'Advanced Checkout Fields':
+                $data['url'] = 'https://theeventprime.com/all-extensions/advanced-checkout-fields/';
+                $data['title'] = 'Advanced Checkout Fields';
+                if (in_array('eventprime-advanced-checkout-fields.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-advanced-checkout-fields.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Advanced_Checkout_Fields");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=checkoutfields');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Advanced Checkout Fields');
+                $data['image'] = 'advanced-chckout-fields.png';
+                $data['desc'] = "Capture additional data by adding more field types to your checkout forms, like dropdown, checkbox and radio fields.";
+                break;
+
+            case 'Elementor Integration':
+                $data['url'] = 'https://theeventprime.com/all-extensions/elementor-integration-extension/';
+                $data['title'] = 'Elementor Integration';
+                if (in_array('eventprime-elementor-integration.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-elementor-integration.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Elementor_Integration");
+                if ($data['is_activate']) {
+                    $data['button'] = '';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Elementor Integration');
+                $data['image'] = 'elementor-integration.png';
+                $data['desc'] = "Effortlessly create stunning and interactive event pages, calendars, and listings using Elementor’s powerful drag-and-drop interface, without the need for any coding expertise.";
+                break;
+
+            case 'Mailchimp Integration':
+                $data['url'] = 'https://theeventprime.com/all-extensions/mailchimp-integration/';
+                $data['title'] = 'MailChimp Integration';
+                if (in_array('eventprime-mailchimp-integration.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-mailchimp-integration.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Mailchimp_Integration");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=mailchimp-integration');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Mailchimp Integration');
+                $data['image'] = 'mailchimp-integration.png';
+                $data['desc'] = "Elevate engagement with MailChimp Extension. Seamlessly integrate, automate emails, and connect personally for targeted subscriber interaction.";
+                break;
+
+            case 'User Feedback':
+                $data['url'] = 'https://theeventprime.com/all-extensions/user-feedback/';
+                $data['title'] = 'User Feedback';
+                if (in_array('eventprime-user-feedback.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-user-feedback.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Event_Feedback");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=feedback');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('User Feedback');
+                $data['image'] = 'user-feedback.png';
+                $data['desc'] = "Elevate your event experience with EventPrime's Feedback Extension. It allows attendees to share their invaluable insights through multiple submissions.";
+                break;
+
+            case 'RSVP':
+                $data['url'] = 'https://theeventprime.com/all-extensions/rsvp/';
+                $data['title'] = 'RSVP';
+                if (in_array('eventprime-rsvp.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-rsvp.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_RSVP");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=rsvp');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('RSVP');
+                $data['image'] = 'rsvp.png';
+                $data['desc'] = "Create invitational events, allowing you to send individual or bulk invites, receive and track RSVPs, manage guest lists and more!";
+                break;
+
+            case 'WooCommerce Checkout':
+                $data['url'] = 'https://theeventprime.com/all-extensions/woocommerce-checkout/';
+                $data['title'] = 'WooCommerce Checkout';
+                if (in_array('woocommerce-checkout.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('woocommerce-checkout.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Woocommerce_Checkout_Integration");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=wc-checkout');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('WooCommerce Checkout');
+                $data['image'] = 'woocommerce checkout.png';
+                $data['desc'] = "Delegate your event booking checkout process to WooCommerce, and use any compatible WooCommerce payment gateway!";
+                break;
+
+            case 'Ratings and Reviews':
+                $data['url'] = 'https://theeventprime.com/all-extensions/ratings-and-reviews/';
+                $data['title'] = 'Reviews & Ratings';
+                if (in_array('event-reviews.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('event-reviews.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Ratings_And_Reviews");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=reviews');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Ratings and Reviews');
+                $data['image'] = 'review-icon.png';
+                $data['desc'] = "Allow users to post reviews and rate events using star ratings. Supports multiple options including review likes and dislikes, frontend scorecard, and a robust admin area configuration!";
+                break;
+
+            case 'Attendee Event Check In':
+                $data['url'] = 'https://theeventprime.com/all-extensions/attendee-event-check-in/';
+                $data['title'] = 'Attendee Check In';
+                if (in_array('eventprime-attendee-event-check-in.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-attendee-event-check-in.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Attendee_Event_Check_In");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=attendee-check-in-settings');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Attendee Event Check In');
+                $data['image'] = 'attendee-check-in.png';
+                $data['desc'] = "Enable attendee check-in system for your events. Authorize your check-in staff to manage attendee tracking efficiently for a smooth and organized event experience.";
+                break;
+
+            case 'Waiting List':
+                $data['url'] = 'https://theeventprime.com/all-extensions/waiting-list/';
+                $data['title'] = 'Waiting List';
+                if (in_array('eventprime-waiting-list.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-waiting-list.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("EventPrime_Waiting_List");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=wt');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Waiting List');
+                $data['image'] = 'ep-waiting-list-icon.png';
+                $data['desc'] = "Allow users to join a waiting list when events are full and get notified if spots open up. Manage priorities, send alerts, and handle bookings efficiently.";
+                break;
+
+            case 'HoneyPot Security':
+                $data['url'] = 'https://theeventprime.com/all-extensions/honeypot-security/';
+                $data['title'] = 'HoneyPot Security';
+                if (in_array('eventprime-honeypot-security.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-honeypot-security.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Honeypot_Integration");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=honeypot');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('HoneyPot Security');
+                $data['image'] = 'honeypot-icon.png';
+                $data['desc'] = "The HoneyPot Security extension for EventPrime adds an invisible anti-spam trap to your event forms, preventing bots from submitting fake data while ensuring a smooth experience for real users.";
+                break;
+
+            case 'Turnstile Antispam Security':
+                $data['url'] = 'https://theeventprime.com/all-extensions/turnstile-antispam-security/';
+                $data['title'] = 'Turnstile Antispam Security';
+                if (in_array('eventprime-turnstile-antispam-security.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-turnstile-antispam-security.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Turnstile_Antispam");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=turnstile-security-settings');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Turnstile Antispam Security');
+                $data['image'] = 'ep-turnstile-icon.png';
+                $data['desc'] = "EventPrime Turnstile Antispam Security enhances the protection of your event forms by integrating Cloudflare's advanced Turnstile CAPTCHA.";
+                break;
+
+            case 'Event Reminder Emails':
+                $data['url'] = 'https://theeventprime.com/all-extensions/event-reminder-emails/';
+                $data['title'] = 'Event Reminder Emails';
+                if (in_array('eventprime-event-reminder-emails.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-event-reminder-emails.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Event_Reminder_Emails");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=email-reminder-settings');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Event Reminder Emails');
+                $data['image'] = 'ep-event-reminder-emails-icon.png';
+                $data['desc'] = "The Event Reminder Emails extension for EventPrime automatically sends reminder emails to attendees before an event starts.";
+                break;
+
+            case 'Square Payments':
+                $data['url'] = 'https://theeventprime.com/all-extensions/square-payments/';
+                $data['title'] = 'Square Payments';
+                if (in_array('square-payment-integration.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('square-payment-integration.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Square_Payment_Integration");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=payments&section=square');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Square Payments');
+                $data['image'] = 'ep-square-icon.png';
+                $data['desc'] = "Enable secure and seamless event payments with Square. This extension integrates Square with EventPrime, providing a smooth checkout experience for your attendees.";
+                break;
+
+            case 'hCaptcha Security':
+                $data['url'] = 'https://theeventprime.com/all-extensions/hcaptcha-security/';
+                $data['title'] = 'hCaptcha Security';
+                if (in_array('eventprime-hcaptcha-integration.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-hcaptcha-integration.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Hcaptcha_Integration");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=hcaptcha-security-settings');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('hCaptcha Security');
+                $data['image'] = 'hcaptcha-integration.png';
+                $data['desc'] = "This extension adds hCaptcha to login, registration, and event booking forms, securing them against bots and automated abuse.";
+                break;
+                
+            case 'Advanced Seat Plan Builder':
+                $data['url'] = 'https://theeventprime.com/all-extensions/advanced-seat-plan-builder/';
+                $data['title'] = 'Advanced Seat Plan Builder';
+                if (in_array('eventprime-advanced-seat-plan-builder.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-advanced-seat-plan-builder.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Advanced_Live_Seating");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=eventprime_seat_plans');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Advanced Seat Plan Builder');
+                $data['image'] = 'advanced-seat-plan-builder.png';
+                $data['desc'] = "Design advanced custom seating maps with shapes, rotation, and per-seat amenities, icons, and color-coded ticket zones.";
+                break;
+
+            case 'Group Booking':
+                $data['url'] = 'https://theeventprime.com/all-extensions/group-booking/';
+                $data['title'] = 'Group Booking';
+                if (in_array('eventprime-group-booking.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-group-booking.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Group_Booking");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Group Booking');
+                $data['image'] = 'ep-group-booking.png';
+                $data['desc'] = "Allow users to book event tickets as a group under a single group leader, with group-specific identity, leader details, and reporting.";
+                break;
+                
+            case 'Advanced Social Sharing':
+                $data['url'] = 'https://theeventprime.com/all-extensions/advanced-social-sharing/';
+                $data['title'] = 'Advanced Social Sharing';
+                if (in_array('eventprime-advanced-social-sharing.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-advanced-social-sharing.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Advanced_Social_Sharing");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=Social_sharing');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Advanced Social Sharing');
+                $data['image'] = 'advanced-social-sharing.png';
+                $data['desc'] = "Replaces the default EventPrime event share icon with a fully configurable social sharing interface that supports a wide range of global and regional platforms, customizable icon styles and layout options, and admin-level global control.";
+                break;
+            
+            case 'Event Countdown Timer':
+                $data['url'] = 'https://theeventprime.com/all-extensions/event-countdown-timer/';
+                $data['title'] = 'Event Countdown Timer';
+                if (in_array('eventprime-event-countdown-timer.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-event-countdown-timer.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Event_Countdown");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=event-countdown-settings');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Event Countdown Timer');
+                $data['image'] = 'ep-countdown-icon.png';
+                $data['desc'] = "Add fully customizable countdown timers to highlight upcoming events and engage your audience.";
+                break;
+            
+            case 'Join Chat Integration':
+                $data['url'] = 'https://theeventprime.com/all-extensions/join-chat-integration/';
+                $data['title'] = 'Join Chat Integration';
+                if (in_array('eventprime-join-chat-integration.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-join-chat-integration.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Join_Chat_Integration");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=join-chat-integration-settings');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Join Chat Integration');
+                $data['image'] = 'join-chat-icon.png';
+                $data['desc'] = "Integrate Whatsapp chat functionality into your EventPrime events.";
+                break;
+                
+            case 'Event Map View':
+                $data['url'] = 'https://theeventprime.com/all-extensions/event-map-view/';
+                $data['title'] = 'Event Map View';
+                if (in_array('eventprime-event-map-view.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-event-map-view.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Event_Map_View");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=map_view');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Event Map View');
+                $data['image'] = 'event-map-view-icon.png';
+                $data['desc'] = "An interactive map view of upcoming and past events with filter controls, off-canvas detail panel, and clustering.";
+                break;
+            
+            case 'Multi-Session Events':
+                $data['url'] = 'https://theeventprime.com/all-extensions/multi-session-events/';
+                $data['title'] = 'Multi-Session Events';
+                if (in_array('eventprime-multi-session-events.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-multi-session-events.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Multi_Session_Events");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=multisession_event');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Multi-Session Events');
+                $data['image'] = 'multi-session-events-icon.png';
+                $data['desc'] = "Add multiple sessions to a single event with customizable time slots, venues, and performers. Perfect for workshops, conferences, and summits with structured agendas.";
+                break;
+                
+            case 'Demo Data':
+                $data['url'] = 'https://theeventprime.com/all-extensions/demo-data/';
+                $data['title'] = 'Demo Data';
+                if (in_array('eventprime-demo-data.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-demo-data.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Demo_Data");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-demo-data');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('Demo Data');
+                $data['image'] = 'ep-demo-data-icon.png';
+                $data['desc'] = "The purpose of this extension is to help users quickly set up their EventPrime installation with demo events to showcase the plugin’s features. The extension will allow users to generate demo events, with the option to include demo user accounts to show booking details.";
+                break;
+        }
+
+        return $data;
+    }
 
     // check if extension is premium
-    function ep_check_for_premium_extension($extension) {
+    public function ep_check_for_premium_extension($extension) {
         $is_premium = 0;
         $premium_ext_list = $this->ep_load_premium_extension_list();
         if (in_array($extension, $premium_ext_list)) {
@@ -4710,10 +5781,28 @@ public function ep_get_event_date_time_diff( $event ) {
     }
 
     // check if site url is valid
-    public function is_valid_site_url( $website ) {
+    public function is_valid_site_url_old( $website ) {
         $url_pattern = '^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()!@:%_\+.~#?&\/\/=]*)^';
         return preg_match( $url_pattern, $website );
     }
+    
+    public function is_valid_site_url( $website ) {
+        $website = trim( (string) $website );
+        if ( $website === '' ) {
+            return false;
+        }
+
+        // Try as-is
+        $ok = wp_http_validate_url( $website );
+
+        // Also allow inputs without a scheme (e.g., "example.com")
+        if ( ! $ok && strpos( $website, '://' ) === false ) {
+            $ok = wp_http_validate_url( 'http://' . $website );
+        }
+
+        return (bool) $ok;
+    }
+
     
     public function ep_sanitize_phone_number( $phone ) {
 	return preg_replace( '/[^\d+]/', '', $phone );
@@ -5724,6 +6813,7 @@ public function ep_get_event_date_time_diff( $event ) {
             }
             $event->id                 = $post->ID;
             $event->name               = $post->post_title;
+            $event->em_name            = $post->post_title;
             $event->slug               = $post->post_name;
             $event->description        = wp_kses_post( $post->post_content );
             $event->post_status        = $post->post_status;
@@ -5858,7 +6948,10 @@ public function ep_get_event_date_time_diff( $event ) {
     }
     
     public function get_event_qr_code_duplicate( $event ) {
-		$image_url = '';
+		 if ( ! $this->is_gd_extension_available() ) {
+                        return '';
+                    }
+                    $image_url = '';
 		if( ! empty( $event ) && isset( $event->event_url ) && ! empty( $event->event_url ) ) {
 			$url = $event->event_url;
 			$file_name = 'ep_qr_'.md5($url).'.png';
@@ -6046,17 +7139,159 @@ public function ep_get_event_date_time_diff( $event ) {
         }
     }
     
-     public function get_front_calendar_view_event( $events, $is_admin=false ) {
+    public function get_front_calendar_view_event( $events, $is_admin = false ) {
+        $cal_events = array();
+
+        if ( empty( $events ) ) {
+            return $cal_events;
+        }
+
+        $new_window = ( ! empty( $this->ep_get_global_settings( 'open_detail_page_in_new_tab' ) ) ? 'target="_blank"' : '' );
+        $event_listings_date_format = ! empty( $this->ep_get_global_settings( 'event_listings_date_format_val' ) )
+            ? $this->ep_get_global_settings( 'event_listings_date_format_val' )
+            : 'Y-m-d';
+
+        foreach ( $events as $event ) {
+            if ( empty( $event ) || empty( $event->id ) ) {
+                continue;
+            }
+
+            // Base event data
+            $ev = $this->get_event_data_to_views( $event );
+
+            // Handle hide-time global and per-event settings
+            $hide_time = $this->ep_get_global_settings( 'hide_time_on_front_calendar' );
+            if ( isset( $event->em_hide_event_end_time ) && $event->em_hide_event_end_time == 1 ) {
+                $ev['end_time'] = $ev['display_end_time'] = '';
+            }
+            if ( isset( $event->em_hide_event_start_time ) && $event->em_hide_event_start_time == 1 ) {
+                $ev['start_time'] = $ev['display_start_time'] = '';
+            }
+            if ( $hide_time ) {
+                $ev['start_time'] = $ev['end_time'] = '';
+                $ev['display_start_time'] = $ev['display_end_time'] = '';
+            }
+
+            // Prepare start date for popup (already shifted)
+            $start_date_time = $ev['display_start_date'];
+
+            // For admin popup, add edit links
+            if ( $is_admin ) {
+                $ev['edit_url'] = esc_url( 'post.php?post=' . $ev['id'] . '&action=edit' );
+                if ( isset( $ev['url'] ) ) {
+                    unset( $ev['url'] );
+                }
+            }
+
+            // ───────────────────────────────────────────────
+            // Popup HTML
+            // ───────────────────────────────────────────────
+            $popup_html  = '<div class="ep_event_detail_popup" id="ep_calendar_popup_' . esc_attr( $ev['id'] ) . '" style="display:none">';
+            $popup_html .= '<a href="' . esc_url( $ev['event_url'] ) . '" class="ep_event_popup_head" ' . esc_attr( $new_window ) . '>';
+            $popup_html .= '<div class="ep_event_popup_image"><img src="' . esc_url( $ev['image'] ) . '"></div>';
+            $popup_html .= '</a>';
+
+            $popup_html .= '<div class="ep_event_popup_date_time_wrap ep-d-flex">';
+
+            // Dates
+            $popup_html .= '<div class="ep_event_popup_date ep-d-flex ep-box-direction">';
+            if ( $this->ep_show_event_date_time( 'em_start_date', $event ) ) {
+                $popup_html .= '<span class="ep_event_popup_start_date">' . esc_html( $start_date_time ) . '</span>';
+            } else {
+                if ( ! empty( $ev['date_custom_note'] ) ) {
+                    if ( $ev['date_custom_note'] === 'tbd' ) {
+                        $tbd_icon_file = plugin_dir_path( EP_PLUGIN_FILE ) . 'public/partials/images/tbd-icon.png';
+                        $popup_html .= '<span class="ep_event_popup_start_date"><img src="' . esc_url( $tbd_icon_file ) . '" width="35" /></span>';
+                    } else {
+                        $popup_html .= '<span class="ep_event_popup_start_date">' . esc_html( $ev['date_custom_note'] ) . '</span>';
+                    }
+                }
+            }
+
+            if ( $this->ep_show_event_date_time( 'em_end_date', $event ) ) {
+                $popup_html .= '<span class="ep_event_popup_end_date">' . esc_html( $ev['display_end_date'] ) . '</span>';
+            }
+            $popup_html .= '</div>';
+
+            // Times
+            $popup_html .= '<div class="ep_event_popup_time ep-d-flex ep-box-direction">';
+            if ( $this->ep_show_event_date_time( 'em_start_time', $event ) && ! empty( $ev['display_start_time'] ) ) {
+                $popup_html .= '<span class="ep_event_popup_start_time">' . esc_html( $ev['display_start_time'] ) . '</span>';
+            }
+            if ( $this->ep_show_event_date_time( 'em_end_time', $event ) && ! empty( $ev['display_end_time'] ) ) {
+                $popup_html .= '<span class="ep_event_popup_end_time">' . esc_html( $ev['display_end_time'] ) . '</span>';
+            }
+            $popup_html .= '</div>'; // .ep_event_popup_time
+
+            $popup_html .= '</div>'; // .ep_event_popup_date_time_wrap
+
+            // Title
+            $popup_html .= '<a href="' . esc_url( $ev['event_url'] ) . '" class="ep-event-modal-head" ' . esc_attr( $new_window ) . '>';
+            $popup_html .= '<div class="ep_event_popup_title ep-text-break">' . esc_html( $ev['title'] );
+            
+            // Use a filter to allow returning HTML (replaces previous do_action + output buffering)
+            $html_after_title = '';
+            $popup_html .= apply_filters( 'ep_after_event_popup_title', $html_after_title, $ev, $event );
+            $popup_html .= '</div>';
+            $popup_html .= '</a>';
+
+            // Venue and address
+            if ( ! empty( $ev['venue_name'] ) ) {
+                $popup_html .= '<div class="ep_event_popup_address">' . esc_html( $ev['venue_name'] ) . '</div>';
+            }
+            if ( ! empty( $ev['address'] ) ) {
+                $popup_html .= '<div class="ep_event_popup_address">' . esc_html( $ev['address'] ) . '</div>';
+            }
+
+            // Allow filters
+            $popup_html = apply_filters( 'ep_event_calendar_event_popup_html', $popup_html, $ev, $event );
+
+            // Admin action buttons
+            if ( $is_admin ) {
+                $popup_html .= '<div class="ep_event_popup_action_btn ep-d-flex ep-justify-content-between ep-border-top ep-py-2 ep-px-4 ep-text-center">';
+                $popup_html .= '<a href="' . esc_url( $ev['event_url'] ) . '" class="ep_event_popup_btn ep-text-decoration-none ep-box-w-100" target="__blank">';
+                $popup_html .= '<div class="ep-event-action-btn ep-py-2">View Event</div>';
+                $popup_html .= '</a>';
+                if ( current_user_can( 'edit_em_events' ) ) {
+                    $popup_html .= '<a href="' . esc_url( $ev['edit_url'] ) . '" class="ep_event_popup_btn ep-border-left ep-text-decoration-none ep-box-w-100" target="__blank">';
+                    $popup_html .= '<div class="ep-event-action-btn ep-py-2">Edit Event</div>';
+                    $popup_html .= '</a>';
+                }
+                $popup_html .= '</div>';
+            }
+
+            $popup_html .= '</div>'; // .ep_event_detail_popup
+
+            $ev['popup_html'] = $popup_html;
+            $cal_events[]     = $ev;
+        }
+
+        return $cal_events;
+    }
+
+    
+     public function get_front_calendar_view_event_old( $events, $is_admin=false ) {
         $cal_events = array();
         if( ! empty( $events ) && ! empty( $events ) ) {
             $new_window = ( ! empty( $this->ep_get_global_settings( 'open_detail_page_in_new_tab' ) ) ? 'target="_blank"' : '' );
             $event_listings_date_format = !empty($this->ep_get_global_settings('event_listings_date_format_val')) ? $this->ep_get_global_settings('event_listings_date_format_val') : 'Y-m-d';
             
             foreach( $events as $event ) {
+                //print_r($event);die;
                 if( ! empty( $event ) && ! empty( $event->id ) ) 
                 {
                 $ev = $this->get_event_data_to_views( $event );
                 $hide_time = $this->ep_get_global_settings( 'hide_time_on_front_calendar' );
+                if(isset($event->em_hide_event_end_time) && $event->em_hide_event_end_time==1)
+                {
+                    $ev['end_time'] = '';
+                }
+                
+                if(isset($event->em_hide_event_start_time) && $event->em_hide_event_start_time==1)
+                {
+                    $ev['start_time'] = '';
+                }
+                
                 if($hide_time)
                 {
                     $ev['start_time'] = '';
@@ -6134,6 +7369,9 @@ public function ep_get_event_date_time_diff( $event ) {
                             $popup_html .= esc_html( $ev['address'] );
                         $popup_html .= '</div>';
                     }
+
+                    $popup_html = apply_filters( 'ep_event_calendar_event_popup_html', $popup_html, $ev, $event );
+
                     // booking button
                     /* ob_start();
                         do_action( 'ep_event_view_event_booking_button', $event );
@@ -6272,8 +7510,165 @@ public function ep_get_event_date_time_diff( $event ) {
     }
     
     
-     public function get_event_data_to_views( $event ) {
+   
+   // Keep time static, shift *date* to target timezone; return naive local "YYYY-MM-DDTHH:MM:SS"
+    private function fc_datetime_date_shift_only( int $date_ts, string $time_str, DateTimeZone $target_tz ): string {
+        $date_local = wp_date('Y-m-d', $date_ts, $target_tz);
+
+        $time_str = trim((string)$time_str);
+        if ($time_str === '') { $time_str = '00:00:00'; }
+
+        $dt = DateTime::createFromFormat('g:i A', strtoupper($time_str))
+           ?: DateTime::createFromFormat('g:i:s A', strtoupper($time_str))
+           ?: DateTime::createFromFormat('H:i', $time_str)
+           ?: DateTime::createFromFormat('H:i:s', $time_str);
+
+        $norm = $dt ? $dt->format('H:i:s') : '00:00:00';
+        return $date_local . 'T' . $norm;
+    }
+
+    // Display time helper (always 12h "g:i A")
+    private function ep_time_display_12h( string $time_str ): string {
+        $s = trim((string)$time_str);
+        if ($s === '') return '';
+        $dt = DateTime::createFromFormat('g:i A', strtoupper($s))
+           ?: DateTime::createFromFormat('g:i:s A', strtoupper($s))
+           ?: DateTime::createFromFormat('H:i', $s)
+           ?: DateTime::createFromFormat('H:i:s', $s);
+        return $dt ? $dt->format('g:i A') : $s;
+    }
+
+
+    public function get_event_data_to_views( $event ) {
         $ev = array();
+        $target_tz = wp_timezone();
+
+        if ( empty($event) || empty($event->id) ) return $ev;
+
+        $ev['title'] = ( ! empty($event->em_name) ? $event->em_name : $event->name );
+        $ev['id']    = $event->id;
+
+        // init
+        $ev['start'] = $ev['end'] = '';
+        $ev['start_time'] = $ev['end_time'] = '';
+        $ev['bg_color'] = 'rgb( 34,113,177 )';
+        $ev['type_text_color'] = '#000000';
+        $ev['address'] = $ev['image'] = $ev['date_custom_note'] = $ev['event_day'] = '';
+
+        // >>>> NEW: display-only fields for popup
+        $ev['display_start_date'] = $ev['display_end_date'] = '';
+        $ev['display_start_time'] = $ev['display_end_time'] = '';
+
+        // START
+        if ( ! empty( $event->em_start_date ) ) {
+            // FullCalendar machine value
+            if ( ! empty($event->em_start_time) && $this->ep_show_event_date_time('em_start_time', $event) ) {
+                $ev['start'] = $this->fc_datetime_date_shift_only( (int)$event->em_start_date, (string)$event->em_start_time, $target_tz );
+            } else {
+                // all-day start of day
+                $ev['start'] = wp_date('Y-m-d', (int)$event->em_start_date, $target_tz) . 'T00:00:00';
+            }
+
+            // Visible strings
+            $ev['display_start_date'] = wp_date('F j, Y', (int)$event->em_start_date, $target_tz);
+            $ev['start_time']         = ( ! empty($event->em_start_time) ? (string)$event->em_start_time : '' );
+            $ev['display_start_time'] = $this->ep_convert_time_with_format( $ev['start_time'] );
+        }
+
+        // END
+        if ( ! empty( $event->em_end_date ) ) {
+            $is_multiday = ! empty($event->em_start_date) && ((int)$event->em_start_date !== (int)$event->em_end_date);
+
+            // FullCalendar machine value
+            if ( $this->ep_show_event_date_time('em_end_time', $event) && !empty($event->em_end_time) ) {
+                $ev['end'] = $this->fc_datetime_date_shift_only( (int)$event->em_end_date, (string)$event->em_end_time, $target_tz );
+            } else {
+                // >>>> when times are hidden, end at 23:59:59 of the (shifted) end date so the chip spans the full last day
+                $end_date_local = wp_date('Y-m-d', (int)$event->em_end_date, $target_tz);
+                $ev['end']      = $end_date_local . 'T23:59:59';
+            }
+
+            // Visible strings
+            $ev['display_end_date'] = wp_date('F j, Y', (int)$event->em_end_date, $target_tz);
+            $ev['end_time']         = ( ! empty($event->em_end_time) ? (string)$event->em_end_time : '' );
+            $ev['display_end_time'] = $this->ep_convert_time_with_format( $ev['end_time'] );
+
+            // Weekday label for single-day only
+            if ( ! empty($event->em_start_date) && (int)$event->em_start_date === (int)$event->em_end_date ) {
+                $ev['event_day'] = wp_date('l', (int)$event->em_start_date, $target_tz);
+            }
+        }
+
+        // Event type colors
+        if ( ! empty( $event->em_event_type ) ) {
+            $single_et = $this->get_single_event_type( $event->em_event_type );
+            $ev['bg_color']        = ( ! empty($single_et->em_color) ) ? $this->ep_hex2rgba( $single_et->em_color ) : $ev['bg_color'];
+            $ev['type_text_color'] = ( ! empty($single_et->em_type_text_color) ) ? $single_et->em_type_text_color : $ev['type_text_color'];
+        }
+
+        // Venue
+        if ( ! empty( $event->em_venue ) ) {
+            $single_venue  = $this->get_single_venue( $event->em_venue );
+            $ev['venue_name'] = ( ! empty( $single_venue->name ) ) ? $single_venue->name : '';
+            $ev['address']    = ( ! empty( $single_venue->em_address ) && ! empty( $single_venue->em_display_address_on_frontend ) ) ? $single_venue->em_address : '';
+        }
+
+        // Image
+        $featured_img_url = get_the_post_thumbnail_url( $event->id );
+        if ( is_admin() && defined('ELEMENTOR_VERSION') ) {
+            $featured_img_url = $this->get_event_image_url($event->id);
+        } else {
+            $thumb_id = get_post_thumbnail_id( $event->id );
+            if ( ! empty($thumb_id) ) {
+                $arr = wp_get_attachment_image_src( $thumb_id, 'full', false );
+                if ( ! empty($arr) ) $featured_img_url = $arr[0];
+            }
+        }
+        if ( ! empty($featured_img_url) ) {
+            $ev['image'] = $featured_img_url;
+        }
+
+        // URLs
+        $ev['event_url'] = $this->ep_get_custom_page_url('events_page', $event->id, 'event');
+        $ev['url']       = $ev['event_url'];
+
+        $settings          = new Eventprime_Global_Settings;
+        $global_options    = $settings->ep_get_settings();
+        if ( !empty($global_options->redirect_third_party) && $global_options->redirect_third_party == 1 && $event->em_enable_booking == 'external_bookings' ) {
+            $em_custom_link = get_post_meta( $event->id, 'em_custom_link', true );
+            if ( ! empty($em_custom_link) ) {
+                $ev['event_url'] = $ev['url'] = $em_custom_link;
+            }
+        }
+
+        // Date placeholder logic (unchanged)
+        if ( ! $this->ep_show_event_date_time('em_start_date', $event) ) {
+            if ( isset($event->em_event_date_placeholder) && $event->em_event_date_placeholder != 'custom_note' ) {
+                $ev['date_custom_note'] = $event->em_event_date_placeholder;
+            } else {
+                $ev['date_custom_note'] = ( ! empty($event->em_event_date_placeholder_custom_note) ? $event->em_event_date_placeholder_custom_note : '' );
+            }
+        }
+
+        // Misc
+        $ev['event_type']      = ( ! empty($event->em_event_type) ? $event->em_event_type : '' );
+        $ev['venue']           = ( ! empty($event->em_venue) ? $event->em_venue : '' );
+        $ev['performer']       = ( ! empty($event->em_performer) ? $event->em_performer : array() );
+        $ev['organizer']       = ( ! empty($event->em_organizer) ? $event->em_organizer : array() );
+        $ev['booking_enable']  = $event->em_enable_booking;
+        $ev['all_day']         = ( ! empty($event->em_all_day) ? (int)$event->em_all_day : 0 );
+        $ev['event_end_date']  = $this->ep_timestamp_to_date( $event->em_end_date );
+        $ev['event_start_date']= $this->ep_timestamp_to_date( $event->em_start_date );
+        $ev['event_id']        = $event->id;
+        $ev['event_title']     = $ev['title'];
+        $ev['open_event_in_new_tab'] = absint( $this->ep_get_global_settings('open_detail_page_in_new_tab') );
+
+        return $ev;
+    }
+
+     public function get_event_data_to_views_old( $event ) {
+        $ev = array();
+        $target_tz = wp_timezone();
         if( ! empty( $event ) && ! empty( $event->id ) ) {
             $ev['title'] = ( ! empty( $event->em_name ) ? $event->em_name : $event->name );
             $ev['id']    = $event->id;
@@ -6283,7 +7678,8 @@ public function ep_get_event_date_time_diff( $event ) {
                 $start_date       = $this->ep_timestamp_to_date( $event->em_start_date, 'Y-m-d', 1 );
                 $ev['start']      = $start_date;
                if( ! empty( $event->em_start_time ) && $this->ep_show_event_date_time( 'em_start_time', $event ) ) {
-                 $ev['start'] = $this->ep_timestamp_to_datetime($event->em_start_date_time,'Y-m-d H:i', 1 );
+                 $ev['start'] = $this->fc_datetime_date_shift_only($event->em_start_date, $event->em_start_time,$target_tz);
+                 //$ev['start'] = $this->ep_timestamp_to_datetime($event->em_start_date_time,'Y-m-d H:i', 1 );
                }
                 
                 $ev['start_time'] = ( ! empty( $event->em_start_time ) ? $event->em_start_time : '' );
@@ -6296,7 +7692,8 @@ public function ep_get_event_date_time_diff( $event ) {
                     $ev['event_day']  = wp_date( 'l', $event->em_start_date );
                 }
                 if( $this->ep_show_event_date_time( 'em_end_time', $event ) ) {
-                    $ev['end'] = $this->ep_timestamp_to_datetime($event->em_end_date_time,'Y-m-d H:i', 1 );
+                    //$ev['end'] = $this->ep_timestamp_to_datetime($event->em_end_date_time,'Y-m-d H:i', 1 );
+                    $ev['end'] = $this->fc_datetime_date_shift_only($event->em_end_date, $event->em_end_time,$target_tz);
                 } else{
                     if( empty( $event->em_hide_event_start_time ) ) {
                         if( $this->ep_is_multidate_event( $event ) ) {
@@ -6571,6 +7968,9 @@ public function eventprime_check_remaining_tickets_in_event($event,$ticket_id,$q
                         // ticket booked capacity
                         $total_bookings += ( ! empty( $booked_tickets_data[$ticket->id] ) ? $booked_tickets_data[$ticket->id] : 0 );
                     }
+
+                    $total_caps = apply_filters('ep_event_verify_total_capacity',$total_caps,$event, $ticket);
+                    $total_bookings = apply_filters('ep_event_verify_total_bookings',$total_bookings,$event, $ticket);
                 }
                 
                 if( $total_caps > $total_bookings ) {
@@ -7975,10 +9375,11 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
         $term_id = 0;
         if(!empty($data)){
             $location_name = isset($data['name']) ? sanitize_text_field($data['name']) : '';
+            $description = isset($data['description']) ? $data['description'] : '';
             $venue = wp_insert_term(
                 $location_name,
                 'em_venue',
-                array()
+                array('description' => $description)
             );
             $term_id = isset($venue['term_id']) ? $venue['term_id'] : 0;
             
@@ -8042,12 +9443,19 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
             $em_image_id = isset($data['em_image_id']) ? $data['em_image_id']: '';
             $em_is_featured = isset($data['em_is_featured']) ? sanitize_text_field($data['em_is_featured']): 0;
             $em_age_group = isset($data['em_age_group']) ? $data['em_age_group'] : 'all';
+            $custom_group = '';
+            if ( $em_age_group == 'custom_group' ) {
+                $custom_group = isset( $data['em_custom_group'] ) ? sanitize_text_field( $data['em_custom_group'] ) : '';
+            }
             
-            update_term_meta( $term_id, 'em_color', $em_color );
+        update_term_meta( $term_id, 'em_color', $em_color );
 	    update_term_meta( $term_id, 'em_type_text_color', $em_type_text_color );
 	    update_term_meta( $term_id, 'em_image_id', $em_image_id );
 	    update_term_meta( $term_id, 'em_is_featured', $em_is_featured );
-            update_term_meta( $term_id, 'age_group', $em_age_group);
+        update_term_meta( $term_id, 'em_age_group', $em_age_group);
+        if ( !empty( $custom_group ) ) {
+            update_term_meta( $term_id, 'em_custom_group', $custom_group );
+        }
             if ( isset($data['em_status']) && !empty($data['em_status'])) {
                 update_term_meta( $term_id, 'em_status', 1 );
             }
@@ -9751,7 +11159,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
         //$venues_data['events'] = $this->get_upcoming_events_for_venue( $event_args['post_id'] , $pargs);
         $venues_data['events'] = $ep_requests->get_upcoming_events_for_taxonomy('em_venue', $event_args['post_id'], $event_args['hide_past_events'], $event_args['event_limit'], $paged, $pargs);
         ob_start();
-	$themepath = $ep_requests->eventprime_get_ep_theme('upcoming-events-list-load-tpl');
+	        $themepath = $ep_requests->eventprime_get_ep_theme('upcoming-events-list-load-tpl');
         $this->ep_get_template_part( $themepath, null, (object)$venues_data );
             
         $data['html'] = ob_get_clean();
@@ -10401,6 +11809,9 @@ public function ep_get_events( $fields ) {
     }
     
     public function get_booking_qr_code( $booking ) {
+                if ( ! $this->is_gd_extension_available() ) {
+			return '';
+		}
 		$image_url = '';
 		if( ! empty( $booking ) ) {
 			$url = get_permalink( $this->ep_get_global_settings( 'booking_details_page' ) );
@@ -11112,7 +12523,10 @@ public function ep_get_events( $fields ) {
         // Required fields from global fes settings. 
         if(!empty($fields) && is_array($fields)){
             foreach($fields as $key => $field){
-                $required_fields->$key = $field;
+                if(!empty($field))
+                {
+                    $required_fields->$key = $field;
+                }
             }
         }
 
@@ -11162,6 +12576,7 @@ public function ep_get_events( $fields ) {
                 'no_ticket_found_error'   => esc_html__( 'Booking will be turn off if no ticket found. Are you sure you want to continue?', 'eventprime-event-calendar-management' ),
                 'max_capacity_error'      => esc_html__( 'Max allowed capacity is', 'eventprime-event-calendar-management' ),
                 'max_less_then_min_error' => esc_html__( 'Maximum tickets number can\'t be less then minimum tickets number.', 'eventprime-event-calendar-management' ),
+                'min_ticket_no_zero_error'=> esc_html__( 'The minimum ticket quantity per order must be greater than zero.', 'eventprime-event-calendar-management' ),
                 'required_text'		      => esc_html__( 'Required', 'eventprime-event-calendar-management' ),
                 'one_checkout_field_req'  => esc_html__( 'Please select atleast one attendee field.', 'eventprime-event-calendar-management' ),
                 'no_name_field_option'    => esc_html__( 'Please select name field option.', 'eventprime-event-calendar-management' ),
@@ -11187,6 +12602,8 @@ public function ep_get_events( $fields ) {
                 'event_performer_name_error' => esc_html__( 'Event Perfomer name can not be empty.', 'eventprime-event-calendar-management' ),
                 'event_organizer_error'   => esc_html__( 'Please Select Event Organizers.', 'eventprime-event-calendar-management' ),
                 'event_organizer_name_error' => esc_html__( 'Event Organizer name can not be empty.', 'eventprime-event-calendar-management' ),
+                'venue_address_required'  => esc_html__( 'Venue address is required.', 'eventprime-event-calendar-management' ),
+                'venue_seating_required'  => esc_html__( 'Seating type is required.', 'eventprime-event-calendar-management' ),
                 'fes_nonce'               => wp_create_nonce( 'ep-frontend-event-submission-nonce' ),
                 'choose_image_label'      => esc_html__( 'Choose Image', 'eventprime-event-calendar-management' ),
                 'use_image_label'         => esc_html__( 'Use Image', 'eventprime-event-calendar-management' ),

@@ -1260,6 +1260,8 @@ class EP_DBhandler {
                            $post_data['em_end_time'] = '11:59 PM';
                         }
                     }
+                } else if( !empty($em_start_time) && empty($em_end_time) ) {
+                    $post_data['em_end_time'] = '11:59 PM';
                 }
             } else if ($em_start_date < $em_end_date) {
                 if (empty($em_start_time)) {
@@ -2499,7 +2501,7 @@ class EP_DBhandler {
                 }
 
                 // delete booking of this event
-                
+                /*
                 $event_bookings = $booking_controller->get_event_bookings_by_event_id($child_post->ID);
                 if (!empty($event_bookings)) {
                     foreach ($event_bookings as $booking) {
@@ -2507,7 +2509,7 @@ class EP_DBhandler {
                         wp_delete_post($booking->ID, true);
                     }
                 }
-
+                */
                 // delete terms relationships
                 wp_delete_object_term_relationships($child_post->ID, array('em_venue', 'em_event_type', 'em_event_organizer'));
                 // delete event
@@ -4009,7 +4011,8 @@ class EP_DBhandler {
 						}
 					}
 					$counter++;
-					do_action( 'ep_after_edit_event_child_data', $child_post->ID, $child_post );
+					do_action( 'ep_after_edit_event_child_data', $child_post->ID, $child_post,$post_id);
+                                        
 				}
 			}
 		}

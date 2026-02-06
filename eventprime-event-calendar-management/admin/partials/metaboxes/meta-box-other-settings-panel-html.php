@@ -30,5 +30,8 @@ $em_audience_notice = get_post_meta( $post->ID, 'em_audience_notice', true );?>
                 <div class="ep-text-muted ep-text-small"><?php esc_html_e( 'A custom message to show to the visitors on the event page. Can be used for important instructions like restrictions etc.', 'eventprime-event-calendar-management' ); $ep_functions->ep_documentation_link_read_more_html('https://theeventprime.com/how-to-add-a-custom-note-to-a-wordpress-event/'); ?></div>
             </div> 
         </div>  
+
+        <?php do_action('ep_extend_other_settings_panel_options', $post); ?> 
+
     </div>
 </div>

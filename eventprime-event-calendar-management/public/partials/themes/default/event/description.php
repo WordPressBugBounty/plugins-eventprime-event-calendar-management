@@ -15,3 +15,12 @@
     ?>
   </div>
 </div>
+
+<div class="ep-box-col-12 ep-global-tab-wrapper">
+    <ul class="ep-global-tab-pills ep-mx-0 ep-p-0 ep-mb-3 " role="tablist">
+        <?php do_action('ep_event_tab_after_description', $post); ?>
+    </ul>
+    <div id="ep-global-tab-container" class="ep-box-w-100">
+        <?php do_action('ep_frontend_tab_content_after_description', $post); ?>
+    </div>
+</div>

@@ -531,6 +531,10 @@ ul.ep-box-social-links li::marker{
     height: 30px;
 }
 
+.ep-single-box-content .ep-single-box-social:empty{
+    display: none;
+}
+
 .ep-box-search-form .ep-input-group.form-group{
     margin-bottom: 0px;
     padding-bottom: 0px;
@@ -613,7 +617,7 @@ html.hillstar-theme .ep-single-figure-box img {
 
 ul.ep-single-box-details-meta li {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     font-size: 12px;
     margin-bottom: 6px;
 }
@@ -982,7 +986,7 @@ ul.ep-event-share li.ep-event-social-icon:first-child svg {
     align-items: end;
 }
 #ep-organizers-container .ep-event-organizers-grid-container {
-    padding: 0px 4px;
+    padding: 0px 0px;
 }
 /*-- Mini List View End---*/
 

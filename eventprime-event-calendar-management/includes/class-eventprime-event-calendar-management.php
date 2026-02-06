@@ -107,9 +107,12 @@ class Eventprime_Event_Calendar_Management {
 		 * The class responsible for orchestrating the actions and filters of the
 		 * core plugin.
 		 */
+        require_once plugin_dir_path( dirname( __FILE__ )) . 'includes/class-eventprime-api-integration-helpers.php';
+        require_once plugin_dir_path( dirname(__FILE__ ) ) . 'includes/class-eventprime-rest-api.php';
                 require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-eventprime-event-calendar-management-activator.php';
                 require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-eventprime-event-calendar-management-deactivator.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-eventprime-event-calendar-management-loader.php';
+
 
 		/**
 		 * The class responsible for defining internationalization functionality
@@ -152,6 +155,8 @@ class Eventprime_Event_Calendar_Management {
                 require_once plugin_dir_path( dirname( __FILE__)) . 'includes/class-ep-admin-notices.php';
                 
                 require_once plugin_dir_path( dirname( __FILE__)) . 'includes/class-eventprime-license.php';
+                require_once plugin_dir_path( dirname( __FILE__)) . 'includes/class-ep-license-notices.php';
+                require_once plugin_dir_path( dirname( __FILE__)) . 'includes/class-metagauss-license-migrator.php';
                 
                 require_once plugin_dir_path( dirname( __FILE__)) . 'includes/class-ep-bookings.php';
                 
@@ -190,6 +195,7 @@ class Eventprime_Event_Calendar_Management {
         private function define_global_hooks() {
                     $global_settings = new Eventprime_Global_Settings;
 		  $this->loader->add_filter( 'plugins_loaded', $this, 'ep_on_plugins_loaded' );
+                  $this->loader->add_action( 'plugins_loaded', 'Metagauss_License_Migrator', 'maybe_run', 20 );
                   $this->loader->add_filter( 'ep_payments_gateways_list', $global_settings, 'ep_payments_gateways_list');
                   $this->loader->add_filter('em_cpt_event',$global_settings, 'filer_eventmanager_post');
 	}
@@ -204,18 +210,22 @@ class Eventprime_Event_Calendar_Management {
 	private function define_admin_hooks() {
 
 		$plugin_admin = new Eventprime_Event_Calendar_Management_Admin( $this->get_plugin_name(), $this->get_version() );
+		$license_notices = new EventPrime_License_Notices();
                 $this->loader->add_action('admin_enqueue_scripts', $plugin_admin,'deregister_acf_timepicker_on_custom_post',999);
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
                 $this->loader->add_action( 'init',$plugin_admin, 'register_taxonomies',5);
 		$this->loader->add_action( 'init',$plugin_admin, 'register_post_types',4);
-		$this->loader->add_action( 'init',$plugin_admin, 'register_post_status',9);
+                $this->loader->add_action( 'init',$plugin_admin, 'register_post_status',9);
                 $this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'ep_event_remove_meta_boxes', 10 );
                 $this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'ep_event_register_meta_boxes', 1 );
                 $this->loader->add_action( 'admin_menu', $plugin_admin, 'ep_admin_menus'  );
                 $this->loader->add_action( 'admin_init', $plugin_admin, 'plugin_redirect' );
+                  $this->loader->add_action( 'init', $plugin_admin,'initialize_rest_api');
                 // $this->loader->add_action( 'admin_init', $plugin_admin, 'ep_print_notices' );
                 $this->loader->add_action( 'admin_notices', $plugin_admin, 'ep_print_notices' );
+                $this->loader->add_action( 'admin_notices', $license_notices, 'maybe_render_notice' );
+                $this->loader->add_action( 'wp_ajax_ep_dismiss_license_notice', $license_notices, 'ajax_dismiss_notice' );
                 /* 
                  * Event Types start
                  */
@@ -367,6 +377,7 @@ class Eventprime_Event_Calendar_Management {
                 $this->loader->add_action( 'before_delete_post', $plugin_admin, 'ep_before_delete_event_bookings', 99, 2 );
 
                 $this->loader->add_action( 'save_post', $plugin_admin, 'ep_save_event_meta_boxes', 1, 2 );
+                $this->loader->add_filter( 'wp_insert_post_data', $plugin_admin, 'ep_respect_requested_post_status', 10, 2 );
                 $this->loader->add_filter( 'manage_em_event_posts_columns', $plugin_admin, 'ep_filter_event_columns'  );
 		$this->loader->add_action( 'manage_em_event_posts_custom_column', $plugin_admin, 'ep_filter_event_columns_content', 10, 2 );
 		$this->loader->add_filter( 'manage_edit-em_event_sortable_columns',$plugin_admin, 'ep_sortable_event_columns', 10, 1 );
@@ -576,6 +587,15 @@ class Eventprime_Event_Calendar_Management {
                 'delete_user_bookings_data'         => false,
                 'delete_guest_booking_data'         => true,
                 
+                'save_license_settings'             => false,
+                'install_remote_plugin'             => false,
+                'activate_plugin'             => false,
+                'deactivate_plugin'             => false,
+                'deactivate_bundle_license' =>false,
+                'upload_license_file' =>false,
+                'check_license_status' => false,
+                
+
             );
 
             foreach ( $ajax_requests as $action => $nopriv ) {

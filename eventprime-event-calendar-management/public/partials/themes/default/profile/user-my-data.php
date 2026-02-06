@@ -5,7 +5,7 @@ $global_settings = $ep_functions->ep_get_global_settings();
 
 <div class="ep-box-row">
     <div class="ep-box-col-12 ep-border-left ep-border-3 ep-ps-3 ep-border-warning ep-mb-4">
-        <span class="text-uppercase fw-bold small"><?php esc_html_e( 'My Data', 'eventprime-event-calendar-management' ); ?></span>
+        <span class="ep-text-uppercase ep-fw-bold ep-text-small"><?php esc_html_e( 'My Data', 'eventprime-event-calendar-management' ); ?></span>
     </div>
 </div>
 

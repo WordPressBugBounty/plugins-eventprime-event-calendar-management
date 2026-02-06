@@ -373,7 +373,6 @@ html.ep-embed-responsive .emagic{
     --ep-btn-disabled-border-color: #ffc107;
 }
 
-
 .ep-dark-mode-enabled .emagic .ep-btn-warning{
     background-image: linear-gradient(to bottom right, var(--ep-btn-top-color), var(--ep-btn-bottom-color));
 
@@ -381,6 +380,7 @@ html.ep-embed-responsive .emagic{
 
 .ep-dark-mode-enabled .emagic .ep-btn-warning:hover{
     background-image: linear-gradient(to bottom right, var(--ep-btn-bottom-color), var(--ep-btn-bottom-color));
+    --ep-btn-border-color: #dc3545;
 }
 
 .ep-dark-mode-enabled .emagic .ep-btn-warning:active{
@@ -617,8 +617,6 @@ html.ep-embed-responsive .emagic{
     --ep-border-width: 1px;
     border-right: var(--ep-border-width) solid var(--ep-border-color)!important;
 }
-
-
 
 
 .ep-rounded {
@@ -1305,6 +1303,14 @@ body .emagic h6 {
 
 /*-- List group End--*/
 
+/*--- If dark Mode---*/
+
+.ep-dark-mode-enabled .ep-list-group.ep-myaccount-tabs .ep-list-group-item .ep-tab-link{
+    --ep-bg-opacity: 0.2;
+}
+
+/*--- dark Mode End---*/
+
 /*---Alignments---*/
 
 .ep-items-center {
@@ -1669,8 +1675,13 @@ body .emagic h6 {
     .ep-sm-text-center {
         text-align: center!important;
     }
-
+    
 }
+    
+    .ep-event-organizers-colored_grid-container .ep-organizer-colored_grid-wrap{
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
 
 @media (min-width: 992px){
 
@@ -1678,6 +1689,12 @@ body .emagic h6 {
         -ms-flex: 0 0 33.33333%;
         flex: 0 0 33.33333%;
         max-width: 33.33333%;
+    }
+    
+    .ep-box-col-md-4 {
+        -ms-flex: 0 0 25%;
+        flex: 0 0 25%;
+        max-width: 25%;
     }
 
 }
@@ -1935,6 +1952,27 @@ body .emagic h6 {
     box-shadow: none;
 }
 
+.ep-global-tab-pills{
+    display: flex;
+    flex-wrap: wrap;
+    padding-left: 0;
+    margin-bottom: 0;
+    list-style: none;
+}
+
+.ep-global-tab-pills .ep-global-tab-item .ep-global-tab-link{
+    padding: 0.5rem 1rem;
+    border-radius: var(--ep-border-radius);
+    box-shadow: none;
+    display: inline-flex;
+    box-shadow: none;
+}
+
+.ep-global-tab-pills .ep-global-tab-active {
+    background-color: rgba(var(--themeColor), 1);
+    color: rgba(var(--ep-white-color),1) !important;
+}
+
 /*--Pills End---*/
 
 .ep-nav-tabs .ep-tab-link.ep-tab-active {
@@ -1966,7 +2004,7 @@ body .emagic h6 {
     border-bottom: 1px solid var(--ep-border-color);
 }
 
-/*Global Tabs Ends--*/
+/*---Global Tabs Ends--*/
 
 /*---Radio Button Group---*/
 
@@ -2826,6 +2864,12 @@ body.ep-modal-open-body {
     max-width: 120rem !important;
     font-family: sans-serif;
     /*font-size: 16px;*/
+}
+
+.wp-theme-twentytwentyone .emagic .ep-btn-outline-dark,
+.wp-theme-twentytwentyone .emagic .ep-btn-warning,
+.wp-theme-twentytwentyone .emagic .ep-btn-danger{
+    background-color: var(--ep-btn-bg) !important;
 }
 
 /*--Theme Fixed End--*/

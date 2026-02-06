@@ -145,6 +145,8 @@ jQuery( function( $ ) {
                         // Map WP field to FullCalendar
                         e.allDay = (e.all_day === 1 || e.all_day === '1' || e.all_day === true);
 
+                         e.hideStartTime = !e.start_time; // true if start_time is blank
+                         e.hideEndTime   = !e.end_time;   // true if end_time is blank
                         // START: add time if missing for timed events
                         if (isDateOnly(e.start) && !e.allDay && e.start_time) {
                             e.start = toISO(e.start, e.start_time);
@@ -184,6 +186,27 @@ jQuery( function( $ ) {
                 showNonCurrentDates: hide_calendar_rows,
                 fixedWeekCount: hide_calendar_rows,
                 nextDayThreshold: '00:00',
+                eventContent(arg) {
+                    const s = arg.event.extendedProps.display_start_time || '';
+                    const e = arg.event.extendedProps.display_end_time   || '';
+                    let timeLabel = '';
+
+                    if (arg.isStart && arg.isEnd && s && e) timeLabel = `${s} – ${e}`;
+                    else if (arg.isStart && s)              timeLabel = s;
+                    else if (arg.isEnd && e)                timeLabel = e;
+                    else                                    timeLabel = ''; // middle day: no "00:00"
+
+                    const timeEl = document.createElement('div');
+                    timeEl.className = 'fc-event-time';
+                    timeEl.textContent = timeLabel;
+
+                    const titleEl = document.createElement('div');
+                    titleEl.className = 'fc-event-title';
+                    titleEl.textContent = arg.event.title || '';
+
+                    return { domNodes: [timeEl, titleEl] };
+                  },
+
                 eventTimeFormat: {
                     hour: '2-digit',
                     minute: '2-digit',
@@ -267,6 +290,76 @@ jQuery( function( $ ) {
                         if( fc_list_event_title ) {
                             fc_list_event_title.style.color = textColor;
                         }
+                    }
+                    
+                      // --- per-event time hiding/rewriting ---
+                    const { hideStartTime, hideEndTime } = info.event.extendedProps || {};
+                    const hour12 = (eventprime.global_settings.time_format !== 'HH:mm');
+
+                    // format helper
+                    const fmt = d => {
+                      if (!d) return '';
+                      try {
+                        return new Intl.DateTimeFormat(em_admin_calendar_event_object.local, {
+                          hour: '2-digit', minute: '2-digit', hour12
+                        }).format(d);
+                      } catch (e) {
+                        // fallback
+                        const pad = n => String(n).padStart(2,'0');
+                        return d.getHours() + ':' + pad(d.getMinutes());
+                      }
+                    };
+
+                    // nodes present across views (dayGrid/timeGrid/list)
+                    const nDayTime   = info.el.querySelector('.fc-event-time');       // dayGrid/timeGrid
+                    const nListTime  = info.el.querySelector('.fc-list-event-time');  // list
+                    // In some themes, dayGrid uses '.fc-time' alias as well:
+                    const nAltTime   = info.el.querySelector('.fc-time');
+
+                    // Build the desired time label
+                    const startText = hideStartTime ? '' : fmt(info.event.start);
+                    // For end: if end is null, we won't show anything anyway
+                    const endText   = hideEndTime   ? '' : fmt(info.event.end);
+
+                    let label = '';
+                    if (startText && endText) {
+                      label = startText + ' – ' + endText;
+                    } else if (startText && !endText) {
+                      label = startText;                 // show only start
+                    } else if (!startText && endText) {
+                      label = endText;                   // show only end
+                    } else {
+                      label = '';                        // both hidden → no label
+                    }
+
+                    // Apply the label (or hide node completely)
+                    const applyLabel = node => {
+                      if (!node) return;
+                      if (label) {
+                        node.textContent = label;
+                        node.style.display = '';
+                      } else {
+                        node.textContent = '';
+                        node.style.display = 'none';
+                      }
+                    };
+
+                    applyLabel(nDayTime);
+                    applyLabel(nAltTime);
+                    applyLabel(nListTime);
+
+                    // If you *also* globally hide times via a setting, keep your existing guard:
+                    if (em_admin_calendar_event_object.hide_time_on_front_calendar == 1) {
+                      if (nDayTime)  nDayTime.style.display = 'none';
+                      if (nAltTime)  nAltTime.style.display = 'none';
+                      if (nListTime) nListTime.style.display = 'none';
+                    }
+                    
+                    if( em_admin_calendar_event_object.hide_time_on_front_calendar == 1 ) {
+                        
+                        $(info.el).find('.fc-event-time').hide();
+                        $(info.el).find('.fc-list-event-time').hide();
+                        
                     }
                     $( info.el ).append( info.event.extendedProps.popup_html );
                     

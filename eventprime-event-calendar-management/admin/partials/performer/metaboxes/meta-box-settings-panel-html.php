@@ -62,5 +62,7 @@ if ($em_display_front ==''){
             </div>
         </div>
 
+        <?php  do_action('ep_extend_performer_settings_tab_options', $post); ?>
+
     </div> 
 </div>

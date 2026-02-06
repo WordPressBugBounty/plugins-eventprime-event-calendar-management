@@ -22,6 +22,7 @@ if( isset( $bookings_data->posts_details->posts ) && ! empty( $bookings_data->po
                     if( isset( $booking->is_rsvp_booking ) && $booking->is_rsvp_booking == 1 ) {?>
                         <span class="ep_rsvp_booking_identifier" style="color: #50575e;"> - RSVP</span><?php
                     }?>
+                    <?php do_action( 'ep_reports_add_identifiers_in_booking_list', $booking ); ?>
                 </a>
             </td>
             <td><?php echo esc_html( $event_title );?></td>

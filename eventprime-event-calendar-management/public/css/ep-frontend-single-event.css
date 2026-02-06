@@ -626,6 +626,7 @@ ul.ep-event-share:after {
     white-space: normal;
 }
 
+
 /* Calendar Hover Modal End --*/
 
 
@@ -785,6 +786,26 @@ ul.ep-event-share:after {
 
 .ep-sl-venue .ep-venue-card-thumb {
     background-color: rgba(var(--themeColor), 0.2);
+    height: 100%;
+}
+
+.ep-sl-venue .ep-venue-card-thumb img{
+    height: 100%;
+    object-fit: cover;
+    display: flex;
+
+}
+
+.ep-dark-mode-enabled .ep-sl-event-action svg.ep-btn-text-fill-color{
+    fill: rgba(var(--themeColor), 0.2);
+}
+
+.ep-dark-mode-enabled .emagic #ep_single_event_ticket_now_wrapper .ep-btn {
+    --ep-btn-font-size: 0.8rem;
+}
+
+.ep-dark-mode-enabled .emagic .ep-btn-group.ep-ticket-btn-radio .ep-btn.ep-ticket-btn.ep-ticket-active:before{
+    background-color: rgb(38 38 38);
 }
 
 /* weather widget start */
@@ -850,3 +871,25 @@ ul.ep-event-share:after {
         top: 0;
     }
 }
+
+
+/*---- Theme Fixes----*/
+
+html.hillstar-theme *{
+    padding:
+}
+.ep-select-event-ticket-number input[type="number"] {
+    max-width: 65px;
+}
+
+/*---Theme Fixes-----*/
+
+.wp-theme-twentytwentyone .emagic .ep-select-event-ticket-number .ep-btn-outline-dark{
+background-color: transparent;
+}
+
+.wp-theme-twentytwentyone .emagic #ep_event_booking_form .ep-btn {
+    background-color: var(--ep-btn-bg);
+}
+
+.wp-theme-twentytwentyone .emagic #ep_event_booking_form .ep-btn:hover{    background-color: var(--ep-btn-hover-bg) !important;}

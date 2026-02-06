@@ -14,11 +14,6 @@ if( ! empty( $args->event->em_start_date ) && $ep_functions->ep_show_event_date_
         <?php if( ! empty( $args->event->em_start_time ) && $ep_functions->ep_show_event_date_time( 'em_start_time', $args->event ) ) {?>
             <span class="ep-text-dark ep-fs-6" id="ep_single_event_start_time"><?php 
                 $event_start_time = $ep_functions->ep_convert_time_with_format( $args->event->em_start_time );
-                if( ! empty( $ep_functions->ep_get_global_settings( 'enable_event_time_to_user_timezone' ) ) ) {
-                    $event_timezone_time = $ep_functions->ep_convert_event_date_time_from_timezone( $args->event, 'h:i A', 0, 1 );
-                    // $event_timezone_time = $ep_functions->ep_convert_event_date_time_from_timezone( $args->event, $ep_functions->ep_get_global_settings('single_event_date_format_val'), 0, 1 );
-                    $event_start_time = $ep_functions->ep_convert_time_with_format( $event_timezone_time );
-                }
                 echo esc_html( $event_start_time );?>
             </span><?php
         }
@@ -47,10 +42,6 @@ if( ! empty( $args->event->em_start_date ) && $ep_functions->ep_show_event_date_
                                 echo ', ';
                             }
                             $event_end_time = $ep_functions->ep_convert_time_with_format( $args->event->em_end_time );
-                            if( ! empty( $ep_functions->ep_get_global_settings( 'enable_event_time_to_user_timezone' ) ) ) {
-                                $event_timezone_time = $ep_functions->ep_convert_event_date_time_from_timezone( $args->event, 'h:i A', 1, 1 );
-                                $event_end_time = $ep_functions->ep_convert_time_with_format( $event_timezone_time );
-                            }
                             echo esc_html( $event_end_time );
                         }?>
                     </span><?php

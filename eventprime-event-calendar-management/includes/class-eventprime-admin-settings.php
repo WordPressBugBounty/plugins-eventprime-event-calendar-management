@@ -19,7 +19,17 @@ class EventPrime_Admin_settings{
                     $setting_type = $form_data['em_setting_type'];
                     if( $setting_type == 'regular_settings' ) {
                         $this->save_regular_settings($form_data);
-                    }else if($setting_type == 'timezone_settings'){
+                    }else if ( $setting_type == 'api_settings' ) {
+                        // Save API settings into global settings structure
+                        $global_settings = new Eventprime_Global_Settings;
+                        $global_settings->ep_save_api_settings( $form_data );
+                        $admin_notices->ep_add_notice( 'success', esc_html__( 'API settings saved successfully.', 'eventprime-event-calendar-management' ) );
+                        $redirect_url = admin_url( "edit.php?post_type=em_event&page=ep-settings&tab=api" );
+                        $redirect_url = add_query_arg( array( 'tab_nonce' => wp_create_nonce( 'ep_settings_tab' ), 'tab' => 'api' ), $redirect_url );
+                        wp_redirect( $redirect_url );
+                        exit;
+                    }
+                    else if($setting_type == 'timezone_settings'){
                         $this->save_timezone_settings($form_data);
                     }else if($setting_type == 'external_settings'){
                         $this->save_external_settings($form_data);
@@ -310,6 +320,7 @@ class EventPrime_Admin_settings{
             if($form_data['em_payment_type'] == 'paypal'){
                 $global_settings_data->paypal_processor = isset($form_data['paypal_processor']) ? (int) $form_data['paypal_processor'] : 0;
                 $global_settings_data->paypal_client_id = sanitize_text_field($form_data['paypal_client_id']);
+                $global_settings_data->paypal_client_secret = sanitize_text_field( $form_data['paypal_client_secret'] );
                 
             }
             $global_settings->ep_save_settings( $global_settings_data );

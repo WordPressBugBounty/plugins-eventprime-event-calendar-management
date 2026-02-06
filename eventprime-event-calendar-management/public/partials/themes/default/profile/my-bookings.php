@@ -5,7 +5,7 @@ $ep_functions = new Eventprime_Basic_Functions;
     <?php if( ! empty( $args->all_bookings ) && count( $args->all_bookings ) > 0 ) {?>
         <div class="ep-box-row">
             <div class="ep-box-col-12 ep-border-left ep-border-3 ep-ps-3 ep-border-warning">
-                <span class="text-uppercase fw-bold small">
+                <span class="ep-text-uppercase ep-fw-bold ep-text-small">
                     <?php esc_html_e( 'My Bookings', 'eventprime-event-calendar-management');?>
                 </span>
             </div>

@@ -6,7 +6,7 @@ $date_format = !empty( $ep_functions->ep_get_global_settings('single_event_date_
     <?php if( ! empty( $args->all_bookings ) && count( $args->all_bookings ) > 0 ) {?>
         <div class="ep-box-row ep-mb-4">
             <div class="ep-box-col-12 ep-border-left ep-border-3 ep-ps-3 ep-border-warning ep-mb-4">
-                <span class="ep-text-uppercase ep-fw-bold ep-text-smal">
+                <span class="ep-text-uppercase ep-fw-bold ep-text-small">
                     <?php esc_html_e( 'My Transactions', 'eventprime-event-calendar-management');?>
                 </span>
             </div>

@@ -20,6 +20,7 @@ class Eventprime_Global_Settings{
         $this->get_license_setting_options();
         $this->ep_get_front_views_content_settings();
         $this->get_gdpr_setting_options();
+        $this->get_api_setting_options();
 
         
     }
@@ -57,6 +58,14 @@ class Eventprime_Global_Settings{
 
        $this->setting_options = array_merge( $this->setting_options, $gdpr_options );
    }
+
+    public function get_api_setting_options() {
+        $api_options = array(
+            // Default: API disabled and no endpoints enabled by default
+            'enable_api' => '',
+        );
+        $this->setting_options = array_merge( $this->setting_options, $api_options );
+    }
     
     /**
      * Merge all front end submission related settings
@@ -320,6 +329,7 @@ class Eventprime_Global_Settings{
             'currency_position'   => 'before',
             'paypal_processor'    => '',
             'paypal_client_id'    => '',
+            'paypal_client_secret' => '',
             'default_payment_processor' => ''
         );
         $payment_options          = apply_filters( 'ep_add_emailer_options', $payment_options );
@@ -509,6 +519,8 @@ class Eventprime_Global_Settings{
             'ep_metabundle_license_item_name' => 'EventPrime for MetaBundle',
             'ep_metabundle_plus_license_item_id'   => 21790,
             'ep_metabundle_plus_license_item_name' => 'EventPrime for MetaBundle+',
+            'ep_license_email' => '',
+            'ep_license_key' => ''
         );
         
         $this->setting_options = array_merge( $this->setting_options, $license_options );
@@ -533,6 +545,21 @@ class Eventprime_Global_Settings{
         }
         //print_r($settings);die;
         return apply_filters( 'ep_add_global_setting_options', $settings, $options );
+    }
+
+     public function ep_save_api_settings( $data ) {
+        if ( ! current_user_can( 'manage_options' ) ) return;
+        // Load existing global settings object
+        $options = (object) get_option( 'em_global_settings' );
+        if ( ! is_object( $options ) ) {
+            $options = new stdClass();
+        }
+    // Map API fields (endpoint-level toggles removed)
+    $options->enable_api = isset( $data['enable_api'] ) ? ( $data['enable_api'] ? 1 : '' ) : '';
+
+        update_option( 'em_global_settings', $options );
+
+        // No API key is stored here — API is open when enabled and endpoints toggled.
     }
     
     /**
@@ -610,6 +637,7 @@ class Eventprime_Global_Settings{
         $tabs['license']        = esc_html__( 'Licenses', 'eventprime-event-calendar-management' );
         $tabs['extensions']     = esc_html__( 'Extensions', 'eventprime-event-calendar-management' );
         $tabs['gdpr']     = esc_html__( 'GDPR', 'eventprime-event-calendar-management' );
+        $tabs['api']      = esc_html__( 'API / Webhooks', 'eventprime-event-calendar-management' );
         
         $this->ep_setting_tabs = array_keys( $tabs );
         $tabs_list['core'] = $tabs;
@@ -982,6 +1010,9 @@ class Eventprime_Global_Settings{
         $default_core_forms = array( 'fes', 'login', 'register', 'checkout_registration' );
         //$options['global']->frontend_submission_roles = $options['global']->frontend_submission_sections = $options['global']->frontend_submission_required = array();
         $manage_form_data = '';
+
+        $options = apply_filters('ep_extend_form_settings_options', $options, $section); 
+
         //ob_start();
         // if section is in the core form then include the file else call hook
         if( in_array( $section, $default_core_forms ) ) {
@@ -1092,10 +1123,10 @@ class Eventprime_Global_Settings{
          echo '<optgroup label="' . esc_attr__( 'Event Fields', 'eventprime-event-calendar-management' ) . '" >';
         echo '<option value="{{name}}">' . esc_html__( 'Name', 'eventprime-event-calendar-management' ) . '</option>';
         echo '<option value="{{event_url}}">' . esc_html__( 'URL', 'eventprime-event-calendar-management' ) . '</option>';
-        echo '<option value="{{fstart_date}}">' . esc_html__( 'Event Start Date', 'eventprime-event-calendar-management' ) . '</option>';
-        echo '<option value="{{fend_date}}">' . esc_html__( 'Event End Date', 'eventprime-event-calendar-management' ) . '</option>';
-        echo '<option value="{{em_start_time}}">' . esc_html__( 'Event Start Time', 'eventprime-event-calendar-management' ) . '</option>';
-        echo '<option value="{{em_end_time}}">' . esc_html__( 'Event End Time', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '<option value="{{em_start_date_formated}}">' . esc_html__( 'Event Start Date', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '<option value="{{em_end_date_formated}}">' . esc_html__( 'Event End Date', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '<option value="{{em_start_time_formated}}">' . esc_html__( 'Event Start Time', 'eventprime-event-calendar-management' ) . '</option>';
+        echo '<option value="{{em_end_time_formated}}">' . esc_html__( 'Event End Time', 'eventprime-event-calendar-management' ) . '</option>';
         
         echo '</optgroup>';
         

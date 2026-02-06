@@ -2,6 +2,8 @@
 $ep_functions = new Eventprime_Basic_Functions;
 $ep_requests = new EP_Requests;
 $global_settings = $ep_functions->ep_get_global_settings();
+if(isset($args->event_data->event_url))
+{
 ?>
 <div class="ep-booking-container ep-box-wrap">
         <div class="ep-box-row">
@@ -384,7 +386,7 @@ $global_settings = $ep_functions->ep_get_global_settings();
                                             </div><?php
                                         }
                                     }
-                                    if( ! empty( $args->event_data->em_allow_cancellations ) && 1 == $args->event_data->em_allow_cancellations && ( 'completed' == $args->em_status || 'pending' == $args->em_status ) ) {?>
+                                    if( is_user_logged_in() && ! empty( $args->event_data->em_allow_cancellations ) && 1 == $args->event_data->em_allow_cancellations && ( 'completed' == $args->em_status || 'pending' == $args->em_status ) ) {?>
                                         <div class="ep-text-small ep-cursor ep-text-danger ep-d-flex ep-align-items-center ep-mb-1" ep-modal-open="ep_booking_cancellation_modal">
                                             <span class="material-icons-outlined ep-fs-6 align-middle ep-lh-0 ep-mr-2">block</span>
                                             <?php esc_html_e('Cancel Booking','eventprime-event-calendar-management'); ?>
@@ -417,11 +419,14 @@ $global_settings = $ep_functions->ep_get_global_settings();
                         
                     </div>
                     
-                    <?php if( ! empty( $args->em_attendee_names ) && count( $args->em_attendee_names ) > 0 ) {?>
+                    <?php do_action('ep_add_before_attendees_block', $args);
+                    
+                    if( ! empty( $args->em_attendee_names ) && count( $args->em_attendee_names ) > 0 ) {?>
                         <div class="ep-box-col-12 ep-border ep-rounded ep-my-5 ep-bg-white" id="ep_booking_detail_attendees_container">
                             <div class="ep-box-row ep-border-bottom ">
                                 <div class="ep-box-col-12 ep-py-4 ep-ps-4 ep-fw-bold ep-text-uppercase ep-text-small">
-                                    <?php esc_html_e( 'Attendees', 'eventprime-event-calendar-management' );?>
+                                    <?php $attendee_heading = apply_filters( 'ep_attendee_details_heading', __( 'Attendees', 'eventprime-event-calendar-management' ), $args);
+                                        echo esc_html( $attendee_heading );?>
                                 </div>
                             </div>
                             <?php $booking_attendees_field_labels = array();
@@ -556,13 +561,15 @@ $global_settings = $ep_functions->ep_get_global_settings();
             <div class="ep-modal-wrap ep-modal-l">
                 <div class="ep-modal-content">
                     <div class="ep-modal-body"> 
-                        <div class="ep-box-row">
-                            <div class="ep-box-col-12 ep-py-3">
+                        <div class="ep-box-row ep-my-4">
+                            <div class="ep-box-col-12 ep-py-3 ep-my-4 ep-text-center">
                                 <?php esc_html_e( 'Are you sure you want to cancel this booking?', 'eventprime-event-calendar-management' );?>
+                                
+                                <div class="ep-loader ep-my-4" id="ep_event_booking_cancellation_loader" style="display:none;"></div>
                             </div>
                         </div>
-                        <div class="ep-modal-footer ep-mt-3 ep-d-flex ep-items-end ep-content-right" id="ep_modal_buttonset">
-                            <div class="ep-loader" id="ep_event_booking_cancellation_loader" style="display:none;"></div>
+                        <div class="ep-modal-footer ep-my-4 ep-d-flex ep-items-end ep-content-center" id="ep_modal_buttonset">
+                            
                             <button type="button" class="button ep-mr-3 ep-modal-close ep-booking-cancel-modal-close" ep-modal-close="ep_booking_cancellation_modal">
                                 <?php esc_html_e( 'Cancel', 'eventprime-event-calendar-management' );?>
                             </button>
@@ -575,3 +582,19 @@ $global_settings = $ep_functions->ep_get_global_settings();
             </div>
         </div>
     </div>  
+
+<?php
+}
+else
+{
+ 
+?>
+<div class="ep-booking-container ep-box-wrap">
+    <div class="ep-box-row">
+        <div class="ep-alert ep-alert-warning ep-mt-3">
+            <?php esc_html_e( 'The event linked to this booking no longer exists. Please contact the site administrator for assistance.', 'eventprime-event-calendar-management' );?>
+        </div>
+    </div>
+</div>
+<?php
+}

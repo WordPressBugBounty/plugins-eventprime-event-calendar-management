@@ -2,7 +2,7 @@
     <?php if( ! empty( $args->upcoming_bookings ) && count( $args->upcoming_bookings ) > 0 ) {?>
         <div class="ep-box-row">
             <div class="ep-box-col-12 ep-border-left ep-border-3 ep-ps-3 ep-border-warning ep-mb-4 ep-user-coming-up-section">
-                <span class="text-uppercase fw-bold small">
+                <span class="ep-text-uppercase ep-fw-bold ep-text-small">
                     <?php esc_html_e( 'Coming Up!', 'eventprime-event-calendar-management');?>
                 </span>
             </div>

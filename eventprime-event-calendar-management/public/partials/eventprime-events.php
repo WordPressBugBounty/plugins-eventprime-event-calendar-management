@@ -113,7 +113,8 @@ wp_localize_script(
             'organizers' => $ep_functions->ep_global_settings_button_title('Organizers'),
             'list_week_btn_text' => esc_html__('Agenda', 'eventprime-event-calendar-management'),
             'hide_time_on_front_calendar' => $ep_functions->ep_get_global_settings( 'hide_time_on_front_calendar' ),
-            'timezone' => $ep_functions->ep_get_site_timezone()
+            'timezone' => $ep_functions->ep_get_site_timezone(),
+            'timeformat' => $ep_functions->ep_get_global_settings( 'time_format' )
         )
 );
 

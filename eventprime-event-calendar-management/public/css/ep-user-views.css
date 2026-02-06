@@ -203,3 +203,9 @@ ep-sl-event-action span:hover{
 #ep-tab-container .ep-event-card-img {
     background-color: rgba(var(--themeColor), 0.2);
 }
+
+.ep-my-booking-row .ep-user-events-btn-section .ep-btn-group a {
+    line-height: 0;
+    display: flex;
+    align-items: center;
+}

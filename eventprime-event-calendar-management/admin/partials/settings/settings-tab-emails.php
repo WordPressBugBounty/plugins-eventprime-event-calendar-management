@@ -147,6 +147,9 @@ else{?>
                         <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( 'The email address from which the emails will be sent to the users. Make sure that your web server is allowed to send emails from this address.', 'eventprime-event-calendar-management' );?></div>
                     </td>
                 </tr>
+
+                <?php do_action('ep_settings_emails_tab_fields', $global_options); ?>
+
             </tbody>
         </table>
     </div>

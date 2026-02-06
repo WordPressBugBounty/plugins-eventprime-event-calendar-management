@@ -247,6 +247,15 @@ class Eventprime_Event_Calendar_Management_Admin {
             wp_enqueue_style( 'ep-toast-css' );
             wp_enqueue_script( 'ep-toast-js' );
             wp_enqueue_script( 'ep-toast-message-js' );
+            wp_localize_script(
+                'ep-toast-message-js', 
+                'eventprime_toast', 
+                array(
+                   'error'=> esc_html__( 'Error', 'eventprime-event-calendar-management' ),
+                   'success'=> esc_html__( 'Success', 'eventprime-event-calendar-management' ),
+                   'warning'=> esc_html__( 'Warning', 'eventprime-event-calendar-management' ),
+                )
+            );
             wp_enqueue_script( 'ep-event-taxonomy', plugin_dir_url( __FILE__ ) . 'js/ep-event-taxonomy.js', array( 'jquery' ), $this->version );
         }
 
@@ -280,6 +289,15 @@ class Eventprime_Event_Calendar_Management_Admin {
             wp_enqueue_style( 'ep-toast-css' );
             wp_enqueue_script( 'ep-toast-js' );
             wp_enqueue_script( 'ep-toast-message-js' );
+            wp_localize_script(
+                'ep-toast-message-js', 
+                'eventprime_toast', 
+                array(
+                   'error'=> esc_html__( 'Error', 'eventprime-event-calendar-management' ),
+                   'success'=> esc_html__( 'Success', 'eventprime-event-calendar-management' ),
+                   'warning'=> esc_html__( 'Warning', 'eventprime-event-calendar-management' ),
+                )
+            );
             // localized global settings
             $global_settings = $ep_functions->ep_get_global_settings();
             $currency_symbol = $ep_functions->ep_currency_symbol();
@@ -315,6 +333,7 @@ class Eventprime_Event_Calendar_Management_Admin {
                 'edit_text'                       => esc_html__( 'Edit', 'eventprime-event-calendar-management' ),
                 'delete_text'                     => esc_html__( 'Delete', 'eventprime-event-calendar-management' ),
                 'default_payment_processor_nonce' => wp_create_nonce( 'ep-default-payment-processor' ),
+                'payment_settings_nonce'          => wp_create_nonce( 'ep-payment-settings' ),
                 'activate_payment'                => esc_html__( 'Please activate the', 'eventprime-event-calendar-management' ),
                 'payment_text'                    => esc_html__( 'payment', 'eventprime-event-calendar-management' ),
             );
@@ -448,6 +467,15 @@ class Eventprime_Event_Calendar_Management_Admin {
             wp_enqueue_style( 'ep-toast-css' );
             wp_enqueue_script( 'ep-toast-js' );
             wp_enqueue_script( 'ep-toast-message-js' );
+            wp_localize_script(
+            'ep-toast-message-js', 
+            'eventprime_toast', 
+            array(
+               'error'=> esc_html__( 'Error', 'eventprime-event-calendar-management' ),
+               'success'=> esc_html__( 'Success', 'eventprime-event-calendar-management' ),
+               'warning'=> esc_html__( 'Warning', 'eventprime-event-calendar-management' ),
+            )
+        );
         }
 
         if ( $current_page == 'performer_edit' ) {
@@ -501,6 +529,15 @@ class Eventprime_Event_Calendar_Management_Admin {
             wp_enqueue_style( 'ep-toast-css' );
             wp_enqueue_script( 'ep-toast-js' );
             wp_enqueue_script( 'ep-toast-message-js' );
+            wp_localize_script(
+                'ep-toast-message-js', 
+                'eventprime_toast', 
+                array(
+                   'error'=> esc_html__( 'Error', 'eventprime-event-calendar-management' ),
+                   'success'=> esc_html__( 'Success', 'eventprime-event-calendar-management' ),
+                   'warning'=> esc_html__( 'Warning', 'eventprime-event-calendar-management' ),
+                )
+            );
         }
 
         if ( $current_page == 'bookings' || $current_page == 'booking_edit' ) {
@@ -597,6 +634,13 @@ class Eventprime_Event_Calendar_Management_Admin {
                 plugin_dir_url( __FILE__ ) . 'js/ep-admin-reports.js',
                 array( 'jquery' ),
                 $this->version
+            );
+            wp_localize_script(
+                'ep-advanced-reports',
+                'ep_admin_reports',
+                array(
+                    'nonce' => wp_create_nonce( 'ep-admin-reports' ),
+                )
             );
         }
 
@@ -945,7 +989,7 @@ class Eventprime_Event_Calendar_Management_Admin {
 				'show_in_menu'        => 'edit.php?post_type=em_event',
 				'has_archive'         => false,
 				'map_meta_cap'        => false,
-				'exclude_from_search' => false,
+				'exclude_from_search' => true,
 				'hierarchical'        => false,
 				'query_var'           => false,
 				'supports'            => $support,
@@ -1140,6 +1184,9 @@ class Eventprime_Event_Calendar_Management_Admin {
             'normal',
             'low'
         );
+
+        do_action('ep_register_metabox_before_ticket_attendees');
+
         add_meta_box(
             'ep_tickets_attendies',
             esc_html__( 'Tickets Attendees', 'eventprime-event-calendar-management' ),
@@ -1530,6 +1577,33 @@ class Eventprime_Event_Calendar_Management_Admin {
 
         // Proceed with updating post meta
         $dbhandler->eventprime_update_event_post_meta( $post_id, $post, $wp_post );
+    }
+
+    public function ep_respect_requested_post_status( $data, $postarr ) {
+        if ( empty( $data['post_type'] ) || $data['post_type'] !== 'em_event' ) {
+            return $data;
+        }
+
+        if ( empty( $_POST['ep_requested_post_status'] ) || empty( $_POST['ep_event_meta_nonce'] ) ) {
+            return $data;
+        }
+
+        $nonce = sanitize_text_field( wp_unslash( $_POST['ep_event_meta_nonce'] ) );
+        if ( ! wp_verify_nonce( $nonce, 'ep_save_event_data' ) ) {
+            return $data;
+        }
+
+        $requested_status = sanitize_key( wp_unslash( $_POST['ep_requested_post_status'] ) );
+        if ( empty( $requested_status ) ) {
+            return $data;
+        }
+
+        $allowed_statuses = array( 'draft', 'publish', 'future', 'pending', 'private' );
+        if ( in_array( $requested_status, $allowed_statuses, true ) ) {
+            $data['post_status'] = $requested_status;
+        }
+
+        return $data;
     }
 
     /**
@@ -2698,7 +2772,8 @@ class Eventprime_Event_Calendar_Management_Admin {
         if ( $column_name == 'ep_booking_id' ) {
             ?>
             <strong>
-            <?php echo '#' . absint( $post_id ); ?>
+            <?php echo '#' . absint( $post_id );
+                do_action( 'ep_booking_list_content_after_booking_id', $booking ); ?>
             </strong>
             <?php
         }
@@ -3755,6 +3830,64 @@ class Eventprime_Event_Calendar_Management_Admin {
     public function ep_print_notices() {
         $admin_notices = new EventM_Admin_Notices();
         $admin_notices->ep_print_notices();
+        $this->ep_paypal_secret_notice();
+        $this->ep_maybe_send_paypal_secret_missing_email();
+    }
+
+    private function ep_paypal_secret_notice() {
+        $ep_functions = new Eventprime_Basic_Functions();
+        $settings = new Eventprime_Global_Settings();
+        $options = $settings->ep_get_settings();
+        $paypal_enabled = ! empty( $options->paypal_processor );
+        $secret_missing = empty( $options->paypal_client_secret ) && ! defined( 'EP_PAYPAL_CLIENT_SECRET' );
+
+        if ( ! $paypal_enabled || ! $secret_missing ) {
+            return;
+        }
+        $nonce = wp_create_nonce('ep_settings_tab');
+        $link = admin_url( 'edit.php?post_type=em_event&page=ep-settings&tab=payments&section=paypal&tab_nonce='.$nonce );
+                                         
+        $message = sprintf(
+            esc_html__( 'Your PayPal Secret Key is required to receive payments with Events booking. Please update your PayPal Secret Key from the %sPayPal settings%s to continue receiving payments.', 'eventprime-event-calendar-management' ),
+            '<a href="' . esc_url( $link ) . '">',
+            '</a>'
+        );
+        ?>
+        <div class="notice notice-error">
+            <p style="vertical-align:middle;"> <span style="color:#d63638;font-size:20px;" aria-hidden="true">&#9888;&#65039;</span><?php echo wp_kses_post( $message ); ?></p>
+        </div>
+        <?php
+    }
+
+    private function ep_maybe_send_paypal_secret_missing_email() {
+        $settings = new Eventprime_Global_Settings();
+        $options = $settings->ep_get_settings();
+        $paypal_enabled = ! empty( $options->paypal_processor );
+        $secret_missing = empty( $options->paypal_client_secret ) && ! defined( 'EP_PAYPAL_CLIENT_SECRET' );
+
+        if ( ! $paypal_enabled || ! $secret_missing ) {
+            return;
+        }
+
+        $notice_name = get_option( 'ep_paypal_secret_missing_email_sent', '0' );
+        if ( $notice_name === '1' ) {
+            return;
+        }
+
+        $nonce = wp_create_nonce( 'ep_settings_tab' );
+        $link = admin_url( 'edit.php?post_type=em_event&page=ep-settings&tab=payments&section=paypal&tab_nonce=' . $nonce );
+        $subject = sprintf(
+            esc_html__( 'Action required: Add your PayPal Secret Key for %s', 'eventprime-event-calendar-management' ),
+            'EventPrime'
+        );
+        $message = sprintf(
+            esc_html__( "Your PayPal Secret Key is required to receive payments with Events booking.\n\nPlease update your PayPal Secret Key from the settings page:\n%s\n\nThis email is sent once to ensure you don't miss this update.", 'eventprime-event-calendar-management' ),
+            esc_url( $link )
+        );
+
+        if ( wp_mail( get_option( 'admin_email' ), $subject, $message ) ) {
+            update_option( 'ep_paypal_secret_missing_email_sent', '1' );
+        }
     }
 
     public function ep_conflict_notices() {
@@ -4341,6 +4474,10 @@ class Eventprime_Event_Calendar_Management_Admin {
             wp_deregister_script('acf-timepicker'); // Replace 'acf-timepicker' with the actual handle used by ACF
         }
     }
+     public function initialize_rest_api(){
+	$api = new Eventprime_Rest_Api();
+	$api->init();
+}
     
     public function allow_single_term_selection($post_id, $post, $update) {
         // Avoid autosave and revisions

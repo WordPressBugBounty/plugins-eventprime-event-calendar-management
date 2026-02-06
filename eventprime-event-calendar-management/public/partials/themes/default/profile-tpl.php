@@ -13,8 +13,8 @@ $ep_requests = new EP_Requests;
                 <?php if( ! empty( $args->upcoming_bookings ) && count( $args->upcoming_bookings ) > 0 ) {?>
                     <span class="ep-bg-warning ep-rounded-5 ep-px-2 ep-py-1 ep-text-small ep-fw-bold"><?php echo absint( count( $args->upcoming_bookings ) );?></span><?php
                 } else{
-                    esc_html_e( 'No', 'eventprime-event-calendar-management');
-                }?>&nbsp;
+                    esc_html_e( 'no', 'eventprime-event-calendar-management');
+                }?>
                 <?php esc_html_e('events coming up!', 'eventprime-event-calendar-management');?>
             </div>
         </div>

@@ -669,6 +669,8 @@ $em_event_booking_fields_data_required = ( ! empty( $em_event_checkout_booking_f
                             }?>
                         </div>
                     </div>
+
+                    <?php do_action('ep_add_checkout_field_tab'); ?>
                 </div>
             </div>
         </div>

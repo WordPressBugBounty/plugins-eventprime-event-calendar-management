@@ -8,7 +8,7 @@
  */
 $ep_functions = new Eventprime_Basic_Functions;
 ?>
-<?php $selected_venue = isset($args->event) && !empty($args->event->em_venue) ? esc_attr($args->event->em_venue): '';?>
+<?php $selected_venue = isset($args->event) && !empty($args->event->em_venue) ? $args->event->em_venue: '';?>
 <?php if(isset($args->fes_event_location) && !empty($args->fes_event_location)):?>
     <?php $venue_text = $ep_functions->ep_global_settings_button_title('Venue'); ?>
     <div class="ep-fes-section ep-mb-4 ep-border ep-p-4 ep-shadow-sm ep-rounded-1 ep-bg-white">
@@ -41,7 +41,7 @@ $ep_functions = new Eventprime_Basic_Functions;
             }?>
             <div class="ep-form-row-child" id="ep_add_new_event_sites_child" style="display:none;">
                 <div class="ep-form-row ep-form-group ep-mb-3">
-                
+
                         <label for="ep_new_venue" class="ep-form-label">
                             <?php echo esc_html__( 'New', 'eventprime-event-calendar-management' ) . ' '. esc_html( $venue_text ) . ' '. esc_html__( 'Name', 'eventprime-event-calendar-management' ); ?>
                             <span class="required">*</span>
@@ -93,16 +93,15 @@ $ep_functions = new Eventprime_Basic_Functions;
                     <div class="ep-form-row ep-form-group ep-mb-3">
                             <label for="ep_address" class="ep-form-label">
                                 <?php esc_html_e('Address', 'eventprime-event-calendar-management'); ?>
-                                <span class="required">*</span>
                             </label>
-                            <input id="em-pac-input" name="em_address" class="em-map-controls" type="text">
+                            <input id="em-pac-input" name="em_address" class="em-map-controls ep-form-input ep-input-text ep-form-control" type="text">
                     </div>
                 <?php endif; ?>
                 <div class="ep-form-row ep-form-group ep-mb-3">
                         <label for="display_address_on_frontend" class="ep-form-label">
                             <?php esc_html_e('Display Address', 'eventprime-event-calendar-management'); ?>
                         </label>
-                        <input type="checkbox" id="display_address_on_frontend" name="em_display_address_on_frontend" />
+                        <input type="checkbox" id="display_address_on_frontend" name="em_display_address_on_frontend" class="ep-form-check-input" />
                 </div>
                 <div class="ep-form-row ep-form-group ep-mb-3">
                         <label for="display_address_on_frontend" class="ep-form-label">
@@ -156,6 +155,19 @@ $ep_functions = new Eventprime_Basic_Functions;
                             <input type="file" name="venue_attachment" id="ep-venue-featured-file" onchange="upload_file_media(this)" accept="image/png, image/jpeg">
                             <input type="hidden" name="venue_attachment_id" id="venue_attachment_id" class="ep-hidden-attachment-id">
                         </div>
+                </div>
+                <div class="ep-form-row ep-form-group ep-mb-3">
+                    <label for="ep_new_venue_description" class="ep-form-label">
+                        <?php esc_html_e( 'Description', 'eventprime-event-calendar-management' );?>
+                    </label>
+                    <?php
+                    $content = '';
+                    $settings = array(
+                        'editor_height' => 100,
+                        'textarea_rows' => 20
+                    );
+                    wp_editor( $content, 'new_venue_description', $settings );
+                    ?>
                 </div>
             </div>
         <?php endif;?>

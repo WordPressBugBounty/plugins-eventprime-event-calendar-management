@@ -11,4 +11,22 @@
                 });
         });
 
+        $( document ).on( 'click', '.ep-license-notice .notice-dismiss', function() {
+            var noticeWrapper = $( this ).closest( '.ep-license-notice' );
+            var noticeType    = noticeWrapper.data( 'notice-type' );
+            //console.log(noticeType);
+            if ( ! noticeType ) {
+                return;
+            }
+
+            $.post(
+                ep_ajax_object.ajax_url,
+                {
+                    action: 'ep_dismiss_license_notice',
+                    notice_type: noticeType,
+                    nonce: ep_ajax_object.nonce
+                }
+            );
+        } );
+
 })( jQuery );

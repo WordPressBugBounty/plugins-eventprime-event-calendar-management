@@ -212,7 +212,7 @@ function get_translation_string( key ) {
  * 
  * @return {bool} URL is valid or invalid
  */
-function is_valid_url( url ) {
+function is_valid_url_old( url ) {
     var urlPattern = new RegExp('^(https?:\\/\\/)?' + // validate protocol
             '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // validate domain name
             '((\\d{1,3}\\.){3}\\d{1,3}))' + // validate OR ip (v4) address
@@ -221,6 +221,37 @@ function is_valid_url( url ) {
             '(\\#[-a-z\\d_]*)?$', 'i'); // validate fragment locator
     return !!urlPattern.test( url );
 }
+
+function is_valid_url( url ) {
+    if (typeof url !== 'string') return false;
+    var v = url.trim();
+    if (!v) return false;
+
+    // Accept URLs without protocol (like your old regex): add http:// to parse
+    var hasProtocol = /^[a-zA-Z][a-zA-Z0-9+\-.]*:\/\//.test(v);
+    var candidate = hasProtocol ? v : 'http://' + v;
+
+    try {
+        var u = new URL(candidate);
+
+        // If protocol was provided, only accept http/https (old regex did http/https only)
+        if (hasProtocol && u.protocol !== 'http:' && u.protocol !== 'https:') return false;
+
+        // Host must be either IPv4 or domain with a dot + TLD >= 2 chars (like old regex)
+        var host = u.hostname;
+        var isIPv4 = /^(25[0-5]|2[0-4]\d|[01]?\d?\d)(\.(25[0-5]|2[0-4]\d|[01]?\d?\d)){3}$/.test(host);
+        var isDomain = /^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(host) && /\.[a-z]{2,}$/i.test(host);
+
+        if (!isIPv4 && !isDomain) return false;
+
+        // Optional port/path/query/hash are already handled by URL parsing
+        // If we reach here, treat as valid (same boolean return style as before)
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
 
 /**
  * Validate the phone number

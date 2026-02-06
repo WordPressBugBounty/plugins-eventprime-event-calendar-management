@@ -2,14 +2,16 @@
 $ep_functions = new Eventprime_Basic_Functions;
 ?>
 <div class="ep-tab-content ep-item-hide ep-mx-3" id="ep-list-my-list" role="tabpanel" aria-labelledby="#ep-list-wish-list">
-    <?php if( ! empty( $args->wishlisted_events ) && count( $args->wishlisted_events ) ) {?>
         <div class="ep-box-row">
-            <div class="ep-box-col-12 ep-border-left ep-border-3 ep-ps-3 ep-border-warning">
-                <span class="ep-text-uppercase ep-fw-bold ep-text-smal">
+            <div class="ep-box-col-12 ep-border-left ep-border-3 ep-ps-3 ep-mb-4 ep-border-warning">
+                <span class="ep-text-uppercase ep-fw-bold ep-text-small">
                     <?php esc_html_e( 'My Wishlists', 'eventprime-event-calendar-management');?>
                 </span>
             </div>
         </div>
+    
+    <?php if( ! empty( $args->wishlisted_events ) && count( $args->wishlisted_events ) ) {?>
+    
         <!-- <div class="ep-box-row ep-mb-4">
             <div class="ep-box-col-12 ep-text-center">
                 <div class="ep-btn-group ep-btn-group-sm">

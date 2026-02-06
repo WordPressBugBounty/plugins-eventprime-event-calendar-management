@@ -1,5 +1,7 @@
 <?php
 
+if (!class_exists('QRcode')) {
+
 /*
  * PHP QR Code encoder
  *
@@ -3310,3 +3312,5 @@
             }
         }
     }
+
+}

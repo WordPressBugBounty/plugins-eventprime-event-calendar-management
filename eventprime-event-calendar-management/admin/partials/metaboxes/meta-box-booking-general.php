@@ -8,7 +8,7 @@ $ep_functions = new Eventprime_Basic_Functions;
 $booking_controller = new EventPrime_Bookings();
 $booking_id = $post->ID;
 $post_meta = get_post_meta( $booking_id );
-$booking = $booking_controller->load_booking_detail( $booking_id );
+$booking = $booking_controller->load_booking_detail( $booking_id,true );
 $user = ( ! empty( $booking->em_user ) ? get_user_by( 'id', $booking->em_user ) : '' );
 $event_name = $post->post_title;
 $payment_method = '';
@@ -21,14 +21,18 @@ $event_date = isset( $booking->em_date ) ? $booking->em_date : '';
 $payment_log = isset( $booking->em_payment_log ) ? $booking->em_payment_log : array();
 // $status = $ep_functions->get_status();
 $status = $ep_functions->ep_get_booking_status();
+
 $booking_date_time = isset( $booking->em_date ) ? esc_html( $ep_functions->ep_timestamp_to_datetime( $booking->em_date ) ) : '';
+
+$event_date_time = isset($booking->event_data->em_start_date)? esc_html( $ep_functions->ep_timestamp_to_date( $booking->event_data->em_start_date, 'dS M Y', 1 ) ) .' '. esc_html( $ep_functions->ep_convert_time_with_format( $booking->event_data->em_start_time ) ) : '';
+$event_url = isset($booking->event_data->em_id) ?get_edit_post_link($booking->event_data->em_id):'';
 ?>
 <div class="emagic">
     <div class="ep-box-wrap">
         <div class="ep-box-row ep-my-3 ep-p-2">
             <div class="ep-box-col-12">
                 <div class="ep-booking-title ep-m-0 ep-fs-4">
-                    <?php echo sprintf( esc_html__('Booking #%d :- %s', 'eventprime-event-calendar-management'), esc_html($booking_id), esc_html($event_name));?>
+                    <?php echo sprintf( esc_html__('Booking #%d :- ', 'eventprime-event-calendar-management'), esc_html($booking_id)); if(!empty($event_url)) {$ep_functions->ep_documentation_link_read_more_html($event_url,$event_name);}else{ echo esc_html($event_name);} ?> 
                 </div>
                 <div class="ep-payment-method ep-text-muted ep-fs-5">
                     <?php 
@@ -98,8 +102,13 @@ $booking_date_time = isset( $booking->em_date ) ? esc_html( $ep_functions->ep_ti
             </div>
             <div class="ep-box-row">
                 <div class="ep-box-col-3 ep-boo-date">
-                    <div class="ep-gen-date  ep-fw-bold"><?php esc_html_e( 'Date Created:', 'eventprime-event-calendar-management' );?></div>
+                    <div class="ep-gen-date  ep-fw-bold"><?php esc_html_e( 'Booking Date:', 'eventprime-event-calendar-management' );?></div>
                     <div class="ep-py-2 ep-align-top"><?php echo esc_attr( $booking_date_time ); ?></div>
+                </div>
+                
+                <div class="ep-box-col-3 ep-boo-date">
+                    <div class="ep-gen-date  ep-fw-bold"><?php esc_html_e( 'Event Start:', 'eventprime-event-calendar-management' );?></div>
+                    <div class="ep-py-2 ep-align-top"><?php echo esc_attr( $event_date_time ); ?></div>
                 </div>
                 
                 <div class="ep-box-col-3 ep-boo-status">

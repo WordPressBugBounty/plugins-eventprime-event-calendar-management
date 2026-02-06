@@ -449,6 +449,7 @@ jQuery( function( $ ) {
         formData.append( 'action', 'ep_submit_payment_setting' );
         formData.append( 'payment_method', method );
         formData.append( 'method_status', method_status );
+        formData.append( 'security', ep_admin_settings.payment_settings_nonce );
         jQuery.ajax({
             type : "POST",
             url : get_ajax_url(),

@@ -1,14 +1,26 @@
 <?php
+
 $global_settings = new Eventprime_Global_Settings;
 $admin_notices = new EventM_Admin_Notices;
 $ep_functions = new Eventprime_Basic_Functions;
 $ep_license = new EventPrime_License;
+$ep_license_notices = class_exists( 'EventPrime_License_Notices' ) ? new EventPrime_License_Notices() : null;
+$ep_license_connection_hint = $ep_license_notices ? $ep_license_notices->get_license_tab_hint() : array();
 $ep_sanitizer = new EventPrime_sanitizer;
 $sub_options = $global_settings->sub_options;
 $options = $global_settings->ep_get_settings();
 wp_enqueue_style( 'ep-toast-css' );
 wp_enqueue_script( 'ep-toast-js' );
-wp_enqueue_script( 'ep-toast-message-js' );     
+wp_enqueue_script( 'ep-toast-message-js' ); 
+wp_localize_script(
+            'ep-toast-message-js', 
+            'eventprime_toast', 
+            array(
+               'error'=> esc_html__( 'Error', 'eventprime-event-calendar-management' ),
+               'success'=> esc_html__( 'Success', 'eventprime-event-calendar-management' ),
+               'warning'=> esc_html__( 'Warning', 'eventprime-event-calendar-management' ),
+            )
+        );
 // save license key
 if( isset( $_POST['submit'] ) && ! empty( $_POST['submit'] ) ){
     $form_data = $ep_sanitizer->sanitize($_POST);
@@ -25,125 +37,148 @@ $ep_license_response = $ep_license_obj->license_response;
 $ep_premium_license_option_value = $ep_license_obj->license_option_value;
 $bundle_id = $ep_license_obj->item_id;
 $is_any_ext_activated = $ep_license->ep_get_activate_extensions();
-
-
 $deactivate_license_btn = $key.'_license_deactivate';
 $activate_license_btn = $key.'_license_activate';
 ?>
-<div class="ep-setting-tab-content">
-    <h2><?php esc_html_e( 'Plugin License Options', 'eventprime-event-calendar-management' ); ?></h2>
-    <p><strong><?php esc_html_e( 'Read about activating licenses ', 'eventprime-event-calendar-management' );?><a target="_blank" href="<?php echo esc_url( 'https://theeventprime.com/adding-license-keys-eventprime/' );?>"><?php esc_html_e( 'here', 'eventprime-event-calendar-management' ); ?></a></strong></p>
-</div>
+<div class="emagic">
+    <?php if ( ! empty( $ep_license_connection_hint ) ) : ?>
+        <div class="notice notice-warning ep-license-inline-hint" style="margin:15px 0;">
+            <p>
+                <strong><?php echo esc_html( $ep_license_connection_hint['message'] ); ?></strong>
+                <?php if ( ! empty( $ep_license_connection_hint['cta'] ) ) : ?>
+                    <a class="button" href="<?php echo esc_url( $ep_license_connection_hint['cta']['url'] ); ?>" target="<?php echo esc_attr( $ep_license_connection_hint['cta']['target'] ); ?>">
+                        <?php echo esc_html( $ep_license_connection_hint['cta']['label'] ); ?>
+                    </a>
+                <?php endif; ?>
+            </p>
+        </div>
+    <?php endif; ?>
+   
+    <div class="ep-box-row ep-my-4">
+        <div class="ep-box-col-12">
+            <div></div>
+        </div>
+    </div>
 
-<?php if( isset( $is_any_ext_activated ) && !empty($is_any_ext_activated ) ) {?>
-  <table class="form-table">
-                <tbody>
-                    <tr>
-                        <td class="ep-form-table-wrapper" colspan="2">
-                            <table class="ep-form-table-setting ep-setting-table widefat">
-                                <thead>
-                                    <tr>
-                                        <th><?php esc_html_e( 'Name', 'eventprime-event-calendar-management' );?></th>
-                                        <th><?php esc_html_e( 'License Key', 'eventprime-event-calendar-management' );?></th>
-                                        <th><?php esc_html_e( 'Validity', 'eventprime-event-calendar-management' );?></th>
-                                        <th><?php esc_html_e( 'Action', 'eventprime-event-calendar-management' );?></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    
-                                    
-                                    <?php 
-                                        foreach($is_any_ext_activated as $key=>$product):
-                                        if(empty($product) || $product[0]=='')
-                                        {
-                                            continue;
-                                        }
-                                        //echo $key;die;
-                                          
-                                          $id = $key.'_license_key';
-                                          $response = $key.'_license_response';
-                                          $status = $key.'_license_status';
-                                          
-                                            $ep_license_obj = $ep_license->ep_get_license_detail($key, $options);
-                                            $ep_premium_license_key = $ep_license_obj->license_key;
-                                            $ep_license_status = $ep_license_obj->license_status;
-                                            $ep_license_response = $ep_license_obj->license_response;
-                                            $ep_premium_license_option_value = $ep_license_obj->license_option_value;
-                                            $bundle_id = $ep_license_obj->item_id;
-                                            $deactivate_license_btn = $key.'_license_deactivate';
-                                            $activate_license_btn = $key.'_license_activate';
-                                        ?>
-                                    
-                                            <tr valign="top" class="<?php esc_attr_e($key);?>">
-                    <td><?php esc_html_e( $product[1], 'eventprime-event-calendar-management' );?></td>
-                    <td><input id="<?php esc_attr_e($id);?>" name="<?php esc_attr_e($id);?>" type="text" class="regular-text ep-box-wrap ep-license-block" data-prefix="<?php esc_attr_e($product[0]);?>" data-key="<?php esc_attr_e($key);?>" value="<?php esc_attr_e($ep_premium_license_key); ?>" placeholder="<?php esc_html_e( 'Please Enter License Key', 'eventprime-event-calendar-management' );?>" /></td>
-                    <td>         
-                        <span class="license-expire-date" style="padding-bottom:2rem;" >
-                            <?php
-                            if ( ! empty( $ep_license_response->expires ) && ! empty( $ep_license_status ) && $ep_license_status == 'valid' ) {
-                                if( $ep_license_response->expires == 'lifetime' ){
-                                    esc_html_e( 'Your License key is activated for lifetime', 'eventprime-event-calendar-management' );
-                                }else{
-                                    echo sprintf( esc_html__('Your License Key expires on %s', 'eventprime-event-calendar-management' ), esc_html(gmdate( 'F d, Y', strtotime( $ep_license_response->expires ) )) );
-                                }
-                            } else {
-                                $expire_date = '';
-                            }
-                            ?>
-                        </span>
-                    </td>
-                    <td>
-                        <span class="<?php esc_attr_e($key);?>-license-status-block">
-                            <?php if ( isset( $ep_premium_license_key ) && ! empty( $ep_premium_license_key )) { ?>
-                                <?php if ( isset( $ep_license_status ) && $ep_license_status !== false && $ep_license_status == 'valid' ) { ?>
-                                    <button type="button" class="button action ep-my-2 ep_license_deactivate" name="<?php esc_attr_e($deactivate_license_btn);?>" id="<?php esc_attr_e($deactivate_license_btn);?>" data-prefix="<?php esc_attr_e($product[0]); ?>" data-key="<?php esc_attr_e($key);?>" value="<?php esc_html_e( 'Deactivate License', 'eventprime-event-calendar-management' );?>"><?php esc_html_e( 'Deactivate License', 'eventprime-event-calendar-management' );?></button>
-                                <?php } elseif( ! empty( $ep_license_status ) && $ep_license_status == 'invalid' ) { ?>
-                                    <button type="button" class="button action ep-my-2 ep_license_activate" name="<?php esc_attr_e($activate_license_btn);?>" id="<?php esc_attr_e($activate_license_btn);?>" data-prefix="<?php esc_attr_e($product[0]); ?>" data-key="<?php esc_attr_e($key);?>" value="<?php esc_html_e( 'Activate License', 'eventprime-event-calendar-management' );?>"><?php esc_html_e( 'Activate License', 'eventprime-event-calendar-management' );?></button>
-                                <?php }else{ ?>
-                                    <button type="button" class="button action ep-my-2 ep_license_activate" name="<?php esc_attr_e($activate_license_btn);?>" id="<?php esc_attr_e($activate_license_btn);?>" data-prefix="<?php esc_attr_e($product[0]); ?>" data-key="<?php esc_attr_e($key);?>" value="<?php esc_html_e( 'Activate License', 'eventprime-event-calendar-management' );?>" style="<?php if ( empty( $ep_premium_license_key ) ){ echo 'display:none'; } ?>"><?php esc_html_e( 'Activate License', 'eventprime-event-calendar-management' );?></button>
-                                <?php } }else{ ?>
-                                    <button type="button" class="button action ep-my-2 ep_license_activate" name="<?php esc_attr_e($activate_license_btn);?>" id="<?php esc_attr_e($activate_license_btn);?>" data-prefix="<?php esc_attr_e($product[0]); ?>" data-key="<?php esc_attr_e($key);?>" value="<?php esc_html_e( 'Activate License', 'eventprime-event-calendar-management' );?>" style="display:none;"><?php esc_html_e( 'Activate License', 'eventprime-event-calendar-management' );?></button>
-                                <?php } ?>
-                        </span>
-                    </td>
-                </tr>
-         
-                                    
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-<?php }
-else
-{
-   ?>
-<div class="">
-  <?php
-printf(
-    esc_html__(
-        'Note: License key fields will appear %1$safter activating your purchased extensions.%2$s If you don’t see any fields yet, please activate the corresponding extensions from the %3$sPlugins%4$s page.', 
-        'eventprime-event-calendar-management'
-    ),
-    '<strong>', '</strong>', '<strong>', '</strong>'
-);
+    <div class="ep-box-row">
+        <div class="ep-box-col-9">
+            <div id="ep-license-results">
+                <div class="ep-license-box-main">
+                    <div class="ep-license-box-head ep-d-flex ep-justify-content-between ep-mb-3 ep-border-bottom ep-pb-3">
+                        <h3 class="ep-license-box-title"><?php esc_html_e('Available Extensions','eventprime-event-calendar-management');?></h3>
+                    <div class="ep-license-button-wrap">
+                        <button type="button" class="button button-primary ep-open-modal" data-id="ep_license-manager_modal" id="ep_license-manager"><?php esc_html_e('Add License','eventprime-event-calendar-management');?></button>
+                    </div>
+                    </div>
+                         <?php $ep_license->ep_get_license_extension_html(); ?>
+                </div>
+            </div>
+        </div>
+   
+        <div class="ep-box-col-3">
+            <div class="ep-license-sidebar">
+                    <?php $ep_license->ep_get_licenses_details(); ?>
+            </div>
+        </div>
+        
+        
+    </div>    
 
-echo '<br>';
+    <!-- end license -->
 
-printf(
-    esc_html__(
-        'You can download your purchased extensions from your %1$sOrder History%2$s page.', 
-        'eventprime-event-calendar-management'
-    ),
-    '<a href="https://theeventprime.com/checkout/order-history/" target="_blank">', '</a>'
-);
-?>
+    <!-- License Manager Modal --> 
+
+   <div id="ep_license-manager_modal" class="ep-modal-view" style="display: none;">
+       <div class="ep-modal-overlay ep-modal-overlay-fade-in close-popup" data-id="ep_license-manager_modal"></div>
+       <div class="popup-content ep-modal-wrap ep-modal-xssm ep-modal-out">
+           <div class="ep-modal-body">    
+               <div class="ep-modal-titlebar ep-d-flex ep-items-center ep-border-bottom">
+                   <h3 class="ep-modal-title ep-px-4"><?php esc_html_e( 'License Manager', 'eventprime-event-calendar-management' );?></h3>
+                   <a href="#" class="ep-modal-close close-popup" data-id="ep_license-manager_modal"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="m13.06 12 6.47-6.47-1.06-1.06L12 10.94 5.53 4.47 4.47 5.53 10.94 12l-6.47 6.47 1.06 1.06L12 13.06l6.47 6.47 1.06-1.06L13.06 12Z"></path></svg></a>
+               </div> 
+
+               <div class="ep-modal-content-wrap ep-box-wrap ep-p-4">
+                   
+                                        
+                       
+                   
+                   
+                   <div id="ep-license-wrapper" class="ep-d-flex ep-flex-column ep-gap-4">
+                       
+                       <div class="ep-license-error-message ep-my-4"></div>
+                       <div class="ep-license-success-message ep-my-4"></div>
+                       
+                       <!-- License Key Input with Label -->
+                       <div id="ep-license-fields" class="ep-license-field">
+                           <label class="ep-d-inline-block ep-mb-2 ep-fw-bold"><?php esc_html_e('Enter License Key','eventprime-event-calendar-management');?></label>
+                           <div class="ep-input-group ep-d-flex">
+                               <input type="text" name="ep_license_key" id="ep_license_key" class="ep-license-input ep-form-control" placeholder="Enter License Key">
+                               
+                           </div>
+                           <small class="ep-text-muted ep-mt-1 ep-d-block">
+                                 <?php esc_html_e('Entering your license key unlocks premium features, ensures access to updates, and enables priority support. You can get the license key from your','eventprime-event-calendar-management');?> <a href="https://theeventprime.com/checkout/order-history/" target="_blank"><?php esc_html_e('account dashboard','eventprime-event-calendar-management');?></a>.
+                            </small>
+                       </div>
+
+                       <!-- OR Separator -->
+                       
+                        <div class="ep-text-center ep-text-muted ep-text-uppercase ep-fw-bold ep-my-4 ep-fs-3"></div> 
+
+                       <!-- Upload License File -->
+                       <div class="ep-license-upload-fallback" style="display:none;">
+                           <div class="ep-license-upload-wrap">
+                                <label class="ep-d-block ep-mb-2 ep-fw-bold"><?php esc_html_e('Upload License File (.json)','eventprime-event-calendar-management');?></label>
+                                <input type="file" id="ep-license-json-file" accept=".json" class="ep-form-control">
+                           </div>
+                           
+                           <div class="ep-json-file-guide ep-text-end"><a href="https://theeventprime.com/checkout/order-history/" target="_blank"><?php esc_html_e('Where can I find this file?','eventprime-event-calendar-management');?></a></div>
+
+                       </div>
+  
+
+                       <!-- Submit Button -->
+                       <div class="ep-text-center ep-mt-4 ep-d-flex ep-justify-content-center ep-align-items-center">
+                           <button type="button" id="ep-license-verify-submit" data-method="key" class="ep-btn button button-primary ep-px-4 ep-py-1"><?php esc_html_e('Verify','eventprime-event-calendar-management');?></button>
+                       </div>
+
+                   </div>
+               </div>
+           </div>
+       </div>
+   </div>
+
+   <!-- License Manager Modal End --> 
 
 </div>
-    <?php
+
+<style>
+    
+#ep-license-wrapper{
+    max-width: 600px;
+    margin: 0px auto;
 }
 
-?>
+/* center OR separator text */
+#ep-license-wrapper .ep-text-uppercase {
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+}
 
+/* Add border or background on upload section (optional) */
+.ep-license-upload-fallback .ep-license-upload-wrap  {
+    padding: 1rem;
+    border: 1px dashed #ced4da;
+    border-radius: 6px;
+    background-color: rgba(248, 249, 250, 0.5);
+}
+
+#ep_setting_form .ep-license-field input[type=text]{
+    width: 100%;
+    height: 40px;
+}
+
+.ep-license-field .ep-input-group{
+    gap:4px
+}
+  
+</style>

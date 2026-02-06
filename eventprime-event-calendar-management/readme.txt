@@ -3,9 +3,9 @@ Contributors: metagauss
 Donate link: https://theeventprime.com/
 Tags: event calendar, organizer , event manager, tickets, event booking, event bookings, booking manager, bookings manager, event organizer, events organizer, event planner, events planner, paid events, event list, events list, event registration, event registrations
 Requires at least: 4.8
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 7.2
-Stable tag: 4.1.6.0
+Stable tag: 4.2.8.4
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -666,6 +666,83 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.2.8.4: February 03, 2026 =
+* Added: New extension – Multi-Session Events.
+* Added: New extension – Event Map View.
+* Added: Security fixes.
+* Fixed: Minor fixes in front-end event submissions form. 
+
+= 4.2.8.3: January 30, 2026 =
+* Added: New extension – Join Chat Integration.
+* Added: New extension – Event Countdown Timer.
+* Added: New extension – Advanced Social Sharing.
+* Added: New extension – Group Booking.
+* Fixed: Security improvements.
+* Fixed: Issue where repeat events saved as Draft could not be changed to Published status.
+
+= 4.2.8.2: January 22, 2026 =
+* Added: New option to configure a PayPal Secret Key.
+* Added: Security improvements.
+* Fixed: Issue with the Terms and Conditions checkbox.
+
+= 4.2.8.1: January 16, 2026 =
+* Added: Security fixes.
+
+= 4.2.8.0: January 05, 2026 =
+* UI improvements.
+* Added: New extension – Advanced Seat Plan Builder - Design advanced custom seating maps with shapes, rotation, and per-seat amenities, icons, and color-coded ticket zones.
+
+= 4.2.7.0: December 18, 2025 =
+* UI improvements.
+* Added: Security fixes.
+
+= 4.2.6.0: December 16, 2025 =
+* UI improvements.
+
+= 4.2.5.0: December 10, 2025 =
+* Fixed: License workflow.
+* Added: Security fixes.
+
+= 4.2.4.1: December 03, 2025 =
+* Fixed: Minor UI fixes.
+
+= 4.2.4.0: November 25, 2025 =
+* Multiple bug fixes.
+* Added: REST API integration.
+
+= 4.2.3.0: November 25, 2025 =
+* UI improvements.
+
+= 4.2.2.1: November 22, 2025 =
+* Fixed: Checkout buttons not appearing for some users.
+
+= 4.2.2.0: November 21, 2025 =
+* Added: New Option - Hide Attendees Section During Checkout.
+* Fixed: QR Code Conflict.
+
+= 4.2.1.0: November 11, 2025 =
+* Added: New extension – Square payments for simple, secure, and seamless event bookings.
+* Added: New extension – hCaptcha Security to EventPrime for safer logins, registrations, and checkouts.
+
+= 4.2.0.1: November 04, 2025 =
+* Added: Security fixes.
+
+= 4.2.0.0 – October 29, 2025 =
+* Multiple bug fixes.
+* UI improvements.
+* Fixed: License workflow.
+
+= 4.1.9.0 - October 13, 2025 =
+* Fixed: Week start day now respects WordPress Start of week setting.
+* Fixed: Calendar day and month names now follow site language settings.
+
+= 4.1.8.0 - October 10, 2025 =
+* Fixed: Event time display issues in calendar and agenda views.
+
+= 4.1.7.0 – October 07, 2025 =
+* Multiple bug fixes.
+* UI improvements.
 
 = 4.1.6.0 – September 25, 2025 =
 * Fixed: Compatibility with Avada theme.
@@ -2215,6 +2292,83 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.2.8.4: February 03, 2026 =
+* Added: New extension – Multi-Session Events.
+* Added: New extension – Event Map View.
+* Added: Security fixes.
+* Fixed: Minor fixes in front-end event submissions form. 
+
+= 4.2.8.3: January 30, 2026 =
+* Added: New extension – Join Chat Integration.
+* Added: New extension – Event Countdown Timer.
+* Added: New extension – Advanced Social Sharing.
+* Added: New extension – Group Booking.
+* Fixed: Security improvements.
+* Fixed: Issue where repeat events saved as Draft could not be changed to Published status.
+
+= 4.2.8.2: January 22, 2026 =
+* Added: New option to configure a PayPal Secret Key.
+* Added: Security improvements.
+* Fixed: Issue with the Terms and Conditions checkbox.
+
+= 4.2.8.1: January 16, 2026 =
+* Added: Security fixes.
+
+= 4.2.8.0: January 05, 2026 =
+* UI improvements.
+* Added: New extension – Advanced Seat Plan Builder - Design advanced custom seating maps with shapes, rotation, and per-seat amenities, icons, and color-coded ticket zones.
+
+= 4.2.7.0: December 18, 2025 =
+* UI improvements.
+* Added: Security fixes.
+
+= 4.2.6.0: December 16, 2025 =
+* UI improvements.
+
+= 4.2.5.0: December 10, 2025 =
+* Fixed: License workflow.
+* Added: Security fixes.
+
+= 4.2.4.1: December 03, 2025 =
+* Fixed: Minor UI fixes.
+
+= 4.2.4.0: November 25, 2025 =
+* Multiple bug fixes.
+* Added: REST API integration.
+
+= 4.2.3.0: November 25, 2025 =
+* UI improvements.
+
+= 4.2.2.1: November 22, 2025 =
+* Fixed: Checkout buttons not appearing for some users.
+
+= 4.2.2.0: November 21, 2025 =
+* Added: New Option - Hide Attendees Section During Checkout.
+* Fixed: QR Code Conflict.
+
+= 4.2.1.0: November 11, 2025 =
+* Added: New extension – Square payments for simple, secure, and seamless event bookings.
+* Added: New extension – hCaptcha Security to EventPrime for safer logins, registrations, and checkouts.
+
+= 4.2.0.1: November 04, 2025 =
+* Added: Security fixes.
+
+= 4.2.0.0 – October 29, 2025 =
+* Multiple bug fixes.
+* UI improvements.
+* Fixed: License workflow.
+
+= 4.1.9.0 - October 13, 2025 =
+* Fixed: Week start day now respects WordPress Start of week setting.
+* Fixed: Calendar day and month names now follow site language settings.
+
+= 4.1.8.0 - October 10, 2025 =
+* Fixed: Event time display issues in calendar and agenda views.
+
+= 4.1.7.0 – October 07, 2025 =
+* Multiple bug fixes.
+* UI improvements.
 
 = 4.1.6.0 – September 25, 2025 =
 * Fixed: Compatibility with Avada theme.

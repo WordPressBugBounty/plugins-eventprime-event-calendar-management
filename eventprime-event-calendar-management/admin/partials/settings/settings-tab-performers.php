@@ -215,6 +215,9 @@ $sub_options = $global_settings->sub_options;
                 <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( 'The title for the event section displayed on the single performer page.', 'eventprime-event-calendar-management' );?></div>
             </td>
         </tr>
+
+        <?php do_action('ep_setting_extend_single_performer_fields');?>
+
         <tr valign="top">
             <th colspan="2">
                 <em>Shortcode: </em><code>[em_performer id="{PERFORMER_ID}" event_style="grid/rows/plain_list" event_limit="{NUMBER}" event_cols="{NUMBER}" load_more="0 or 1" hide_past_events="0 or 1"]</code>
