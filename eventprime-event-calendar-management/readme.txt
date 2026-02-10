@@ -5,7 +5,7 @@ Tags: event calendar, organizer , event manager, tickets, event booking, event b
 Requires at least: 4.8
 Tested up to: 6.9
 Requires PHP: 7.2
-Stable tag: 4.2.8.5
+Stable tag: 4.2.9.0
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -666,6 +666,10 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.2.9.0: February 10, 2026 =
+* Added: Support for a new PayPal Sandbox Mode option.
+* Fixed: Improvements to the PayPal payment verification process.
 
 = 4.2.8.5: February 06, 2026 =
 * Multiple bug fixes.
@@ -2296,6 +2300,10 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.2.9.0: February 10, 2026 =
+* Added: Support for a new PayPal Sandbox Mode option.
+* Fixed: Improvements to the PayPal payment verification process.
 
 = 4.2.8.5: February 06, 2026 =
 * Multiple bug fixes.

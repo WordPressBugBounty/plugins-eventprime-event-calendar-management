@@ -319,6 +319,7 @@ class EventPrime_Admin_settings{
             }
             if($form_data['em_payment_type'] == 'paypal'){
                 $global_settings_data->paypal_processor = isset($form_data['paypal_processor']) ? (int) $form_data['paypal_processor'] : 0;
+                $global_settings_data->payment_test_mode = isset( $form_data['payment_test_mode'] ) ? (int) $form_data['payment_test_mode'] : 0;
                 $global_settings_data->paypal_client_id = sanitize_text_field($form_data['paypal_client_id']);
                 $global_settings_data->paypal_client_secret = sanitize_text_field( $form_data['paypal_client_secret'] );
                 

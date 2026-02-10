@@ -328,6 +328,7 @@ class Eventprime_Global_Settings{
             'currency'            => 'USD',
             'currency_position'   => 'before',
             'paypal_processor'    => '',
+            'payment_test_mode'   => 1,
             'paypal_client_id'    => '',
             'paypal_client_secret' => '',
             'default_payment_processor' => ''
