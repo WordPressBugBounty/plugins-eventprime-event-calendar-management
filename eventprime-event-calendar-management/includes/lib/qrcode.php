@@ -1,6 +1,10 @@
 <?php
 
-if (!class_exists('QRcode')) {
+namespace EventPrime\QRCode;
+
+use Exception;
+
+if (!class_exists(__NAMESPACE__ . '\\QRcode')) {
 
 /*
  * PHP QR Code encoder

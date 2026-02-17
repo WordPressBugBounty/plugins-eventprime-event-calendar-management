@@ -628,12 +628,14 @@ class EventPrime_Admin_settings{
         $global_settings_data->venue_no_of_columns             = isset( $form_data['venue_no_of_columns'] ) ? absint( $form_data['venue_no_of_columns'] ) : 4;
         $global_settings_data->venue_load_more                 = isset( $form_data['venue_load_more'] ) ? 1 : 0;
         $global_settings_data->venue_search                    = isset( $form_data['venue_search'] ) ? 1 : 0;
+        $global_settings_data->venue_hide_seating_type         = isset( $form_data['venue_hide_seating_type'] ) ? 1 : 0;
         $global_settings_data->single_venue_show_events        = isset( $form_data['single_venue_show_events'] ) ? 1 : 0;
         $global_settings_data->single_venue_event_display_view = isset( $form_data['single_venue_event_display_view'] ) ? sanitize_text_field( $form_data['single_venue_event_display_view'] ) : 'card';
         $global_settings_data->single_venue_event_limit        = isset( $form_data['single_venue_event_limit'] ) ? absint( $form_data['single_venue_event_limit'] ) : 0;
         $global_settings_data->single_venue_event_column       = isset( $form_data['single_venue_event_column'] ) ? absint( $form_data['single_venue_event_column'] ) : 4;
         $global_settings_data->single_venue_event_load_more    = isset( $form_data['single_venue_event_load_more'] ) ? 1 : 0;
         $global_settings_data->single_venue_hide_past_events   = isset( $form_data['single_venue_hide_past_events'] ) ? 1 : 0;
+        $global_settings_data->single_venue_hide_seating_type  = isset( $form_data['single_venue_hide_seating_type'] ) ? 1 : 0;
         $global_settings_data->single_venue_event_section_title   = isset( $form_data['single_venue_event_section_title'] ) && !empty($form_data['single_venue_event_section_title']) ? sanitize_text_field(wp_unslash($form_data['single_venue_event_section_title'])) : esc_html__("Upcoming Events", "eventprime-event-calendar-management");
         $global_settings->ep_save_settings( $global_settings_data );
         do_action('ep_save_venue_setting', $form_data);

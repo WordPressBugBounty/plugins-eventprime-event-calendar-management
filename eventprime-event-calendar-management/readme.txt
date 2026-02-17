@@ -5,7 +5,7 @@ Tags: event calendar, organizer , event manager, tickets, event booking, event b
 Requires at least: 4.8
 Tested up to: 6.9
 Requires PHP: 7.2
-Stable tag: 4.2.9.0
+Stable tag: 4.2.9.1
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -666,6 +666,14 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.2.9.1: February 17, 2026 =
+* Added: Option to hide seat types (Standing/Seating) on single venue and venue listing pages.
+* Fixed: Date picker issue where clicking From opened the To calendar.
+* Fixed: Outlook Live and Outlook 365 event share link compatibility.
+* Fixed: Booking modification ignoring Additional Relevant Dates when using Event Date.
+* Fixed: Critical conflict with GiveWP (Give – Donation Plugin).
+* Fixed: German language date-related issues.
 
 = 4.2.9.0: February 10, 2026 =
 * Added: Support for a new PayPal Sandbox Mode option.
@@ -2300,6 +2308,14 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.2.9.1: February 17, 2026 =
+* Added: Option to hide seat types (Standing/Seating) on single venue and venue listing pages.
+* Fixed: Date picker issue where clicking From opened the To calendar.
+* Fixed: Outlook Live and Outlook 365 event share link compatibility.
+* Fixed: Booking modification ignoring Additional Relevant Dates when using Event Date.
+* Fixed: Critical conflict with GiveWP (Give – Donation Plugin).
+* Fixed: German language date-related issues.
 
 = 4.2.9.0: February 10, 2026 =
 * Added: Support for a new PayPal Sandbox Mode option.

@@ -1,5 +1,6 @@
 <?php
 $ep_functions = new Eventprime_Basic_Functions;
+$hide_seating_type = $ep_functions->ep_get_global_settings( 'single_venue_hide_seating_type' );
 $ep_requests = new EP_Requests;
 ?>
 <div class="ep-single-frontend-view-container ep-mb-5" id="ep_single_frontend_view_container">
@@ -35,7 +36,7 @@ $ep_requests = new EP_Requests;
                                             </div>
                                         </li><?php 
                                     }
-                                    if( ! empty( $args->venue->em_type ) ) {?>
+                                    if( empty( $hide_seating_type ) && ! empty( $args->venue->em_type ) ) {?>
                                         <li class="ep-d-inline-flex ep-box-w-100 ">
                                             <div class="ep-event-type ep-fw-bold">
                                                 <?php echo esc_html__( 'Type', 'eventprime-event-calendar-management' ). ' : '. esc_html__( $ep_functions->ep_get_venue_type_label( $args->venue->em_type ), 'eventprime-event-calendar-management' ); ?>

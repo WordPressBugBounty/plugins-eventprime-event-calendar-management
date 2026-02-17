@@ -288,7 +288,7 @@ jQuery( function( $ ) {
     $( document ).on( 'change', '#show_no_of_events_card', function() {
         var default_cal_view = $( '#default_cal_view' ).val();
         var show_no_of_event = $( this ).val();
-        if(  ( default_cal_view == 'card' || default_cal_view == 'masonry' || default_cal_view == 'list' || default_cal_view == 'square_grid' || default_cal_view == 'staggered_grid' || default_cal_view == 'rows' ) && show_no_of_event == 'custom' ) {
+        if(  ( default_cal_view == 'card' || default_cal_view == 'masonry' || default_cal_view == 'list' || default_cal_view == 'square_grid' || default_cal_view == 'staggered_grid' || default_cal_view == 'rows' || default_cal_view == 'slider' || default_cal_view == 'month' || default_cal_view == 'week' || default_cal_view == 'day' || default_cal_view == 'listweek' ) && show_no_of_event == 'custom' ) {
             $('.ep_enable_card_view_custom_value_child').show();
         } else{
             $('.ep_enable_card_view_custom_value_child').hide();

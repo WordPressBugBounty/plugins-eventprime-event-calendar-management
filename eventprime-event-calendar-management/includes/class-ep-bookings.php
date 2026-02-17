@@ -755,6 +755,29 @@ class EventPrime_Bookings {
                         if( $start_date > $ep_functions->ep_get_current_timestamp() ) {
                             $status = 1;
                         }
+                    } else {
+                        // Additional relevant date (stored as UID)
+                        $more_dates = get_post_meta( $event_id, 'em_event_add_more_dates', true );
+                        if( ! empty( $more_dates ) && is_array( $more_dates ) ) {
+                            foreach( $more_dates as $more ) {
+                                if( empty( $more['uid'] ) || $more['uid'] != $em_edit_booking_date_event_option ) {
+                                    continue;
+                                }
+                                if( empty( $more['date'] ) ) {
+                                    break;
+                                }
+                                $event_date = $more['date'];
+                                if( ! empty( $more['time'] ) ) {
+                                    $event_date = $ep_functions->ep_timestamp_to_date( $more['date'] );
+                                    $event_date .= ' ' . $more['time'];
+                                    $event_date = $ep_functions->ep_datetime_to_timestamp( $event_date );
+                                }
+                                if( $event_date > $ep_functions->ep_get_current_timestamp() ) {
+                                    $status = 1;
+                                }
+                                break;
+                            }
+                        }
                     }
                 } else if( $em_edit_booking_date_type == 'relative_date' ) {
                     $days = $em_edit_booking_date_data['em_edit_booking_date_days'];
@@ -792,6 +815,29 @@ class EventPrime_Bookings {
                         $min_start = strtotime( $days_icon . $days . $days_string, $book_start_timestamp );
                         if( $min_start > $ep_functions->ep_get_current_timestamp() ) {
                             $status = 1;
+                        }
+                    } else {
+                        // Additional relevant date (stored as UID)
+                        $more_dates = get_post_meta( $event_id, 'em_event_add_more_dates', true );
+                        if( ! empty( $more_dates ) && is_array( $more_dates ) ) {
+                            foreach( $more_dates as $more ) {
+                                if( empty( $more['uid'] ) || $more['uid'] != $event_option ) {
+                                    continue;
+                                }
+                                if( empty( $more['date'] ) ) {
+                                    break;
+                                }
+                                $base_date = $ep_functions->ep_timestamp_to_date( $more['date'] );
+                                if( ! empty( $more['time'] ) ) {
+                                    $base_date .= ' ' . $more['time'];
+                                }
+                                $base_timestamp = $ep_functions->ep_datetime_to_timestamp( $base_date );
+                                $min_start = strtotime( $days_icon . $days . $days_string, $base_timestamp );
+                                if( $min_start > $ep_functions->ep_get_current_timestamp() ) {
+                                    $status = 1;
+                                }
+                                break;
+                            }
                         }
                     }
                 } else{

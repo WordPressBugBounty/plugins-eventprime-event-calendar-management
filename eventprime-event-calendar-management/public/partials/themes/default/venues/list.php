@@ -7,6 +7,7 @@
  *
  */
 $ep_functions = new Eventprime_Basic_Functions;
+$hide_seating_type = $ep_functions->ep_get_global_settings( 'venue_hide_seating_type' );
 ?>
 <?php foreach ( $args->venues as $venue ) {?>
     <div class="ep-box-col-12 ep-list-view-main ep-mb-4">
@@ -39,7 +40,7 @@ $ep_functions = new Eventprime_Basic_Functions;
             </div>
             <div class="ep-box-col-3 ep-px-0 ep-pt-4 ep-border-left ep-position-relative ep-bg-white ep-venues-btn-section">
                 <div class="ep-venue-seating-capacity ep-mb-2 ep-px-2 ep-align-right">
-                    <?php if ( !empty( $venue->em_type ) ) { $venue_type = $ep_functions->ep_get_venue_type_label( $venue->em_type ); ?>
+                    <?php if ( empty( $hide_seating_type ) && !empty( $venue->em_type ) ) { $venue_type = $ep_functions->ep_get_venue_type_label( $venue->em_type ); ?>
                         <div class="ep-event-attr-name ep-fw-bold"><?php echo esc_html__( 'Type', 'eventprime-event-calendar-management' ). ' : '. esc_html__( $venue_type); ?></div>
                         <?php
                     }?>

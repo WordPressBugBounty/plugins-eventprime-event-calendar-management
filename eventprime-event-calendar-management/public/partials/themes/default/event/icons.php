@@ -94,13 +94,20 @@ $ep_functions = new Eventprime_Basic_Functions;
 
                     // add to Outlook 365  
                     $outlook_starts = $outlook_ends = $outlook_details = $location = $outlook_url = '';
-                    $outlook_starts = $ep_functions->ep_convert_event_date_time_to_timestamp( $args->event, 'start' );
-                    if( ! empty( $outlook_starts ) ) {
+                    $event_id = ! empty( $args->event->id ) ? absint( $args->event->id ) : 0;
+                    $outlook_starts = ! empty( $event_id ) ? (int) get_post_meta( $event_id, 'em_start_date_time', true ) : 0;
+                    $outlook_ends = ! empty( $event_id ) ? (int) get_post_meta( $event_id, 'em_end_date_time', true ) : 0;
+                    if ( empty( $outlook_starts ) ) {
+                        $outlook_starts = $ep_functions->ep_convert_event_date_time_to_timestamp( $args->event, 'start' );
+                    }
+                    if ( empty( $outlook_ends ) && ! empty( $outlook_starts ) ) {
                         $outlook_ends = $ep_functions->ep_convert_event_date_time_to_timestamp( $args->event, 'end' );
                     }
                     //$outlook_details = urlencode( wp_kses_post( $args->event->description ) );
                     $outlook_details = '';
-                    $outlook_url = ($outlook_starts) ? 'https://outlook.office365.com/owa/?path=/calendar/action/compose&subject=' . rawurlencode( esc_attr( $args->event->name ) ) . '&startdt='.date( 'Y-m-d\TH:i:s', $outlook_starts ).'&enddt='.date( 'Y-m-d\TH:i:s', $outlook_ends ):'';
+                    $outlook_start_iso = $outlook_starts ? gmdate( 'Y-m-d\TH:i:s\Z', $outlook_starts ) : '';
+                    $outlook_end_iso = $outlook_ends ? gmdate( 'Y-m-d\TH:i:s\Z', $outlook_ends ) : '';
+                    $outlook_url = ($outlook_starts) ? 'https://outlook.office365.com/owa/?path=/calendar/action/compose&subject=' . rawurlencode( esc_attr( $args->event->name ) ) . '&startdt=' . rawurlencode( $outlook_start_iso ) . '&enddt=' . rawurlencode( $outlook_end_iso ):'';
                     if ( ! empty( $args->event->venue_details ) ) {
                         $location = urlencode( $args->event->venue_details->em_address );
                         if( ! empty( $location ) ) {
@@ -117,13 +124,19 @@ $ep_functions = new Eventprime_Basic_Functions;
 
                     // add to Outlook Live 
                     $outlook_lv_starts = $outlook_lv_ends = $outlook_lv_details = $location = $outlook_lv_url = '';
-                    $outlook_lv_starts = $ep_functions->ep_convert_event_date_time_to_timestamp( $args->event, 'start' );
-                    if( ! empty( $outlook_lv_starts ) ) {
+                    $outlook_lv_starts = $outlook_starts;
+                    $outlook_lv_ends = $outlook_ends;
+                    if ( empty( $outlook_lv_starts ) ) {
+                        $outlook_lv_starts = $ep_functions->ep_convert_event_date_time_to_timestamp( $args->event, 'start' );
+                    }
+                    if ( empty( $outlook_lv_ends ) && ! empty( $outlook_lv_starts ) ) {
                         $outlook_lv_ends = $ep_functions->ep_convert_event_date_time_to_timestamp( $args->event, 'end' );
                     }
                     //$outlook_lv_details = urlencode( wp_kses_post( $args->event->description ) );
                     $outlook_lv_details = '';
-                    $outlook_lv_url = ($outlook_lv_starts) ? "https://outlook.live.com/owa/?path=/calendar/action/compose&startdt=".date( 'Ymd\THis\Z', $outlook_lv_starts )."&enddt=".date( 'Ymd\THis\Z', $outlook_lv_ends )."&subject=".rawurlencode( esc_attr( $args->event->name ) ): '';
+                    $outlook_lv_start_utc = $outlook_lv_starts ? gmdate( 'Y-m-d\TH:i:s\Z', $outlook_lv_starts ) : '';
+                    $outlook_lv_end_utc = $outlook_lv_ends ? gmdate( 'Y-m-d\TH:i:s\Z', $outlook_lv_ends ) : '';
+                    $outlook_lv_url = ($outlook_lv_starts) ? "https://outlook.live.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent&startdt=" . rawurlencode( $outlook_lv_start_utc ) . "&enddt=" . rawurlencode( $outlook_lv_end_utc ) . "&subject=" . rawurlencode( esc_attr( $args->event->name ) ): '';
                     if ( ! empty( $args->event->venue_details ) ) {
                         $location = urlencode( $args->event->venue_details->em_address );
                         if( ! empty( $location ) ) {

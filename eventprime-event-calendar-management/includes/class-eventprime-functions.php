@@ -2522,13 +2522,13 @@ public function ep_get_event_date_time_diff( $event ) {
      */
     public function ep_get_week_day_full() {
         $full_week_days = array(
-            esc_html__('Sunday', 'eventprime-event-calendar-management'),
-            esc_html__('Monday', 'eventprime-event-calendar-management'),
-            esc_html__('Tuesday', 'eventprime-event-calendar-management'),
-            esc_html__('Wednesday', 'eventprime-event-calendar-management'),
-            esc_html__('Thursday', 'eventprime-event-calendar-management'),
-            esc_html__('Friday', 'eventprime-event-calendar-management'),
-            esc_html__('Saturday', 'eventprime-event-calendar-management'),
+            'Sunday',
+            'Monday',
+            'Tuesday',
+            'Wednesday',
+            'Thursday',
+            'Friday',
+            'Saturday',
         );
         return $full_week_days;
     }
@@ -3667,8 +3667,8 @@ public function ep_get_event_date_time_diff( $event ) {
                 if (!file_exists(dirname($file_path))) {
                     mkdir(dirname($file_path), 0755);
                 }
-                require_once 'lib/qrcode.php';
-                $qrCode = new QRcode();
+                require_once plugin_dir_path(EP_PLUGIN_FILE) . 'includes/lib/qrcode.php';
+                $qrCode = new \EventPrime\QRCode\QRcode();
                 $qrCode->png($url, $file_path, 'M', 4, 2);
             }
             $image_url = esc_url($upload_dir['baseurl'] . '/ep/' . $file_name);
@@ -6974,7 +6974,7 @@ public function ep_get_event_date_time_diff( $event ) {
 					mkdir( dirname( $file_path ), 0755 );
 				}
 				require_once plugin_dir_path(EP_PLUGIN_FILE) . 'includes/lib/qrcode.php';
-				$qrCode = new QRcode();
+				$qrCode = new \EventPrime\QRCode\QRcode();
 				$qrCode->png( $url, $file_path, 'M', 4, 2 );
 			}
 			$image_url = esc_url( $upload_dir['baseurl'].'/ep/'.$file_name );
@@ -11836,8 +11836,8 @@ public function ep_get_events( $fields ) {
 				if( ! file_exists( dirname( $file_path ) ) ){
 					mkdir( dirname( $file_path ), 0755 );
 				}
-				require_once 'lib/qrcode.php';
-				$qrCode = new QRcode();
+				require_once plugin_dir_path(EP_PLUGIN_FILE) . 'includes/lib/qrcode.php';
+				$qrCode = new \EventPrime\QRCode\QRcode();
 				$qrCode->png( $url, $file_path, 'M', 4, 2 );
 			}
 			$image_url = esc_url( $upload_dir['baseurl'].'/ep/'.$file_name );

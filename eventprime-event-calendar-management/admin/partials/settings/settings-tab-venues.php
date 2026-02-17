@@ -102,6 +102,20 @@ $sub_options = $global_settings->sub_options;
             </td>
         </tr>
         <tr valign="top">
+            <th scope="row" class="titledesc">
+                <label for="venue_hide_seating_type">
+                    <?php esc_html_e( 'Hide Seating Type', 'eventprime-event-calendar-management' );?>
+                </label>
+            </th>
+            <td class="forminp forminp-text">
+                <label class="ep-toggle-btn">
+                    <input type="checkbox" name="venue_hide_seating_type" id="venue_hide_seating_type" <?php if( ! empty( $global_options->venue_hide_seating_type ) ) { echo 'checked="checked"'; }?>>
+                    <span class="ep-toogle-slider round"></span>
+                </label>
+                <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( 'Hide seating type on the venues listing view.', 'eventprime-event-calendar-management' );?></div>
+            </td>
+        </tr>
+        <tr valign="top">
             <th colspan="2">
                 <em>Shortcode: </em><code>[em_sites display_style="grid/colored_grid/rows" limit="{NUMBER}" cols="{NUMBER}" load_more="0 or 1" search="0 or 1" featured="0 or 1" popular="0 or 1" orderby="id/name/count" order="asc/desc"]</code>
             </th>
@@ -125,6 +139,20 @@ $sub_options = $global_settings->sub_options;
                     <span class="ep-toogle-slider round"></span>
                 </label>
                 <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( 'If enabled, events related to this Venue will be displayed below the details.', 'eventprime-event-calendar-management' );?></div>
+            </td>
+        </tr>
+        <tr valign="top">
+            <th scope="row" class="titledesc">
+                <label for="single_venue_hide_seating_type">
+                    <?php esc_html_e( 'Hide Seating Type', 'eventprime-event-calendar-management' );?>
+                </label>
+            </th>
+            <td class="forminp forminp-text">
+                <label class="ep-toggle-btn">
+                    <input type="checkbox" name="single_venue_hide_seating_type" id="single_venue_hide_seating_type" <?php if( ! empty( $global_options->single_venue_hide_seating_type ) ) { echo 'checked="checked"'; }?>>
+                    <span class="ep-toogle-slider round"></span>
+                </label>
+                <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( 'Hide seating type on the single venue view.', 'eventprime-event-calendar-management' );?></div>
             </td>
         </tr>
     </tbody>
