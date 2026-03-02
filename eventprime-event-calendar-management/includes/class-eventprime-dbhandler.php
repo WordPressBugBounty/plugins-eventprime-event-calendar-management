@@ -1234,44 +1234,57 @@ class EP_DBhandler {
         
         $post_data['em_gallery_image_ids'] = (isset($post['em_gallery_image_ids'])) ? $post['em_gallery_image_ids'] : '';
         $post_data['em_start_date'] = $em_start_date = (isset($post['em_start_date'])) ? $ep_functions->ep_date_to_timestamp(sanitize_text_field($post['em_start_date'])) : '';
-        $post_data['em_start_time'] = $em_start_time = (isset($post['em_start_time'])) ? $post['em_start_time'] : '';
+        $post_data['em_start_time'] = $em_start_time = (isset($post['em_start_time'])) ? $ep_functions->ep_sanitize_time_input( sanitize_text_field( $post['em_start_time'] ) ) : '';
         $post_data['em_hide_event_start_time'] = (isset($post['em_hide_event_start_time'])) ? 1 : 0;
         $post_data['em_hide_event_start_date'] = (isset($post['em_hide_event_start_date'])) ? 1 : 0;
         $post_data['em_end_date'] = $em_end_date = (isset($post['em_end_date'])) ? $ep_functions->ep_date_to_timestamp(sanitize_text_field($post['em_end_date'])) : $em_start_date;
-        $post_data['em_end_time'] = $em_end_time = (isset($post['em_end_time'])) ? sanitize_text_field($post['em_end_time']): '';
+        $post_data['em_end_time'] = $em_end_time = (isset($post['em_end_time'])) ? $ep_functions->ep_sanitize_time_input( sanitize_text_field( $post['em_end_time'] ) ) : '';
         $post_data['em_hide_event_end_time'] = (isset($post['em_hide_event_end_time'])) ? 1 : 0;
         $post_data['em_hide_end_date'] = (isset($post['em_hide_end_date'])) ? 1 : 0;
         $post_data['em_all_day'] = $em_all_day = (isset($post['em_all_day'])) ? 1 : 0;
         
+        $time_format_setting = $ep_functions->ep_get_global_settings('time_format');
+        $default_start_time = ($time_format_setting === 'HH:mm') ? '00:00' : '12:00 AM';
+        $default_end_time = ($time_format_setting === 'HH:mm') ? '23:59' : '11:59 PM';
+
+        if ( empty($em_start_time) ) {
+            $em_start_time = $default_start_time;
+            $post_data['em_start_time'] = $default_start_time;
+        }
+        if ( empty($em_end_time) ) {
+            $em_end_time = $default_end_time;
+            $post_data['em_end_time'] = $default_end_time;
+        }
+
         if ($em_all_day == 1) {
             $post_data['em_end_date'] = $em_start_date;
-            $post_data['em_start_time'] = '12:00 AM';
-            $post_data['em_end_time'] = '11:59 PM';
+            $post_data['em_start_time'] = $default_start_time;
+            $post_data['em_end_time'] = $default_end_time;
         } else {
             if ($em_start_date > $em_end_date) {
                 $post_data['em_end_date'] = $em_start_date;
             } else if ($em_start_date == $em_end_date) {
                 if ($em_start_time == $em_end_time) {
                     if (empty($em_start_time)) {
-                        $post_data['em_start_time'] = '12:00 AM';
-                        $post_data['em_end_time'] = '11:59 PM';
+                        $post_data['em_start_time'] = $default_start_time;
+                        $post_data['em_end_time'] = $default_end_time;
                     } else {
-                        if ($em_end_time !== '11:59 PM') {
-                           $post_data['em_end_time'] = '11:59 PM';
+                        if ($em_end_time !== $default_end_time) {
+                           $post_data['em_end_time'] = $default_end_time;
                         }
                     }
                 } else if( !empty($em_start_time) && empty($em_end_time) ) {
-                    $post_data['em_end_time'] = '11:59 PM';
+                    $post_data['em_end_time'] = $default_end_time;
                 }
             } else if ($em_start_date < $em_end_date) {
                 if (empty($em_start_time)) {
-                    $post_data['em_start_time'] = '12:00 AM';
-                    $post_data['em_end_time'] = '11:59 PM';
+                    $post_data['em_start_time'] = $default_start_time;
+                    $post_data['em_end_time'] = $default_end_time;
                 } else if (!empty($em_end_time)) {
                     $post_data['em_end_time'] = $em_end_time;
                 } else {
-                    if ($em_end_time !== '11:59 PM') {
-                        $post_data['em_end_time'] = '11:59 PM';
+                    if ($em_end_time !== $default_end_time) {
+                        $post_data['em_end_time'] = $default_end_time;
                     }
                 }
             }
@@ -1304,7 +1317,7 @@ class EP_DBhandler {
                     $new_date = array();
                     $new_date['uid'] = absint($more_dates['uid']);
                     $new_date['date'] = $ep_functions->ep_date_to_timestamp(sanitize_text_field($more_dates['date']));
-                    $new_date['time'] = sanitize_text_field($more_dates['time']);
+                    $new_date['time'] = $ep_functions->ep_sanitize_time_input( sanitize_text_field( $more_dates['time'] ) );
                     $new_date['label'] = sanitize_text_field($more_dates['label']);
                     $event_more_dates[] = $new_date;
                 }
@@ -1493,11 +1506,18 @@ class EP_DBhandler {
         // event gallery
         $em_gallery_image_ids = isset($post['em_gallery_image_ids']) ? $post['em_gallery_image_ids'] : '';
         update_post_meta($post_id, 'em_gallery_image_ids', $em_gallery_image_ids);
+        $time_format_setting = $ep_functions->ep_get_global_settings('time_format');
+        $default_start_time = ($time_format_setting === 'HH:mm') ? '00:00' : '12:00 AM';
+        $default_end_time = ($time_format_setting === 'HH:mm') ? '23:59' : '11:59 PM';
+
         // start date
         $em_start_date = isset($post['em_start_date']) ? $ep_functions->ep_date_to_timestamp(sanitize_text_field($post['em_start_date'])) : '';
         update_post_meta($post_id, 'em_start_date', $em_start_date);
         //start time
-        $em_start_time = isset($post['em_start_time']) ? sanitize_text_field($post['em_start_time']) : '';
+        $em_start_time = isset($post['em_start_time']) ? $ep_functions->ep_sanitize_time_input( sanitize_text_field( $post['em_start_time'] ) ) : $default_start_time;
+        if ( empty($em_start_time) ) {
+            $em_start_time = $default_start_time;
+        }
         update_post_meta($post_id, 'em_start_time', $em_start_time);
         // hide start time
         $em_hide_start_time = isset($post['em_hide_event_start_time']) ? 1 : 0;
@@ -1509,7 +1529,10 @@ class EP_DBhandler {
         $em_end_date = isset($post['em_end_date']) ? $ep_functions->ep_date_to_timestamp(sanitize_text_field($post['em_end_date'])) : $em_start_date;
         update_post_meta($post_id, 'em_end_date', $em_end_date);
         //end time
-        $em_end_time = isset($post['em_end_time']) ? sanitize_text_field($post['em_end_time']) : '';
+        $em_end_time = isset($post['em_end_time']) ? $ep_functions->ep_sanitize_time_input( sanitize_text_field( $post['em_end_time'] ) ) : $default_end_time;
+        if ( empty($em_end_time) ) {
+            $em_end_time = $default_end_time;
+        }
         update_post_meta($post_id, 'em_end_time', $em_end_time);
         // hide end time
         $em_hide_event_end_time = isset($post['em_hide_event_end_time']) ? 1 : 0;
@@ -1524,8 +1547,8 @@ class EP_DBhandler {
         if ($em_all_day == 1) {
             $em_end_date = $em_start_date;
             update_post_meta($post_id, 'em_end_date', $em_end_date);
-            $em_start_time = '12:00 AM';
-            $em_end_time = '11:59 PM';
+            $em_start_time = $default_start_time;
+            $em_end_time = $default_end_time;
             update_post_meta($post_id, 'em_start_time', $em_start_time);
             update_post_meta($post_id, 'em_end_time', $em_end_time);
         } else {
@@ -1534,23 +1557,23 @@ class EP_DBhandler {
             } else if ($em_start_date == $em_end_date) {
                 if ($em_start_time == $em_end_time) {
                     if (empty($em_start_time)) {
-                        update_post_meta($post_id, 'em_start_time', '12:00 AM');
-                        update_post_meta($post_id, 'em_end_time', '11:59 PM');
+                        update_post_meta($post_id, 'em_start_time', $default_start_time);
+                        update_post_meta($post_id, 'em_end_time', $default_end_time);
                     } else {
-                        if ($em_end_time !== '11:59 PM') {
-                            update_post_meta($post_id, 'em_end_time', '11:59 PM');
+                        if ($em_end_time !== $default_end_time) {
+                            update_post_meta($post_id, 'em_end_time', $default_end_time);
                         }
                     }
                 }
             } else if ($em_start_date < $em_end_date) {
                 if (empty($em_start_time)) {
-                    update_post_meta($post_id, 'em_start_time', '12:00 AM');
-                    update_post_meta($post_id, 'em_end_time', '11:59 PM');
+                    update_post_meta($post_id, 'em_start_time', $default_start_time);
+                    update_post_meta($post_id, 'em_end_time', $default_end_time);
                 } else if (!empty($em_end_time)) {
                     update_post_meta($post_id, 'em_end_time', $em_end_time);
                 } else {
-                    if ($em_end_time !== '11:59 PM') {
-                        update_post_meta($post_id, 'em_end_time', '11:59 PM');
+                    if ($em_end_time !== $default_end_time) {
+                        update_post_meta($post_id, 'em_end_time', $default_end_time);
                     }
                 }
             }
@@ -1589,7 +1612,7 @@ class EP_DBhandler {
                     $new_date = array();
                     $new_date['uid'] = absint($more_dates['uid']);
                     $new_date['date'] = $ep_functions->ep_date_to_timestamp(sanitize_text_field($more_dates['date']));
-                    $new_date['time'] = sanitize_text_field($more_dates['time']);
+                    $new_date['time'] = $ep_functions->ep_sanitize_time_input( sanitize_text_field( $more_dates['time'] ) );
                     $new_date['label'] = sanitize_text_field($more_dates['label']);
                     $event_more_dates[] = $new_date;
                 }

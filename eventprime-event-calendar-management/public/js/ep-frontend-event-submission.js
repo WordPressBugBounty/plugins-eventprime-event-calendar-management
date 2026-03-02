@@ -1,4 +1,95 @@
 jQuery( function( $ ) {
+    var is_24h_time = ( eventprime_frontend_submission.time_format === 'HH:mm' );
+    var ep_timepicker_format = is_24h_time ? 'H:i' : 'h:i A';
+    var ep_moment_time_format = is_24h_time ? 'HH:mm' : 'hh:mm A';
+
+    function ep_get_moment_datetime_format( current_date_format ) {
+        var moment_date_format = 'YYYY-MM-DD';
+        if ( current_date_format == 'dd-mm-yy' ) {
+            moment_date_format = 'DD-MM-YYYY';
+        } else if ( current_date_format == 'mm-dd-yy' ) {
+            moment_date_format = 'MM-DD-YYYY';
+        } else if ( current_date_format == 'yy-mm-dd' ) {
+            moment_date_format = 'YYYY-MM-DD';
+        } else if ( current_date_format == 'dd/mm/yy' ) {
+            moment_date_format = 'DD/MM/YYYY';
+        } else if ( current_date_format == 'yy/mm/dd' ) {
+            moment_date_format = 'YYYY/MM/DD';
+        } else if ( current_date_format == 'mm/dd/yy' ) {
+            moment_date_format = 'MM/DD/YYYY';
+        } else if ( current_date_format == 'dd.mm.yy' ) {
+            moment_date_format = 'DD.MM.YYYY';
+        } else if ( current_date_format == 'mm.dd.yy' ) {
+            moment_date_format = 'MM.DD.YYYY';
+        } else if ( current_date_format == 'yy.mm.dd' ) {
+            moment_date_format = 'YYYY.MM.DD';
+        }
+        return moment_date_format + ' ' + ep_moment_time_format;
+    }
+
+    function ep_parse_time_to_hhmm( value ) {
+        if ( !value ) {
+            return '';
+        }
+        var s = String( value ).trim();
+        var m24 = s.match( /^([01]\d|2[0-3]):([0-5]\d)$/ );
+        if ( m24 ) {
+            return m24[1] + ':' + m24[2];
+        }
+        var m12 = s.match( /^(0?[1-9]|1[0-2]):([0-5]\d)\s*([aApP][mM])$/ );
+        if ( !m12 ) {
+            return '';
+        }
+        var h = parseInt( m12[1], 10 );
+        var mer = m12[3].toLowerCase();
+        if ( mer === 'am' ) {
+            if ( h === 12 ) h = 0;
+        } else if ( h !== 12 ) {
+            h += 12;
+        }
+        return String( h ).padStart( 2, '0' ) + ':' + m12[2];
+    }
+
+    function ep_format_time_for_picker( hhmmValue, use24h ) {
+        if ( !hhmmValue ) {
+            return '';
+        }
+        if ( use24h ) {
+            return hhmmValue;
+        }
+        var parts = hhmmValue.split( ':' );
+        if ( parts.length !== 2 ) {
+            return hhmmValue;
+        }
+        var h = parseInt( parts[0], 10 );
+        var m = parts[1];
+        if ( isNaN( h ) ) {
+            return hhmmValue;
+        }
+        var meridiem = ( h >= 12 ) ? 'PM' : 'AM';
+        var h12 = h % 12;
+        if ( h12 === 0 ) {
+            h12 = 12;
+        }
+        return h12 + ':' + m + ' ' + meridiem;
+    }
+
+    function ep_init_native_time_fields( context ) {
+        $( context ).find( '.epTimePicker' ).each( function() {
+            var normalizedValue = ep_parse_time_to_hhmm( $( this ).val() );
+            $( this ).attr( 'type', 'text' ).removeAttr( 'step' );
+            try {
+                $( this ).timepicker( 'remove' );
+            } catch ( e ) {}
+            $( this ).timepicker({
+                timeFormat: ep_timepicker_format,
+                step: 15
+            });
+            if ( normalizedValue ) {
+                $( this ).val( ep_format_time_for_picker( normalizedValue, is_24h_time ) );
+            }
+        } );
+    }
     
     $( document ).ready( function() {
         $( ".ep_event_options_panel:first-of-type" ).show();
@@ -34,22 +125,7 @@ jQuery( function( $ ) {
             },
         });
 
-        // timepicker
-        $( '.epTimePicker' ).timepicker({
-            timeFormat: 'h:i A',
-            step: 15,
-        });
-        // add class to ui time picker ui-timepicker-wrapper
-        $( '.epTimePicker' ).click( function() {
-            if( $( '.ui-timepicker-wrapper' ).length > 0 ) {
-                $( '.ui-timepicker-wrapper' ).addClass( 'ep-ui-show-on-top' );
-            }
-        });
-        
-         // Prevent manual typing but allow dropdown selection
-        $('.epTimePicker').on('keydown', function(event) {
-            event.preventDefault(); // Blocks typing
-        });
+        ep_init_native_time_fields( document );
 
         $( "#accordion" ).accordion({
             collapsible: true
@@ -248,11 +324,7 @@ jQuery( function( $ ) {
             gotoCurrent: true,
             showButtonPanel: true,
         });
-        // timepicker
-        $( '#'+ next_row_id +' .epTimePicker' ).timepicker({
-            timeFormat: 'h:i A',
-            step: 15,
-        });
+        ep_init_native_time_fields( '#'+ next_row_id );
     });
     $( document ).on( 'click', '.ep-remove-additional-date', function(){
         let dateid = $( this ).data( 'parent_id' );
@@ -311,17 +383,7 @@ jQuery( function( $ ) {
             },
         });
 
-        // timepicker
-        $( '.epTimePicker' ).timepicker({
-            timeFormat: 'h:i A',
-            step: 15,
-        });
-        // add class to ui time picker ui-timepicker-wrapper
-        $( '.epTimePicker' ).click( function() {
-            if( $( '.ui-timepicker-wrapper' ).length > 0 ) {
-                $( '.ui-timepicker-wrapper' ).addClass( 'ep-ui-show-on-top' );
-            }
-        });
+        ep_init_native_time_fields( document );
     });
 
     $( document ).on( 'click', '.ep-org-remove', function() {
@@ -384,28 +446,7 @@ jQuery( function( $ ) {
                 }
             }
         }
-        var momentFormat = date_format;
-        if(date_format == 'dd-mm-yy'){
-            momentFormat = 'DD-MM-YYYY hh:mm A';
-        }else if(date_format == 'mm-dd-yy'){
-            momentFormat = 'MM-DD-YYYY hh:mm A';
-        }else if(date_format == 'mm-dd-yy'){
-            momentFormat = 'MM-DD-YYYY hh:mm A';
-        }else if(date_format == 'yy-mm-dd'){
-            momentFormat = 'YYYY-MM-DD hh:mm A';
-        }else if(date_format == 'dd/mm/yy'){
-            momentFormat = 'DD/MM/YYYY hh:mm A';
-        }else if(date_format == 'yy/mm/dd'){
-            momentFormat = 'YYYY/MM/DD hh:mm A';
-        }else if(date_format == 'mm/dd/yy'){
-            momentFormat = 'MM/DD/YYYY hh:mm A';
-        }else if(date_format == 'dd.mm.yy'){
-            momentFormat = 'DD.MM.YYYY hh:mm A';
-        }else if(date_format == 'mm.dd.yy'){
-            momentFormat = 'MM.DD.YYYY hh:mm A';
-        }else if(date_format == 'yy.mm.dd'){
-            momentFormat = 'YYYY/MM/DD hh:mm A';
-        }
+        var momentFormat = ep_get_moment_datetime_format( date_format );
         let em_start_date = $( '#em_start_date' ).val();
         let em_start_time = $( '#em_start_time' ).val();
         let em_end_date = $( '#em_end_date' ).val();

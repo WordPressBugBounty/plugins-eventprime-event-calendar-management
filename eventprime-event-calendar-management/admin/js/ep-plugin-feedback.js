@@ -1,7 +1,7 @@
 jQuery( function( $ ) {
     var ep_plugin_deactivate_location = '';
     // show feedback modal on click on the deactivate link
-    $( '#the-list' ).find('[data-slug="eventprime-event-calendar-management"] span.deactivate a').click( function(event) {
+    $( '#the-list' ).find('[data-slug="eventprime-event-calendar-management"] span.deactivate a').on( 'click', function( event ) {
         $( '#ep_plugin_feedback_form_modal' ).openPopup({
             anim: (!$(this).attr('data-animation') || $(this).data('animation') == null) ? 'ep-modal-' : $(this).data('animation')
         });
@@ -53,7 +53,7 @@ jQuery( function( $ ) {
     var $feedbackUserEmailDivs = $(".ep-feedback-user-email");
     
         // Add a change event handler to all checkboxes
-        $informEmailCheckboxes.change(function () {
+        $informEmailCheckboxes.on( 'change', function() {
         // Find the index of the checkbox that was changed
         var index = $informEmailCheckboxes.index(this);
         //console.log(this.checked);

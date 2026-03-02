@@ -83,6 +83,7 @@ class Eventprime_Event_Calendar_Management_Admin {
         // Blocks style for admin
         wp_register_style( 'ep-admin-blocks-style', plugin_dir_url( __FILE__ ) . 'css/ep-admin-blocks-style.css', false, $this->version );
         wp_register_style( 'em-type-admin-custom-css', plugin_dir_url( __FILE__ ) . 'css/event-types/em-type-admin-custom.css', false, $this->version );
+        wp_register_style( 'ep-customization-promo-css', plugin_dir_url( __FILE__ ) . 'css/ep-customization-promo.css', array(), $this->version );
     }
 
     /**
@@ -96,10 +97,13 @@ class Eventprime_Event_Calendar_Management_Admin {
         wp_register_script( 'em-admin-timepicker-js', plugin_dir_url( __FILE__ ) . 'js/jquery.timepicker.min.js', false, $this->version,true );
         wp_register_script( 'ep-toast-js', plugin_dir_url( __FILE__ ) . 'js/jquery.toast.min.js', array( 'jquery' ), $this->version );
         wp_register_script( 'ep-toast-message-js', plugin_dir_url( __FILE__ ) . 'js/toast-message.js', array( 'jquery' ), $this->version );
-        wp_register_script( 'eventprime-admin-blocks-js', plugin_dir_url( __FILE__ ) . 'js/blocks/index.js', array( 'wp-blocks', 'wp-editor', 'wp-i18n', 'wp-element', 'wp-components' ), $this->version );
+        $ep_blocks_js_path = plugin_dir_path( __FILE__ ) . 'js/blocks/index.js';
+        $ep_blocks_js_ver  = file_exists( $ep_blocks_js_path ) ? (string) filemtime( $ep_blocks_js_path ) : $this->version;
+        wp_register_script( 'eventprime-admin-blocks-js', plugin_dir_url( __FILE__ ) . 'js/blocks/index.js', array( 'wp-blocks', 'wp-editor', 'wp-block-editor', 'wp-i18n', 'wp-element', 'wp-components', 'wp-api-fetch', 'wp-server-side-render' ), $ep_blocks_js_ver );
         wp_register_script( 'em-meta-box-admin-custom-js', plugin_dir_url( __FILE__ ) . 'js/em-admin-metabox-custom.js', array( 'jquery', 'jquery-ui-datepicker', 'jquery-ui-dialog', 'jquery-ui-accordion', 'jquery-ui-sortable' ), $this->version );
         wp_register_script( 'em-type-admin-custom-js', plugin_dir_url( __FILE__ ) . 'js/event-types/em-type-admin-custom.js', array( 'jquery', 'jquery-ui-datepicker', 'jquery-ui-dialog', 'jquery-ui-accordion', 'jquery-ui-sortable' ), $this->version );
         wp_register_script( 'ep-admin-utility-script', plugin_dir_url( __FILE__ ) . 'js/ep-admin-common-utility.js', array( 'jquery', 'jquery-ui-tooltip', 'jquery-ui-dialog' ), $this->version );
+        wp_register_script( 'ep-customization-promo-js', plugin_dir_url( __FILE__ ) . 'js/ep-customization-promo.js', array(), $this->version, true );
             
         wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/eventprime-event-calendar-management-admin.js', array( 'jquery' ), $this->version, true );
         $ep_dismissable_notice_nonce = wp_create_nonce( 'ep_dismissable_notice_nonce' );
@@ -651,9 +655,27 @@ class Eventprime_Event_Calendar_Management_Admin {
                 'ep_admin_utility_script',
                 array(
 					'ajaxurl' => admin_url( 'admin-ajax.php' ),
-				)
+                )
             );
         }
+
+        if ( 'ep-customization-promo' === $current_page ) {
+            wp_enqueue_style( 'ep-customization-promo-fonts', 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700&display=swap', array(), null );
+            wp_enqueue_style( 'ep-customization-promo-css' );
+            wp_enqueue_style( 'dashicons' );
+            wp_enqueue_script( 'ep-customization-promo-js' );
+            wp_localize_script(
+                'ep-customization-promo-js',
+                'ep_customization_promo',
+                array(
+                    'base_url'     => esc_url( 'https://theeventprime.com/customizations/' ),
+                    'utm_source'   => 'eventprime_admin',
+                    'utm_medium'   => 'plugin_services_page',
+                    'utm_campaign' => 'customizations_cta',
+                )
+            );
+        }
+
     }
 
     /**
@@ -1599,6 +1621,18 @@ class Eventprime_Event_Calendar_Management_Admin {
         }
 
         $allowed_statuses = array( 'draft', 'publish', 'future', 'pending', 'private' );
+        $submitted_status = ! empty( $postarr['post_status'] ) ? sanitize_key( $postarr['post_status'] ) : '';
+
+        // If user submitted via the Publish/Update button, never force status back to draft.
+        if ( isset( $_POST['publish'] ) && $requested_status === 'draft' ) {
+            if ( in_array( $submitted_status, array( 'publish', 'future', 'pending', 'private' ), true ) ) {
+                $data['post_status'] = $submitted_status;
+                return $data;
+            }
+            $data['post_status'] = 'publish';
+            return $data;
+        }
+
         if ( in_array( $requested_status, $allowed_statuses, true ) ) {
             $data['post_status'] = $requested_status;
         }
@@ -1675,7 +1709,7 @@ class Eventprime_Event_Calendar_Management_Admin {
             }
             $em_start_time = get_post_meta( $post_id, 'em_start_time', true );
             if ( !empty( $em_start_time ) ) {
-                $start_date .= ' ' . $em_start_time;
+                $start_date .= ' ' . $ep_functions->ep_convert_time_with_format( $em_start_time );
             }
             echo ( !empty( $start_date ) ? esc_html( $start_date ) : '----' );
         } elseif ( $column_name == 'end_date' ) {
@@ -1685,7 +1719,7 @@ class Eventprime_Event_Calendar_Management_Admin {
             }
             $em_end_time = get_post_meta( $post_id, 'em_end_time', true );
             if ( !empty( $em_end_time ) ) {
-                $end_date .= ' ' . $em_end_time;
+                $end_date .= ' ' . $ep_functions->ep_convert_time_with_format( $em_end_time );
             }
             echo ( !empty( $end_date ) ? esc_html( $end_date ) : '----' );
         } elseif ( $column_name == 'repeat' ) {
@@ -3220,6 +3254,7 @@ class Eventprime_Event_Calendar_Management_Admin {
         do_action( 'ep_admin_menus' );
         add_submenu_page( 'edit.php?post_type=em_event', esc_html__( 'EventPrime settings', 'eventprime-event-calendar-management' ), esc_html__( 'Settings', 'eventprime-event-calendar-management' ), 'manage_options', 'ep-settings', array( $this, 'ep_settings_page' ) );
         add_submenu_page( 'edit.php?post_type=em_event', esc_html__( 'Extensions', 'eventprime-event-calendar-management' ), esc_html__( 'Extensions', 'eventprime-event-calendar-management' ), $ep_user_menus_caps, 'ep-extensions', array( $this, 'eventprime_extensions' ) );
+        add_submenu_page( 'edit.php?post_type=em_event', esc_html__( 'Services', 'eventprime-event-calendar-management' ), esc_html__( 'Services', 'eventprime-event-calendar-management' ), $ep_user_menus_caps, 'ep-customization-promo', array( $this, 'eventprime_customization_promo' ) );
         // attendees list page
         add_submenu_page( 'ep_hidden_menu', esc_html__( 'Attendees List', 'eventprime-event-calendar-management' ), esc_html__( 'Attendees List', 'eventprime-event-calendar-management' ), $ep_user_menus_caps, 'ep-event-attendees-list', array( $this, 'ep_show_event_attendees_list' ) );
     }
@@ -3401,6 +3436,25 @@ class Eventprime_Event_Calendar_Management_Admin {
 				}
 			}
 		}
+
+		$eventprime_menu_slug = 'edit.php?post_type=em_event';
+		$services_menu_slug   = 'ep-customization-promo';
+
+		// Keep Services as the last visible submenu item under EventPrime.
+		if ( isset( $submenu[ $eventprime_menu_slug ] ) && is_array( $submenu[ $eventprime_menu_slug ] ) ) {
+			$services_row = null;
+			foreach ( $submenu[ $eventprime_menu_slug ] as $index => $row ) {
+				if ( isset( $row[2] ) && $row[2] === $services_menu_slug ) {
+					$services_row = $row;
+					unset( $submenu[ $eventprime_menu_slug ][ $index ] );
+					break;
+				}
+			}
+
+			if ( ! is_null( $services_row ) ) {
+				$submenu[ $eventprime_menu_slug ][] = $services_row;
+			}
+		}
 		return $parent_file;
 	}
 
@@ -3438,6 +3492,10 @@ class Eventprime_Event_Calendar_Management_Admin {
 
 	public function eventprime_extensions() {
 		include 'partials/menus/eventprime-extensions.php';
+	}
+
+	public function eventprime_customization_promo() {
+		include 'partials/menus/eventprime-customization-promo.php';
 	}
 
 	public function ep_setting_extensions_list() {

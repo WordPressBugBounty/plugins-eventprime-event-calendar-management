@@ -11,6 +11,71 @@ jQuery( function( $ ) {
         }
     }
 
+    function ep_parse_time_to_hhmm( value ) {
+        if ( !value ) {
+            return '';
+        }
+        var s = String( value ).trim();
+        var m24 = s.match( /^([01]\d|2[0-3]):([0-5]\d)$/ );
+        if ( m24 ) {
+            return m24[1] + ':' + m24[2];
+        }
+        var m12 = s.match( /^(0?[1-9]|1[0-2]):([0-5]\d)\s*([aApP][mM])$/ );
+        if ( !m12 ) {
+            return '';
+        }
+        var h = parseInt( m12[1], 10 );
+        var mer = m12[3].toLowerCase();
+        if ( mer === 'am' ) {
+            if ( h === 12 ) h = 0;
+        } else if ( h !== 12 ) {
+            h += 12;
+        }
+        return String( h ).padStart( 2, '0' ) + ':' + m12[2];
+    }
+
+    function ep_format_time_for_picker( hhmmValue, use24h ) {
+        if ( !hhmmValue ) {
+            return '';
+        }
+        if ( use24h ) {
+            return hhmmValue;
+        }
+        var parts = hhmmValue.split( ':' );
+        if ( parts.length !== 2 ) {
+            return hhmmValue;
+        }
+        var h = parseInt( parts[0], 10 );
+        var m = parts[1];
+        if ( isNaN( h ) ) {
+            return hhmmValue;
+        }
+        var meridiem = ( h >= 12 ) ? 'PM' : 'AM';
+        var h12 = h % 12;
+        if ( h12 === 0 ) {
+            h12 = 12;
+        }
+        return h12 + ':' + m + ' ' + meridiem;
+    }
+
+    function ep_init_calendar_time_fields() {
+        var is24hTime = ( eventprime.global_settings.time_format == 'HH:mm' );
+        $( '#calendar_end_time, #calendar_start_time' ).each( function() {
+            var normalizedValue = ep_parse_time_to_hhmm( $( this ).val() );
+            $( this ).attr( 'type', 'text' ).removeAttr( 'step' );
+            try {
+                $( this ).timepicker( 'remove' );
+            } catch ( e ) {}
+            $( this ).timepicker({
+                timeFormat: is24hTime ? 'H:i' : 'h:i A',
+                step: 15
+            });
+            if ( normalizedValue ) {
+                $( this ).val( ep_format_time_for_picker( normalizedValue, is24hTime ) );
+            }
+        });
+    }
+
     var calendar = null;
     $( document ).ready(function () {
         let events = em_admin_calendar_event_object.cal_events;
@@ -491,6 +556,7 @@ jQuery( function( $ ) {
             validation = true;
         }
         if( validation ) {
+            ep_init_calendar_time_fields();
             var calendarEventForm = $('#ep-calendar-event-create-form');
             let event_data = { 
                 action: 'ep_calendar_event_create', 
@@ -520,7 +586,7 @@ jQuery( function( $ ) {
         }
     });    
     
-    $( '#ep-calendar-all-day' ).click(function(e){
+    $( '#ep-calendar-all-day' ).on( 'click', function( e ) {
         if( $( '#ep-calendar-all-day' ).is( ':checked' ) ){
             $( '#calendar_end_date' ).attr( 'disabled', true );
             $( '#calendar_start_time' ).attr( 'disabled', true ).val('');
@@ -533,7 +599,7 @@ jQuery( function( $ ) {
         }
     });
     
-    $('#ep-calendar-enable-booking').click(function(e){
+    $('#ep-calendar-enable-booking').on( 'click', function( e ) {
        if( $('#ep-calendar-enable-booking').is(':checked') ){
             $('#ep-calendar-event-booing-helptext, #ep-calendar-enable-booking-child').show();
             $('#calendar_booking_price').removeAttr('disabled');
@@ -546,7 +612,7 @@ jQuery( function( $ ) {
         } 
     });
 
-    $( '#ep-calendar-event-delete-btn' ).click(function(e){
+    $( '#ep-calendar-event-delete-btn' ).on( 'click', function( e ) {
         e.preventDefault();
         var event_id = $(this).data('id');
         if (!confirm( 'Are you sure?' ) ) return false;
@@ -615,19 +681,9 @@ jQuery( function( $ ) {
         if( position.pageX < 400 ) {
             leftX += 200;
         }
-        // timepicker
-        $( '#calendar_end_time, #calendar_start_time' ).timepicker({
-            timeFormat: 'h:i A',
-            step: 15,
-           
-        });
-        // Prevent manual typing but allow dropdown selection
-        $('#calendar_end_time, #calendar_start_time').on('keydown', function(event) {
-            event.preventDefault(); // Blocks typing
-        });
+        ep_init_calendar_time_fields();
 
         $( '#calendarPopup' ).prop( 'style',"left:" + 0 + "px;top:" + 0 + "px;" );
-        $( '.ui-timepicker-wrapper' ).addClass( 'ep-ui-cal-time-modal-wrap' );
         $( '#calendarPopup' ).removeClass( 'em_edit_pop' );
         $('#calendarPopup .ep-modal-overlay').removeClass('ep-modal-overlay-fade-in').addClass('ep-modal-overlay-fade-out');
         $('#calendarPopup .ep-modal-wrap-calendar').removeClass('ep-modal-out').addClass('ep-modal-in');
@@ -712,11 +768,7 @@ jQuery( function( $ ) {
         if( position.pageX < 400 ) {
             leftX += 200;
         }
-        // timepicker
-        $( '#calendar_end_time, #calendar_start_time' ).timepicker({
-            timeFormat: 'h:i A',
-            step: 15,
-        });
+        ep_init_calendar_time_fields();
         $( '#calendarPopup' ).prop('style',"left:" + leftX + "px;top:" + topY + "px;" );
         $( '#calendarPopup' ).removeClass( 'em_edit_pop' );
         $( '#calendarPopup' ).show();

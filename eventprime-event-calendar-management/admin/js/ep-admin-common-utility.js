@@ -4,7 +4,7 @@ jQuery(function ($) {
         $('.ep-help-tip').append("<span></span>");
         $('.ep-help-tip:not([tooltip-position])').attr('tooltip-position', 'top');
 
-        $(".ep-help-tip").mouseenter(function () {
+        $( ".ep-help-tip" ).on( 'mouseenter', function() {
             $(this).find('span').empty().append($(this).attr('tooltip'));
         });
         

@@ -513,6 +513,7 @@ echo sprintf(
                                                             <?php esc_html_e( 'Choose Time', 'eventprime-event-calendar-management' );?>
                                                         </label>
                                                         <input type="text" class="ep-form-control epTimePicker" name="em_ticket_start_booking_time" id="ep_ticket_start_booking_time">
+                                                        <div class="ep-error-message ep-time-field-error" id="em_ticket_start_booking_time_error"></div>
                                                     </div> 
                                                     <div class="ep-box-col-6 ep-mt-3 ep_ticket_start_booking_options ep_ticket_start_booking_relative_date" style="display:none;">
                                                         <label class="ep-form-label">
@@ -593,6 +594,7 @@ echo sprintf(
                                                             <?php esc_html_e( 'Choose Time', 'eventprime-event-calendar-management' );?>
                                                         </label>
                                                         <input type="text" class="ep-form-control epTimePicker" name="em_ticket_ends_booking_time" id="ep_ticket_ends_booking_time">
+                                                        <div class="ep-error-message ep-time-field-error" id="em_ticket_ends_booking_time_error"></div>
                                                     </div> 
 
                                                     <div class="ep-box-col-6 ep-mt-3 ep_ticket_ends_booking_options ep_ticket_ends_booking_relative_date" style="display:none;">
@@ -928,6 +930,7 @@ echo sprintf(
                                                                                         <?php esc_html_e('Choose Time', 'eventprime-event-calendar-management'); ?>
                                                                                     </label>
                                                                                     <input type="text" class="ep-form-control epTimePicker" name="em_offer_start_booking_time" id="ep_offer_start_booking_time">
+                                                                                    <div class="ep-error-message ep-time-field-error" id="em_offer_start_booking_time_error"></div>
                                                                                 </div> 
                                                                                 <div class="ep-box-col-6 ep-mt-3 ep_offer_start_booking_options ep_offer_start_booking_relative_date" style="display:none;">
                                                                                     <label class="ep-form-label">
@@ -989,6 +992,7 @@ echo sprintf(
                                                                                         <?php esc_html_e('Choose Time', 'eventprime-event-calendar-management'); ?>
                                                                                     </label>
                                                                                     <input type="text" class="ep-form-control epTimePicker" name="em_offer_ends_booking_time" id="ep_offer_ends_booking_time">
+                                                                                    <div class="ep-error-message ep-time-field-error" id="em_offer_ends_booking_time_error"></div>
                                                                                 </div> 
                                                                                 <div class="ep-box-col-6 ep-mt-3 ep_offer_ends_booking_options ep_offer_ends_booking_relative_date" style="display:none;">
                                                                                     <label class="ep-form-label">

@@ -33,7 +33,7 @@ $ep_functions = new Eventprime_Basic_Functions;
                     <span id="ep-start-time-hidden" class="material-icons ep-text-muted ep-text-small ep-ml-2" style="display: none;">visibility_off</span>
                 </label>
                 <div class="ep-event-start-time">
-                    <input type="text" id="em_start_time" name="em_start_time" class="ep-form-control epTimePicker" value="<?php echo isset($args->event) && !empty($args->event->em_start_time) ?  esc_attr($args->event->em_start_time)   : '';?>">
+                    <input type="text" id="em_start_time" name="em_start_time" class="ep-form-control epTimePicker" value="<?php echo isset($args->event) && !empty($args->event->em_start_time) ?  esc_attr($ep_functions->ep_convert_time_with_format( $args->event->em_start_time ))   : '';?>">
                 </div>
             </div>
             
@@ -78,7 +78,7 @@ $ep_functions = new Eventprime_Basic_Functions;
                     <span id="ep-end-time-hidden" class="material-icons ep-text-muted ep-text-small ep-ml-2" style="display: none;">visibility_off</span>
                 </label>
                 <div class="ep-event-start-time">
-                    <input type="text" id="em_end_time" name="em_end_time" class="ep-form-control epTimePicker" value="<?php echo isset($args->event) && !empty($args->event->em_end_time) ?  esc_attr($args->event->em_end_time)   : '';?>">                
+                    <input type="text" id="em_end_time" name="em_end_time" class="ep-form-control epTimePicker" value="<?php echo isset($args->event) && !empty($args->event->em_end_time) ?  esc_attr($ep_functions->ep_convert_time_with_format( $args->event->em_end_time ))   : '';?>">                
                 </div>
             </div>
             
@@ -164,7 +164,7 @@ $ep_functions = new Eventprime_Basic_Functions;
                             <label class="ep-form-label"><?php esc_html_e( 'Time (Optional)', 'eventprime-event-calendar-management' ); ?>
                             </label>
                             <div class="ep-event-start-time">
-                                <input type="text" name="em_event_add_more_dates[<?php echo esc_attr($note_count);?>][time]" class="ep-form-control ep-ad-event-time epTimePicker" autocomplete="off" value="<?php echo isset($event_dates['time']) ? esc_attr($event_dates['time'])  : '';?>">                
+                                <input type="text" name="em_event_add_more_dates[<?php echo esc_attr($note_count);?>][time]" class="ep-form-control ep-ad-event-time epTimePicker" autocomplete="off" value="<?php echo isset($event_dates['time']) ? esc_attr($ep_functions->ep_convert_time_with_format( $event_dates['time'] ))  : '';?>">                
                             </div>
                         </div>
 

@@ -5,7 +5,7 @@ Tags: event calendar, organizer , event manager, tickets, event booking, event b
 Requires at least: 4.8
 Tested up to: 6.9
 Requires PHP: 7.2
-Stable tag: 4.2.9.1
+Stable tag: 4.3.0.0
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -666,6 +666,17 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.3.0.0: March 02, 2026 =
+* Fixed: 24-hour time format setting not respected in backend and frontend forms.
+* Fixed: Time picker issues across admin flows.
+* Fixed: Block rendering and block stylesheet loading issues.
+* Fixed: Console errors caused by deprecated block API usage.
+* Fixed: Event publish issue on sites using a different site language.
+* Fixed: Time validation issues in offer and ticket models.
+* Added: New extension – Certification for Attendee.
+* Added: New extension – Event Materials & Downloads.
+* Added: New extension – Printable Event Program.
 
 = 4.2.9.1: February 17, 2026 =
 * Added: Option to hide seat types (Standing/Seating) on single venue and venue listing pages.
@@ -2308,6 +2319,17 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.3.0.0: March 02, 2026 =
+* Fixed: 24-hour time format setting not respected in backend and frontend forms.
+* Fixed: Time picker issues across admin flows.
+* Fixed: Block rendering and block stylesheet loading issues.
+* Fixed: Console errors caused by deprecated block API usage.
+* Fixed: Event publish issue on sites using a different site language.
+* Fixed: Time validation issues in offer and ticket models.
+* Added: New extension – Certification for Attendee.
+* Added: New extension – Event Materials & Downloads.
+* Added: New extension – Printable Event Program.
 
 = 4.2.9.1: February 17, 2026 =
 * Added: Option to hide seat types (Standing/Seating) on single venue and venue listing pages.

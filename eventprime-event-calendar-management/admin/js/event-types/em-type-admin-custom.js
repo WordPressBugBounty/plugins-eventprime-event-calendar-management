@@ -89,7 +89,7 @@ jQuery( document ).ajaxComplete( function( event, request, options ) {
 
 jQuery( document ).ready(function(e){
     //Age group
-    jQuery('#ep-event-type-age-group' ).change(function(e){
+    jQuery( '#ep-event-type-age-group' ).on( 'change', function( e ) {
         var selectGroup = jQuery(this).val();
         if( selectGroup == 'custom_group' ){
             jQuery( '.em-type-admin-age-group-custom' ).show(300);

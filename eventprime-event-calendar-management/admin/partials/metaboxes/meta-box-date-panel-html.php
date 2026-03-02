@@ -39,6 +39,14 @@ if(empty($em_start_date)) $em_start_date = time();
 if(empty($em_end_date)) $em_end_date = time();
 $em_start_date = $ep_functions->ep_timestamp_to_date( $em_start_date, $date_format );
 $em_end_date = $ep_functions->ep_timestamp_to_date( $em_end_date, $date_format );?>
+<?php
+if ( ! empty( $em_start_time ) ) {
+    $em_start_time = $ep_functions->ep_convert_time_with_format( $em_start_time );
+}
+if ( ! empty( $em_end_time ) ) {
+    $em_end_time = $ep_functions->ep_convert_time_with_format( $em_end_time );
+}
+?>
 <div id="ep_event_datetime_data" class="panel ep_event_options_panel">
     <!-- <div class="postbox-header ep-metabox-title"><h2><?php esc_html_e('Date and Time', 'eventprime-event-calendar-management'); ?></h2></div> -->
     <div class="ep-box-wrap ep-my-3">
@@ -213,7 +221,7 @@ $em_end_date = $ep_functions->ep_timestamp_to_date( $em_end_date, $date_format )
                             <label class="ep-form-label"><?php esc_html_e( 'Time (Optional)', 'eventprime-event-calendar-management' ); ?>
                             </label>
                             <div class="ep-event-start-time">
-                                <input type="text" name="em_event_add_more_dates[<?php echo esc_attr( $count );?>][time]" class="ep-form-control ep-ad-event-time epTimePicker" autocomplete="off" value="<?php echo esc_html( $more['time'] );?>">                
+                                <input type="text" name="em_event_add_more_dates[<?php echo esc_attr( $count );?>][time]" class="ep-form-control ep-ad-event-time epTimePicker" autocomplete="off" value="<?php echo esc_html( ! empty( $more['time'] ) ? $ep_functions->ep_convert_time_with_format( $more['time'] ) : '' );?>">                
                             </div>
                         </div>
 

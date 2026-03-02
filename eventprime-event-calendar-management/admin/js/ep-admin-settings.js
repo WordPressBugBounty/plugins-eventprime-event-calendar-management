@@ -176,7 +176,7 @@ jQuery( function( $ ) {
         });
     });
 
-    jQuery('.ep-payment-toggle').click(function(e){
+    jQuery( '.ep-payment-toggle' ).on( 'click', function( e ) {
         ep_submit_payment_ajax(this);
     });
     

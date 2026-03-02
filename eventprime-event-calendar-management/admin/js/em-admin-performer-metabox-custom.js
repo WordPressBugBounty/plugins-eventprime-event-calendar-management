@@ -6,7 +6,7 @@ jQuery( function( $ ) {
 
         // validate post before save
         var form = $("form[name='post']");
-        $(form).find("input[type='submit']").click(function(e){
+        $( form ).find( "input[type='submit']" ).on( 'click', function( e ) {
             if($("#post_type").val() != 'em_performer') return true;
             
             //e.preventDefault();

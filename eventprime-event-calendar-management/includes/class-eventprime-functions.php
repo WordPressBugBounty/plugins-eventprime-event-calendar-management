@@ -106,6 +106,9 @@ class Eventprime_Basic_Functions {
             'Eventprime_Woocommerce_Checkout_Integration',
             'Eventprime_Advanced_Live_Seating',
             'Eventprime_Attendee_Event_Check_In',
+            'Eventprime_Certification_For_Attendee',
+            'Eventprime_Event_Materials_And_Downloads',
+            'Eventprime_Printable_Event_Program',
             'EventPrime_Waiting_List',
             'Eventprime_Honeypot_Integration',
             'Eventprime_Turnstile_Antispam',
@@ -197,6 +200,9 @@ class Eventprime_Basic_Functions {
             'Eventprime_Woocommerce_Checkout_Integration',
             'Eventprime_Advanced_Live_Seating',
             'Eventprime_Attendee_Event_Check_In',
+            'Eventprime_Certification_For_Attendee',
+            'Eventprime_Event_Materials_And_Downloads',
+            'Eventprime_Printable_Event_Program',
             'EventPrime_Waiting_List',
             'Eventprime_Honeypot_Integration',
             'Eventprime_Turnstile_Antispam',
@@ -1838,21 +1844,34 @@ public function ep_get_event_date_time_diff( $event ) {
 
     public function ep_check_time_format($timeString)
     {
-        // Define the time string and expected format
-        $format = $this->ep_get_global_settings('time_format');
-        //$format = "H:i:s";
+        return $this->ep_sanitize_time_input( $timeString );
+    }
 
-        // Parse the time string
-        $time = DateTime::createFromFormat($format, $timeString);
-
-        // Check if the time format is correct
-        if ($time && $time->format($format) === $timeString) {
-            return $timeString;
-        }
-        else
-        {
+    public function ep_sanitize_time_input( $timeString ) {
+        if ( ! is_string( $timeString ) ) {
             return '';
         }
+
+        $timeString = trim( $timeString );
+        if ( $timeString === '' ) {
+            return '';
+        }
+
+        $dateTime = DateTime::createFromFormat( 'H:i', $timeString )
+            ?: DateTime::createFromFormat( 'H:i:s', $timeString )
+            ?: DateTime::createFromFormat( 'g:i A', strtoupper( $timeString ) )
+            ?: DateTime::createFromFormat( 'g:i:s A', strtoupper( $timeString ) );
+
+        if ( ! $dateTime ) {
+            return '';
+        }
+
+        $time_format = $this->ep_get_global_settings( 'time_format' );
+        if ( $time_format === 'HH:mm' ) {
+            return $dateTime->format( 'H:i' );
+        }
+
+        return $dateTime->format( 'h:i A' );
     }
     
     public function ep_convert_event_date_time_from_timezone( $event, $format = '', $end = 0, $strict = 0 ) {
@@ -2129,15 +2148,13 @@ public function ep_get_event_date_time_diff( $event ) {
         if (empty($strict)) {
             $format = $this->ep_get_datepicker_format();
         }
-        $timepicker_format_arr = $this->ep_get_global_settings('time_format');
-        if (empty($timepicker_format_arr)) {
-            $timepicker_format_arr = 'h:mmt';
+        $timepicker_format = $this->ep_get_global_settings('time_format');
+        if (empty($timepicker_format)) {
+            $timepicker_format = 'h:mmt';
         }
-        if (!empty($timepicker_format_arr) && !empty($format)) {
-            $timepicker_format_arr = explode(':', $timepicker_format_arr);
-            $timeformat = $timepicker_format_arr[1];
-            if ($timeformat == 'HH') {
-                $format = $format . ' H:i A';
+        if (!empty($timepicker_format) && !empty($format)) {
+            if ($timepicker_format === 'HH:mm') {
+                $format = $format . ' H:i';
             } else {
                 $format = $format . ' h:i A';
             }
@@ -4061,13 +4078,13 @@ public function ep_get_event_date_time_diff( $event ) {
 
     // list all extension
     public function ep_list_all_exts() {
-        $exts = array('Live Seating', 'Events Import Export', 'Stripe Payments', 'Offline Payments', 'WooCommerce Integration', 'Event Sponsors', 'Attendees List', 'EventPrime Invoices', 'Coupon Codes', 'Guest Bookings', 'EventPrime Zoom Integration', 'Event List Widgets', 'Admin Attendee Bookings', 'EventPrime MailPoet', 'Twilio Text Notifications', 'Event Tickets', 'Zapier Integration', 'Advanced Reports', 'Advanced Checkout Fields', 'Elementor Integration', 'Mailchimp Integration', 'User Feedback', 'RSVP', 'WooCommerce Checkout', 'Ratings and Reviews','Attendee Event Check In','Waiting List','HoneyPot Security','Turnstile Antispam Security','Event Reminder Emails','Demo Data','Square Payments','hCaptcha Security','Advanced Seat Plan Builder','Group Booking','Advanced Social Sharing','Event Countdown Timer','Join Chat Integration','Event Map View','Multi-Session Events');
+        $exts = array('Live Seating', 'Events Import Export', 'Stripe Payments', 'Offline Payments', 'WooCommerce Integration', 'Event Sponsors', 'Attendees List', 'EventPrime Invoices', 'Coupon Codes', 'Guest Bookings', 'EventPrime Zoom Integration', 'Event List Widgets', 'Admin Attendee Bookings', 'EventPrime MailPoet', 'Twilio Text Notifications', 'Event Tickets', 'Zapier Integration', 'Advanced Reports', 'Advanced Checkout Fields', 'Elementor Integration', 'Mailchimp Integration', 'User Feedback', 'RSVP', 'WooCommerce Checkout', 'Ratings and Reviews','Attendee Event Check In','EventPrime Certification for Attendee','EventPrime Event Materials & Downloads','EventPrime Printable Event Program','Waiting List','HoneyPot Security','Turnstile Antispam Security','Event Reminder Emails','Demo Data','Square Payments','hCaptcha Security','Advanced Seat Plan Builder','Group Booking','Advanced Social Sharing','Event Countdown Timer','Join Chat Integration','Event Map View','Multi-Session Events');
         return $exts;
     }
 
     // get premium extension list
     public function ep_load_premium_extension_list() {
-        $premium_ext_list = array('Live Seating', 'Stripe Payments', 'Offline Payments', 'Event Sponsors', 'Attendees List', 'EventPrime Invoices', 'Coupon Codes', 'Guest Bookings', 'EventPrime Zoom Integration', 'Event List Widgets', 'Admin Attendee Bookings', 'EventPrime MailPoet', 'Twilio Text Notifications', 'Event Tickets', 'Advanced Reports', 'Advanced Checkout Fields', 'Mailchimp Integration', 'User Feedback', 'RSVP', 'WooCommerce Checkout', 'Ratings and Reviews','Attendee Event Check In','Waiting List','Turnstile Antispam Security','Event Reminder Emails','Square Payments','hCaptcha Security','Advanced Seat Plan Builder','Group Booking','Advanced Social Sharing','Event Countdown Timer','Join Chat Integration','Event Map View','Multi-Session Events');
+        $premium_ext_list = array('Live Seating', 'Stripe Payments', 'Offline Payments', 'Event Sponsors', 'Attendees List', 'EventPrime Invoices', 'Coupon Codes', 'Guest Bookings', 'EventPrime Zoom Integration', 'Event List Widgets', 'Admin Attendee Bookings', 'EventPrime MailPoet', 'Twilio Text Notifications', 'Event Tickets', 'Advanced Reports', 'Advanced Checkout Fields', 'Mailchimp Integration', 'User Feedback', 'RSVP', 'WooCommerce Checkout', 'Ratings and Reviews','Attendee Event Check In','EventPrime Certification for Attendee','EventPrime Event Materials & Downloads','EventPrime Printable Event Program','Waiting List','Turnstile Antispam Security','Event Reminder Emails','Square Payments','hCaptcha Security','Advanced Seat Plan Builder','Group Booking','Advanced Social Sharing','Event Countdown Timer','Join Chat Integration','Event Map View','Multi-Session Events');
         return $premium_ext_list;
     }
 
@@ -5708,6 +5725,75 @@ public function ep_get_event_date_time_diff( $event ) {
                 $data['is_free'] = !$this->ep_check_for_premium_extension('Multi-Session Events');
                 $data['image'] = 'multi-session-events-icon.png';
                 $data['desc'] = "Add multiple sessions to a single event with customizable time slots, venues, and performers. Perfect for workshops, conferences, and summits with structured agendas.";
+                break;
+
+            case 'EventPrime Certification for Attendee':
+                $data['url'] = 'https://theeventprime.com/all-extensions/certification-for-attendee/';
+                $data['title'] = 'EventPrime Certification for Attendee';
+                if (in_array('eventprime-certification-for-attendee.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-certification-for-attendee.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Certification_For_Attendee");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=attendee-check-in-settings');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('EventPrime Certification for Attendee');
+                $data['image'] = 'attendee-certificate.png';
+                $data['desc'] = "Automatically send personalized certificates to attendees after booking confirmation or event completion.";
+                break;
+
+            case 'EventPrime Event Materials & Downloads':
+                $data['url'] = 'https://theeventprime.com/all-extensions/event-materials-downloads/';
+                $data['title'] = 'EventPrime Event Materials & Downloads';
+                if (in_array('eventprime-event-materials-and-downloads.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-event-materials-and-downloads.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Event_Materials_And_Downloads");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=eventmaterials');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('EventPrime Event Materials & Downloads');
+                $data['image'] = 'material-download.png';
+                $data['desc'] = "Upload files for events, organize them as pre/post materials, and restrict access based on booking or check-in.";
+                break;
+
+            case 'EventPrime Printable Event Program':
+                $data['url'] = 'https://theeventprime.com/all-extensions/printable-event-program/';
+                $data['title'] = 'EventPrime Printable Event Program';
+                if (in_array('eventprime-printable-event-program.php', $installed_plugin_file)) {
+                    $data['button'] = 'Activate';
+                    $data['class_name'] = 'ep-activate-now-btn';
+                    $file_key = array_search('eventprime-printable-event-program.php', $installed_plugin_file);
+                    if (!empty($file_key)) {
+                        $data['is_installed'] = 1;
+                    }
+                    $data['url'] = $this->em_get_extension_activation_url($installed_plugin_url[$file_key]);
+                }
+                $data['is_activate'] = class_exists("Eventprime_Printable_Event_Program");
+                if ($data['is_activate']) {
+                    $data['button'] = 'Setting';
+                    $data['class_name'] = 'ep-option-now-btn';
+                    $data['url'] = admin_url('edit.php?post_type=em_event&page=ep-settings&tab=printable-events-program-settings');
+                }
+                $data['is_free'] = !$this->ep_check_for_premium_extension('EventPrime Printable Event Program');
+                $data['image'] = 'printable-event-program.png';
+                $data['desc'] = "Generate clean, printable HTML programs for your events, optionally downloadable as branded PDFs.";
                 break;
                 
             case 'Demo Data':
@@ -7869,13 +7955,27 @@ public function ep_show_event_date_time( $value, $event ) {
 
 // convert front end time to 24 hours format
 public function ep_convert_time_with_format( $ep_time ) {
-    $timeIn24HourFormat = $ep_time;
-    $time_format = $this->ep_get_global_settings( 'time_format' );
-    if( ! empty( $time_format ) && $time_format == 'HH:mm' ) {
-        $dateTime = new DateTime( $ep_time );
-        $timeIn24HourFormat = $dateTime->format('H:i');
+    if ( empty( $ep_time ) ) {
+        return '';
     }
-    return $timeIn24HourFormat;
+
+    $ep_time = trim( (string) $ep_time );
+    $time_format = $this->ep_get_global_settings( 'time_format' );
+
+    $dateTime = DateTime::createFromFormat( 'g:i A', strtoupper( $ep_time ) )
+        ?: DateTime::createFromFormat( 'g:i:s A', strtoupper( $ep_time ) )
+        ?: DateTime::createFromFormat( 'H:i', $ep_time )
+        ?: DateTime::createFromFormat( 'H:i:s', $ep_time );
+
+    if ( ! $dateTime ) {
+        return $ep_time;
+    }
+
+    if ( ! empty( $time_format ) && $time_format === 'HH:mm' ) {
+        return $dateTime->format( 'H:i' );
+    }
+
+    return $dateTime->format( 'h:i A' );
 }
 
 public function ep_convert_event_date_time_to_timestamp( $event, $start = 'start' ) {
@@ -7899,7 +7999,23 @@ public function ep_convert_event_date_time_to_timestamp( $event, $start = 'start
             }
         }
     }
-    return $timestamp;
+
+    if ( $timestamp instanceof DateTimeInterface ) {
+        return (int) $timestamp->getTimestamp();
+    }
+
+    if ( is_numeric( $timestamp ) ) {
+        return (int) $timestamp;
+    }
+
+    if ( is_string( $timestamp ) && $timestamp !== '' ) {
+        $parsed_timestamp = strtotime( $timestamp );
+        if ( false !== $parsed_timestamp ) {
+            return (int) $parsed_timestamp;
+        }
+    }
+
+    return false;
 }
 
 public function get_ep_event_performer($ids)
@@ -11339,6 +11455,12 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
             $event_listings_date_format = !empty($this->ep_get_global_settings('event_listings_date_format_val')) ? $this->ep_get_global_settings('event_listings_date_format_val') : 'Y-m-d';
             foreach( $events as $event ) {
                 $ev = $this->get_event_data_to_views( $event );
+                if ( ! empty( $ev['start_time'] ) ) {
+                    $ev['start_time'] = $this->ep_convert_time_with_format( $ev['start_time'] );
+                }
+                if ( ! empty( $ev['end_time'] ) ) {
+                    $ev['end_time'] = $this->ep_convert_time_with_format( $ev['end_time'] );
+                }
                 $start_date_time = $ev['start'];
                 if( $this->ep_show_event_date_time( 'em_start_time', $event ) ) {
                     $start_date_time = explode( ' ', $start_date_time )[0];
@@ -11442,10 +11564,13 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
         $event_data['em_organizer'] = isset( $data['organizers'] ) ? $data['organizers'] : array();
         $event_data['em_performer'] = isset( $data['performers'] ) ? $data['performers'] : array();
         $format = $this->ep_get_datepicker_format();
+        $time_format_setting = $this->ep_get_global_settings( 'time_format' );
+        $default_start_time = ( $time_format_setting === 'HH:mm' ) ? '00:00' : '12:00 AM';
+        $default_end_time = ( $time_format_setting === 'HH:mm' ) ? '23:59' : '11:59 PM';
         $em_start_date = isset( $data['start_date'] ) ? sanitize_text_field( $data['start_date'] ) : '';
-        $em_start_time = isset( $data['start_time'] ) ? sanitize_text_field( $data['start_time'] ) : '12:00 AM';
+        $em_start_time = isset( $data['start_time'] ) ? $this->ep_sanitize_time_input( sanitize_text_field( $data['start_time'] ) ) : $default_start_time;
         $em_end_date = isset( $data['end_date'] ) ? sanitize_text_field( $data['end_date'] ) : '';
-        $em_end_time = isset( $data['end_time'] ) ? sanitize_text_field( $data['end_time'] ) : '11:59 PM';
+        $em_end_time = isset( $data['end_time'] ) ? $this->ep_sanitize_time_input( sanitize_text_field( $data['end_time'] ) ) : $default_end_time;
         $em_all_day = isset( $data['em_all_day'] ) && ! empty( $data['em_all_day'] ) ? 1 : 0 ;
         if( ! empty( $em_start_date ) ) {
             $start_date = $em_start_date;
@@ -11464,15 +11589,15 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
         if( ! empty( $allday ) || ! trim( $start_date ) && ! trim( $end_date ) ) {
             $allDayDate = $start_date;
             $event_data['em_all_day'] = 1;
-            $start_time = "12:00 AM";
-            $end_time = "11:59 PM";
+            $start_time = $default_start_time;
+            $end_time = $default_end_time;
             $start_date = $allDayDate;
             $end_date = $allDayDate;
         }
         $event_data['em_start_date'] = !empty($start_date) ? $this->ep_date_to_timestamp($start_date, $format) : '';
         $event_data['em_end_date'] = !empty($end_date) ? $this->ep_date_to_timestamp($end_date ,$format): '';
-        $event_data['em_start_time'] = !empty($start_time) ? $start_time : '12:00 AM';
-        $event_data['em_end_time'] = !empty($end_time) ? $end_time : '11:59 PM';
+        $event_data['em_start_time'] = !empty($start_time) ? $start_time : $default_start_time;
+        $event_data['em_end_time'] = !empty($end_time) ? $end_time : $default_end_time;
         
         $event_data['em_enable_booking'] = isset($data['em_enable_booking']) && !empty($data['em_enable_booking']) ? 'bookings_on' : 'bookings_off';
         $event_data['em_ticket_price'] = 0;
@@ -12547,6 +12672,7 @@ public function ep_get_events( $fields ) {
             'eventprime_frontend_submission',
             array(
                 'datepicker_format' => $this->ep_get_global_settings( 'datepicker_format' ),
+                'time_format' => $this->ep_get_global_settings( 'time_format' ),
                 'ajaxurl'   => admin_url('admin-ajax.php'),
             ),
         );

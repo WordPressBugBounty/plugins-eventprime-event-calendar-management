@@ -96,7 +96,7 @@ jQuery( function( $ ) {
                 selectedPost.push($(this).val());
             });
             if(selectedPost.length >= 1){
-                $('form#posts-filter').submit();
+                $( 'form#posts-filter' ).trigger( 'submit' );
             }
         }
     });

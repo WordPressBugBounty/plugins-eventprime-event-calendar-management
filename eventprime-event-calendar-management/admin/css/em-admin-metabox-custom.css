@@ -193,6 +193,10 @@ ul.ep_event_metabox_tabs li.ep-event-metabox-tab a span{
 .ep-ui-show-on-top {
     z-index: 99999 !important;
 }
+.post-type-em_event .ui-timepicker-wrapper,
+.post-type-em_event .ui-timepicker-wrapper.ep-ui-show-on-top {
+    z-index: 99999 !important;
+}
 #ui-datepicker-div.ep-ui-show-on-top {
     border: 1px solid #e8e8e8;
     box-shadow: 0 1px 9px rgb(0 0 0 / 12%);

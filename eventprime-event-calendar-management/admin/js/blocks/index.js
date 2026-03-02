@@ -4,7 +4,8 @@
   const { createElement, useState, useEffect } = wp.element;
   const { __: ep__ } = wp.i18n; // alias to avoid global "__"
   const { InspectorControls } = wp.blockEditor || wp.editor; // compatibility
-  const { TextControl, SelectControl, ServerSideRender, PanelBody } = wp.components;
+  const { TextControl, SelectControl, PanelBody } = wp.components;
+  const ServerSideRender = (wp.serverSideRender && (wp.serverSideRender.default || wp.serverSideRender)) || wp.components.ServerSideRender;
   const el = createElement;
 
   // Reusable icon
@@ -24,17 +25,26 @@
 
   // --- Small in-file cache for events to reuse across block edits in the same session
   let __epEventsCache = null;
+  const normalizeEventOption = (e) => {
+    const rawId = e && (e.value || e.id || e.ID || 0);
+    const value = String(rawId);
+    const rawLabel = e && (e.label || e.title || e.name || `#${value}`);
+    const label = typeof rawLabel === 'string' ? rawLabel : (rawLabel && rawLabel.rendered ? rawLabel.rendered : `#${value}`);
+    return { label, value };
+  };
+
+  const fetchEventsFromPath = async (path) => {
+    const result = await wp.apiFetch({ path });
+    return Array.isArray(result) ? result.map(normalizeEventOption) : [];
+  };
+
   const fetchEvents = async () => {
     if (__epEventsCache) return __epEventsCache;
     try {
-      const result = await wp.apiFetch({ path: 'eventprime/v1/events' });
-      // Ensure options format: [{ label, value }] for SelectControl
-      __epEventsCache = Array.isArray(result)
-        ? result.map((e) => ({
-            label: e.title || e.name || `#${e.id}`,
-            value: String(e.id),
-          }))
-        : [];
+      __epEventsCache = await fetchEventsFromPath('/eventprime/v1/events');
+      if (!__epEventsCache.length) {
+        __epEventsCache = await fetchEventsFromPath('eventprime/v1/events');
+      }
     } catch (e) {
       __epEventsCache = [];
     }
@@ -45,6 +55,7 @@
   // Event Calendar Block
   // ---------------------
   registerBlockType('eventprime-blocks/event-calendar', {
+    apiVersion: 3,
     title: ep__('EventPrime Event Calendar'),
     category: 'widgets',
     icon: iconEl,
@@ -61,6 +72,7 @@
   // Event Countdown Block
   // ---------------------
   registerBlockType('eventprime-blocks/event-countdown', {
+    apiVersion: 3,
     title: ep__('EventPrime Event Countdown'),
     category: 'widgets',
     icon: iconEl,
@@ -73,7 +85,7 @@
     },
     edit(props) {
       const { attributes, setAttributes } = props;
-      const [options, setOptions] = useState([{ label: ep__('Loading…', 'eventprime-event-calendar-management'), value: '0' }]);
+      const [options, setOptions] = useState([{ label: ep__('Loading...', 'eventprime-event-calendar-management'), value: '0' }]);
 
       useEffect(() => {
         let mounted = true;
@@ -122,6 +134,7 @@
   // Event Slider Block
   // ---------------------
   registerBlockType('eventprime-blocks/event-slider', {
+    apiVersion: 3,
     title: ep__('EventPrime Event Slider'),
     category: 'widgets',
     icon: iconEl,
@@ -138,6 +151,7 @@
   // Featured Event Organizers
   // ---------------------
   registerBlockType('eventprime-blocks/featured-event-organizers', {
+    apiVersion: 3,
     title: ep__('EventPrime Featured Event Organizers'),
     category: 'widgets',
     icon: iconEl,
@@ -158,12 +172,16 @@
             PanelBody,
             { title: 'EventPrime Featured Event Organizers', initialOpen: true },
             el(TextControl, {
+              __next40pxDefaultSize: true,
+              __nextHasNoMarginBottom: true,
               value: attributes.title,
               label: ep__('EventPrime Featured Event Organizers', 'eventprime-event-calendar-management'),
               help: ep__('Enter title you wish to display here.', 'eventprime-event-calendar-management'),
               onChange: changeTitle,
             }),
             el(TextControl, {
+              __next40pxDefaultSize: true,
+              __nextHasNoMarginBottom: true,
               value: attributes.number,
               help: ep__('Number of organizers to show', 'eventprime-event-calendar-management'),
               label: ep__('Number of organizers to show', 'eventprime-event-calendar-management'),
@@ -182,6 +200,7 @@
   // Featured Event Performers
   // ---------------------
   registerBlockType('eventprime-blocks/featured-event-performers', {
+    apiVersion: 3,
     title: ep__('EventPrime Featured Event Performers'),
     category: 'widgets',
     icon: iconEl,
@@ -202,12 +221,16 @@
             PanelBody,
             { title: 'EventPrime Featured Event Performers', initialOpen: true },
             el(TextControl, {
+              __next40pxDefaultSize: true,
+              __nextHasNoMarginBottom: true,
               value: attributes.title,
               label: ep__('EventPrime Featured Event Performers', 'eventprime-event-calendar-management'),
               help: ep__('Enter title you wish to display here.', 'eventprime-event-calendar-management'),
               onChange: changeTitle,
             }),
             el(TextControl, {
+              __next40pxDefaultSize: true,
+              __nextHasNoMarginBottom: true,
               value: attributes.number,
               help: ep__('Number of performers to show', 'eventprime-event-calendar-management'),
               label: ep__('Number of performers to show', 'eventprime-event-calendar-management'),
@@ -226,6 +249,7 @@
   // Featured Event Types
   // ---------------------
   registerBlockType('eventprime-blocks/featured-event-types', {
+    apiVersion: 3,
     title: ep__('EventPrime Featured Event Types'),
     category: 'widgets',
     icon: iconEl,
@@ -246,12 +270,16 @@
             PanelBody,
             { title: 'EventPrime Featured Event Types', initialOpen: true },
             el(TextControl, {
+              __next40pxDefaultSize: true,
+              __nextHasNoMarginBottom: true,
               value: attributes.title,
               label: ep__('EventPrime Featured Event Types', 'eventprime-event-calendar-management'),
               help: ep__('Enter title you wish to display here.', 'eventprime-event-calendar-management'),
               onChange: changeTitle,
             }),
             el(TextControl, {
+              __next40pxDefaultSize: true,
+              __nextHasNoMarginBottom: true,
               value: attributes.number,
               help: ep__('Number of event types to show', 'eventprime-event-calendar-management'),
               label: ep__('Number of event types to show', 'eventprime-event-calendar-management'),
@@ -270,6 +298,7 @@
   // Featured Event Venues
   // ---------------------
   registerBlockType('eventprime-blocks/featured-event-venues', {
+    apiVersion: 3,
     title: ep__('EventPrime Featured Event Venues'),
     category: 'widgets',
     icon: iconEl,
@@ -290,12 +319,16 @@
             PanelBody,
             { title: 'EventPrime Featured Event Venues', initialOpen: true },
             el(TextControl, {
+              __next40pxDefaultSize: true,
+              __nextHasNoMarginBottom: true,
               value: attributes.title,
               label: ep__('EventPrime Featured Event Venues', 'eventprime-event-calendar-management'),
               help: ep__('Enter title you wish to display here.', 'eventprime-event-calendar-management'),
               onChange: changeTitle,
             }),
             el(TextControl, {
+              __next40pxDefaultSize: true,
+              __nextHasNoMarginBottom: true,
               value: attributes.number,
               help: ep__('Number of venues to show', 'eventprime-event-calendar-management'),
               label: ep__('Number of venues to show', 'eventprime-event-calendar-management'),
@@ -314,6 +347,7 @@
   // Popular Event Organizers
   // ---------------------
   registerBlockType('eventprime-blocks/popular-event-organizers', {
+    apiVersion: 3,
     title: ep__('EventPrime Popular Event Organizers'),
     category: 'widgets',
     icon: iconEl,
@@ -334,12 +368,16 @@
             PanelBody,
             { title: 'EventPrime Popular Event Organizers', initialOpen: true },
             el(TextControl, {
+              __next40pxDefaultSize: true,
+              __nextHasNoMarginBottom: true,
               value: attributes.title,
               label: ep__('EventPrime Popular Event Organizers', 'eventprime-event-calendar-management'),
               help: ep__('Enter title you wish to display here.', 'eventprime-event-calendar-management'),
               onChange: changeTitle,
             }),
             el(TextControl, {
+              __next40pxDefaultSize: true,
+              __nextHasNoMarginBottom: true,
               value: attributes.number,
               help: ep__('Number of organizers to show', 'eventprime-event-calendar-management'),
               label: ep__('Number of organizers to show', 'eventprime-event-calendar-management'),
@@ -358,6 +396,7 @@
   // Popular Event Performers
   // ---------------------
   registerBlockType('eventprime-blocks/popular-event-performers', {
+    apiVersion: 3,
     title: ep__('EventPrime Popular Event Performers'),
     category: 'widgets',
     icon: iconEl,
@@ -378,12 +417,16 @@
             PanelBody,
             { title: 'EventPrime Popular Event Performers', initialOpen: true },
             el(TextControl, {
+              __next40pxDefaultSize: true,
+              __nextHasNoMarginBottom: true,
               value: attributes.title,
               label: ep__('EventPrime Popular Event Performers', 'eventprime-event-calendar-management'),
               help: ep__('Enter title you wish to display here.', 'eventprime-event-calendar-management'),
               onChange: changeTitle,
             }),
             el(TextControl, {
+              __next40pxDefaultSize: true,
+              __nextHasNoMarginBottom: true,
               value: attributes.number,
               help: ep__('Number of performers to show', 'eventprime-event-calendar-management'),
               label: ep__('Number of performers to show', 'eventprime-event-calendar-management'),
@@ -402,6 +445,7 @@
   // Popular Event Types
   // ---------------------
   registerBlockType('eventprime-blocks/popular-event-types', {
+    apiVersion: 3,
     title: ep__('EventPrime Popular Event Types'),
     category: 'widgets',
     icon: iconEl,
@@ -422,12 +466,16 @@
             PanelBody,
             { title: 'EventPrime Popular Event Types', initialOpen: true },
             el(TextControl, {
+              __next40pxDefaultSize: true,
+              __nextHasNoMarginBottom: true,
               value: attributes.title,
               label: ep__('EventPrime Popular Event Types', 'eventprime-event-calendar-management'),
               help: ep__('Enter title you wish to display here.', 'eventprime-event-calendar-management'),
               onChange: changeTitle,
             }),
             el(TextControl, {
+              __next40pxDefaultSize: true,
+              __nextHasNoMarginBottom: true,
               value: attributes.number,
               help: ep__('Number of event types to show', 'eventprime-event-calendar-management'),
               label: ep__('Number of event types to show', 'eventprime-event-calendar-management'),
@@ -446,6 +494,7 @@
   // Popular Event Venues
   // ---------------------
   registerBlockType('eventprime-blocks/popular-event-venues', {
+    apiVersion: 3,
     title: ep__('EventPrime Popular Event Venues'),
     category: 'widgets',
     icon: iconEl,
@@ -466,12 +515,16 @@
             PanelBody,
             { title: 'EventPrime Popular Event Venues', initialOpen: true },
             el(TextControl, {
+              __next40pxDefaultSize: true,
+              __nextHasNoMarginBottom: true,
               value: attributes.title,
               label: ep__('EventPrime Popular Event Venues', 'eventprime-event-calendar-management'),
               help: ep__('Enter title you wish to display here.', 'eventprime-event-calendar-management'),
               onChange: changeTitle,
             }),
             el(TextControl, {
+              __next40pxDefaultSize: true,
+              __nextHasNoMarginBottom: true,
               value: attributes.number,
               help: ep__('Number of venues to show', 'eventprime-event-calendar-management'),
               label: ep__('Number of venues to show', 'eventprime-event-calendar-management'),

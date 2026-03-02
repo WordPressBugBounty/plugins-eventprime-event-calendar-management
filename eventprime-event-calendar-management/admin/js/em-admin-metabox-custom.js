@@ -1,5 +1,143 @@
 jQuery( function( $ ) {
     var date_format = 'yy-mm-dd';
+    var is_24h_time = ( eventprime.global_settings.time_format === 'HH:mm' );
+    var ep_timepicker_format = is_24h_time ? 'H:i' : 'h:i A';
+    var ep_moment_time_format = is_24h_time ? 'HH:mm' : 'hh:mm A';
+    var ep_end_of_day_time = is_24h_time ? '23:59' : '11:59 PM';
+
+    function ep_get_moment_datetime_format( current_date_format ) {
+        var moment_date_format = 'YYYY-MM-DD';
+        if ( current_date_format == 'dd-mm-yy' ) {
+            moment_date_format = 'DD-MM-YYYY';
+        } else if ( current_date_format == 'mm-dd-yy' ) {
+            moment_date_format = 'MM-DD-YYYY';
+        } else if ( current_date_format == 'yy-mm-dd' ) {
+            moment_date_format = 'YYYY-MM-DD';
+        } else if ( current_date_format == 'dd/mm/yy' ) {
+            moment_date_format = 'DD/MM/YYYY';
+        } else if ( current_date_format == 'yy/mm/dd' ) {
+            moment_date_format = 'YYYY/MM/DD';
+        } else if ( current_date_format == 'mm/dd/yy' ) {
+            moment_date_format = 'MM/DD/YYYY';
+        } else if ( current_date_format == 'dd.mm.yy' ) {
+            moment_date_format = 'DD.MM.YYYY';
+        } else if ( current_date_format == 'mm.dd.yy' ) {
+            moment_date_format = 'MM.DD.YYYY';
+        } else if ( current_date_format == 'yy.mm.dd' ) {
+            moment_date_format = 'YYYY.MM.DD';
+        }
+        return moment_date_format + ' ' + ep_moment_time_format;
+    }
+
+    function ep_parse_time_to_hhmm( value ) {
+        if ( !value ) {
+            return '';
+        }
+        var s = String( value ).trim();
+        var m24 = s.match( /^([01]\d|2[0-3]):([0-5]\d)$/ );
+        if ( m24 ) {
+            return m24[1] + ':' + m24[2];
+        }
+        var m12 = s.match( /^(0?[1-9]|1[0-2]):([0-5]\d)\s*([aApP][mM])$/ );
+        if ( !m12 ) {
+            return '';
+        }
+        var h = parseInt( m12[1], 10 );
+        var mer = m12[3].toLowerCase();
+        if ( mer === 'am' ) {
+            if ( h === 12 ) h = 0;
+        } else if ( h !== 12 ) {
+            h += 12;
+        }
+        return String( h ).padStart( 2, '0' ) + ':' + m12[2];
+    }
+
+    function ep_format_time_for_picker( hhmmValue, use24h ) {
+        if ( !hhmmValue ) {
+            return '';
+        }
+        if ( use24h ) {
+            return hhmmValue;
+        }
+        var parts = hhmmValue.split( ':' );
+        if ( parts.length !== 2 ) {
+            return hhmmValue;
+        }
+        var h = parseInt( parts[0], 10 );
+        var m = parts[1];
+        if ( isNaN( h ) ) {
+            return hhmmValue;
+        }
+        var meridiem = ( h >= 12 ) ? 'PM' : 'AM';
+        var h12 = h % 12;
+        if ( h12 === 0 ) {
+            h12 = 12;
+        }
+        return h12 + ':' + m + ' ' + meridiem;
+    }
+
+    function ep_is_valid_time_format( value ) {
+        if ( !value ) {
+            return true;
+        }
+        var s = String( value ).trim();
+        if ( is_24h_time ) {
+            return /^([01]\d|2[0-3]):([0-5]\d)$/.test( s );
+        }
+        return /^(0?[1-9]|1[0-2]):([0-5]\d)\s*([aApP][mM])$/.test( s );
+    }
+
+    function ep_validate_time_input( selector, label ) {
+        var $field = $( selector ).first();
+        if ( !$field.length ) {
+            return true;
+        }
+        var val = String( $field.val() || '' ).trim();
+        var errorMap = {
+            '#ep_ticket_start_booking_time': '#em_ticket_start_booking_time_error',
+            '#ep_ticket_ends_booking_time': '#em_ticket_ends_booking_time_error',
+            '#ep_offer_start_booking_time': '#em_offer_start_booking_time_error',
+            '#ep_offer_ends_booking_time': '#em_offer_ends_booking_time_error'
+        };
+        var errorSelector = errorMap[ selector ] || '';
+        if ( errorSelector ) {
+            $( errorSelector ).text( '' );
+        }
+        if ( ep_is_valid_time_format( val ) ) {
+            return true;
+        }
+        var expectedFormat = is_24h_time ? 'HH:mm' : 'hh:mm AM/PM';
+        if ( errorSelector ) {
+            $( errorSelector ).text( label + ' must be in ' + expectedFormat + ' format.' );
+        }
+        $field.focus();
+        return false;
+    }
+
+    function ep_init_native_time_fields( context ) {
+        $( context ).find( '.epTimePicker, .hasSchTimePicker' ).each( function() {
+            var $field = $( this );
+            var $appendTarget = $field.closest( '.ep-modal-view' );
+            if ( !$appendTarget.length ) {
+                $appendTarget = $( 'body' );
+            }
+            var normalizedValue = ep_parse_time_to_hhmm( $( this ).val() );
+            $( this ).attr( 'type', 'text' ).removeAttr( 'step' );
+            try {
+                $( this ).timepicker( 'remove' );
+            } catch ( e ) {}
+            $( this ).timepicker({
+                timeFormat: ep_timepicker_format,
+                step: 5,
+                appendTo: $appendTarget,
+                className: 'ep-ui-show-on-top'
+            });
+            $( this ).attr( 'placeholder', is_24h_time ? 'HH:mm' : 'hh:mm AM/PM' );
+            if ( normalizedValue ) {
+                $( this ).val( ep_format_time_for_picker( normalizedValue, is_24h_time ) );
+            }
+        });
+    }
     if( eventprime.global_settings.datepicker_format ) {
         settings_date_format = eventprime.global_settings.datepicker_format;
         if( settings_date_format ) {
@@ -94,13 +232,7 @@ jQuery( function( $ ) {
 //        });
 
            // Common timepicker options
-const timepickerOptions = {
-    timeFormat: 'h:i A',
-    step: 5
-};
-
-// Initialize all timepickers
-$('.epTimePicker').timepicker(timepickerOptions);
+ep_init_native_time_fields( document );
 
 // Function to update end time picker based on selected start time and dates
 function updateEndTimePicker() {
@@ -117,17 +249,13 @@ function updateEndTimePicker() {
 
 
     // Remove previous instance to prevent duplication
-    $('#em_end_time').timepicker('remove');
-
     if (!startTime) return; // Exit if no start time selected
-
-    const endTimeOptions = {
-        ...timepickerOptions,
-        minTime: startTime,
-        maxTime: (startDate === endDate) ? '11:49 PM' : false
-    };
-
-    $('#em_end_time').timepicker(endTimeOptions);
+    $( '#em_end_time' ).attr( 'min', startTime );
+    if ( startDate === endDate ) {
+        $( '#em_end_time' ).attr( 'max', '23:59' );
+    } else {
+        $( '#em_end_time' ).removeAttr( 'max' );
+    }
 }
 
 function safeTrimValue(selector) {
@@ -146,9 +274,27 @@ $(document).ready(function () {
 $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePicker);
 
    // add class to ui time picker ui-timepicker-wrapper
-        $( '.epTimePicker' ).click( function() {
-            if( $( '.ui-timepicker-wrapper' ).length > 0 ) {
-                $( '.ui-timepicker-wrapper' ).addClass( 'ep-ui-show-on-top' );
+        ep_init_native_time_fields( document );
+        $( document ).on( 'blur', '#ep_event_ticket_tier_modal .epTimePicker, #ep_ticket_add_offer_modal .epTimePicker', function() {
+            var val = String( $( this ).val() || '' ).trim();
+            var id = $( this ).attr( 'id' );
+            var fieldSelector = id ? '#' + id : '';
+            if ( !val ) {
+                if ( fieldSelector ) {
+                    ep_validate_time_input( fieldSelector, '' );
+                }
+                return;
+            }
+            if ( fieldSelector ) {
+                if ( fieldSelector === '#ep_ticket_start_booking_time' ) {
+                    ep_validate_time_input( fieldSelector, 'Ticket start booking time' );
+                } else if ( fieldSelector === '#ep_ticket_ends_booking_time' ) {
+                    ep_validate_time_input( fieldSelector, 'Ticket end booking time' );
+                } else if ( fieldSelector === '#ep_offer_start_booking_time' ) {
+                    ep_validate_time_input( fieldSelector, 'Offer start time' );
+                } else if ( fieldSelector === '#ep_offer_ends_booking_time' ) {
+                    ep_validate_time_input( fieldSelector, 'Offer end time' );
+                }
             }
         });
 
@@ -173,7 +319,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
                 }, 300);
             },
         }).focus(function() {
-            $( '.ui-datepicker-close' ).click(function() {
+            $( '.ui-datepicker-close' ).on( 'click', function() {
                 $( '#ui-datepicker-div' ).hide();
                 $( '#hide_date_picker' ).hide();
             });
@@ -226,15 +372,17 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
             $( '#ep_requested_action' ).val( isPreviewClick ? 'preview' : 'save' );
             if ( isPublishClick ) {
                 var publishButtonVal = $( '#publish' ).val();
-                if ( publishButtonVal === 'Publish' && requestedStatus === 'draft' ) {
-                    requestedStatus = 'publish';
-                } else if ( publishButtonVal === 'Schedule' ) {
+                var originalPublishButtonVal = $( '#original_publish' ).val();
+                var isScheduleAction = publishButtonVal && originalPublishButtonVal && publishButtonVal !== originalPublishButtonVal;
+                if ( isScheduleAction && ( requestedStatus === 'draft' || requestedStatus === 'auto-draft' || requestedStatus === 'publish' ) ) {
                     requestedStatus = 'future';
+                } else if ( requestedStatus === 'draft' || requestedStatus === 'auto-draft' ) {
+                    requestedStatus = 'publish';
                 }
             }
             $( '#ep_requested_post_status' ).val( requestedStatus );
         });
-        $(form).submit(function (e) {
+        $( form ).on( 'submit', function( e ) {
             // e.preventDefault();
             var formError = 0;
             var requestedAction = $( '#ep_requested_action' ).val();
@@ -279,32 +427,10 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
                     formError = 1;
                 }
             } else {
-                em_end_time = '11:59 PM'; 
+                em_end_time = ep_end_of_day_time; 
             }
 
-            //Modifying Date Format for Moment js 
-            var momentFormat = date_format;
-            if(date_format == 'dd-mm-yy'){
-                momentFormat = 'DD-MM-YYYY hh:mm A';
-            }else if(date_format == 'mm-dd-yy'){
-                momentFormat = 'MM-DD-YYYY hh:mm A';
-            }else if(date_format == 'mm-dd-yy'){
-                momentFormat = 'MM-DD-YYYY hh:mm A';
-            }else if(date_format == 'yy-mm-dd'){
-                momentFormat = 'YYYY-MM-DD hh:mm A';
-            }else if(date_format == 'dd/mm/yy'){
-                momentFormat = 'DD/MM/YYYY hh:mm A';
-            }else if(date_format == 'yy/mm/dd'){
-                momentFormat = 'YYYY/MM/DD hh:mm A';
-            }else if(date_format == 'mm/dd/yy'){
-                momentFormat = 'MM/DD/YYYY hh:mm A';
-            }else if(date_format == 'dd.mm.yy'){
-                momentFormat = 'DD.MM.YYYY hh:mm A';
-            }else if(date_format == 'mm.dd.yy'){
-                momentFormat = 'MM.DD.YYYY hh:mm A';
-            }else if(date_format == 'yy.mm.dd'){
-                momentFormat = 'YYYY/MM/DD hh:mm A';
-            }
+            var momentFormat = ep_get_moment_datetime_format( date_format );
             // Check if Event's End timestamp is less than Event's Start timestamp, if yes throw error. 
             let em_start_date_timestamp = moment(em_start_date + ' ' + em_start_time, momentFormat).valueOf(); 
             let em_end_date_timestamp = moment(em_end_date + ' ' + em_end_time, momentFormat).valueOf(); 
@@ -392,7 +518,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
                 $( '#post_status' ).val( requestedStatus );
                 $( '#hidden_post_status' ).val( requestedStatus );
             }
-            $( form ).submit();
+            $( form ).trigger( 'submit' );
         });
 
         var event_gallery_frame;
@@ -701,11 +827,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
             gotoCurrent: true,
             showButtonPanel: true,
         });
-        // timepicker
-        $( '#'+ next_row_id +' .epTimePicker' ).timepicker({
-            timeFormat: 'h:i A',
-            step: 5,
-        });
+        ep_init_native_time_fields( '#'+ next_row_id );
     });
 
     $( document ).on( 'click', '.ep-remove-additional-date', function(){
@@ -779,7 +901,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
     });
 
     // enable/disable the end date field
-    $( 'input[type=radio][name=em_recurrence_ends]' ).change( function() {
+    $( 'input[type=radio][name=em_recurrence_ends]' ).on( 'change', function() {
         let endVal = $( this ).val();
         $( '#em_recurrence_limit' ).attr( 'disabled', true );
         $( '#em_recurrence_occurrence_time' ).attr( 'disabled', true );
@@ -983,11 +1105,8 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
         $( this ).closest( '.ep-hourly-row' ).remove();
     });
 
-    $( document ).on( 'click', '.hasSchTimePicker', function(){
-        $(this).timepicker({
-            timeFormat: 'h:i A',
-            step: 15,
-        });
+    $( document ).on( 'focus', '.hasSchTimePicker', function(){
+        ep_init_native_time_fields( $( this ).closest( '.ep-hourly-row' ) );
     });
 
     // callback after click on the icon
@@ -1626,10 +1745,10 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
     //Countdowns tab
     
     countdownActivates();
-    $("#ep-countdown-activates-on").change(countdownActivates);
+    $("#ep-countdown-activates-on").on( 'change', countdownActivates );
     
     countdownCountto();
-    $("#ep-countdown-countto-on").change(countdownCountto);
+    $("#ep-countdown-countto-on").on( 'change', countdownCountto );
     
     function countdownActivates() {
         var activateType = $("#ep-countdown-activates-on").val();
@@ -2004,7 +2123,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
     });
     
     //Ticket Tabs
-    $("input[name=em_enable_booking]").change(em_ticket_type_options);
+    $("input[name=em_enable_booking]").on( 'change', em_ticket_type_options );
     function get_booking_type() {
         return $("input[name=em_enable_booking]:checked").val();
     }
@@ -2230,6 +2349,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
             $( '#ep_event_ticket_tier_modal' ).openPopup({
                 anim: (!$(this).attr('data-animation') || $(this).data('animation') == null) ? 'ep-modal-' : $(this).data('animation')
             } );
+            ep_init_native_time_fields( '#ep_event_ticket_tier_modal' );
             // update remaining capacity
             let cat_row_data = $( '#' + parent_id ).data( 'cat_row_data' );
             if( cat_row_data.capacity ) {
@@ -2351,6 +2471,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
         $( '.ep_ticket_start_booking_options' ).hide();
         let start_options = this.value;
         $( '.ep_ticket_start_booking_' + start_options ).show();
+        ep_init_native_time_fields( '#ep_event_ticket_tier_modal' );
         if( start_options == 'event_date' ){
             // Disable the option event ends when event_date is selected
             $('#ep_ticket_start_booking_event_option option[value="event_ends"]').prop('disabled', true);
@@ -2366,6 +2487,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
         $( '.ep_ticket_ends_booking_options' ).hide();
         let ends_options = this.value;
         $( '.ep_ticket_ends_booking_' + ends_options ).show();
+        ep_init_native_time_fields( '#ep_event_ticket_tier_modal' );
     });
 
     // ticket visibility user role
@@ -2416,6 +2538,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
         $( '.ep_offer_start_booking_options' ).hide();
         let start_options = this.value;
         $( '.ep_offer_start_booking_' + start_options ).show();
+        ep_init_native_time_fields( '#ep_ticket_add_offer_modal' );
     });
 
     // show/hide offer ends
@@ -2423,6 +2546,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
         $( '.ep_offer_ends_booking_options' ).hide();
         let ends_options = this.value;
         $( '.ep_offer_ends_booking_' + ends_options ).show();
+        ep_init_native_time_fields( '#ep_ticket_add_offer_modal' );
     });
 
     // save offers
@@ -2466,6 +2590,9 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
                 }
 
                 let em_offer_start_booking_time = offer_data_params.get( 'em_offer_start_booking_time' );
+                if( !ep_validate_time_input( '#ep_offer_start_booking_time', 'Offer start time' ) ) {
+                    return false;
+                }
                 if( em_offer_start_booking_time ){ 
                     ticket_offer_data.em_offer_start_booking_time = em_offer_start_booking_time;
                 }
@@ -2503,6 +2630,9 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
                 }
 
                 let em_offer_ends_booking_time = offer_data_params.get( 'em_offer_ends_booking_time' );
+                if( !ep_validate_time_input( '#ep_offer_ends_booking_time', 'Offer end time' ) ) {
+                    return false;
+                }
                 if( em_offer_ends_booking_time ){ 
                     ticket_offer_data.em_offer_ends_booking_time = em_offer_ends_booking_time;
                 }
@@ -2909,199 +3039,126 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
 
 
     function validateTicketAvailabilityDates( tickets_data ) {
-        let ticketDateStartType = tickets_data.get( 'em_ticket_start_booking_type' ); 
-        let ticketDateEndType = tickets_data.get( 'em_ticket_ends_booking_type' ); 
-        // console.log(ticketDateStartType)
-        // console.log(ticketDateEndType)
+        let ticketDateStartType = tickets_data.get( 'em_ticket_start_booking_type' );
+        let ticketDateEndType = tickets_data.get( 'em_ticket_ends_booking_type' );
+        let ticketAvailStartTimeStamp, ticketAvailEndTimeStamp;
+        let dateTimeFormat = ep_get_moment_datetime_format( date_format );
+        let dateOnlyFormat = dateTimeFormat.slice( 0, -( ep_moment_time_format.length + 1 ) );
 
-        let ticketAvailStartTimeStamp, ticketAvailEndTimeStamp; 
+        function parseDateTimeValue( dateValue, timeValue, fallbackTimeValue ) {
+            if ( !dateValue || !validateDateField( dateValue ) ) {
+                return null;
+            }
 
-        // Ticket Avail. start 
+            let parsedTime = ep_parse_time_to_hhmm( timeValue || '' );
+            if ( !parsedTime ) {
+                parsedTime = ep_parse_time_to_hhmm( fallbackTimeValue || '' );
+            }
+            if ( !parsedTime ) {
+                parsedTime = '00:00';
+            }
+
+            let parsedMoment = moment( dateValue + ' ' + parsedTime, dateOnlyFormat + ' HH:mm', true );
+            return parsedMoment.isValid() ? parsedMoment : null;
+        }
+
+        function getEventReferenceMoment( eventOptionValue, fallbackOptionValue ) {
+            let normalizedOption = String( eventOptionValue || fallbackOptionValue || 'event_start' ).toLowerCase();
+            if ( normalizedOption === 'event_end' ) {
+                normalizedOption = 'event_ends';
+            }
+
+            if ( normalizedOption === 'event_ends' ) {
+                return parseDateTimeValue( $( '#em_end_date' ).val(), $( '#em_end_time' ).val(), ep_end_of_day_time );
+            }
+
+            return parseDateTimeValue( $( '#em_start_date' ).val(), $( '#em_start_time' ).val(), '00:00' );
+        }
+
+        function getRelativeTimestamp( daysValue, daysOptionValue, eventOptionValue, fallbackOptionValue ) {
+            let referenceMoment = getEventReferenceMoment( eventOptionValue, fallbackOptionValue );
+            let parsedDays = parseInt( daysValue, 10 );
+
+            if ( !referenceMoment ) {
+                return null;
+            }
+
+            if ( isNaN( parsedDays ) ) {
+                parsedDays = 0;
+            }
+
+            if ( daysOptionValue === 'before' ) {
+                referenceMoment.subtract( parsedDays, 'days' );
+            } else if ( daysOptionValue === 'after' ) {
+                referenceMoment.add( parsedDays, 'days' );
+            }
+
+            return referenceMoment.valueOf();
+        }
+
         if ( ticketDateStartType == 'custom_date' ) {
-            let custStartDate = $('#ep_ticket_start_booking_date').val(); 
-            let custStartTime = $('#ep_ticket_start_booking_time').val(); 
-            // Date validity check for the field 
-            if ( validateDateField( custStartDate ) ) {
-                let custStartDateObj = new Date( custStartDate + ' ' + custStartTime );     // with locale using Luxon 
-                ticketAvailStartTimeStamp = custStartDateObj.getTime(); 
-            } else {
-                return false; 
+            let custStartMoment = parseDateTimeValue(
+                $( '#ep_ticket_start_booking_date' ).val(),
+                $( '#ep_ticket_start_booking_time' ).val(),
+                '00:00'
+            );
+
+            if ( !custStartMoment ) {
+                return false;
             }
 
-        /*} else if ( ticketDateStartType == 'relative_date' ) {
-            let daysVal = $('#ep_ticket_start_booking_days').val();
-            let daysOptionVal = $('#ep_ticket_start_booking_days_option').val();
-            let eventOptionVal = $('#ep_ticket_start_booking_event_option').val();
+            ticketAvailStartTimeStamp = custStartMoment.valueOf();
+        } else if ( ticketDateStartType === 'relative_date' ) {
+            ticketAvailStartTimeStamp = getRelativeTimestamp(
+                $( '#ep_ticket_start_booking_days' ).val(),
+                $( '#ep_ticket_start_booking_days_option' ).val(),
+                $( '#ep_ticket_start_booking_event_option' ).val(),
+                'event_start'
+            );
 
-            var relStartDateObj; 
-            if ( eventOptionVal == 'event_start' ) {
-                let evStartDate = $('#em_start_date').val(); 
-                let evStartTime = $('#em_start_time').val(); 
-                relStartDateObj = new Date(evStartDate + ' ' + evStartTime);
-            } else if ( eventOptionVal == 'event_ends' ) {
-                let evEndDate = $('#em_end_date').val(); 
-                let evEndTime = $('#em_end_time').val(); 
-                relStartDateObj = new Date(evEndDate + ' ' + evEndTime);
+            if ( ticketAvailStartTimeStamp === null ) {
+                return false;
             }
-
-            if ( daysOptionVal == 'before' ) {
-                relStartDateObj.setDate( relStartDateObj.getDate() -  daysVal);
-            } else if ( daysOptionVal == 'after' ) {
-                relStartDateObj.setDate( relStartDateObj.getDate() +  daysVal);
+        } else {
+            let eventStartMoment = parseDateTimeValue( $( '#em_start_date' ).val(), $( '#em_start_time' ).val(), '00:00' );
+            if ( !eventStartMoment ) {
+                return false;
             }
-            ticketAvailStartTimeStamp = relStartDateObj.getTime();             
-        } */
-            
-            } else if (ticketDateStartType === 'relative_date') {
-    // Read inputs safely
-    const daysRaw        = $('#ep_ticket_start_booking_days').val();
-    const daysOptionVal  = ($('#ep_ticket_start_booking_days_option').val() || '').toLowerCase(); // 'before' | 'after'
-    let   eventOptionVal = ($('#ep_ticket_start_booking_event_option').val() || '').toLowerCase(); // 'event_start' | 'event_ends'
-    const daysVal        = parseInt(daysRaw, 10) || 0;
-
-    // Normalize common typo
-    if (eventOptionVal === 'event_end') eventOptionVal = 'event_ends';
-
-    // Helpers
-    const pad = n => (n < 10 ? '0' + n : '' + n);
-
-    const to24h = (t) => {
-        // Accept "HH:mm", "H:mm", or "hh:mm AM/PM"
-        if (!t) return { h: 0, m: 0 };
-        let s = t.trim();
-        let mer = null;
-
-        // Extract AM/PM if present
-        const mMer = s.match(/\s*(am|pm)\s*$/i);
-        if (mMer) {
-            mer = mMer[1].toLowerCase();
-            s = s.replace(/\s*(am|pm)\s*$/i, '');
+            ticketAvailStartTimeStamp = eventStartMoment.valueOf();
         }
 
-        const parts = s.split(':');
-        let h = parseInt(parts[0], 10);
-        let m = parseInt(parts[1] || '0', 10);
-
-        if (Number.isNaN(h)) h = 0;
-        if (Number.isNaN(m)) m = 0;
-
-        if (mer) {
-            // 12-hour -> 24-hour
-            if (mer === 'am') {
-                if (h === 12) h = 0;
-            } else { // pm
-                if (h !== 12) h += 12;
-            }
-        }
-        // Clamp
-        h = Math.max(0, Math.min(23, h));
-        m = Math.max(0, Math.min(59, m));
-
-        return { h, m };
-    };
-
-    const buildDate = (dateStr, timeStr) => {
-        if (!dateStr) return null;
-        const { h, m } = to24h(timeStr);
-        // Build ISO-like string to avoid locale parser quirks
-        const iso = `${dateStr}T${pad(h)}:${pad(m)}:00`;
-        const d = new Date(iso);
-        return Number.isNaN(d.getTime()) ? null : d;
-    };
-
-    // Choose event start/end
-    let relStartDateObj = null;
-    if (eventOptionVal === 'event_start') {
-        relStartDateObj = buildDate($('#em_start_date').val(), $('#em_start_time').val());
-    } else if (eventOptionVal === 'event_ends') {
-        relStartDateObj = buildDate($('#em_end_date').val(), $('#em_end_time').val());
-    } else {
-        // Fallback to event start if unknown value
-        relStartDateObj = buildDate($('#em_start_date').val(), $('#em_start_time').val());
-    }
-
-    // Guard against missing/invalid dates
-    if (!relStartDateObj) {
-        // Optionally show a user-facing warning here
-        // e.g., epAdminNotice('Please set a valid Event Start/End date and time.');
-        return; // stop validation flow to prevent JS error
-    }
-
-    // Shift the date
-    if (daysOptionVal === 'before') {
-        relStartDateObj.setDate(relStartDateObj.getDate() - daysVal);
-    } else if (daysOptionVal === 'after') {
-        relStartDateObj.setDate(relStartDateObj.getDate() + daysVal);
-    }
-    ticketAvailStartTimeStamp = relStartDateObj.getTime();
-}
-
-        
-        else {
-            let evStartDate = $('#em_start_date').val(); 
-            let evStartTime = $('#em_start_time').val(); 
-            let evStartDateObj = new Date(evStartDate + ' ' + evStartTime);
-            ticketAvailStartTimeStamp = evStartDateObj.getTime();
-        }
-
-        // Ticket Avail. end 
         if ( ticketDateEndType == 'custom_date' ) {
-            let custEndDate = $('#ep_ticket_ends_booking_date').val(); 
-            let custEndTime = $('#ep_ticket_ends_booking_time').val(); 
-            // Date validity check for the field 
-            if ( validateDateField( custEndDate ) ) {
-                let custEndDateObj = new Date( custEndDate + ' ' + custEndTime );   // with locale using Luxon 
-                ticketAvailEndTimeStamp = custEndDateObj.getTime(); 
-            } else {
-                return false; 
+            let custEndMoment = parseDateTimeValue(
+                $( '#ep_ticket_ends_booking_date' ).val(),
+                $( '#ep_ticket_ends_booking_time' ).val(),
+                ep_end_of_day_time
+            );
+
+            if ( !custEndMoment ) {
+                return false;
             }
 
+            ticketAvailEndTimeStamp = custEndMoment.valueOf();
         } else if ( ticketDateEndType == 'relative_date' ) {
-            let daysVal = $('#ep_ticket_ends_booking_days').val();
-            let daysOptionVal = $('#ep_ticket_ends_booking_days_option').val();
-            let eventOptionVal = $('#ep_ticket_ends_booking_event_option').val();
+            ticketAvailEndTimeStamp = getRelativeTimestamp(
+                $( '#ep_ticket_ends_booking_days' ).val(),
+                $( '#ep_ticket_ends_booking_days_option' ).val(),
+                $( '#ep_ticket_ends_booking_event_option' ).val(),
+                'event_ends'
+            );
 
-            let relEndDateObj; 
-            if ( eventOptionVal == 'event_start' ) {
-                let evStartDate = $('#em_start_date').val(); 
-                let evStartTime = $('#em_start_time').val(); 
-                relEndDateObj = new Date(evStartDate + ' ' + evStartTime);
-            } else if ( eventOptionVal == 'event_ends' ) {
-                let evEndDate = $('#em_end_date').val(); 
-                let evEndTime = $('#em_end_time').val(); 
-                relEndDateObj = new Date(evEndDate + ' ' + evEndTime);
+            if ( ticketAvailEndTimeStamp === null ) {
+                return false;
             }
-
-            if ( daysOptionVal == 'before' ) {
-                relEndDateObj.setDate( relEndDateObj.getDate() -  daysVal)
-            } else if ( daysOptionVal == 'after' ) {
-                relEndDateObj.setDate( relEndDateObj.getDate() +  daysVal)
-            }
-            ticketAvailEndTimeStamp = relEndDateObj.getTime();   
         } else {
-            let evEndDateObj; 
-            let eventOptionVal = $('#ep_ticket_ends_booking_event_option').val();
-            if ( eventOptionVal == 'event_start' ) {
-                let evStartDate = $('#em_start_date').val(); 
-                let evStartTime = $('#em_start_time').val(); 
-                evEndDateObj = new Date(evStartDate + ' ' + evStartTime);
-            } else if ( eventOptionVal == 'event_ends' ) {
-                let evEndDate = $('#em_end_date').val(); 
-                let evEndTime = $('#em_end_time').val(); 
-                evEndDateObj = new Date(evEndDate + ' ' + evEndTime);
-                ticketAvailEndTimeStamp = evEndDateObj.getTime(); 
+            let eventEndMoment = getEventReferenceMoment( $( '#ep_ticket_ends_booking_event_option' ).val(), 'event_ends' );
+            if ( !eventEndMoment ) {
+                return false;
             }
+            ticketAvailEndTimeStamp = eventEndMoment.valueOf();
         }
 
-        // Check between start and end dates 
-        if ( ticketAvailStartTimeStamp > ticketAvailEndTimeStamp ) {
-            // console.log("Not valid")
-            return false; 
-        } else {
-            // console.log("valid")
-            return true; 
-        }
-
+        return ticketAvailStartTimeStamp <= ticketAvailEndTimeStamp;
     }
 
     // save the ticket tier
@@ -3232,6 +3289,10 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
                 }
 
                 let em_ticket_start_booking_time = tickets_data.get( 'em_ticket_start_booking_time' );
+                if( !ep_validate_time_input( '#ep_ticket_start_booking_time', 'Ticket start booking time' ) ) {
+                    ep_open_ticket_tab('ep-ticket-availability');
+                    return false;
+                }
                 if( em_ticket_start_booking_time ){ 
                     ticket_tier_data.em_ticket_start_booking_time = em_ticket_start_booking_time;
                 }
@@ -3268,6 +3329,10 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
                 }
 
                 let em_ticket_ends_booking_time = tickets_data.get( 'em_ticket_ends_booking_time' );
+                if( !ep_validate_time_input( '#ep_ticket_ends_booking_time', 'Ticket end booking time' ) ) {
+                    ep_open_ticket_tab('ep-ticket-availability');
+                    return false;
+                }
                 if( em_ticket_ends_booking_time ){ 
                     ticket_tier_data.em_ticket_ends_booking_time = em_ticket_ends_booking_time;
                 }
@@ -3909,6 +3974,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
             $( '#ep_event_ticket_tier_modal' ).openPopup({
                 anim: (!$(this).attr('data-animation') || $(this).data('animation') == null) ? 'ep-modal-' : $(this).data('animation')
             } , edit_modal );
+            ep_init_native_time_fields( '#ep_event_ticket_tier_modal' );
 
             $('body').addClass("ep-modal-open-body");
         }
@@ -3980,6 +4046,9 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
     // open the ticket modal action to blank the old inputs
     $( document ).on( 'click', '#ep_event_open_ticket_modal', function() {
         initiate_the_ticket_modal(true);
+        setTimeout( function() {
+            ep_init_native_time_fields( '#ep_event_ticket_tier_modal' );
+        }, 0 );
     });
 
     // open the ticket category modal action to blank the old inputs
@@ -4206,13 +4275,13 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
         $('#wp-link-wrap').contents().wrapAll(ep_link_form_element);
     });
     
-    // Prevent manual typing but allow dropdown selection
-    $('.epTimePicker').on('keydown', function(event) {
-        event.preventDefault(); // Blocks typing
-    });
+    ep_init_native_time_fields( document );
     
      $('#ep_ticket_add_offer_modal_btn').on('click', function() {
         initiate_the_offer_section();
+        setTimeout( function() {
+            ep_init_native_time_fields( '#ep_ticket_add_offer_modal' );
+        }, 0 );
        //console.log('modal open');
     });
     

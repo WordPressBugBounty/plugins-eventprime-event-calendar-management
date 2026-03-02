@@ -522,7 +522,7 @@ function showError(message) {
     });
     
    
-    $(".ep-license-block").keyup(function(e) {
+    $( ".ep-license-block" ).on( 'keyup', function( e ) {
         var prefix = $(this).data('key');
         
         var license_key_length = $('#' + prefix + '_license_key' ).val();
@@ -532,7 +532,7 @@ function showError(message) {
         }
     });
 
-    $(".ep-license-block").keydown(function(e) {
+    $( ".ep-license-block" ).on( 'keydown', function( e ) {
         var prefix = $(this).data('key');    
        
         if( prefix != 'undefined' && prefix != '' ){
@@ -671,7 +671,7 @@ function ep_on_change_bundle(value)
 jQuery(document).ready(function () {
     jQuery('.ep-tooltips').append("<span></span>");
     jQuery('.ep-tooltips:not([tooltip-position])').attr('tooltip-position', 'bottom');
-    jQuery(".ep-tooltips").mouseenter(function () {
+    jQuery( ".ep-tooltips" ).on( 'mouseenter', function() {
         jQuery(this).find('span').empty().append(jQuery(this).attr('tooltip'));
     });
 });

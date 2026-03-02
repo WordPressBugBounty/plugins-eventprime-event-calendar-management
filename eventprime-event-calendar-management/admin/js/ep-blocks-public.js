@@ -21,14 +21,30 @@ jQuery(document).ready(function(e){
 
 	// For Event calendar widget 
 	if ( jQuery( "#ep_calendar_block" ).length > 0) {
+		var epAjaxUrl = (typeof blocks_obj !== 'undefined' && blocks_obj.ajax_url) ? blocks_obj.ajax_url : ((typeof eventprime !== 'undefined' && eventprime.ajaxurl) ? eventprime.ajaxurl : '');
+		if (!epAjaxUrl) {
+			epAjaxUrl = window.location.origin + '/wp-admin/admin-ajax.php';
+		}
 		// Send ajax request to get all the event start dates
 		jQuery.ajax({
 			type: "POST",
-			url: eventprime.ajaxurl,
+			url: epAjaxUrl,
 			data: {action: 'ep_load_event_dates'},
 			success: function (response) {
-				let data = JSON.parse(response);
-				let dates = data.start_dates;
+				let data = response;
+				if (typeof response === 'string') {
+					try {
+						data = JSON.parse(response);
+					} catch (e) {
+						data = {};
+					}
+				}
+				let dates = [];
+				if (data && Array.isArray(data.start_dates_ymd) && data.start_dates_ymd.length) {
+					dates = data.start_dates_ymd;
+				} else if (data && Array.isArray(data.start_dates)) {
+					dates = data.start_dates;
+				}
 				em_show_calendar(dates);
 			}
 		});

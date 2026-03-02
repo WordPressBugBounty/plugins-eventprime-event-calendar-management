@@ -450,6 +450,9 @@ class EventPrime_License {
             'Eventprime_Join_Chat_Integration'=>array(43114,'Join Chat Integration','paid'),
             'Eventprime_Multi_Session_Events'=>array(43219,'Multi-Session Events','paid'),
             'Eventprime_Event_Map_View'=>array(43222,'Event Map View','paid'),
+            'Eventprime_Certification_For_Attendee'=>array(43511,'EventPrime Certification for Attendee','paid'),
+            'Eventprime_Event_Materials_And_Downloads'=>array(43539,'EventPrime Event Materials & Downloads','paid'),
+            'Eventprime_Printable_Event_Program'=>array(43541,'EventPrime Printable Event Program','paid'),
             
         );
         return $extensions;
@@ -1127,6 +1130,27 @@ public function ep_get_licenses_details() {
         'admin_url' => 'edit.php?post_type=em_event&page=ep-settings&tab=multisession_event',
         'image' => 'multi-session-events-icon.png',
         'desc' => "Add multiple sessions to a single event with customizable time slots, venues, and performers. Perfect for workshops, conferences, and summits with structured agendas."
+    ],
+    'Eventprime_Certification_For_Attendee' => [
+        'url' => 'https://theeventprime.com/all-extensions/certification-for-attendee/',
+        'slug' => 'eventprime-certification-for-attendee',
+        'admin_url' => 'edit.php?post_type=em_event&page=ep-settings&tab=attendee-check-in-settings',
+        'image' => 'attendee-certificate.png',
+        'desc' => "Automatically send personalized certificates to attendees after booking confirmation or event completion."
+    ],
+    'Eventprime_Event_Materials_And_Downloads' => [
+        'url' => 'https://theeventprime.com/all-extensions/event-materials-downloads/',
+        'slug' => 'eventprime-event-materials-and-downloads',
+        'admin_url' => 'edit.php?post_type=em_event&page=ep-settings&tab=eventmaterials',
+        'image' => 'material-download.png',
+        'desc' => "Upload files for events, organize them as pre/post materials, and restrict access based on booking or check-in."
+    ],
+    'Eventprime_Printable_Event_Program' => [
+        'url' => 'https://theeventprime.com/all-extensions/printable-event-program/',
+        'slug' => 'eventprime-printable-event-program',
+        'admin_url' => 'edit.php?post_type=em_event&page=ep-settings&tab=printable-events-program-settings',
+        'image' => 'printable-event-program.png',
+        'desc' => "Generate clean, printable HTML programs for your events, optionally downloadable as branded PDFs."
     ]
      
         

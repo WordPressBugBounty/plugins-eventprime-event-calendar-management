@@ -932,10 +932,17 @@ class EventM_Ajax_Service {
             $thumbnail_id = isset( $data['attachment_id'] ) ? $data['attachment_id'] : '';
             set_post_thumbnail( $post_id, $thumbnail_id );
         
+            $time_format_setting = $ep_functions->ep_get_global_settings( 'time_format' );
+            $default_start_time = ( $time_format_setting === 'HH:mm' ) ? '00:00' : '12:00 AM';
+            $default_end_time = ( $time_format_setting === 'HH:mm' ) ? '23:59' : '11:59 PM';
+
             $em_start_date = isset( $data['em_start_date'] ) ? $ep_functions->ep_date_to_timestamp( sanitize_text_field( $data['em_start_date'] ) ) : '';
             update_post_meta($post_id, 'em_start_date', $em_start_date);
             
-            $em_start_time = ( isset( $data['em_start_time'] ) && ! empty( $data['em_start_time'] ) ) ? sanitize_text_field( $data['em_start_time'] ) : '12:00 AM';
+            $em_start_time = ( isset( $data['em_start_time'] ) && ! empty( $data['em_start_time'] ) ) ? $ep_functions->ep_sanitize_time_input( sanitize_text_field( $data['em_start_time'] ) ) : $default_start_time;
+            if ( empty( $em_start_time ) ) {
+                $em_start_time = $default_start_time;
+            }
             update_post_meta($post_id, 'em_start_time', $em_start_time);
             
             $em_hide_event_start_time = isset( $data['em_hide_event_start_time'] ) && !empty($data['em_hide_event_start_time'] ) ? 1 : 0;
@@ -947,7 +954,10 @@ class EventM_Ajax_Service {
             $em_end_date = isset( $data['em_end_date'] ) ? $ep_functions->ep_date_to_timestamp( sanitize_text_field( $data['em_end_date'] ) ) : $em_start_date;
             update_post_meta($post_id, 'em_end_date', $em_end_date);
             
-            $em_end_time = ( isset( $data['em_end_time'] ) && ! empty( $data['em_end_time'] ) ) ? sanitize_text_field( $data['em_end_time'] ) : '11:59 PM';
+            $em_end_time = ( isset( $data['em_end_time'] ) && ! empty( $data['em_end_time'] ) ) ? $ep_functions->ep_sanitize_time_input( sanitize_text_field( $data['em_end_time'] ) ) : $default_end_time;
+            if ( empty( $em_end_time ) ) {
+                $em_end_time = $default_end_time;
+            }
             update_post_meta($post_id, 'em_end_time', $em_end_time);
             
             $em_hide_event_end_time = isset( $data['em_hide_event_end_time'] ) && !empty($data['em_hide_event_end_time']) ? 1 : 0;
@@ -962,7 +972,7 @@ class EventM_Ajax_Service {
             if( $em_all_day == 1 ) {
                 $em_end_date = $em_start_date;
                 update_post_meta( $post_id, 'em_end_date', $em_end_date );
-                $em_start_time = '12:00 AM'; $em_end_time = '11:59 PM';
+                $em_start_time = $default_start_time; $em_end_time = $default_end_time;
                 update_post_meta( $post_id, 'em_start_time', $em_start_time );
                 update_post_meta( $post_id, 'em_end_time', $em_end_time );
             }
@@ -999,7 +1009,7 @@ class EventM_Ajax_Service {
                         $new_date = array();
                         $new_date['uid']    = absint( $more_dates['uid'] );
                         $new_date['date']   = $ep_functions->ep_date_to_timestamp( sanitize_text_field( $more_dates['date'] ) );
-                        $new_date['time']   = sanitize_text_field( $more_dates['time'] );
+                        $new_date['time']   = $ep_functions->ep_sanitize_time_input( sanitize_text_field( $more_dates['time'] ) );
                         $new_date['label']  = sanitize_text_field( $more_dates['label'] );
                         $event_more_dates[] = $new_date;
                     }
@@ -1842,21 +1852,24 @@ class EventM_Ajax_Service {
         // Get all the events dates
         $data = new stdClass();
         $data->start_dates = array();
+        $data->start_dates_ymd = array();
         $data->event_ids = array();
         $ep_functions = new Eventprime_Basic_Functions;
-        $query = array('meta_query'  => array( 'relation' => 'AND',
-            array(
+        $query = array(
+            'meta_query'  => array(
+                'relation' => 'AND',
                 array(
-                    'key'     => 'em_start_date',
-                    'value'   =>  current_time( 'timestamp' ),
-                    'compare' => '>',
-                    'type'=>'NUMERIC'
-                    )
-                )
-            )
+                    array(
+                        'key'     => 'em_end_date',
+                        'value'   => current_time( 'timestamp' ),
+                        'compare' => '>=',
+                        'type'    => 'NUMERIC',
+                    ),
+                ),
+            ),
         );
         $events = $ep_functions->get_events_post_data($query);
-        if($events->posts){
+        if ( is_object( $events ) && ! empty( $events->posts ) ) {
             foreach ($events->posts as $event){
                 $start_date = date('Y-m-d', get_post_meta($event->id, 'em_start_date', true));
                 $end_date = date('Y-m-d', get_post_meta($event->id, 'em_end_date', true));
@@ -1866,18 +1879,18 @@ class EventM_Ajax_Service {
                     if (count($matches) > 0 && !empty($matches[0])) {
                         //epd($matches);
                         if ( strtotime($matches[0]) <= strtotime(date('Y-m-d') ) && strtotime( $end_date ) >= strtotime( date('Y-m-d') ) ) {
-                            $data->start_dates[] = date($ep_functions->ep_get_datepicker_format());
+                            $data->start_dates[] = date( $ep_functions->ep_get_datepicker_format() );
+                            $data->start_dates_ymd[] = date( 'Y-m-d' );
                         } else{
-                            $data->start_dates[] = date($ep_functions->ep_get_datepicker_format(), strtotime($matches[0]) );
+                            $data->start_dates[] = date( $ep_functions->ep_get_datepicker_format(), strtotime( $matches[0] ) );
+                            $data->start_dates_ymd[] = date( 'Y-m-d', strtotime( $matches[0] ) );
                         }
                         $data->event_ids[] = $event->id;
                     }
                 }
             }
         }
-
-        echo json_encode($data);
-        die;
+        wp_send_json( $data );
     }
     
     /*
@@ -2976,42 +2989,27 @@ class EventM_Ajax_Service {
             wp_send_json_error( array( 'message' => esc_html__( 'Security check failed. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
         }
         $ep_functions = new Eventprime_Basic_Functions;
-        // Create a DateTime object from the string
-        $timezone = new DateTimeZone($ep_functions->ep_get_site_timezone());
-        $startdate = new DateTime($_POST['start'],$timezone);
-        $format = $ep_functions->ep_get_datepicker_format();
-        $formattedstartDate = $startdate->format($format);
-        
-        $enddate = new DateTime($_POST['end'],$timezone);
-        $formattedendDate = $enddate->format($format);
+        $timezone_string = $ep_functions->ep_get_site_timezone();
+        if ( empty( $timezone_string ) ) {
+            $timezone_string = 'UTC';
+        }
+        $timezone = new DateTimeZone( $timezone_string );
 
-        $start = $formattedstartDate;
-        $end = $formattedendDate;
+        $start_raw = isset( $_POST['start'] ) ? sanitize_text_field( wp_unslash( $_POST['start'] ) ) : '';
+        $end_raw   = isset( $_POST['end'] ) ? sanitize_text_field( wp_unslash( $_POST['end'] ) ) : '';
+
+        try {
+            $startdate = new DateTime( $start_raw, $timezone );
+            $enddate   = new DateTime( $end_raw, $timezone );
+        } catch ( Exception $ex ) {
+            wp_send_json_success( array() );
+        }
+
+        $start_ts = ( clone $startdate )->setTime( 0, 0, 0 )->getTimestamp();
+        $end_ts   = ( clone $enddate )->setTime( 23, 59, 59 )->getTimestamp();
         
         $is_admin = (isset($_POST['is_dashboard']))?true:false;
         
-        $dateInfo = array(
-    array(
-        'label' => 'From',
-        'key' => 'date_from',
-        'value' => $start,
-        'text' => $start
-    ),
-    array(
-        'label' => 'To',
-        'key' => 'date_to',
-        'value' => $end,
-        'text' => $end
-    ),
-    array(
-        'label' => 'Days',
-        'key' => 'days',
-        'value' => 'all',
-        'text' => 'All Days'
-    )
-);
-
-      
         $params = array
         (
             'meta_key' => 'em_start_date_time',
@@ -3026,8 +3024,23 @@ class EventM_Ajax_Service {
 
             'order' => 'ASC'
         );
-        
-        $params = $ep_functions->create_filter_query($dateInfo,$params);
+
+        // Calendar range filter for shortcode calendar view.
+        $params['meta_query'][] = array(
+            'relation' => 'OR',
+            array(
+                'key'     => 'em_start_date',
+                'value'   => array( $start_ts, $end_ts ),
+                'compare' => 'BETWEEN',
+                'type'    => 'NUMERIC',
+            ),
+            array(
+                'key'     => 'em_end_date',
+                'value'   => array( $start_ts, $end_ts ),
+                'compare' => 'BETWEEN',
+                'type'    => 'NUMERIC',
+            ),
+        );
         
         $event_search_params = array();
         if( isset( $_POST['search_param'] ) && ! empty( $_POST['search_param'] ) ) {
@@ -3148,13 +3161,19 @@ class EventM_Ajax_Service {
             $params = apply_filters( 'ep_events_render_attribute_data', $params, $atts ); 
         // }
         
-        $events = $ep_functions->get_multiple_events_post_data($params);
-        
-        if(isset($events->posts))
-        {
-            wp_send_json_success($ep_functions->get_front_calendar_view_event( $events->posts,$is_admin ));
+        $events = $ep_functions->get_multiple_events_post_data( $params );
+
+        // get_multiple_events_post_data() returns an array of event objects keyed by post ID.
+        // Keep backward compatibility if some integrations pass WP_Query style objects.
+        if ( is_object( $events ) && isset( $events->posts ) && is_array( $events->posts ) ) {
+            $events = $events->posts;
+        } elseif ( is_array( $events ) ) {
+            $events = array_values( $events );
+        } else {
+            $events = array();
         }
-        die;
+
+        wp_send_json_success( $ep_functions->get_front_calendar_view_event( $events, $is_admin ) );
     }
     
     public function check_offer_applied()

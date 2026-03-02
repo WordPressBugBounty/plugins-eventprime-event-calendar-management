@@ -3,7 +3,7 @@ jQuery( function( $ ) {
     $( document ).ready( function() {
         // validate addtag before save
         var addform = $( '#addtag' );
-        $( addform ).find( "input[type='submit']" ).click( function( e ) {
+        $( addform ).find( "input[type='submit']" ).on( 'click', function( e ) {
             if( $( "input[name='taxonomy']" ).val() != 'em_event_organizer') return true;
             e.preventDefault();
             let formError = 0;
@@ -80,12 +80,12 @@ jQuery( function( $ ) {
             if( formError == 1 ){
                 return false;
             }
-            $( addform ).submit();
+            $( addform ).trigger( 'submit' );
         });
 
         // validate addtag before save
         var editform = $("#edittag");
-        $(editform).find("input[type='submit']").click(function(e){
+        $( editform ).find( "input[type='submit']" ).on( 'click', function( e ) {
             if($("input[name='taxonomy']").val() != 'em_event_organizer') return true;
             
             e.preventDefault();
@@ -142,7 +142,7 @@ jQuery( function( $ ) {
             if( formError == 1 ){
                 return false;
             }
-            $( editform ).submit();
+            $( editform ).trigger( 'submit' );
         });
     });
 

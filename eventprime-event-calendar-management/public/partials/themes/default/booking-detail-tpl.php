@@ -335,7 +335,9 @@ if(isset($args->event_data->event_url))
                                         $gcal_ends = $ep_functions->ep_convert_event_date_time_to_timestamp( $args->event_data, 'end' );
                                     }
                                     $gcal_details = urlencode( wp_kses_post( $args->event_data->description ) );
-                                    $calendar_url = 'https://www.google.com/calendar/event?action=TEMPLATE&text=' . urlencode( esc_attr( $args->event_data->name ) ) . '&dates=' . gmdate( 'Ymd\\THi00\\Z', esc_attr( $gcal_starts ) ) . '/' . gmdate('Ymd\\THi00\\Z', esc_attr( $gcal_ends ) ) . '&details=' . esc_attr( $gcal_details );
+                                    if ( is_numeric( $gcal_starts ) && is_numeric( $gcal_ends ) ) {
+                                        $calendar_url = 'https://www.google.com/calendar/event?action=TEMPLATE&text=' . urlencode( esc_attr( $args->event_data->name ) ) . '&dates=' . gmdate( 'Ymd\\THi00\\Z', (int) $gcal_starts ) . '/' . gmdate('Ymd\\THi00\\Z', (int) $gcal_ends ) . '&details=' . esc_attr( $gcal_details );
+                                    }
                                     if ( ! empty( $args->event_data->venue_details->em_address ) ) {
                                         $location = urlencode( $args->event_data->venue_details->em_address );
                                         if( ! empty( $location ) ) {
