@@ -78,10 +78,13 @@ class EventM_Ajax_Service {
      * save checkout field
      */
     public function save_checkout_field() {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( array( 'message' => esc_html__( 'You are not allowed to manage checkout fields.', 'eventprime-event-calendar-management' ) ) );
+        }
         check_ajax_referer( 'save-checkout-fields', 'security' );
 
         $response = array();
-        parse_str( wp_unslash( $_POST['data'] ), $data );
+        parse_str( wp_unslash( $_POST['data'] ?? '' ), $data );
         if( ! isset( $data['em_checkout_field_label'] ) || empty( $data['em_checkout_field_label'] ) ) {
             $response['message'] = esc_html__( 'Label should not be empty', 'eventprime-event-calendar-management' );
             wp_send_json_error($response);
@@ -137,6 +140,9 @@ class EventM_Ajax_Service {
 
     // delete the checkout field
     public function delete_checkout_field(){
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( array( 'message' => esc_html__( 'You are not allowed to manage checkout fields.', 'eventprime-event-calendar-management' ) ) );
+        }
         check_ajax_referer( 'delete-checkout-fields', 'security' );
 
         $response = array();
@@ -2580,34 +2586,68 @@ class EventM_Ajax_Service {
      */
     public function update_event_booking_action() {
         $sanitizer = new EventPrime_sanitizer;
-        parse_str( wp_unslash( $_POST['data'] ), $data );
+        parse_str( wp_unslash( $_POST['data'] ?? '' ), $data );
         $ep_functions = new Eventprime_Basic_Functions;
-        if( wp_verify_nonce( $data['ep_update_event_booking_nonce'], 'ep_update_event_booking' ) ) {
-            $ep_event_booking_id = ( ! empty( $data['ep_event_booking_id'] ) ? $data['ep_event_booking_id'] : '' );
-            if( ! empty( $ep_event_booking_id ) ) {
-                $booking_controller = new EventPrime_Bookings;
-                $single_booking = $booking_controller->load_booking_detail( $ep_event_booking_id );
-                if( ! empty( $single_booking ) ) {
-                    if( ! empty( $data['ep_booking_attendee_fields'] ) ) {
-                        $ep_booking_attendde_field = $sanitizer->sanitize($data['ep_booking_attendee_fields']);
-                        update_post_meta( $ep_event_booking_id, 'em_attendee_names', $ep_booking_attendde_field );
-                    }
-                }
-                wp_send_json_success( array( 'message' => esc_html__( 'Booking Updated Successfully.', 'eventprime-event-calendar-management' ), 'redirect_url' => esc_url( $ep_functions->ep_get_custom_page_url( 'profile_page' ) ) ) );
-            } else{
-                wp_send_json_error( array( 'message' => esc_html__( 'Booking id can\'t be null. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
-            }
-        } else{
+        if ( empty( $data['ep_update_event_booking_nonce'] ) || ! wp_verify_nonce( $data['ep_update_event_booking_nonce'], 'ep_update_event_booking' ) ) {
             wp_send_json_error( array( 'message' => esc_html__( 'Security check failed. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
+        }
+
+        if ( ! is_user_logged_in() ) {
+            wp_send_json_error( array( 'message' => esc_html__( 'You are not authorised to update this booking.', 'eventprime-event-calendar-management' ) ) );
+        }
+
+        $ep_event_booking_id = ( ! empty( $data['ep_event_booking_id'] ) ? absint( $data['ep_event_booking_id'] ) : 0 );
+        if( ! empty( $ep_event_booking_id ) ) {
+            $booking_post = get_post( $ep_event_booking_id );
+            if ( empty( $booking_post ) || $booking_post->post_type !== 'em_booking' ) {
+                wp_send_json_error( array( 'message' => esc_html__( 'Invalid booking id. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
+            }
+
+            $current_user_id = get_current_user_id();
+            $booking_user_id = (int) get_post_meta( $ep_event_booking_id, 'em_user', true );
+            $can_update_booking = current_user_can( 'edit_post', $ep_event_booking_id )
+                || ( $booking_user_id > 0 && $booking_user_id === $current_user_id );
+
+            if ( ! $can_update_booking ) {
+                wp_send_json_error( array( 'message' => esc_html__( 'You are not authorised to update this booking.', 'eventprime-event-calendar-management' ) ) );
+            }
+
+            $booking_controller = new EventPrime_Bookings;
+            $single_booking = $booking_controller->load_booking_detail( $ep_event_booking_id );
+            if( ! empty( $single_booking ) ) {
+                if( ! empty( $data['ep_booking_attendee_fields'] ) ) {
+                    $ep_booking_attendde_field = $sanitizer->sanitize($data['ep_booking_attendee_fields']);
+                    update_post_meta( $ep_event_booking_id, 'em_attendee_names', $ep_booking_attendde_field );
+                }
+            }
+            wp_send_json_success( array( 'message' => esc_html__( 'Booking Updated Successfully.', 'eventprime-event-calendar-management' ), 'redirect_url' => esc_url( $ep_functions->ep_get_custom_page_url( 'profile_page' ) ) ) );
+        } else{
+            wp_send_json_error( array( 'message' => esc_html__( 'Booking id can\'t be null. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
         }
     }
 
     // Print all attendees of an event
     public function event_print_all_attendees() {
         $ep_functions = new Eventprime_Basic_Functions;
-        if( wp_verify_nonce( $_POST['security'], 'ep_print_event_attendees' ) ) {
+        if ( ! check_ajax_referer( 'ep_print_event_attendees', 'security', false ) ) {
+            wp_send_json_error( array( 'message' => esc_html__( 'Security check failed. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
+        }
+
+        if( is_user_logged_in() ) {
             $event_id = ( ! empty( $_POST['event_id'] ) ? absint( $_POST['event_id'] ) : '' );
             if( ! empty( $event_id ) ) {
+                $event_post = get_post( $event_id );
+                if ( empty( $event_post ) || $event_post->post_type !== 'em_event' ) {
+                    wp_send_json_error( array( 'message' => esc_html__( 'Invalid event id. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
+                }
+
+                $can_export_attendees = current_user_can( 'manage_options' )
+                    || current_user_can( 'edit_post', $event_id )
+                    || current_user_can( 'edit_em_event', $event_id );
+                if ( ! $can_export_attendees ) {
+                    wp_send_json_error( array( 'message' => esc_html__( 'You are not authorised to access attendees for this event.', 'eventprime-event-calendar-management' ) ) );
+                }
+
                 $em_event_checkout_attendee_fields = get_post_meta( $event_id, 'em_event_checkout_attendee_fields', true );
                 $attendee_fileds_data = ( ! empty( $em_event_checkout_attendee_fields['em_event_checkout_fields_data'] ) ? $em_event_checkout_attendee_fields['em_event_checkout_fields_data'] : array() );
                 $bookings_data = array(); 
@@ -2802,7 +2842,7 @@ class EventM_Ajax_Service {
                 wp_send_json_error( array( 'message' => esc_html__( 'Event id can\'t be null. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
             }
         } else{
-            wp_send_json_error( array( 'message' => esc_html__( 'Security check failed. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
+            wp_send_json_error( array( 'message' => esc_html__( 'You are not authorised to access attendees for this event.', 'eventprime-event-calendar-management' ) ) );
         }
     }
 

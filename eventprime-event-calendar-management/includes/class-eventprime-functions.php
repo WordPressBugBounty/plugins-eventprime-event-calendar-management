@@ -2148,37 +2148,73 @@ public function ep_get_event_date_time_diff( $event ) {
         if (empty($strict)) {
             $format = $this->ep_get_datepicker_format();
         }
+
         $timepicker_format = $this->ep_get_global_settings('time_format');
         if (empty($timepicker_format)) {
             $timepicker_format = 'h:mmt';
         }
-        if (!empty($timepicker_format) && !empty($format)) {
-            if ($timepicker_format === 'HH:mm') {
-                $format = $format . ' H:i';
-            } else {
-                $format = $format . ' h:i A';
-            }
+
+        $datetime = is_string($datetime) ? trim($datetime) : $datetime;
+        if (empty($datetime) || empty($format)) {
+            return false;
         }
 
+        $tz = null;
         if (!empty($timezone)) {
-            $date = DateTime::createFromFormat($format, $datetime, new DateTimeZone($timezone));
+            $tz = new DateTimeZone($timezone);
         } else {
             $site_timezone = $this->ep_get_site_timezone();
             if (!empty($site_timezone)) {
-                $date = DateTime::createFromFormat($format, $datetime, new DateTimeZone($site_timezone));
-            } else {
-                $date = DateTime::createFromFormat($format, $datetime);
+                $tz = new DateTimeZone($site_timezone);
             }
         }
 
-        if (empty($date))
+        // Try both current and legacy time formats for backward compatibility.
+        $formats_to_try = array($format);
+        if (!empty($timepicker_format)) {
+            if ($timepicker_format === 'HH:mm') {
+                $formats_to_try[] = $format . ' H:i';
+                $formats_to_try[] = $format . ' H:i:s';
+                $formats_to_try[] = $format . ' h:i A';
+                $formats_to_try[] = $format . ' h:i:s A';
+            } else {
+                $formats_to_try[] = $format . ' h:i A';
+                $formats_to_try[] = $format . ' h:i:s A';
+                $formats_to_try[] = $format . ' H:i';
+                $formats_to_try[] = $format . ' H:i:s';
+            }
+        }
+        $formats_to_try = array_values(array_unique($formats_to_try));
+
+        $date = false;
+        foreach ($formats_to_try as $dt_format) {
+            $date = !empty($tz)
+                ? DateTime::createFromFormat($dt_format, $datetime, $tz)
+                : DateTime::createFromFormat($dt_format, $datetime);
+            if ($date instanceof DateTime) {
+                break;
+            }
+        }
+
+        // Final fallback for legacy/irregular stored values.
+        if (empty($date)) {
+            $fallback_ts = strtotime($datetime);
+            if (false !== $fallback_ts) {
+                if (!empty($full_date)) {
+                    $date = new DateTime('@' . $fallback_ts);
+                    if (!empty($tz)) {
+                        $date->setTimezone($tz);
+                    }
+                    return $date;
+                }
+                return (int) $fallback_ts;
+            }
             return false;
+        }
 
         if (!empty($full_date)) {
             return $date;
         }
-
-        //return strtotime( $date );
 
         return $date->getTimestamp();
     }
@@ -2663,7 +2699,9 @@ public function ep_get_event_date_time_diff( $event ) {
                     
                     $end_date .= ' ' . $event_end_time;
                    
-                    $end_date = $this->ep_datetime_to_timestamp($end_date);
+                    $parsed_end_date = $this->ep_datetime_to_timestamp($end_date);
+                    // Keep legacy events safe when older time strings cannot be parsed.
+                    $end_date = ( false !== $parsed_end_date ) ? $parsed_end_date : $event_end_date;
                     
                 }
                 if ($end_date < $this->ep_get_current_timestamp()) {
