@@ -327,7 +327,7 @@ if(isset($args->event_data->event_url))
                                 </div>
                             </div>
                             <div class="ep-box-col-3 ep-p-3 ep-text-small">
-                                <div class="ep-pt-4">
+                                <div class="ep-pt-4 ep-booking-details">
                                     <?php 
                                     $gcal_starts = $gcal_ends = $gcal_details = $location = $calendar_url = '';
                                     $gcal_starts = $ep_functions->ep_convert_event_date_time_to_timestamp( $args->event_data, 'start' );
@@ -346,7 +346,7 @@ if(isset($args->event_data->event_url))
                                     }
                                   
                                     if( ! empty( $gcal_starts ) && ! empty( $gcal_ends ) ) {?>
-                                        <div class="ep-text-small ep-cursor ep-d-flex ep-align-items-center ep-mb-1">
+                                        <div class="ep-text-small ep-cursor ep-d-flex ep-align-items-center ep-mb-1 ep-add-to-cal">
                                             <a class="em-events-gcal em-events-button ep-di-flex ep-align-items-center ep-lh-0" href="<?php echo esc_url( $calendar_url );?>" target="_blank">
                                                 <!--<img class="ep-google-calendar-add ep-fs-6 ep-align-middle" src="<?php echo esc_url( plugin_dir_url( EP_PLUGIN_FILE ) . 'public/partials/images/gcal.png' ); ?>" style="height: 18px;" />-->
                                                 <svg width="13px" height="13px" class="ep-mr-2" viewBox="-3 0 262 262" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid"><path d="M255.878 133.451c0-10.734-.871-18.567-2.756-26.69H130.55v48.448h71.947c-1.45 12.04-9.283 30.172-26.69 42.356l-.244 1.622 38.755 30.023 2.685.268c24.659-22.774 38.875-56.282 38.875-96.027" fill="#4285F4"/><path d="M130.55 261.1c35.248 0 64.839-11.605 86.453-31.622l-41.196-31.913c-11.024 7.688-25.82 13.055-45.257 13.055-34.523 0-63.824-22.773-74.269-54.25l-1.531.13-40.298 31.187-.527 1.465C35.393 231.798 79.49 261.1 130.55 261.1" fill="#34A853"/><path d="M56.281 156.37c-2.756-8.123-4.351-16.827-4.351-25.82 0-8.994 1.595-17.697 4.206-25.82l-.073-1.73L15.26 71.312l-1.335.635C5.077 89.644 0 109.517 0 130.55s5.077 40.905 13.925 58.602l42.356-32.782" fill="#FBBC05"/><path d="M130.55 50.479c24.514 0 41.05 10.589 50.479 19.438l36.844-35.974C195.245 12.91 165.798 0 130.55 0 79.49 0 35.393 29.301 13.925 71.947l42.211 32.783c10.59-31.477 39.891-54.251 74.414-54.251" fill="#EB4335"/></svg>
@@ -354,14 +354,14 @@ if(isset($args->event_data->event_url))
                                             </a>
                                         </div><?php
                                     }?>
-                                            <div class="ep-text-small ep-cursor ep-d-flex ep-align-items-center ep-mb-1">
+                                            <div class="ep-text-small ep-cursor ep-d-flex ep-align-items-center ep-mb-1 ep-add-to-ical">
                                                 <a href="javascript:void(0)" id="ep_event_ical_export" data-event_id="<?php echo esc_attr($args->event_data->em_id); ?>">
                                                     <span class="material-icons-outlined ep-fs-6 ep-align-middle ep-lh-0 ep-mr-1">event</span>
                                                     <?php esc_html_e('+ iCal Export', 'eventprime-event-calendar-management'); ?>
                                                 </a>
                                             </div>
                                     <?php if( ! empty( $args->event_data->venue_details ) && ! empty( $args->event_data->venue_details->em_address ) ) {?>
-                                        <div class="ep-text-small ep-cursor ep-d-flex ep-align-items-center ep-mb-1">
+                                        <div class="ep-text-small ep-cursor ep-d-flex ep-align-items-center ep-mb-1 ep-event-directions">
                                             <a target="_blank" href="https://www.google.com/maps?saddr=My+Location&daddr=<?php echo urlencode( $args->event_data->venue_details->em_address ); ?>" >
                                                 <span class="material-icons-outlined ep-fs-6 ep-align-middle ep-lh-0 ep-mr-1">directions_car</span>
                                                 <?php esc_html_e( 'Directions','eventprime-event-calendar-management' ); ?>

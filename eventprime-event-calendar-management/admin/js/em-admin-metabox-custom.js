@@ -114,6 +114,24 @@ jQuery( function( $ ) {
         return false;
     }
 
+    function ep_validate_ticket_price_input( value ) {
+        var normalizedValue = String( value == null ? '' : value ).trim();
+        if ( normalizedValue === '' ) {
+            return { valid: true, normalized: '0' };
+        }
+
+        if ( !/^\d+(\.\d{1,2})?$/.test( normalizedValue ) ) {
+            return { valid: false, normalized: normalizedValue };
+        }
+
+        var numericValue = parseFloat( normalizedValue );
+        if ( !Number.isFinite( numericValue ) || numericValue < 0 ) {
+            return { valid: false, normalized: normalizedValue };
+        }
+
+        return { valid: true, normalized: numericValue.toFixed( 2 ) };
+    }
+
     function ep_init_native_time_fields( context ) {
         $( context ).find( '.epTimePicker, .hasSchTimePicker' ).each( function() {
             var $field = $( this );
@@ -3044,6 +3062,23 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
         let ticketAvailStartTimeStamp, ticketAvailEndTimeStamp;
         let dateTimeFormat = ep_get_moment_datetime_format( date_format );
         let dateOnlyFormat = dateTimeFormat.slice( 0, -( ep_moment_time_format.length + 1 ) );
+        let startCustomDate = String( $( '#ep_ticket_start_booking_date' ).val() || '' ).trim();
+        let startCustomTime = String( $( '#ep_ticket_start_booking_time' ).val() || '' ).trim();
+        let endCustomDate = String( $( '#ep_ticket_ends_booking_date' ).val() || '' ).trim();
+        let endCustomTime = String( $( '#ep_ticket_ends_booking_time' ).val() || '' ).trim();
+
+        // Default modal state uses custom_date/custom_date with blank fields.
+        // Allow that empty state so tickets can be created before availability is configured.
+        if (
+            ticketDateStartType === 'custom_date' &&
+            ticketDateEndType === 'custom_date' &&
+            !startCustomDate &&
+            !startCustomTime &&
+            !endCustomDate &&
+            !endCustomTime
+        ) {
+            return true;
+        }
 
         function parseDateTimeValue( dateValue, timeValue, fallbackTimeValue ) {
             if ( !dateValue || !validateDateField( dateValue ) ) {
@@ -3098,8 +3133,8 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
 
         if ( ticketDateStartType == 'custom_date' ) {
             let custStartMoment = parseDateTimeValue(
-                $( '#ep_ticket_start_booking_date' ).val(),
-                $( '#ep_ticket_start_booking_time' ).val(),
+                startCustomDate,
+                startCustomTime,
                 '00:00'
             );
 
@@ -3129,8 +3164,8 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
 
         if ( ticketDateEndType == 'custom_date' ) {
             let custEndMoment = parseDateTimeValue(
-                $( '#ep_ticket_ends_booking_date' ).val(),
-                $( '#ep_ticket_ends_booking_time' ).val(),
+                endCustomDate,
+                endCustomTime,
                 ep_end_of_day_time
             );
 
@@ -3229,16 +3264,18 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
         }
 
         let em_event_ticket_price = tickets_data.get( 'price' );
-        
-        if(em_event_ticket_price < 0) {
+        let validated_ticket_price = ep_validate_ticket_price_input( em_event_ticket_price );
+
+        if( !validated_ticket_price.valid ) {
             let invalid_price = get_translation_string( 'invalid_price' );
             $( '#ep_event_ticket_price_error' ).html(invalid_price);
             document.getElementById( 'ep_event_ticket_price' ).focus();
             ep_open_ticket_tab('ep-ticket-price');
             return false;
-           
         }
-        
+
+        em_event_ticket_price = validated_ticket_price.normalized;
+
         if( em_event_ticket_price ) {
             ticket_tier_data.price = em_event_ticket_price;
         }

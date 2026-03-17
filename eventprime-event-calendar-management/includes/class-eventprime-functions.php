@@ -1873,6 +1873,20 @@ public function ep_get_event_date_time_diff( $event ) {
 
         return $dateTime->format( 'h:i A' );
     }
+
+    /**
+     * Render post content consistently so Gutenberg blocks, shortcodes and embeds
+     * behave the same across direct page loads and AJAX-loaded event views.
+     */
+    public function ep_get_rendered_post_content( $post ) {
+        if ( empty( $post ) || ! isset( $post->post_content ) ) {
+            return '';
+        }
+
+        $content = apply_filters( 'the_content', (string) $post->post_content );
+
+        return is_string( $content ) ? $content : '';
+    }
     
     public function ep_convert_event_date_time_from_timezone( $event, $format = '', $end = 0, $strict = 0 ) {
         if ( empty( $event ) ) {
@@ -3759,7 +3773,7 @@ public function ep_get_event_date_time_diff( $event ) {
             $event->id = $post->ID;
             $event->name = $post->post_title;
             $event->slug = $post->post_name;
-            $event->description = wp_kses_post($post->post_content);
+            $event->description = $this->ep_get_rendered_post_content( $post );
             $event->post_status = $post->post_status;
             $event->post_parent = $post->post_parent;
             $event->fstart_date = (!empty($event->em_start_date) ) ? $this->ep_timestamp_to_date($event->em_start_date, 'd M', 1) : '';
@@ -3820,7 +3834,7 @@ public function ep_get_event_date_time_diff( $event ) {
             $event->id = $post->ID;
             $event->name = $post->post_title;
             $event->slug = $post->post_name;
-            $event->description = wp_kses_post($post->post_content);
+            $event->description = $this->ep_get_rendered_post_content( $post );
             $event->post_status = $post->post_status;
             $event->post_parent = $post->post_parent;
             $event->fstart_date = (!empty($event->em_start_date) ) ? $this->ep_timestamp_to_date($event->em_start_date, 'd M', 1) : '';
@@ -3878,7 +3892,7 @@ public function ep_get_event_date_time_diff( $event ) {
             $event->id = $post->ID;
             $event->name = $post->post_title;
             $event->slug = $post->post_name;
-            $event->description = wp_kses_post($post->post_content);
+            $event->description = $this->ep_get_rendered_post_content( $post );
             $event->post_status = $post->post_status;
             $event->post_parent = $post->post_parent;
             $event->fstart_date = (!empty($event->em_start_date) ) ? $this->ep_timestamp_to_date($event->em_start_date, 'd M', 1) : '';
@@ -6951,7 +6965,7 @@ public function ep_get_event_date_time_diff( $event ) {
             $event->name               = $post->post_title;
             $event->em_name            = $post->post_title;
             $event->slug               = $post->post_name;
-            $event->description        = wp_kses_post( $post->post_content );
+            $event->description        = $this->ep_get_rendered_post_content( $post );
             $event->post_status        = $post->post_status;
             $event->post_parent        = $post->post_parent;
             $event->fstart_date        = ( ! empty( $event->em_start_date ) ) ? $this->ep_timestamp_to_date( $event->em_start_date, 'd M', 1 ) : '';

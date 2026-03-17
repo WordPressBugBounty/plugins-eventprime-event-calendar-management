@@ -11,14 +11,16 @@ class EventM_Ajax_Service {
         if( wp_verify_nonce( $_POST['security'], 'event-registration-form-nonce' ) ) {
             $event_id = absint( $_POST['event_id'] ); 
             $ticket_data = json_decode( stripslashes( $_POST['ticket_data'] ) );
-    
+
+            if ( ! class_exists( 'EventM_Live_Seating_List_Controller' ) ) {
+                wp_send_json_success( 'not a seated event' );
+            }
+
             $event_seat_data = get_post_meta( $event_id, 'em_seat_data', true );
             if( ! empty( $event_seat_data ) ) { 
                 // wp_send_json_success('seated event'); 
-    
-                if ( class_exists( 'EventM_Live_Seating_List_Controller' ) ) {
-                    $seating_controller = new EventM_Live_Seating_List_Controller;
-                }
+
+                $seating_controller = new EventM_Live_Seating_List_Controller;
                 $em_ls_seat_plan_id = get_post_meta( $event_id, 'em_ls_seat_plan', true ); 
                 $plan_color_data = $seating_controller->get_plan_colors_data( $em_ls_seat_plan_id );
     
@@ -28,7 +30,7 @@ class EventM_Ajax_Service {
                         $ticket_seats = $tickets->seats;
                         foreach( $ticket_seats as $seats_data ) {
                             $ticket_area_id = $seats_data->area_id;
-                            if( $event_seat_data->{$ticket_area_id} ) {
+                            if( isset( $event_seat_data->{$ticket_area_id} ) ) {
                                 $ticket_seat_data = $seats_data->seat_data;
                                 if( ! empty( $ticket_seat_data ) ) { 
                                     foreach( $ticket_seat_data as $tsd ) {
