@@ -3254,7 +3254,7 @@ class Eventprime_Event_Calendar_Management_Admin {
         do_action( 'ep_admin_menus' );
         add_submenu_page( 'edit.php?post_type=em_event', esc_html__( 'EventPrime settings', 'eventprime-event-calendar-management' ), esc_html__( 'Settings', 'eventprime-event-calendar-management' ), 'manage_options', 'ep-settings', array( $this, 'ep_settings_page' ) );
         add_submenu_page( 'edit.php?post_type=em_event', esc_html__( 'Extensions', 'eventprime-event-calendar-management' ), esc_html__( 'Extensions', 'eventprime-event-calendar-management' ), $ep_user_menus_caps, 'ep-extensions', array( $this, 'eventprime_extensions' ) );
-        add_submenu_page( 'edit.php?post_type=em_event', esc_html__( 'Services', 'eventprime-event-calendar-management' ), esc_html__( 'Services', 'eventprime-event-calendar-management' ), $ep_user_menus_caps, 'ep-customization-promo', array( $this, 'eventprime_customization_promo' ) );
+        //add_submenu_page( 'edit.php?post_type=em_event', esc_html__( 'Services', 'eventprime-event-calendar-management' ), esc_html__( 'Services', 'eventprime-event-calendar-management' ), $ep_user_menus_caps, 'ep-customization-promo', array( $this, 'eventprime_customization_promo' ) );
         // attendees list page
         add_submenu_page( 'ep_hidden_menu', esc_html__( 'Attendees List', 'eventprime-event-calendar-management' ), esc_html__( 'Attendees List', 'eventprime-event-calendar-management' ), $ep_user_menus_caps, 'ep-event-attendees-list', array( $this, 'ep_show_event_attendees_list' ) );
     }

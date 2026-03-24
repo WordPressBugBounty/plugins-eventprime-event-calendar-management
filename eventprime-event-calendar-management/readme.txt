@@ -5,7 +5,7 @@ Tags: event calendar, organizer , event manager, tickets, event booking, event b
 Requires at least: 4.8
 Tested up to: 6.9
 Requires PHP: 7.2
-Stable tag: 4.3.1.0
+Stable tag: 4.3.1.1
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -666,6 +666,9 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.3.1.1: March 24, 2026 =
+* Fixed: PayPal payment verification process.
 
 = 4.3.1.0: March 17, 2026 =
 * Fixed: Ticket Availability issue. 
@@ -2326,6 +2329,9 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.3.1.1: March 24, 2026 =
+* Fixed: PayPal payment verification process.
 
 = 4.3.1.0: March 17, 2026 =
 * Fixed: Ticket Availability issue. 

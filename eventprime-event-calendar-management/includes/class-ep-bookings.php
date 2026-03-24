@@ -116,6 +116,25 @@ class EventPrime_Bookings {
 
         // update order info
         $order_info = apply_filters( 'ep_add_booking_order_info', $booking->em_order_info, $data );
+        if ( empty( $order_info['user_email'] ) && ! empty( $data['payer']['email_address'] ) ) {
+            $order_info['user_email'] = sanitize_email( $data['payer']['email_address'] );
+        }
+        if ( empty( $order_info['user_name'] ) && ! empty( $data['payer']['name'] ) ) {
+            $payer_name = trim(
+                implode(
+                    ' ',
+                    array_filter(
+                        array(
+                            sanitize_text_field( $data['payer']['name']['given_name'] ?? '' ),
+                            sanitize_text_field( $data['payer']['name']['surname'] ?? '' ),
+                        )
+                    )
+                )
+            );
+            if ( $payer_name !== '' ) {
+                $order_info['user_name'] = $payer_name;
+            }
+        }
         $order_info['payment_gateway'] = $data['payment_gateway'];
         update_post_meta( $booking->em_id, 'em_order_info', $order_info );
 
@@ -127,7 +146,7 @@ class EventPrime_Bookings {
         do_action( 'ep_after_booking_complete', $booking->em_id, $data );
 
         // send email notification
-        if ( strtolower( $data['payment_status'] ) == 'completed' || (strtolower($data['payment_gateway']) == 'offline' && strtolower($booking_status) == 'completed' )) {
+        if ( strtolower( $booking_status ) == 'completed' ) {
             $notifications->booking_confirmed( $booking->em_id );
         } else if ( strtolower( $data['payment_status'] ) == 'refunded' ) {
             do_action( 'ep_booking_refunded', $booking );
@@ -869,7 +888,17 @@ class EventPrime_Bookings {
                     $booking_status = $default_booking_status;
                 }
             } else {
-                if(isset($data['payment_status']) && $data['payment_status']=='pending') {
+                $payment_gateway = strtolower( (string) ( $data['payment_gateway'] ?? '' ) );
+                $payment_status = strtolower( (string) ( $data['payment_status'] ?? '' ) );
+                $paypal_status_reason = strtoupper( (string) ( $data['paypal_status_reason'] ?? '' ) );
+                $paypal_pending_complete_reasons = array(
+                    'PENDING_REVIEW',
+                    'RECEIVING_PREFERENCE_MANDATES_MANUAL_ACTION',
+                );
+
+                if ( $payment_gateway === 'paypal' && $payment_status === 'pending' && in_array( $paypal_status_reason, $paypal_pending_complete_reasons, true ) ) {
+                    $booking_status = 'completed';
+                } elseif(isset($data['payment_status']) && $data['payment_status']=='pending') {
                     $booking_status = 'pending';
                 }
             }

@@ -254,17 +254,25 @@ class EventM_Notification_Service {
         $subject = ( ! empty( $global_setting->booking_confirm_email_subject ) ? $global_setting->booking_confirm_email_subject : esc_html__( 'Your booking is confirmed!', 'eventprime-event-calendar-management' ) );
         $this->configure_mail();
         
+        $headers = array();
+        $attachments = array();
+        $ticket_sub_total = 0;
+        $offers = 0;
+        $event_date_time = '';
         $booking_user_email = $booking_user_name = $to = '';
         $booking_user_phone = $user_first_name = $user_last_name = 'N/A';
         $user_id = isset( $booking->em_user ) ? (int)$booking->em_user : 0;
         if( $user_id ) {
             $user = get_userdata( $user_id );
-            $booking_user_email = $to = $user->user_email;
-            $booking_user_name = ( ! empty( $user->display_name) ) ? $user->display_name : $user->user_nicename;
-            $user_first_name = get_user_meta( $user_id, 'first_name', true );
-            $user_last_name = get_user_meta( $user_id, 'last_name', true );
-            $booking_user_phone = get_user_meta($user_id, 'phone', true);
-        } else {
+            if ( ! empty( $user ) ) {
+                $booking_user_email = $to = $user->user_email;
+                $booking_user_name = ( ! empty( $user->display_name) ) ? $user->display_name : $user->user_nicename;
+                $user_first_name = get_user_meta( $user_id, 'first_name', true );
+                $user_last_name = get_user_meta( $user_id, 'last_name', true );
+                $booking_user_phone = get_user_meta($user_id, 'phone', true);
+            }
+        }
+        if ( empty( $booking_user_email ) ) {
             $booking_user_email = $to = isset($order_info['user_email']) ? $order_info['user_email'] :'';
             $booking_user_name = isset($order_info['user_name']) ? $order_info['user_name'] : '';
             $booking_user_phone = (isset($order_info['user_phone']) && !empty($order_info['user_phone']) ? $order_info['user_phone'] : 'N/A');
@@ -299,7 +307,6 @@ class EventM_Notification_Service {
             // order item data
             $order_item_html = '';
             $order_item_style = "text-align:left;vertical-align:middle;border:1px solid #eee;font-family:'Helvetica Neue',Helvetica,Roboto,Arial,sans-serif;word-wrap:break-word;color:#737373;padding:12px";
-            $ticket_sub_total = $offers = 0;
             // add ticket data
             foreach( $tickets as $ticket ) {
                 if( ! empty( $ticket->offer ) ) {
@@ -656,6 +663,9 @@ class EventM_Notification_Service {
         $this->configure_mail();
         
         $sub_total = 0;
+        $ticket_sub_total = 0;
+        $total_qty = 0;
+        $event_date_time = '';
         $booking_user_phone = $user_first_name = $user_last_name = 'N/A';
         $booking_user_email = $booking_user_name = $to = '';
         $user_id = isset($booking->em_user) ? (int) $booking->em_user : 0;
@@ -689,7 +699,6 @@ class EventM_Notification_Service {
                 }
                 $mail_body = str_replace( "Event Date Time", empty( $event_date_time ) ? '' : $event_date_time, $mail_body );
             }
-            $ticket_sub_total = $total_qty = 0;
             foreach( $tickets as $ticket ) {
                 $ticket_sub_total = $ticket_sub_total + $ticket->subtotal;
                 $total_qty = $total_qty + $ticket->qty;

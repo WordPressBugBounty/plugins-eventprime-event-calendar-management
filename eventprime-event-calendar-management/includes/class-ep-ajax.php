@@ -625,6 +625,9 @@ class EventM_Ajax_Service {
         $data['payment_status']  = $payment_status;
         $data['total_amount']    = $payment_amount;
         $data['currency']        = $verify['currency'];
+        if ( ! empty( $verify['reason'] ) ) {
+            $data['paypal_status_reason'] = $verify['reason'];
+        }
 
         $booking_controller = new EventPrime_Bookings;
         $booking_controller->confirm_booking( $booking_id, $data );
@@ -665,13 +668,45 @@ class EventM_Ajax_Service {
         );
 
         if ( is_wp_error( $token_response ) ) {
+            $this->log_paypal_debug(
+                'PayPal token request failed.',
+                array(
+                    'booking_id' => $booking_id,
+                    'environment' => ! empty( $is_test ) ? 'sandbox' : 'live',
+                    'paypal_order_id' => $paypal_order_id,
+                    'error' => $token_response->get_error_message(),
+                )
+            );
             return new WP_Error( 'ep_paypal_token_error', esc_html__( 'Unable to authenticate with PayPal.', 'eventprime-event-calendar-management' ) );
         }
 
+        $token_code = (int) wp_remote_retrieve_response_code( $token_response );
         $token_body = json_decode( wp_remote_retrieve_body( $token_response ), true );
         $access_token = is_array( $token_body ) && ! empty( $token_body['access_token'] ) ? $token_body['access_token'] : '';
         if ( empty( $access_token ) ) {
-            return new WP_Error( 'ep_paypal_token_error', esc_html__( 'Unable to authenticate with PayPal.', 'eventprime-event-calendar-management' ) );
+            $paypal_error = is_array( $token_body ) ? ( $token_body['error'] ?? '' ) : '';
+            $environment_label = ! empty( $is_test ) ? 'sandbox' : 'live';
+            $this->log_paypal_debug(
+                'PayPal token response did not include an access token.',
+                array(
+                    'booking_id' => $booking_id,
+                    'environment' => $environment_label,
+                    'paypal_order_id' => $paypal_order_id,
+                    'http_code' => $token_code,
+                    'response' => $token_body,
+                )
+            );
+            if ( $token_code === 401 || $paypal_error === 'invalid_client' ) {
+                return new WP_Error(
+                    'ep_paypal_token_error',
+                    sprintf(
+                        /* translators: %s: PayPal environment. */
+                        esc_html__( 'PayPal rejected the %s API credentials. Check the client ID, secret, and mode.', 'eventprime-event-calendar-management' ),
+                        esc_html( $environment_label )
+                    )
+                );
+            }
+            return new WP_Error( 'ep_paypal_token_error', esc_html__( 'Unable to authenticate with PayPal. Check PayPal mode and API credentials.', 'eventprime-event-calendar-management' ) );
         }
 
         $order_response = wp_remote_get(
@@ -686,27 +721,80 @@ class EventM_Ajax_Service {
         );
 
         if ( is_wp_error( $order_response ) ) {
+            $this->log_paypal_debug(
+                'PayPal order verification request failed.',
+                array(
+                    'booking_id' => $booking_id,
+                    'environment' => ! empty( $is_test ) ? 'sandbox' : 'live',
+                    'paypal_order_id' => $paypal_order_id,
+                    'error' => $order_response->get_error_message(),
+                )
+            );
             return new WP_Error( 'ep_paypal_order_error', esc_html__( 'Unable to verify PayPal order.', 'eventprime-event-calendar-management' ) );
         }
 
+        $order_code = (int) wp_remote_retrieve_response_code( $order_response );
         $order_body = json_decode( wp_remote_retrieve_body( $order_response ), true );
         if ( ! is_array( $order_body ) || empty( $order_body['status'] ) ) {
+            $this->log_paypal_debug(
+                'PayPal order verification returned an invalid response.',
+                array(
+                    'booking_id' => $booking_id,
+                    'environment' => ! empty( $is_test ) ? 'sandbox' : 'live',
+                    'paypal_order_id' => $paypal_order_id,
+                    'http_code' => $order_code,
+                    'response' => $order_body,
+                )
+            );
             return new WP_Error( 'ep_paypal_order_error', esc_html__( 'Unable to verify PayPal order.', 'eventprime-event-calendar-management' ) );
         }
 
         $status = strtoupper( $order_body['status'] );
-        if ( $status !== 'COMPLETED' ) {
+        $capture = $order_body['purchase_units'][0]['payments']['captures'][0] ?? array();
+        $status_reason = '';
+
+        if ( ! empty( $capture['status'] ) ) {
+            $status = strtoupper( $capture['status'] );
+            $status_reason = $capture['status_details']['reason'] ?? '';
+        }
+
+        if ( ! in_array( $status, array( 'COMPLETED', 'PENDING' ), true ) ) {
+            $this->log_paypal_debug(
+                'PayPal payment is not completed.',
+                array(
+                    'booking_id' => $booking_id,
+                    'environment' => ! empty( $is_test ) ? 'sandbox' : 'live',
+                    'paypal_order_id' => $paypal_order_id,
+                    'http_code' => $order_code,
+                    'status' => $status,
+                    'status_reason' => $status_reason,
+                    'response' => $order_body,
+                )
+            );
             return new WP_Error( 'ep_paypal_not_completed', esc_html__( 'Payment not completed.', 'eventprime-event-calendar-management' ) );
         }
 
         $amount = '';
         $currency = '';
-        if ( ! empty( $order_body['purchase_units'][0]['amount'] ) ) {
+        if ( ! empty( $capture['amount'] ) ) {
+            $amount = $capture['amount']['value'] ?? '';
+            $currency = $capture['amount']['currency_code'] ?? '';
+        } elseif ( ! empty( $order_body['purchase_units'][0]['amount'] ) ) {
             $amount = $order_body['purchase_units'][0]['amount']['value'] ?? '';
             $currency = $order_body['purchase_units'][0]['amount']['currency_code'] ?? '';
         }
 
         if ( $amount === '' || $currency === '' ) {
+            $this->log_paypal_debug(
+                'PayPal order verification did not return amount or currency.',
+                array(
+                    'booking_id' => $booking_id,
+                    'environment' => ! empty( $is_test ) ? 'sandbox' : 'live',
+                    'paypal_order_id' => $paypal_order_id,
+                    'http_code' => $order_code,
+                    'response' => $order_body,
+                )
+            );
             return new WP_Error( 'ep_paypal_order_error', esc_html__( 'Unable to verify PayPal order.', 'eventprime-event-calendar-management' ) );
         }
 
@@ -720,10 +808,25 @@ class EventM_Ajax_Service {
             return new WP_Error( 'ep_paypal_currency_mismatch', esc_html__( 'Payment currency mismatch.', 'eventprime-event-calendar-management' ) );
         }
 
+        if ( $status === 'PENDING' ) {
+            $this->log_paypal_debug(
+                'PayPal payment is pending.',
+                array(
+                    'booking_id' => $booking_id,
+                    'environment' => ! empty( $is_test ) ? 'sandbox' : 'live',
+                    'paypal_order_id' => $paypal_order_id,
+                    'status_reason' => $status_reason,
+                    'amount' => $amount_float,
+                    'currency' => $currency,
+                )
+            );
+        }
+
         return array(
             'status'   => strtolower( $status ),
             'amount'   => $amount_float,
             'currency' => $currency,
+            'reason'   => $status_reason,
         );
     }
 
@@ -734,6 +837,20 @@ class EventM_Ajax_Service {
             $client_secret = EP_PAYPAL_CLIENT_SECRET;
         }
         return apply_filters( 'ep_paypal_client_secret', $client_secret, $booking_id );
+    }
+
+    private function log_paypal_debug( $message, $context = array() ) {
+        if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) {
+            return;
+        }
+
+        error_log(
+            sprintf(
+                'EventPrime PayPal Debug: %s %s',
+                $message,
+                wp_json_encode( $context )
+            )
+        );
     }
 
     /**
