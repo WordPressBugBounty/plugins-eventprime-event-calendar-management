@@ -562,6 +562,27 @@ class Eventprime_Global_Settings{
 
         update_option( 'em_global_settings', $options );
 
+        $sanitized_policies = array();
+        if ( class_exists( 'Eventprime_Rest_Api' ) ) {
+            $rest_api      = new Eventprime_Rest_Api();
+            $policy_config = $rest_api->ep_get_rest_access_policies_config();
+            $policy_input  = isset( $data['ep_rest_api_policies'] ) && is_array( $data['ep_rest_api_policies'] ) ? $data['ep_rest_api_policies'] : array();
+            $valid_roles   = function_exists( 'wp_roles' ) ? array_keys( wp_roles()->roles ) : array();
+
+            foreach ( $policy_config as $policy_key => $policy ) {
+                $roles = isset( $policy_input[ $policy_key ] ) && is_array( $policy_input[ $policy_key ] ) ? $policy_input[ $policy_key ] : array();
+                $roles = array_values(
+                    array_intersect(
+                        array_map( 'sanitize_key', $roles ),
+                        $valid_roles
+                    )
+                );
+                $sanitized_policies[ $policy_key ] = $roles;
+            }
+        }
+
+        update_option( 'ep_rest_api_policies', $sanitized_policies );
+
         // No API key is stored here — API is open when enabled and endpoints toggled.
     }
     

@@ -61,6 +61,10 @@ class Eventprime_API_Integration_Helpers {
         $args = array( 'post_type' => 'em_performer', 'posts_per_page' => 1, 'orderby' => 'date', 'order' => 'DESC' );
         if ( $status === 'delete_performer' ) $args['post_status'] = 'trash';
         $performers = get_posts( $args );
+        if ( empty( $performers ) && $status === 'delete_performer' ) {
+            $args['post_status'] = 'publish';
+            $performers = get_posts( $args );
+        }
         if ( empty( $performers ) ) return array( 'status' => 'error', 'message' => __( 'No performers found. Please create at least one performer to get sample data.', 'eventprime-event-calendar-management' ) );
         $performer_id = $performers[0]->ID;
         if ( method_exists( $ep_functions, 'get_single_performer' ) ) return array( 'status' => 'success', 'performer' => $ep_functions->get_single_performer( $performer_id ) );

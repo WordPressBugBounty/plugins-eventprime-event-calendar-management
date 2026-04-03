@@ -326,6 +326,615 @@ class Eventprime_Rest_Api {
     // API key checks removed — endpoints are controlled by settings and logged-in users.
 
     /**
+     * REST access policy definitions.
+     *
+     * @return array
+     */
+    public function ep_get_rest_access_policies_config() {
+        $definitions = array(
+            array( 'route_integration', 'Route: /integration', '/wp-json/eventprime/v1/integration', 'Fallback permission when the integration route is called without a mapped action or trigger.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'route_events', 'Route: /events', '/wp-json/eventprime/v1/events', 'Read the event collection route.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'route_event', 'Route: /events/{id}', '/wp-json/eventprime/v1/events/{id}', 'Read a single event route.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'route_tickets', 'Route: /tickets', '/wp-json/eventprime/v1/tickets', 'Read the tickets route.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'route_ticket', 'Route: /tickets/{id}', '/wp-json/eventprime/v1/tickets/{id}', 'Read a single ticket route.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'route_bookings', 'Route: /bookings', '/wp-json/eventprime/v1/bookings', 'Read the bookings route.', array( 'administrator' ) ),
+            array( 'route_booking', 'Route: /bookings/{id}', '/wp-json/eventprime/v1/bookings/{id}', 'Read a single booking route.', array( 'administrator' ) ),
+            array( 'route_get_events', 'Route: /get_events', '/wp-json/eventprime/v1/get_events', 'Read the legacy get_events route.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'route_get_event', 'Route: /get_event/{id}', '/wp-json/eventprime/v1/get_event/{id}', 'Read the legacy get_event route.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'route_get_tickets', 'Route: /get_tickets', '/wp-json/eventprime/v1/get_tickets', 'Read the legacy get_tickets route.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'route_get_ticket', 'Route: /get_ticket/{id}', '/wp-json/eventprime/v1/get_ticket/{id}', 'Read the legacy get_ticket route.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'route_get_bookings', 'Route: /get_bookings', '/wp-json/eventprime/v1/get_bookings', 'Read the legacy get_bookings route.', array( 'administrator' ) ),
+            array( 'route_get_booking', 'Route: /get_booking/{id}', '/wp-json/eventprime/v1/get_booking/{id}', 'Read the legacy get_booking route.', array( 'administrator' ) ),
+            array( 'route_get_performers', 'Route: /get_performers', '/wp-json/eventprime/v1/get_performers', 'Read the performers listing route.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'route_get_performer', 'Route: /get_performer/{id}', '/wp-json/eventprime/v1/get_performer/{id}', 'Read the single performer route.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'route_get_venues', 'Route: /get_venues', '/wp-json/eventprime/v1/get_venues', 'Read the venues route.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'route_get_event_type', 'Route: /get_event_type', '/wp-json/eventprime/v1/get_event_type', 'Read the event type route.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'route_get_organizers', 'Route: /get_organizers', '/wp-json/eventprime/v1/get_organizers', 'Read the organizers route.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'action_events', 'Action: events', 'integration?action=events', 'Read event data through the integration action.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'action_event', 'Action: event', 'integration?action=event', 'Read a single event through the integration action.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'action_tickets', 'Action: tickets', 'integration?action=tickets', 'Read ticket data through the integration action.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'action_bookings', 'Action: bookings', 'integration?action=bookings', 'Read booking data through the integration action.', array( 'administrator' ) ),
+            array( 'action_performers', 'Action: performers', 'integration?action=performers', 'Read performers through the integration action.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'action_organizers', 'Action: organizers', 'integration?action=organizers', 'Read organizers through the integration action.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'action_venues', 'Action: venues', 'integration?action=venues', 'Read venues through the integration action.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'action_event_types', 'Action: event_types', 'integration?action=event_types', 'Read event types through the integration action.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'action_get_event_type', 'Action: get_event_type', 'integration?action=get_event_type', 'Read event types through the legacy integration action.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'action_subscribe', 'Action: subscribe', 'integration?action=subscribe', 'Run the subscribe integration action.', array( 'administrator' ) ),
+            array( 'action_unsubscribe', 'Action: unsubscribe', 'integration?action=unsubscribe', 'Run the unsubscribe integration action.', array( 'administrator' ) ),
+            array( 'action_perform', 'Action: perform', 'integration?action=perform', 'Run the perform integration action.', array( 'administrator' ) ),
+            array( 'action_init_action', 'Action: init_action', 'integration?action=init_action', 'Run the init_action integration action.', array( 'administrator' ) ),
+            array( 'action_create_event', 'Action: create_event', 'integration?action=create_event', 'Create events through the integration action.', array( 'administrator', 'editor' ) ),
+            array( 'action_update_event', 'Action: update_event', 'integration?action=update_event', 'Update events through the integration action.', array( 'administrator', 'editor' ) ),
+            array( 'action_delete_event', 'Action: delete_event', 'integration?action=delete_event', 'Delete events through the integration action.', array( 'administrator', 'editor' ) ),
+            array( 'action_create_booking', 'Action: create_booking', 'integration?action=create_booking', 'Create bookings through the integration action.', array( 'administrator' ) ),
+            array( 'action_update_booking', 'Action: update_booking', 'integration?action=update_booking', 'Update bookings through the integration action.', array( 'administrator' ) ),
+            array( 'action_delete_booking', 'Action: delete_booking', 'integration?action=delete_booking', 'Delete bookings through the integration action.', array( 'administrator' ) ),
+            array( 'action_create_ticket', 'Action: create_ticket', 'integration?action=create_ticket', 'Create tickets through the integration action.', array( 'administrator', 'editor' ) ),
+            array( 'action_update_ticket', 'Action: update_ticket', 'integration?action=update_ticket', 'Update tickets through the integration action.', array( 'administrator', 'editor' ) ),
+            array( 'action_delete_ticket', 'Action: delete_ticket', 'integration?action=delete_ticket', 'Delete tickets through the integration action.', array( 'administrator', 'editor' ) ),
+            array( 'action_get_organizers_data', 'Action: get_organizers_data', 'integration?action=get_organizers_data', 'Read organizer collections through the integration action.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'action_get_organizers_count', 'Action: get_organizers_count', 'integration?action=get_organizers_count', 'Read organizer counts through the integration action.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'action_get_venues_data', 'Action: get_venues_data', 'integration?action=get_venues_data', 'Read venue collections through the integration action.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'action_get_venues_count', 'Action: get_venues_count', 'integration?action=get_venues_count', 'Read venue counts through the integration action.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'action_get_event_types_data', 'Action: get_event_types_data', 'integration?action=get_event_types_data', 'Read event type collections through the integration action.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'action_get_event_types_count', 'Action: get_event_types_count', 'integration?action=get_event_types_count', 'Read event type counts through the integration action.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'action_get_performers_data', 'Action: get_performers_data', 'integration?action=get_performers_data', 'Read performer collections through the integration action.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'action_get_performers_count', 'Action: get_performers_count', 'integration?action=get_performers_count', 'Read performer counts through the integration action.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'action_create_venue', 'Action: create_venue', 'integration?action=create_venue', 'Create venues through the integration action.', array( 'administrator', 'editor' ) ),
+            array( 'action_create_organizer', 'Action: create_organizer', 'integration?action=create_organizer', 'Create organizers through the integration action.', array( 'administrator', 'editor' ) ),
+            array( 'action_create_event_type', 'Action: create_event_type', 'integration?action=create_event_type', 'Create event types through the integration action.', array( 'administrator', 'editor' ) ),
+            array( 'action_update_venue', 'Action: update_venue', 'integration?action=update_venue', 'Update venues through the integration action.', array( 'administrator', 'editor' ) ),
+            array( 'action_delete_venue', 'Action: delete_venue', 'integration?action=delete_venue', 'Delete venues through the integration action.', array( 'administrator', 'editor' ) ),
+            array( 'action_create_performer', 'Action: create_performer', 'integration?action=create_performer', 'Create performers through the integration action.', array( 'administrator', 'editor' ) ),
+            array( 'action_update_performer', 'Action: update_performer', 'integration?action=update_performer', 'Update performers through the integration action.', array( 'administrator', 'editor' ) ),
+            array( 'action_delete_performer', 'Action: delete_performer', 'integration?action=delete_performer', 'Delete performers through the integration action.', array( 'administrator', 'editor' ) ),
+            array( 'action_get_access_token', 'Action: get_access_token', 'integration?action=get_access_token', 'Issue a short-lived access token.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'trigger_create_event', 'Trigger: create_event', 'integration?trigger=create_event', 'Read the create_event trigger payload.', array( 'administrator', 'editor' ) ),
+            array( 'trigger_update_event', 'Trigger: update_event', 'integration?trigger=update_event', 'Read the update_event trigger payload.', array( 'administrator', 'editor' ) ),
+            array( 'trigger_delete_event', 'Trigger: delete_event', 'integration?trigger=delete_event', 'Read the delete_event trigger payload.', array( 'administrator', 'editor' ) ),
+            array( 'trigger_all_events', 'Trigger: all_events', 'integration?trigger=all_events', 'Read the all_events trigger payload.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'trigger_create_venue', 'Trigger: create_venue', 'integration?trigger=create_venue', 'Read the create_venue trigger payload.', array( 'administrator', 'editor' ) ),
+            array( 'trigger_update_venue', 'Trigger: update_venue', 'integration?trigger=update_venue', 'Read the update_venue trigger payload.', array( 'administrator', 'editor' ) ),
+            array( 'trigger_delete_venue', 'Trigger: delete_venue', 'integration?trigger=delete_venue', 'Read the delete_venue trigger payload.', array( 'administrator', 'editor' ) ),
+            array( 'trigger_all_venues', 'Trigger: all_venues', 'integration?trigger=all_venues', 'Read the all_venues trigger payload.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'trigger_create_performer', 'Trigger: create_performer', 'integration?trigger=create_performer', 'Read the create_performer trigger payload.', array( 'administrator', 'editor' ) ),
+            array( 'trigger_update_performer', 'Trigger: update_performer', 'integration?trigger=update_performer', 'Read the update_performer trigger payload.', array( 'administrator', 'editor' ) ),
+            array( 'trigger_delete_performer', 'Trigger: delete_performer', 'integration?trigger=delete_performer', 'Read the delete_performer trigger payload.', array( 'administrator', 'editor' ) ),
+            array( 'trigger_all_performers', 'Trigger: all_performers', 'integration?trigger=all_performers', 'Read the all_performers trigger payload.', array( 'administrator', 'editor', 'author' ) ),
+            array( 'trigger_confirm_booking', 'Trigger: confirm_booking', 'integration?trigger=confirm_booking', 'Read the confirm_booking trigger payload.', array( 'administrator' ) ),
+            array( 'trigger_pending_booking', 'Trigger: pending_booking', 'integration?trigger=pending_booking', 'Read the pending_booking trigger payload.', array( 'administrator' ) ),
+            array( 'trigger_cancel_booking', 'Trigger: cancel_booking', 'integration?trigger=cancel_booking', 'Read the cancel_booking trigger payload.', array( 'administrator' ) ),
+            array( 'trigger_refund_booking', 'Trigger: refund_booking', 'integration?trigger=refund_booking', 'Read the refund_booking trigger payload.', array( 'administrator' ) ),
+            array( 'trigger_failed_booking', 'Trigger: failed_booking', 'integration?trigger=failed_booking', 'Read the failed_booking trigger payload.', array( 'administrator' ) ),
+        );
+
+        $policies = array();
+        foreach ( $definitions as $definition ) {
+            $policies[ $definition[0] ] = array(
+                'label'         => esc_html__( $definition[1], 'eventprime-event-calendar-management' ),
+                'target'        => $definition[2],
+                'description'   => esc_html__( $definition[3], 'eventprime-event-calendar-management' ),
+                'required_params' => $this->ep_get_rest_policy_required_params_text( $definition[0] ),
+                'example'       => $this->ep_get_rest_policy_example_text( $definition[0], $definition[2] ),
+                'default_roles' => $definition[4],
+            );
+        }
+
+        return $policies;
+    }
+
+    /**
+     * Return human-readable required parameters for a REST policy row.
+     *
+     * @param string $policy_key Policy key.
+     * @return string
+     */
+    protected function ep_get_rest_policy_required_params_text( $policy_key ) {
+        $single_id_policies = array(
+            'route_event',
+            'route_ticket',
+            'route_booking',
+            'route_get_event',
+            'route_get_ticket',
+            'route_get_booking',
+            'route_get_performer',
+            'action_event',
+        );
+        $optional_event_filter_policies = array(
+            'route_tickets',
+            'route_bookings',
+            'route_get_tickets',
+            'route_get_bookings',
+            'action_tickets',
+            'action_bookings',
+        );
+        $list_filter_policies = array(
+            'route_events',
+            'action_events',
+        );
+        $paged_data_policies = array(
+            'action_get_organizers_data',
+            'action_get_venues_data',
+            'action_get_event_types_data',
+            'action_get_performers_data',
+        );
+        $count_filter_policies = array(
+            'action_get_organizers_count',
+            'action_get_venues_count',
+            'action_get_event_types_count',
+            'action_get_performers_count',
+        );
+        $simple_create_name_policies = array(
+            'action_create_venue',
+            'action_create_organizer',
+            'action_create_event_type',
+            'action_create_performer',
+        );
+        $update_name_id_policies = array(
+            'action_update_venue',
+            'action_update_performer',
+        );
+        $delete_id_policies = array(
+            'action_delete_event',
+            'action_delete_booking',
+            'action_delete_ticket',
+            'action_delete_venue',
+            'action_delete_performer',
+        );
+
+        if ( $policy_key === 'route_integration' ) {
+            return esc_html__( 'Required: action or trigger.', 'eventprime-event-calendar-management' );
+        }
+        if ( in_array( $policy_key, $single_id_policies, true ) ) {
+            return esc_html__( 'Required: id.', 'eventprime-event-calendar-management' );
+        }
+        if ( in_array( $policy_key, $optional_event_filter_policies, true ) ) {
+            return esc_html__( 'Optional: event_id. For bookings lists you can also pass status.', 'eventprime-event-calendar-management' );
+        }
+        if ( in_array( $policy_key, $list_filter_policies, true ) ) {
+            return esc_html__( 'Optional: page, per_page, search, after, before, status.', 'eventprime-event-calendar-management' );
+        }
+        if ( in_array( $policy_key, $paged_data_policies, true ) ) {
+            return esc_html__( 'Optional: page, per_page, search. Event types and organizers also support featured/popular filters.', 'eventprime-event-calendar-management' );
+        }
+        if ( in_array( $policy_key, $count_filter_policies, true ) ) {
+            return esc_html__( 'Optional: search. Event types and organizers also support featured/popular filters.', 'eventprime-event-calendar-management' );
+        }
+        if ( in_array( $policy_key, $simple_create_name_policies, true ) ) {
+            return esc_html__( 'GET returns sample data. POST body requires name. Optional fields depend on the object type.', 'eventprime-event-calendar-management' );
+        }
+        if ( in_array( $policy_key, $update_name_id_policies, true ) ) {
+            return esc_html__( 'GET returns sample data. POST/PUT/PATCH requires id and name.', 'eventprime-event-calendar-management' );
+        }
+        if ( in_array( $policy_key, $delete_id_policies, true ) ) {
+            return esc_html__( 'GET returns sample data. DELETE or POST requires id.', 'eventprime-event-calendar-management' );
+        }
+
+        switch ( $policy_key ) {
+            case 'route_get_performers':
+            case 'route_get_venues':
+            case 'route_get_event_type':
+            case 'route_get_organizers':
+            case 'action_performers':
+            case 'action_organizers':
+            case 'action_venues':
+            case 'action_event_types':
+            case 'action_get_event_type':
+                return esc_html__( 'No required parameters.', 'eventprime-event-calendar-management' );
+            case 'action_subscribe':
+                return esc_html__( 'POST body required: subscriberId, trigger, hookUrl.', 'eventprime-event-calendar-management' );
+            case 'action_unsubscribe':
+                return esc_html__( 'POST body required: subscriberId.', 'eventprime-event-calendar-management' );
+            case 'action_perform':
+                return esc_html__( 'Required: trigger.', 'eventprime-event-calendar-management' );
+            case 'action_init_action':
+                return esc_html__( 'Required: action_key.', 'eventprime-event-calendar-management' );
+            case 'action_create_event':
+                return esc_html__( 'GET returns sample data. POST body requires em_name and em_start_date_time, or em_name with em_start_date plus em_start_time.', 'eventprime-event-calendar-management' );
+            case 'action_update_event':
+                return esc_html__( 'GET returns sample data. POST/PUT/PATCH requires id. Include only the fields you want to change.', 'eventprime-event-calendar-management' );
+            case 'action_create_booking':
+                return esc_html__( 'GET returns sample data. POST body requires event_id, ticket_id, and email.', 'eventprime-event-calendar-management' );
+            case 'action_update_booking':
+                return esc_html__( 'GET returns sample data. POST/PUT/PATCH requires id. Optional: status.', 'eventprime-event-calendar-management' );
+            case 'action_create_ticket':
+                return esc_html__( 'POST body requires name. event_id is strongly recommended. Optional: price, quantity, category_name.', 'eventprime-event-calendar-management' );
+            case 'action_update_ticket':
+                return esc_html__( 'POST/PUT/PATCH requires id. Optional: name, price, event_id.', 'eventprime-event-calendar-management' );
+            case 'action_get_access_token':
+                return esc_html__( 'POST body required: username and password.', 'eventprime-event-calendar-management' );
+            case 'trigger_create_event':
+            case 'trigger_update_event':
+            case 'trigger_delete_event':
+            case 'trigger_all_events':
+            case 'trigger_create_venue':
+            case 'trigger_update_venue':
+            case 'trigger_delete_venue':
+            case 'trigger_all_venues':
+            case 'trigger_create_performer':
+            case 'trigger_update_performer':
+            case 'trigger_delete_performer':
+            case 'trigger_all_performers':
+            case 'trigger_confirm_booking':
+            case 'trigger_pending_booking':
+            case 'trigger_cancel_booking':
+            case 'trigger_refund_booking':
+            case 'trigger_failed_booking':
+                return esc_html__( 'No required parameters. Returns a sample payload for the trigger.', 'eventprime-event-calendar-management' );
+            default:
+                return esc_html__( 'No required parameters.', 'eventprime-event-calendar-management' );
+        }
+    }
+
+    /**
+     * Return a concrete usage example for a REST policy row.
+     *
+     * @param string $policy_key Policy key.
+     * @param string $target     Target string.
+     * @return string
+     */
+    protected function ep_get_rest_policy_example_text( $policy_key, $target ) {
+        $base_integration = '/wp-json/eventprime/v1/integration';
+
+        $example_map = array(
+            'route_integration'             => 'GET ' . $base_integration . '?action=events',
+            'route_events'                  => 'GET /wp-json/eventprime/v1/events?per_page=10',
+            'route_event'                   => 'GET /wp-json/eventprime/v1/events/123',
+            'route_tickets'                 => 'GET /wp-json/eventprime/v1/tickets?event_id=123',
+            'route_ticket'                  => 'GET /wp-json/eventprime/v1/tickets/456',
+            'route_bookings'                => 'GET /wp-json/eventprime/v1/bookings?event_id=123&status=completed',
+            'route_booking'                 => 'GET /wp-json/eventprime/v1/bookings/789',
+            'route_get_events'              => 'GET /wp-json/eventprime/v1/get_events',
+            'route_get_event'               => 'GET /wp-json/eventprime/v1/get_event/123',
+            'route_get_tickets'             => 'GET /wp-json/eventprime/v1/get_tickets?event_id=123',
+            'route_get_ticket'              => 'GET /wp-json/eventprime/v1/get_ticket/456',
+            'route_get_bookings'            => 'GET /wp-json/eventprime/v1/get_bookings?event_id=123',
+            'route_get_booking'             => 'GET /wp-json/eventprime/v1/get_booking/789',
+            'route_get_performers'          => 'GET /wp-json/eventprime/v1/get_performers',
+            'route_get_performer'           => 'GET /wp-json/eventprime/v1/get_performer/321',
+            'route_get_venues'              => 'GET /wp-json/eventprime/v1/get_venues',
+            'route_get_event_type'          => 'GET /wp-json/eventprime/v1/get_event_type',
+            'route_get_organizers'          => 'GET /wp-json/eventprime/v1/get_organizers',
+            'action_events'                 => 'GET ' . $base_integration . '?action=events&per_page=10',
+            'action_event'                  => 'GET ' . $base_integration . '?action=event&id=123',
+            'action_tickets'                => 'GET ' . $base_integration . '?action=tickets&event_id=123',
+            'action_bookings'               => 'GET ' . $base_integration . '?action=bookings&event_id=123',
+            'action_performers'             => 'GET ' . $base_integration . '?action=performers',
+            'action_organizers'             => 'GET ' . $base_integration . '?action=organizers',
+            'action_venues'                 => 'GET ' . $base_integration . '?action=venues',
+            'action_event_types'            => 'GET ' . $base_integration . '?action=event_types',
+            'action_get_event_type'         => 'GET ' . $base_integration . '?action=get_event_type',
+            'action_subscribe'              => 'POST ' . $base_integration . '?action=subscribe {"subscriberId":"zapier-1","trigger":"all_events","hookUrl":"https://example.com/webhook"}',
+            'action_unsubscribe'            => 'POST ' . $base_integration . '?action=unsubscribe {"subscriberId":"zapier-1"}',
+            'action_perform'                => 'GET ' . $base_integration . '?action=perform&trigger=all_events',
+            'action_init_action'            => 'GET ' . $base_integration . '?action=init_action&action_key=create_event',
+            'action_create_event'           => 'POST ' . $base_integration . '?action=create_event {"em_name":"API Demo Event","em_start_date_time":"2026-05-01 18:00:00"}',
+            'action_update_event'           => 'PATCH ' . $base_integration . '?action=update_event&id=123 {"em_name":"Updated Event Name"}',
+            'action_delete_event'           => 'DELETE ' . $base_integration . '?action=delete_event&id=123',
+            'action_create_booking'         => 'POST ' . $base_integration . '?action=create_booking {"event_id":123,"ticket_id":456,"email":"attendee@example.com"}',
+            'action_update_booking'         => 'PATCH ' . $base_integration . '?action=update_booking&id=789 {"status":"completed"}',
+            'action_delete_booking'         => 'DELETE ' . $base_integration . '?action=delete_booking&id=789',
+            'action_create_ticket'          => 'POST ' . $base_integration . '?action=create_ticket {"event_id":123,"name":"VIP","price":49.99}',
+            'action_update_ticket'          => 'PATCH ' . $base_integration . '?action=update_ticket&id=456 {"price":59.99}',
+            'action_delete_ticket'          => 'DELETE ' . $base_integration . '?action=delete_ticket&id=456',
+            'action_get_organizers_data'    => 'GET ' . $base_integration . '?action=get_organizers_data&per_page=10',
+            'action_get_organizers_count'   => 'GET ' . $base_integration . '?action=get_organizers_count',
+            'action_get_venues_data'        => 'GET ' . $base_integration . '?action=get_venues_data&per_page=10',
+            'action_get_venues_count'       => 'GET ' . $base_integration . '?action=get_venues_count',
+            'action_get_event_types_data'   => 'GET ' . $base_integration . '?action=get_event_types_data&per_page=10',
+            'action_get_event_types_count'  => 'GET ' . $base_integration . '?action=get_event_types_count',
+            'action_get_performers_data'    => 'GET ' . $base_integration . '?action=get_performers_data&per_page=10',
+            'action_get_performers_count'   => 'GET ' . $base_integration . '?action=get_performers_count',
+            'action_create_venue'           => 'POST ' . $base_integration . '?action=create_venue {"name":"Main Hall"}',
+            'action_create_organizer'       => 'POST ' . $base_integration . '?action=create_organizer {"name":"Organizer Name"}',
+            'action_create_event_type'      => 'POST ' . $base_integration . '?action=create_event_type {"name":"Conference"}',
+            'action_update_venue'           => 'PATCH ' . $base_integration . '?action=update_venue&id=49 {"name":"Updated Venue"}',
+            'action_delete_venue'           => 'DELETE ' . $base_integration . '?action=delete_venue&id=49',
+            'action_create_performer'       => 'POST ' . $base_integration . '?action=create_performer {"name":"Guest Speaker"}',
+            'action_update_performer'       => 'PATCH ' . $base_integration . '?action=update_performer&id=321 {"name":"Updated Performer"}',
+            'action_delete_performer'       => 'DELETE ' . $base_integration . '?action=delete_performer&id=321',
+            'action_get_access_token'       => 'POST ' . $base_integration . '?action=get_access_token {"username":"api-user","password":"app-password"}',
+            'trigger_create_event'          => 'GET ' . $base_integration . '?trigger=create_event',
+            'trigger_update_event'          => 'GET ' . $base_integration . '?trigger=update_event',
+            'trigger_delete_event'          => 'GET ' . $base_integration . '?trigger=delete_event',
+            'trigger_all_events'            => 'GET ' . $base_integration . '?trigger=all_events',
+            'trigger_create_venue'          => 'GET ' . $base_integration . '?trigger=create_venue',
+            'trigger_update_venue'          => 'GET ' . $base_integration . '?trigger=update_venue',
+            'trigger_delete_venue'          => 'GET ' . $base_integration . '?trigger=delete_venue',
+            'trigger_all_venues'            => 'GET ' . $base_integration . '?trigger=all_venues',
+            'trigger_create_performer'      => 'GET ' . $base_integration . '?trigger=create_performer',
+            'trigger_update_performer'      => 'GET ' . $base_integration . '?trigger=update_performer',
+            'trigger_delete_performer'      => 'GET ' . $base_integration . '?trigger=delete_performer',
+            'trigger_all_performers'        => 'GET ' . $base_integration . '?trigger=all_performers',
+            'trigger_confirm_booking'       => 'GET ' . $base_integration . '?trigger=confirm_booking',
+            'trigger_pending_booking'       => 'GET ' . $base_integration . '?trigger=pending_booking',
+            'trigger_cancel_booking'        => 'GET ' . $base_integration . '?trigger=cancel_booking',
+            'trigger_refund_booking'        => 'GET ' . $base_integration . '?trigger=refund_booking',
+            'trigger_failed_booking'        => 'GET ' . $base_integration . '?trigger=failed_booking',
+        );
+
+        if ( isset( $example_map[ $policy_key ] ) ) {
+            return $example_map[ $policy_key ];
+        }
+
+        return 'GET ' . ltrim( $target, '/' );
+    }
+
+    /**
+     * Return the effective allowed roles for a policy.
+     *
+     * @param string $policy_key
+     * @return array
+     */
+    protected function ep_get_rest_policy_allowed_roles( $policy_key ) {
+        $policies = $this->ep_get_rest_access_policies_config();
+        if ( empty( $policies[ $policy_key ] ) ) {
+            return array();
+        }
+
+        $defaults = isset( $policies[ $policy_key ]['default_roles'] ) ? (array) $policies[ $policy_key ]['default_roles'] : array();
+        $saved    = get_option( 'ep_rest_api_policies', array() );
+
+        if ( isset( $saved[ $policy_key ] ) && is_array( $saved[ $policy_key ] ) ) {
+            $roles = array_values(
+                array_filter(
+                    array_map( 'sanitize_key', $saved[ $policy_key ] )
+                )
+            );
+            if ( ! empty( $roles ) ) {
+                return array_unique( $roles );
+            }
+            return array();
+        }
+
+        return $defaults;
+    }
+
+    /**
+     * Resolve the current request to a REST access policy key.
+     *
+     * @param WP_REST_Request $request
+     * @return string
+     */
+    protected function ep_resolve_rest_policy_key( WP_REST_Request $request ) {
+        $route   = trim( (string) $request->get_route(), '/' );
+        $action  = sanitize_key( (string) $request->get_param( 'action' ) );
+        $trigger = sanitize_key( (string) $request->get_param( 'trigger' ) );
+
+        $action_map = array(
+            'events' => 'action_events',
+            'event' => 'action_event',
+            'tickets' => 'action_tickets',
+            'bookings' => 'action_bookings',
+            'performers' => 'action_performers',
+            'organizers' => 'action_organizers',
+            'venues' => 'action_venues',
+            'event_types' => 'action_event_types',
+            'get_event_type' => 'action_get_event_type',
+            'subscribe' => 'action_subscribe',
+            'unsubscribe' => 'action_unsubscribe',
+            'perform' => 'action_perform',
+            'init_action' => 'action_init_action',
+            'create_event' => 'action_create_event',
+            'update_event' => 'action_update_event',
+            'delete_event' => 'action_delete_event',
+            'create_booking' => 'action_create_booking',
+            'update_booking' => 'action_update_booking',
+            'delete_booking' => 'action_delete_booking',
+            'create_ticket' => 'action_create_ticket',
+            'update_ticket' => 'action_update_ticket',
+            'delete_ticket' => 'action_delete_ticket',
+            'get_organizers_data' => 'action_get_organizers_data',
+            'get_organizers_count' => 'action_get_organizers_count',
+            'get_venues_data' => 'action_get_venues_data',
+            'get_venues_count' => 'action_get_venues_count',
+            'get_event_types_data' => 'action_get_event_types_data',
+            'get_event_types_count' => 'action_get_event_types_count',
+            'get_performers_data' => 'action_get_performers_data',
+            'get_performers_count' => 'action_get_performers_count',
+            'create_venue' => 'action_create_venue',
+            'create_organizer' => 'action_create_organizer',
+            'create_event_type' => 'action_create_event_type',
+            'update_venue' => 'action_update_venue',
+            'delete_venue' => 'action_delete_venue',
+            'create_performer' => 'action_create_performer',
+            'update_performer' => 'action_update_performer',
+            'delete_performer' => 'action_delete_performer',
+            'get_access_token' => 'action_get_access_token',
+        );
+        $trigger_map = array(
+            'create_event' => 'trigger_create_event',
+            'update_event' => 'trigger_update_event',
+            'delete_event' => 'trigger_delete_event',
+            'all_events' => 'trigger_all_events',
+            'create_venue' => 'trigger_create_venue',
+            'update_venue' => 'trigger_update_venue',
+            'delete_venue' => 'trigger_delete_venue',
+            'all_venues' => 'trigger_all_venues',
+            'create_performer' => 'trigger_create_performer',
+            'update_performer' => 'trigger_update_performer',
+            'delete_performer' => 'trigger_delete_performer',
+            'all_performers' => 'trigger_all_performers',
+            'confirm_booking' => 'trigger_confirm_booking',
+            'pending_booking' => 'trigger_pending_booking',
+            'cancel_booking' => 'trigger_cancel_booking',
+            'refund_booking' => 'trigger_refund_booking',
+            'failed_booking' => 'trigger_failed_booking',
+        );
+
+        if ( ! empty( $action ) && isset( $action_map[ $action ] ) ) {
+            return $action_map[ $action ];
+        }
+        if ( ! empty( $trigger ) && isset( $trigger_map[ $trigger ] ) ) {
+            return $trigger_map[ $trigger ];
+        }
+
+        if ( strpos( $route, 'eventprime/v1/events/' ) === 0 || strpos( $route, 'eventprime/v2/events/' ) === 0 ) {
+            return 'route_event';
+        }
+        if ( strpos( $route, 'eventprime/v1/events' ) === 0 || strpos( $route, 'eventprime/v2/events' ) === 0 ) {
+            return 'route_events';
+        }
+        if ( strpos( $route, 'eventprime/v1/tickets/' ) === 0 || strpos( $route, 'eventprime/v2/tickets/' ) === 0 ) {
+            return 'route_ticket';
+        }
+        if ( strpos( $route, 'eventprime/v1/tickets' ) === 0 || strpos( $route, 'eventprime/v2/tickets' ) === 0 ) {
+            return 'route_tickets';
+        }
+        if ( strpos( $route, 'eventprime/v1/bookings/' ) === 0 || strpos( $route, 'eventprime/v2/bookings/' ) === 0 ) {
+            return 'route_booking';
+        }
+        if ( strpos( $route, 'eventprime/v1/bookings' ) === 0 || strpos( $route, 'eventprime/v2/bookings' ) === 0 ) {
+            return 'route_bookings';
+        }
+        if ( strpos( $route, 'eventprime/v1/get_event/' ) === 0 || strpos( $route, 'eventprime/v2/get_event/' ) === 0 ) {
+            return 'route_get_event';
+        }
+        if ( strpos( $route, 'eventprime/v1/get_events' ) === 0 || strpos( $route, 'eventprime/v2/get_events' ) === 0 ) {
+            return 'route_get_events';
+        }
+        if ( strpos( $route, 'eventprime/v1/get_ticket/' ) === 0 || strpos( $route, 'eventprime/v2/get_ticket/' ) === 0 ) {
+            return 'route_get_ticket';
+        }
+        if ( strpos( $route, 'eventprime/v1/get_tickets' ) === 0 || strpos( $route, 'eventprime/v2/get_tickets' ) === 0 ) {
+            return 'route_get_tickets';
+        }
+        if ( strpos( $route, 'eventprime/v1/get_booking/' ) === 0 || strpos( $route, 'eventprime/v2/get_booking/' ) === 0 ) {
+            return 'route_get_booking';
+        }
+        if ( strpos( $route, 'eventprime/v1/get_bookings' ) === 0 || strpos( $route, 'eventprime/v2/get_bookings' ) === 0 ) {
+            return 'route_get_bookings';
+        }
+        if ( strpos( $route, 'eventprime/v1/get_performer/' ) === 0 || strpos( $route, 'eventprime/v2/get_performer/' ) === 0 ) {
+            return 'route_get_performer';
+        }
+        if ( strpos( $route, 'eventprime/v1/get_performers' ) === 0 || strpos( $route, 'eventprime/v2/get_performers' ) === 0 ) {
+            return 'route_get_performers';
+        }
+        if ( strpos( $route, 'eventprime/v1/get_venues' ) === 0 || strpos( $route, 'eventprime/v2/get_venues' ) === 0 ) {
+            return 'route_get_venues';
+        }
+        if ( strpos( $route, 'eventprime/v1/get_event_type' ) === 0 || strpos( $route, 'eventprime/v2/get_event_type' ) === 0 ) {
+            return 'route_get_event_type';
+        }
+        if ( strpos( $route, 'eventprime/v1/get_organizers' ) === 0 || strpos( $route, 'eventprime/v2/get_organizers' ) === 0 ) {
+            return 'route_get_organizers';
+        }
+
+        return 'route_integration';
+    }
+
+    /**
+     * Validate a user against a REST access policy.
+     *
+     * @param string       $policy_key
+     * @param WP_User|null $user
+     * @return true|WP_Error
+     */
+    protected function ep_validate_rest_policy_for_user( $policy_key, $user = null ) {
+        $policies = $this->ep_get_rest_access_policies_config();
+        if ( empty( $policies[ $policy_key ] ) ) {
+            return new WP_Error( 'rest_forbidden', esc_html__( 'REST access policy could not be resolved.', 'eventprime-event-calendar-management' ), array( 'status' => 403 ) );
+        }
+
+        if ( ! ( $user instanceof WP_User ) ) {
+            $user = wp_get_current_user();
+        }
+
+        if ( ! ( $user instanceof WP_User ) || empty( $user->ID ) ) {
+            return new WP_Error( 'rest_forbidden', esc_html__( 'A logged-in user is required for this API endpoint.', 'eventprime-event-calendar-management' ), array( 'status' => 403 ) );
+        }
+
+        $allowed_roles = $this->ep_get_rest_policy_allowed_roles( $policy_key );
+        if ( empty( $allowed_roles ) ) {
+            return new WP_Error( 'rest_forbidden', esc_html__( 'This API endpoint is not assigned to any role.', 'eventprime-event-calendar-management' ), array( 'status' => 403 ) );
+        }
+
+        $user_roles = isset( $user->roles ) ? (array) $user->roles : array();
+        if ( empty( array_intersect( $user_roles, $allowed_roles ) ) ) {
+            return new WP_Error( 'rest_forbidden', esc_html__( 'Your role is not allowed to access this API endpoint.', 'eventprime-event-calendar-management' ), array( 'status' => 403 ) );
+        }
+
+        return true;
+    }
+
+    /**
+     * Enforce the resolved REST access policy on the current request.
+     *
+     * @param WP_REST_Request $request
+     * @param string          $policy_key
+     * @return true|WP_Error
+     */
+    protected function ep_enforce_rest_access_policy( WP_REST_Request $request, $policy_key = '' ) {
+        if ( empty( $policy_key ) ) {
+            $policy_key = $this->ep_resolve_rest_policy_key( $request );
+        }
+
+        return $this->ep_validate_rest_policy_for_user( $policy_key );
+    }
+
+    /**
+     * Read-only routes/actions that may be served anonymously on GET requests.
+     *
+     * @return array
+     */
+    protected function ep_get_public_read_policy_keys() {
+        return array(
+            'route_events',
+            'route_event',
+            'route_get_events',
+            'route_get_event',
+            'route_tickets',
+            'route_ticket',
+            'route_get_tickets',
+            'route_get_ticket',
+            'route_get_performers',
+            'route_get_performer',
+            'route_get_venues',
+            'route_get_event_type',
+            'route_get_organizers',
+            'action_events',
+            'action_event',
+            'action_tickets',
+            'action_performers',
+            'action_organizers',
+            'action_venues',
+            'action_event_types',
+            'action_get_event_type',
+            'trigger_all_events',
+            'trigger_all_venues',
+            'trigger_all_performers',
+        );
+    }
+
+    /**
+     * Whether the request is a safe public GET.
+     *
+     * @param WP_REST_Request $request
+     * @return bool
+     */
+    protected function ep_is_public_read_request( WP_REST_Request $request ) {
+        if ( strtoupper( $request->get_method() ) !== 'GET' ) {
+            return false;
+        }
+
+        $policy_key = $this->ep_resolve_rest_policy_key( $request );
+        return in_array( $policy_key, $this->ep_get_public_read_policy_keys(), true );
+    }
+
+    /**
+     * Register a REST route while overriding older route definitions in the same namespace.
+     *
+     * @param string $namespace
+     * @param string $route
+     * @param array  $args
+     * @return bool
+     */
+    protected function ep_register_rest_route( $namespace, $route, $args ) {
+        return register_rest_route( $namespace, $route, $args, true );
+    }
+
+    /**
      * Determine whether the current user can access non-public event data.
      *
      * @return bool
@@ -486,14 +1095,18 @@ class Eventprime_Rest_Api {
                 return true;
             }
 
-            // Allow if logged-in user has required capability.
-            if ( is_user_logged_in() && current_user_can( 'edit_posts' ) ) {
+            if ( $this->ep_is_public_read_request( $request ) ) {
                 return true;
+            }
+
+            // Logged-in requests are filtered through the configured role policy.
+            if ( is_user_logged_in() ) {
+                return $this->ep_enforce_rest_access_policy( $request );
             }
 
             // server key check (from earlier extraction)
             if ( ! empty( $server_key ) && ! empty( $provided_key ) && hash_equals( (string) $server_key, (string) $provided_key ) ) {
-                return true;
+                return $this->ep_enforce_rest_access_policy( $request );
             }
 
             // Token validation: prioritize headers present on the WP_REST_Request (these reliably reflect client headers)
@@ -528,7 +1141,7 @@ class Eventprime_Rest_Api {
                 $valid = $this->ep_validate_access_token( $tkn );
                 if ( $valid && isset( $valid['user_id'] ) && $valid['user_id'] ) {
                     wp_set_current_user( (int) $valid['user_id'] );
-                    return true;
+                    return $this->ep_enforce_rest_access_policy( $request );
                 }
             }
 
@@ -536,7 +1149,7 @@ class Eventprime_Rest_Api {
         }
 
         // Mutating requests require authentication. We support three ways to authenticate:
-        // 1) logged-in WP user with capability (current behaviour)
+        // 1) logged-in WP user
         // 2) server-configured static server key (legacy)
         // 3) short-lived access token issued by get_access_token (recommended)
         // For convenience, allow public GETs (read-only) by default.
@@ -550,11 +1163,11 @@ class Eventprime_Rest_Api {
         // No-op: GET handled above.
 
         // For mutating requests, allow if:
-        // - logged-in user with capability OR
+        // - logged-in user OR
         // - provided API key matches server key OR
         // - valid short-lived access token provided in Authorization: Bearer <token> or X-EP-TOKEN header or access_token param
-        if ( is_user_logged_in() && current_user_can( 'edit_posts' ) ) {
-            return true;
+        if ( is_user_logged_in() ) {
+            return $this->ep_enforce_rest_access_policy( $request );
         }
 
         // Allow token issuance without prior auth so clients can exchange credentials for a short-lived token
@@ -563,7 +1176,7 @@ class Eventprime_Rest_Api {
         }
 
         if ( ! empty( $server_key ) && ! empty( $provided_key ) && hash_equals( (string) $server_key, (string) $provided_key ) ) {
-            return true;
+            return $this->ep_enforce_rest_access_policy( $request );
         }
 
         // Access token validation
@@ -586,7 +1199,7 @@ class Eventprime_Rest_Api {
             if ( $valid && isset( $valid['user_id'] ) && $valid['user_id'] ) {
                 // set current user for capability checks
                 wp_set_current_user( (int) $valid['user_id'] );
-                return true;
+                return $this->ep_enforce_rest_access_policy( $request );
             }
         }
 
@@ -611,7 +1224,7 @@ class Eventprime_Rest_Api {
             return;
         }
 
-        register_rest_route( $ns, '/integration', array(
+        $this->ep_register_rest_route( $ns, '/integration', array(
             array(
                 'methods' => array( 'GET', 'POST' ),
                 'callback' => array( $this, 'handle_integration' ),
@@ -631,7 +1244,7 @@ class Eventprime_Rest_Api {
         //  GET /wp-json/eventprime/v1/bookings/{id}    -> single booking
 
         // Register resource routes that proxy to the unified /integration?action=... handler
-        register_rest_route( $ns, '/events', array(
+        $this->ep_register_rest_route( $ns, '/events', array(
             array(
                 'methods'  => WP_REST_Server::READABLE,
                 'callback' => array( $this, 'get_events' ),
@@ -659,7 +1272,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns, '/events/(?P<id>\d+)', array(
+        $this->ep_register_rest_route( $ns, '/events/(?P<id>\d+)', array(
             array(
                 'methods'  => WP_REST_Server::READABLE,
                 'callback' => array( $this, 'get_event' ),
@@ -672,7 +1285,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns, '/tickets', array(
+        $this->ep_register_rest_route( $ns, '/tickets', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -680,7 +1293,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns, '/tickets/(?P<id>\d+)', array(
+        $this->ep_register_rest_route( $ns, '/tickets/(?P<id>\d+)', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -688,7 +1301,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns, '/bookings', array(
+        $this->ep_register_rest_route( $ns, '/bookings', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -696,7 +1309,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns, '/bookings/(?P<id>\d+)', array(
+        $this->ep_register_rest_route( $ns, '/bookings/(?P<id>\d+)', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -707,7 +1320,7 @@ class Eventprime_Rest_Api {
         // Additional legacy-friendly "get_" named endpoints requested by integrators.
         // These are simple aliases that forward to the same handlers above and
         // reuse the same permission logic so existing integrations are not broken.
-        register_rest_route( $ns, '/get_events', array(
+        $this->ep_register_rest_route( $ns, '/get_events', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -715,7 +1328,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns, '/get_event/(?P<id>\d+)', array(
+        $this->ep_register_rest_route( $ns, '/get_event/(?P<id>\d+)', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -723,7 +1336,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns, '/get_tickets', array(
+        $this->ep_register_rest_route( $ns, '/get_tickets', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -731,7 +1344,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns, '/get_ticket/(?P<id>\d+)', array(
+        $this->ep_register_rest_route( $ns, '/get_ticket/(?P<id>\d+)', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -739,7 +1352,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns, '/get_bookings', array(
+        $this->ep_register_rest_route( $ns, '/get_bookings', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -747,7 +1360,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns, '/get_booking/(?P<id>\d+)', array(
+        $this->ep_register_rest_route( $ns, '/get_booking/(?P<id>\d+)', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -755,7 +1368,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns, '/get_performers', array(
+        $this->ep_register_rest_route( $ns, '/get_performers', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -763,7 +1376,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns, '/get_performer/(?P<id>\d+)', array(
+        $this->ep_register_rest_route( $ns, '/get_performer/(?P<id>\d+)', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -771,7 +1384,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns, '/get_venues', array(
+        $this->ep_register_rest_route( $ns, '/get_venues', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -779,7 +1392,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns, '/get_event_type', array(
+        $this->ep_register_rest_route( $ns, '/get_event_type', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -787,7 +1400,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns, '/get_organizers', array(
+        $this->ep_register_rest_route( $ns, '/get_organizers', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -798,7 +1411,7 @@ class Eventprime_Rest_Api {
         // Combined extensions status for mobile clients to determine whether
         // both Tickets and Check-in extensions are available. Returns 200 when
         // both installed, otherwise 404 with a helpful message.
-        register_rest_route( $ns, '/extensions/combined-status', array(
+        $this->ep_register_rest_route( $ns, '/extensions/combined-status', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'extensions_combined_status' ),
@@ -809,7 +1422,7 @@ class Eventprime_Rest_Api {
         // Also expose a v2 namespace so integrators can opt-in to the richer payload
         // and avoid potential route collisions with older block-provided endpoints.
         $ns2 = 'eventprime/v2';
-        register_rest_route( $ns2, '/events', array(
+        $this->ep_register_rest_route( $ns2, '/events', array(
             array(
                 'methods'  => WP_REST_Server::READABLE,
                 'callback' => array( $this, 'get_events' ),
@@ -825,7 +1438,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns2, '/events/(?P<id>\d+)', array(
+        $this->ep_register_rest_route( $ns2, '/events/(?P<id>\d+)', array(
             array(
                 'methods'  => WP_REST_Server::READABLE,
                 'callback' => array( $this, 'get_event' ),
@@ -835,7 +1448,7 @@ class Eventprime_Rest_Api {
         ) );
 
         // Duplicate v1 resource routes under v2 to maintain identical behaviour
-        register_rest_route( $ns2, '/integration', array(
+        $this->ep_register_rest_route( $ns2, '/integration', array(
             array(
                 'methods' => array( 'GET', 'POST' ),
                 'callback' => array( $this, 'handle_integration' ),
@@ -843,7 +1456,7 @@ class Eventprime_Rest_Api {
             )
         ) );
 
-        register_rest_route( $ns2, '/tickets', array(
+        $this->ep_register_rest_route( $ns2, '/tickets', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -851,7 +1464,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns2, '/tickets/(?P<id>\d+)', array(
+        $this->ep_register_rest_route( $ns2, '/tickets/(?P<id>\d+)', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -859,7 +1472,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns2, '/bookings', array(
+        $this->ep_register_rest_route( $ns2, '/bookings', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -867,7 +1480,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns2, '/bookings/(?P<id>\d+)', array(
+        $this->ep_register_rest_route( $ns2, '/bookings/(?P<id>\d+)', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -876,7 +1489,7 @@ class Eventprime_Rest_Api {
         ) );
 
         // legacy get_ aliases
-        register_rest_route( $ns2, '/get_events', array(
+        $this->ep_register_rest_route( $ns2, '/get_events', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -884,7 +1497,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns2, '/get_event/(?P<id>\d+)', array(
+        $this->ep_register_rest_route( $ns2, '/get_event/(?P<id>\d+)', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -892,7 +1505,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns2, '/get_tickets', array(
+        $this->ep_register_rest_route( $ns2, '/get_tickets', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -900,7 +1513,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns2, '/get_ticket/(?P<id>\d+)', array(
+        $this->ep_register_rest_route( $ns2, '/get_ticket/(?P<id>\d+)', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -908,7 +1521,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns2, '/get_bookings', array(
+        $this->ep_register_rest_route( $ns2, '/get_bookings', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -916,7 +1529,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns2, '/get_booking/(?P<id>\d+)', array(
+        $this->ep_register_rest_route( $ns2, '/get_booking/(?P<id>\d+)', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -924,7 +1537,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns2, '/get_performers', array(
+        $this->ep_register_rest_route( $ns2, '/get_performers', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -932,7 +1545,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns2, '/get_performer/(?P<id>\d+)', array(
+        $this->ep_register_rest_route( $ns2, '/get_performer/(?P<id>\d+)', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -940,7 +1553,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns2, '/get_venues', array(
+        $this->ep_register_rest_route( $ns2, '/get_venues', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -948,7 +1561,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns2, '/get_event_type', array(
+        $this->ep_register_rest_route( $ns2, '/get_event_type', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -956,7 +1569,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns2, '/get_organizers', array(
+        $this->ep_register_rest_route( $ns2, '/get_organizers', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'integration_proxy' ),
@@ -964,7 +1577,7 @@ class Eventprime_Rest_Api {
             ),
         ) );
 
-        register_rest_route( $ns2, '/extensions/combined-status', array(
+        $this->ep_register_rest_route( $ns2, '/extensions/combined-status', array(
             array(
                 'methods' => 'GET',
                 'callback' => array( $this, 'extensions_combined_status' ),
@@ -1052,41 +1665,58 @@ class Eventprime_Rest_Api {
      */
     public function integration_proxy( WP_REST_Request $request ) {
         // Build an 'action' param based on the incoming route and request
-        $route = isset( $request->get_route ) ? $request->get_route() : ''; // defensive
         $params = $request->get_query_params();
+        $path   = $request->get_route();
+        $action = '';
 
-        // If the caller already provided an action, prefer it
+        // Ignore transport-level actions like eventprime_api and prefer business actions only.
         if ( isset( $params['action'] ) && $params['action'] ) {
-            $action = sanitize_text_field( $params['action'] );
-        } else {
-            // Derive action from route path and verb
-            $path = $request->get_route();
-            $method = strtoupper( $request->get_method() );
-            // Map simple resource paths to integration action names
-            // Examples: /events -> action=events ; /events/{id} -> action=get_event
-            if ( preg_match('#/events/(?P<id>\d+)#', $path, $m) ) {
-                $action = 'get_event';
+            $candidate_action = sanitize_text_field( $params['action'] );
+            if ( ! in_array( $candidate_action, array( 'eventprime_api', 'wp_rest' ), true ) ) {
+                $action = $candidate_action;
+            }
+        }
+        if ( empty( $action ) && isset( $params['ep_action'] ) && $params['ep_action'] ) {
+            $action = sanitize_text_field( $params['ep_action'] );
+        }
+
+        if ( empty( $action ) ) {
+            // Map simple resource paths to integration action names.
+            if ( preg_match( '#/events/(?P<id>\d+)#', $path, $m ) ) {
+                $action       = 'get_event';
                 $params['id'] = isset( $m['id'] ) ? intval( $m['id'] ) : 0;
-            } elseif ( strpos( $path, '/events' ) !== false ) {
+            } elseif ( strpos( $path, '/events' ) !== false || strpos( $path, '/get_events' ) !== false ) {
                 $action = 'events';
-            } elseif ( preg_match('#/tickets/(?P<id>\d+)#', $path, $m) ) {
-                $action = 'get_ticket';
+            } elseif ( preg_match( '#/get_event/(?P<id>\d+)#', $path, $m ) ) {
+                $action       = 'get_event';
                 $params['id'] = isset( $m['id'] ) ? intval( $m['id'] ) : 0;
-            } elseif ( strpos( $path, '/tickets' ) !== false ) {
+            } elseif ( preg_match( '#/tickets/(?P<id>\d+)#', $path, $m ) ) {
+                $action       = 'get_ticket';
+                $params['id'] = isset( $m['id'] ) ? intval( $m['id'] ) : 0;
+            } elseif ( strpos( $path, '/tickets' ) !== false || strpos( $path, '/get_tickets' ) !== false ) {
                 $action = 'tickets';
-            } elseif ( preg_match('#/bookings/(?P<id>\d+)#', $path, $m) ) {
-                $action = 'get_booking';
+            } elseif ( preg_match( '#/get_ticket/(?P<id>\d+)#', $path, $m ) ) {
+                $action       = 'get_ticket';
                 $params['id'] = isset( $m['id'] ) ? intval( $m['id'] ) : 0;
-            } elseif ( strpos( $path, '/bookings' ) !== false ) {
+            } elseif ( preg_match( '#/bookings/(?P<id>\d+)#', $path, $m ) ) {
+                $action       = 'get_booking';
+                $params['id'] = isset( $m['id'] ) ? intval( $m['id'] ) : 0;
+            } elseif ( strpos( $path, '/bookings' ) !== false || strpos( $path, '/get_bookings' ) !== false ) {
                 $action = 'bookings';
-            } elseif ( strpos( $path, '/get_events' ) !== false ) {
-                $action = 'events';
-            } elseif ( preg_match('#/get_event/(?P<id>\d+)#', $path, $m) ) {
-                $action = 'get_event';
+            } elseif ( preg_match( '#/get_booking/(?P<id>\d+)#', $path, $m ) ) {
+                $action       = 'get_booking';
                 $params['id'] = isset( $m['id'] ) ? intval( $m['id'] ) : 0;
-            } else {
-                // fallback to integration handler directly
-                $action = '';
+            } elseif ( preg_match( '#/get_performer/(?P<id>\d+)#', $path, $m ) ) {
+                $action       = 'get_performer';
+                $params['id'] = isset( $m['id'] ) ? intval( $m['id'] ) : 0;
+            } elseif ( strpos( $path, '/get_performers' ) !== false ) {
+                $action = 'performers';
+            } elseif ( strpos( $path, '/get_venues' ) !== false ) {
+                $action = 'venues';
+            } elseif ( strpos( $path, '/get_event_type' ) !== false ) {
+                $action = 'get_event_type';
+            } elseif ( strpos( $path, '/get_organizers' ) !== false ) {
+                $action = 'organizers';
             }
         }
 
@@ -1097,15 +1727,52 @@ class Eventprime_Rest_Api {
         }
 
         // Prepare integration-style request params
-        if ( $action ) $params['action'] = $action;
+        if ( $action ) {
+            $params['action'] = $action;
+        }
 
         // Call the unified handler
         $req = new WP_REST_Request();
         foreach ( $params as $k => $v ) {
             $req->set_param( $k, $v );
         }
+        $req->set_route( '/eventprime/v1/integration' );
         // Preserve method
         $req->set_method( $request->get_method() );
+        if ( method_exists( $request, 'get_headers' ) ) {
+            $headers = $request->get_headers();
+            if ( is_array( $headers ) ) {
+                foreach ( $headers as $header_key => $header_values ) {
+                    if ( is_array( $header_values ) ) {
+                        $header_values = implode( ',', $header_values );
+                    }
+                    $req->set_header( $header_key, $header_values );
+                }
+            }
+        }
+        if ( method_exists( $request, 'get_body' ) ) {
+            $body_raw = $request->get_body();
+            if ( is_string( $body_raw ) && $body_raw !== '' ) {
+                $req->set_body( $body_raw );
+            }
+        }
+        if ( ! empty( $body ) ) {
+            $req->set_body_params( $body );
+        }
+        if ( method_exists( $request, 'get_json_params' ) ) {
+            $json_params = $request->get_json_params();
+            if ( is_array( $json_params ) && method_exists( $req, 'set_json_params' ) ) {
+                $req->set_json_params( $json_params );
+            }
+        }
+        $query_params = $request->get_query_params();
+        if ( $action ) {
+            $query_params['action'] = $action;
+        }
+        if ( isset( $params['id'] ) ) {
+            $query_params['id'] = $params['id'];
+        }
+        $req->set_query_params( $query_params );
 
         // Forward to handle_integration which enforces token checks as needed
         return $this->handle_integration( $req );
@@ -1166,12 +1833,7 @@ class Eventprime_Rest_Api {
             return $check;
         }
         
-        // Require capability to view bookings
-        if (!is_user_logged_in() || !current_user_can('manage_options')) {
-            return new WP_Error( 'rest_forbidden', esc_html__( 'You are not allowed to access bookings.', 'eventprime-event-calendar-management' ), array( 'status' => 403 ) );
-        }
-        
-        return true;
+        return $this->ep_enforce_rest_access_policy( $request );
         
     }
 
@@ -2582,7 +3244,7 @@ class Eventprime_Rest_Api {
             $action = 'get_event_type';
         } elseif ( $action === 'get_organizers' ) {
             $action = 'organizers';
-        } elseif ( $action === 'get_event' ) {
+        } elseif ( $action === 'event' || $action === 'get_event' ) {
             // single event fetch
             return call_user_func_array( array( $this, 'handle_event_get' ), array( $request ) );
         } elseif ( $action === 'get_ticket' ) {
@@ -2944,7 +3606,7 @@ class Eventprime_Rest_Api {
         if ( isset( $body['password'] ) ) $password = $body['password'];
         elseif ( isset( $body['pass'] ) ) $password = $body['pass'];
         if ( empty( $username ) || empty( $password ) ) {
-            return rest_ensure_response( array( 'status' => 'error', 'message' => 'Missing credentials.' ), 400 );
+            return new WP_REST_Response( array( 'status' => 'error', 'message' => 'Missing credentials.' ), 400 );
         }
         // Determine whether application-password-only mode is enabled.
         // Priority: constant EP_APP_PASSWORD_ONLY -> option 'ep_rest_api_app_password_only'
@@ -2969,7 +3631,7 @@ class Eventprime_Rest_Api {
         if ( $require_app_only ) {
             // When enabled, only accept Application Passwords for token issuance.
             if ( ! function_exists( 'wp_authenticate_application_password' ) ) {
-                return rest_ensure_response( array( 'status' => 'error', 'message' => 'Application Passwords are not supported on this WordPress installation.' ), 500 );
+                return new WP_REST_Response( array( 'status' => 'error', 'message' => 'Application Passwords are not supported on this WordPress installation.' ), 500 );
             }
             $app_user = wp_authenticate_application_password( null, $username, $password );
             if ( $app_user instanceof WP_User ) {
@@ -2989,7 +3651,7 @@ class Eventprime_Rest_Api {
                     // block for 5 minutes
                     set_transient( $flag_key, 1, 300 );
                 }
-                return rest_ensure_response( array( 'status' => 'error', 'message' => 'Invalid credentials.' ), 401 );
+                return new WP_REST_Response( array( 'status' => 'error', 'message' => 'Invalid credentials.' ), 401 );
             }
         } else {
             // Default behaviour: try regular password first, fall back to Application Passwords
@@ -3021,15 +3683,16 @@ class Eventprime_Rest_Api {
                 // block for 5 minutes
                 set_transient( $flag_key, 1, 300 );
             }
-            return rest_ensure_response( array( 'status' => 'error', 'message' => 'Invalid credentials.' ), 401 );
+            return new WP_REST_Response( array( 'status' => 'error', 'message' => 'Invalid credentials.' ), 401 );
         }
-        // Only allow users who can edit posts to receive tokens
-        if ( ! user_can( $user, 'edit_posts' ) ) {
-            return rest_ensure_response( array( 'status' => 'error', 'message' => 'Insufficient permissions.' ), 403 );
+        $token_policy_check = $this->ep_validate_rest_policy_for_user( 'action_get_access_token', $user );
+        if ( $token_policy_check !== true ) {
+            $message = $token_policy_check instanceof WP_Error ? $token_policy_check->get_error_message() : 'Insufficient permissions.';
+            return new WP_REST_Response( array( 'status' => 'error', 'message' => $message ), 403 );
         }
         $token = $this->ep_generate_access_token( $user->ID );
-        if ( ! $token ) return rest_ensure_response( array( 'status' => 'error', 'message' => 'Failed to generate token.' ), 500 );
-        return rest_ensure_response( array( 'status' => 'success', 'access_token' => $token['token'], 'expires_in' => $token['expires_in'] ) );
+        if ( ! $token ) return new WP_REST_Response( array( 'status' => 'error', 'message' => 'Failed to generate token.' ), 500 );
+        return new WP_REST_Response( array( 'status' => 'success', 'access_token' => $token['token'], 'expires_in' => $token['expires_in'] ), 200 );
     }
 
     /**
@@ -3071,10 +3734,9 @@ class Eventprime_Rest_Api {
         $payload = $user_id . '|' . $expires_at . '|' . $random;
         $expected_sig = hash_hmac( 'sha256', $payload, wp_salt() );
         if ( ! hash_equals( $expected_sig, $signature ) ) return false;
-        // Optionally, confirm user still exists and can edit posts
+        // Confirm the user still exists.
         $user = get_user_by( 'id', $user_id );
         if ( empty( $user ) ) return false;
-        if ( ! user_can( $user, 'edit_posts' ) ) return false;
         return array( 'user_id' => $user_id );
     }
 
@@ -3094,6 +3756,7 @@ class Eventprime_Rest_Api {
                 case 'create_venue':
                 case 'update_venue':
                 case 'delete_venue':
+                case 'all_venues':
                     return $helpers->all_venues_data();
                 case 'create_organizer':
                 case 'update_organizer':
@@ -3102,6 +3765,7 @@ class Eventprime_Rest_Api {
                 case 'create_performer':
                 case 'update_performer':
                 case 'delete_performer':
+                case 'all_performers':
                     return $helpers->all_performers_data( $trigger );
                 case 'confirm_booking':
                     return $helpers->all_bookings_data( 'completed' );
