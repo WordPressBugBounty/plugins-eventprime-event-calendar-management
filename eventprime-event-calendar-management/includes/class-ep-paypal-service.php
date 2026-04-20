@@ -94,7 +94,7 @@ class EventM_Paypal_Service {
         $paypal_client_id = $ep_functions->ep_get_global_settings( 'paypal_client_id' );?>
         <div id="ep-paypal-button-container" class="ep-paypal-container" style="display:none;"></div>
         <!-- smart paypal button -->
-        <script src="https://www.paypal.com/sdk/js?currency=<?php echo esc_attr($currency_code); ?>&client-id=<?php echo esc_attr( $paypal_client_id );?>&vault=true"></script><?php
+        <script src="https://www.paypal.com/sdk/js?currency=<?php echo esc_attr($currency_code); ?>&client-id=<?php echo esc_attr( $paypal_client_id );?>"></script><?php
     }
 
     public function show_paypal_form( $args ){

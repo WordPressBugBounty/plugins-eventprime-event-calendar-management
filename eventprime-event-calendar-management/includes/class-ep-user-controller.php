@@ -705,7 +705,7 @@ class EventM_User_Controller {
                                     update_user_meta( $new_customer, 'phone', $phone );
                                     update_user_meta( $new_customer, 'ep_user_timezone_meta', $timezone );
                                 }
-
+                                
                                 do_action( 'ep_after_user_registration', $new_customer, $_POST );
 
                                 /*$info['user_login'] = $user->user_login;
@@ -790,6 +790,11 @@ class EventM_User_Controller {
                 if(isset($user_data->lname) && !empty($user_data->lname)){
                     update_user_meta( $new_customer, 'last_name', $user_data->lname );
                 }
+                // Keep checkout and payment confirmation in the same user session.
+                wp_clear_auth_cookie();
+                wp_set_current_user( $new_customer );
+                wp_set_auth_cookie( $new_customer, true );
+                do_action( 'wp_login', $user->user_login, $user );
             }
             $user_object = new stdClass();
             $user_object->user_id = $new_customer;

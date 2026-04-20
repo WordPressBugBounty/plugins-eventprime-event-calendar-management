@@ -1143,6 +1143,7 @@ function loadPaymentSection() {
                                         data: booking_data,
                                         success: function (response) {
                                             if (response.success == true && response.data.payment_method == "paypal") {
+                                                updateCheckoutSecurityTokens( response.data );
                                                 order_id = response.data.order_id;
                                                 booking_total = response.data.booking_total;
                                                 item_total    = response.data.item_total;
@@ -1356,6 +1357,7 @@ function loadPaymentSection_new() {
                                     data: booking_data,
                                     success: function (response) {
                                         if (response.success == true) {
+                                            updateCheckoutSecurityTokens( response.data );
                                             if (response.data.payment_method == "paypal") {
                                                 order_id = response.data.order_id;
                                                 let booking_total = response.data.booking_total;
@@ -1430,10 +1432,21 @@ function loadPaymentSection_new() {
 }
 
 
+function updateCheckoutSecurityTokens( responseData ) {
+    if( responseData && responseData.flush_booking_timer_nonce ) {
+        ep_event_booking.flush_booking_timer_nonce = responseData.flush_booking_timer_nonce;
+    }
+    if( responseData && responseData.order_key ) {
+        ep_event_booking.paypal_order_key = responseData.order_key;
+    }
+}
+
+
 function paypalPaymentOnApprove( orderData, order_id ) {
     let data = { 
         action   : 'ep_paypal_sbpr',
         security    : ep_event_booking.flush_booking_timer_nonce,
+        order_key : ep_event_booking.paypal_order_key,
         data     : orderData,
         order_id : order_id
     };

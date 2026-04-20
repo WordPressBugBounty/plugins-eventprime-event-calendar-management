@@ -545,7 +545,9 @@ class EventM_Ajax_Service {
                 // $response->booking_total  = (float)$data['ep_event_booking_total_price'];
                 // $response->discount_total = (isset($data['ep_event_booking_total_discount']))?(float)$data['ep_event_booking_total_discount']:0;
                 
-                $response->item_total     = (float)$data['ep_event_booking_total_tickets'];                
+                $response->item_total     = (float)$data['ep_event_booking_total_tickets'];
+                $response->flush_booking_timer_nonce = wp_create_nonce( 'flush_event_booking_timer_nonce' );
+                $response->order_key      = get_post_meta( $new_post_id, 'ep_order_key', true );
                 
                 // $redirect                 = esc_url( add_query_arg( array( 'order_id' => $new_post_id ), get_permalink( ep_get_global_settings( 'booking_details_page' ) ) ) );
                 $redirect                 = add_query_arg( array( 'order_id' => $new_post_id ), esc_url( get_permalink( $ep_functions->ep_get_global_settings( 'booking_details_page' ) ) ) );
@@ -575,9 +577,11 @@ class EventM_Ajax_Service {
      * Method call from paypal approval
      */
     public function paypal_sbpr() {
-        if ( ! check_ajax_referer( 'flush_event_booking_timer_nonce', 'security', false ) ) {
-            wp_send_json_error( array( 'error' => esc_html__( 'Security check failed. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
-        }
+        $booking_id    = absint( $_POST['order_id'] ?? 0 );
+        $request_order_key = isset( $_POST['order_key'] ) ? sanitize_text_field( $_POST['order_key'] ) : '';
+        $stored_order_key = ! empty( $booking_id ) ? get_post_meta( $booking_id, 'ep_order_key', true ) : '';
+        $is_valid_nonce = check_ajax_referer( 'flush_event_booking_timer_nonce', 'security', false );
+        $is_valid_order_key = ( ! empty( $stored_order_key ) && ! empty( $request_order_key ) && hash_equals( (string) $stored_order_key, (string) $request_order_key ) );
 
         if ( empty( $_POST ) ) {
             wp_send_json_error( array( 'error' => esc_html__( 'Data Not Found', 'eventprime-event-calendar-management' ) ) );
@@ -588,8 +592,6 @@ class EventM_Ajax_Service {
         if ( ! is_array( $data ) ) {
             wp_send_json_error( array( 'error' => esc_html__( 'Invalid payment data.', 'eventprime-event-calendar-management' ) ) );
         }
-        $booking_id    = absint( $_POST['order_id'] ?? 0 );
-
         $payment_amount = $data['purchase_units'][0]['amount']['value'] ?? '';
         $paypal_order_id = isset( $data['id'] ) ? sanitize_text_field( $data['id'] ) : ( isset( $data['order_id'] ) ? sanitize_text_field( $data['order_id'] ) : '' );
 
@@ -600,10 +602,7 @@ class EventM_Ajax_Service {
         $order_info = maybe_unserialize( get_post_meta( $booking_id, 'em_order_info', true ) );
         $booking_status = get_post_meta( $booking_id, 'em_status', true );
         $booking_user = absint( get_post_meta( $booking_id, 'em_user', true ) );
-
-        if ( ! empty( $booking_user ) && get_current_user_id() !== $booking_user ) {
-            wp_send_json_error( array( 'error' => esc_html__( 'You are not allowed to confirm this booking.', 'eventprime-event-calendar-management' ) ) );
-        }
+        $stored_random_order_id = sanitize_text_field( (string) get_post_meta( $booking_id, 'em_random_order_id', true ) );
 
         if ( empty( $order_info['booking_total'] ) ) {
             wp_send_json_error( array( 'error' => esc_html__( 'Payment amount mismatch.', 'eventprime-event-calendar-management' ) ) );
@@ -616,6 +615,21 @@ class EventM_Ajax_Service {
         $verify = $this->verify_paypal_order( $paypal_order_id, $order_info['booking_total'], $ep_functions->ep_get_global_settings( 'currency' ), $booking_id );
         if ( is_wp_error( $verify ) ) {
             wp_send_json_error( array( 'error' => $verify->get_error_message() ) );
+        }
+
+        $verified_random_order_id = sanitize_text_field( $verify['custom_id'] ?? '' );
+        $is_verified_random_order = ( ! empty( $stored_random_order_id ) && ! empty( $verified_random_order_id ) && hash_equals( (string) $stored_random_order_id, (string) $verified_random_order_id ) );
+
+        if ( ! empty( $stored_random_order_id ) && ! $is_verified_random_order ) {
+            wp_send_json_error( array( 'error' => esc_html__( 'You are not allowed to confirm this booking.', 'eventprime-event-calendar-management' ) ) );
+        }
+
+        if ( ! empty( $booking_user ) && get_current_user_id() !== $booking_user && ! $is_valid_order_key && ! $is_verified_random_order ) {
+            wp_send_json_error( array( 'error' => esc_html__( 'You are not allowed to confirm this booking.', 'eventprime-event-calendar-management' ) ) );
+        }
+
+        if ( ! $is_valid_nonce && ! $is_valid_order_key && ! $is_verified_random_order ) {
+            wp_send_json_error( array( 'error' => esc_html__( 'Security check failed. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
         }
 
         $payment_status = strtolower( $verify['status'] );
@@ -827,6 +841,7 @@ class EventM_Ajax_Service {
             'amount'   => $amount_float,
             'currency' => $currency,
             'reason'   => $status_reason,
+            'custom_id' => sanitize_text_field( $order_body['purchase_units'][0]['custom_id'] ?? '' ),
         );
     }
 

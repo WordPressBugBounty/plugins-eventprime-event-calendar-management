@@ -10855,11 +10855,24 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
                 $newdata[$key] = $value;
             }
 
-            if(isset($newdata['ep_coupon_code']) && isset($newdata['ep_coupon_discount']))
-            {
-                $discount = base64_decode($data['ep_coupon_discount']);
-                $total = $total - $discount;
-                $total_discount += $discount;
+            if ( isset( $newdata['ep_coupon_code'] ) && isset( $newdata['ep_coupon_discount'] ) ) {
+                $discount = base64_decode( $data['ep_coupon_discount'] );
+                $discount = (float) $discount;
+
+                if ( $discount > 0 ) {
+                    $discount = apply_filters( 'ep_get_validated_coupon_discount', 0, $discount, $data, $newdata, $event );
+                    $discount = max( 0, (float) $discount );
+
+                    if ( $discount > 0 ) {
+                        $discount = min( $discount, $total );
+                        $total = $total - $discount;
+                        $total_discount += $discount;
+                    } else {
+                        unset( $newdata['ep_coupon_code'], $newdata['ep_coupon_discount'] );
+                    }
+                } else {
+                    unset( $newdata['ep_coupon_code'], $newdata['ep_coupon_discount'] );
+                }
             }
             
             
