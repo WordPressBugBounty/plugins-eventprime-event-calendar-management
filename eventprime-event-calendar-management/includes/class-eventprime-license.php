@@ -600,12 +600,17 @@ class EventPrime_License {
         } elseif ( $is_licensed && ! $plugin_installed ) {
             // Licensed but not installed
             $license = $ext_details['license_info'];
-            $action_button = '
-                <a class="ep-install-extension button-primary" 
-                   data-license="' . esc_attr( $license['license_key'] ) . '" 
-                   data-itemid="' . esc_attr( $ext_details['download_id'] ) . '" 
-                   data-key="' . esc_attr( $ext_details['meta_key'] ) . '" 
-                   data-url="' . esc_url( $license['download_url'] ) . '">' . esc_html__( 'Install & Activate', 'eventprime-event-calendar-management' ) . '</a>';
+            $download_url = ! empty( $license['download_url'] ) ? $ep_functions->ep_sanitize_eventprime_download_url( $license['download_url'] ) : '';
+            if ( ! empty( $download_url ) ) {
+                $action_button = '
+                    <a class="ep-install-extension button-primary" 
+                       data-license="' . esc_attr( $license['license_key'] ) . '" 
+                       data-itemid="' . esc_attr( $ext_details['download_id'] ) . '" 
+                       data-key="' . esc_attr( $ext_details['meta_key'] ) . '" 
+                       data-url="' . esc_url( $download_url ) . '">' . esc_html__( 'Install & Activate', 'eventprime-event-calendar-management' ) . '</a>';
+            } else {
+                $action_button = '<span class="ep-text-danger">' . esc_html__( 'Download unavailable.', 'eventprime-event-calendar-management' ) . '</span>';
+            }
         } else {
             // Fallback: Buy now or open link
             $action_button = '<a href="' . esc_url( $ext_details['url'] ) . '" class="button-primary" target="_blank">' . esc_html( $ext_details['button'] ) . '</a>';

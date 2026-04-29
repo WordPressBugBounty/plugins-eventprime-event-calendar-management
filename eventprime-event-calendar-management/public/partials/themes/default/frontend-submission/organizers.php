@@ -8,7 +8,7 @@
  */
 $ep_functions = new Eventprime_Basic_Functions;
 ?>
-<?php $selected_organizer = isset($args->event) && !empty($args->event->em_organizer) ? maybe_unserialize($args->event->em_organizer): array();
+<?php $selected_organizer = isset($args->event) && !empty($args->event->em_organizer) ? $ep_functions->ep_sanitize_term_id_list( $args->event->em_organizer ) : array();
 $args->event_organizers = apply_filters('ep_frontend_organizer_lists', $args->event_organizers);
 
 ?>

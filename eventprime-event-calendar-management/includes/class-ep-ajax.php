@@ -1252,7 +1252,7 @@ class EventM_Ajax_Service {
             // organizer
             $org = array();
             if( isset( $data['em_organizer'] ) && !empty( $data['em_organizer'] ) ) {
-                $org = $data['em_organizer'];
+                $org = $ep_functions->ep_sanitize_term_id_list( $data['em_organizer'] );
                 update_post_meta( $post_id, 'em_organizer', $org );
             }
             if( isset( $data['new_organizer'] ) && $data['new_organizer'] == 1 ) {
@@ -1280,6 +1280,7 @@ class EventM_Ajax_Service {
                         $org[] = $ep_functions->create_organizer( (array)$org_data );
                     }
                 }
+                $org = $ep_functions->ep_sanitize_term_id_list( $org );
                 update_post_meta( $post_id, 'em_organizer', $org );
             }
             if( ! empty( $org ) ) {
@@ -3416,6 +3417,13 @@ class EventM_Ajax_Service {
     
     public function check_license_status()
     {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error([
+                'error' => 'permission_denied',
+                'message' => esc_html__('You are not allowed to manage licenses.', 'eventprime-event-calendar-management')
+            ]);
+        }
+
         if( !wp_verify_nonce( $_POST['nonce'], 'ep-license-nonce' ) ) 
         {
             wp_send_json_error([
@@ -3491,6 +3499,13 @@ class EventM_Ajax_Service {
     }
     
     public function save_license_settings() {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error([
+                'error' => 'permission_denied',
+                'message' => esc_html__('You are not allowed to manage licenses.', 'eventprime-event-calendar-management')
+            ]);
+        }
+
         if( !wp_verify_nonce( $_POST['nonce'], 'ep-license-nonce' ) ) 
         {
             wp_send_json_error([
@@ -3795,26 +3810,36 @@ class EventM_Ajax_Service {
    
     public function upload_license_file() 
     {
-        
-        $license_json = $_POST['license_data'] ?? '';
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error([
+                'message' => esc_html__( 'You are not allowed to manage licenses.', 'eventprime-event-calendar-management' ),
+            ]);
+        }
+
+        if ( ! check_ajax_referer( 'ep-license-nonce', 'nonce', false ) ) {
+            wp_send_json_error([
+                'message' => esc_html__( 'Failed security checks.', 'eventprime-event-calendar-management' ),
+            ]);
+        }
+
+        $license_json = isset( $_POST['license_data'] ) ? wp_unslash( $_POST['license_data'] ) : '';
         if (empty($license_json)) {
             wp_send_json_error(['message' => 'No license data provided.']);
         }
 
-        $license_data = json_decode(stripslashes($license_json), true);
+        $license_data = json_decode( $license_json, true );
         if (json_last_error() !== JSON_ERROR_NONE || empty($license_data) || !is_array($license_data)) {
             wp_send_json_error(['message' => 'Invalid license data format.']);
         }
 
+        $ep_functions = new Eventprime_Basic_Functions();
         $all_license_data = get_option('metagauss_license_data', []);
         $i=0;
         foreach ($license_data as $license_key => $data) {
-            
+            $license_key = sanitize_text_field( $license_key );
             if (empty($license_key)) {
-                
                 wp_send_json_error([
                     'message' => esc_html__('License key not found.', 'eventprime-event-calendar-management'),
-                    
                 ]);
             }
             
@@ -3831,13 +3856,46 @@ class EventM_Ajax_Service {
             }
             $i++;
 
+            $sanitized_plugins = array();
+            foreach ( $data['plugins'] as $plugin_id => $plugin_data ) {
+                if ( ! is_array( $plugin_data ) ) {
+                    continue;
+                }
+
+                $plugin_id = sanitize_text_field( (string) $plugin_id );
+                if ( '' === $plugin_id ) {
+                    continue;
+                }
+
+                $download_url = '';
+                if ( ! empty( $plugin_data['download_url'] ) ) {
+                    $download_url = $ep_functions->ep_sanitize_eventprime_download_url( $plugin_data['download_url'] );
+                }
+
+                $sanitized_plugins[ $plugin_id ] = array(
+                    'license_key' => $license_key,
+                    'download_url' => $download_url,
+                    'version' => isset( $plugin_data['version'] ) ? sanitize_text_field( $plugin_data['version'] ) : '',
+                    'status' => isset( $plugin_data['status'] ) ? sanitize_key( $plugin_data['status'] ) : '',
+                    'expire_date' => isset( $plugin_data['expire_date'] ) ? sanitize_text_field( $plugin_data['expire_date'] ) : '',
+                    'slug' => isset( $plugin_data['slug'] ) ? sanitize_title( $plugin_data['slug'] ) : '',
+                    'name' => isset( $plugin_data['name'] ) ? sanitize_text_field( $plugin_data['name'] ) : '',
+                    'message' => isset( $plugin_data['message'] ) ? sanitize_text_field( $plugin_data['message'] ) : '',
+                    'can_activate' => ! empty( $plugin_data['can_activate'] ),
+                    'expiration' => isset( $plugin_data['expiration'] ) ? absint( $plugin_data['expiration'] ) : 0,
+                );
+            }
+
+            if ( empty( $sanitized_plugins ) ) {
+                wp_send_json_error([
+                    'message' => esc_html__('Invalid license data received.', 'eventprime-event-calendar-management'),
+                ]);
+            }
+
             // Save to DB
             $all_license_data[$license_key] = [
-                'plugins' => $data['plugins']
+                'plugins' => $sanitized_plugins
             ];
-            
-           
-            
         }
         
         update_option('metagauss_license_data', $all_license_data);

@@ -16,6 +16,75 @@ class Eventprime_Basic_Functions {
         //$this->global_settings = get_option('em_global_settings');
     }
 
+    public function ep_sanitize_term_id_list( $term_ids ) {
+        if ( is_numeric( $term_ids ) ) {
+            $term_ids = array( $term_ids );
+        } elseif ( is_string( $term_ids ) ) {
+            $term_ids = trim( $term_ids );
+            if ( '' === $term_ids ) {
+                return array();
+            }
+
+            if ( preg_match( '/^\d+(?:\s*,\s*\d+)*$/', $term_ids ) ) {
+                $term_ids = preg_split( '/\s*,\s*/', $term_ids );
+            } else {
+                return array();
+            }
+        } elseif ( ! is_array( $term_ids ) ) {
+            return array();
+        }
+
+        $sanitized_ids = array();
+
+        foreach ( $term_ids as $term_id ) {
+            if ( ! is_scalar( $term_id ) ) {
+                continue;
+            }
+
+            $term_id = absint( $term_id );
+            if ( $term_id > 0 ) {
+                $sanitized_ids[ $term_id ] = $term_id;
+            }
+        }
+
+        return array_values( $sanitized_ids );
+    }
+
+    public function ep_get_safe_event_meta_value( $meta_key, $meta_value ) {
+        if ( 'em_organizer' === $meta_key ) {
+            if ( is_string( $meta_value ) && is_serialized( $meta_value ) ) {
+                $meta_value = @unserialize( trim( $meta_value ), array( 'allowed_classes' => false ) );
+            }
+
+            return $this->ep_sanitize_term_id_list( $meta_value );
+        }
+
+        return maybe_unserialize( $meta_value );
+    }
+
+    public function ep_sanitize_eventprime_download_url( $url ) {
+        $url = esc_url_raw( $url, array( 'https' ) );
+        if ( empty( $url ) ) {
+            return '';
+        }
+
+        $parsed_url = wp_parse_url( $url );
+        if ( empty( $parsed_url['host'] ) || empty( $parsed_url['path'] ) ) {
+            return '';
+        }
+
+        $host = strtolower( preg_replace( '/^www\./', '', $parsed_url['host'] ) );
+        if ( 'theeventprime.com' !== $host ) {
+            return '';
+        }
+
+        if ( 0 !== strpos( $parsed_url['path'], '/wp-json/custom/v1/plugin-download' ) ) {
+            return '';
+        }
+
+        return $url;
+    }
+
      private function is_gd_extension_available() {
         return extension_loaded('gd') && (function_exists('imagecreatetruecolor') || function_exists('imagecreate'));
     }
@@ -3764,7 +3833,7 @@ public function ep_get_event_date_time_diff( $event ) {
         $event = new stdClass();
         $meta = get_post_meta($post_id);
         foreach ($meta as $key => $val) {
-            $event->{$key} = maybe_unserialize($val[0]);
+            $event->{$key} = $this->ep_get_safe_event_meta_value( $key, $val[0] );
         }
         if (empty($post)) {
             $post = get_post($post_id);
@@ -3825,7 +3894,7 @@ public function ep_get_event_date_time_diff( $event ) {
         $event = new stdClass();
         $meta = get_post_meta($post_id);
         foreach ($meta as $key => $val) {
-            $event->{$key} = maybe_unserialize($val[0]);
+            $event->{$key} = $this->ep_get_safe_event_meta_value( $key, $val[0] );
         }
         if (empty($post)) {
             $post = get_post($post_id);
@@ -3883,7 +3952,7 @@ public function ep_get_event_date_time_diff( $event ) {
         $event = new stdClass();
         $meta = get_post_meta($post_id);
         foreach ($meta as $key => $val) {
-            $event->{$key} = maybe_unserialize($val[0]);
+            $event->{$key} = $this->ep_get_safe_event_meta_value( $key, $val[0] );
         }
         if (empty($post)) {
             $post = get_post($post_id);
@@ -9668,7 +9737,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
             $em_ticket_price = isset($post_data['em_ticket_price']) ? sanitize_text_field($post_data['em_ticket_price']) : '';
             $em_venue = isset($post_data['em_venue']) ? $post_data['em_venue'] : '';
             $em_performer = isset($post_data['em_performer']) ? $post_data['em_performer'] : array();
-            $em_organizer = isset($post_data['em_organizer']) ? $post_data['em_organizer'] : array();
+            $em_organizer = isset($post_data['em_organizer']) ? $this->ep_sanitize_term_id_list( $post_data['em_organizer'] ) : array();
             $em_event_type = isset($post_data['em_event_type']) ? $post_data['em_event_type'] : '';
             $em_enable_booking = isset($post_data['em_enable_booking']) ? $post_data['em_enable_booking'] : 'bookings_off';
             $em_custom_link = isset($post_data['em_custom_link']) ? $post_data['em_custom_link'] : '';

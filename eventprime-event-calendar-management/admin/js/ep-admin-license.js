@@ -1,19 +1,41 @@
 jQuery( function( $ ) {
     
+    function renderPlainMessage($container, message, success = true) {
+        $container.empty().css('color', success ? 'green' : 'red');
+
+        if (message && message.jquery) {
+            $container.append(message);
+            return;
+        }
+
+        $container.text(message || '');
+    }
+
+    function renderPlainMessageLines($container, messages, className) {
+        $container.empty();
+
+        (messages || []).forEach(function(message, index) {
+            const $line = $('<span>').addClass(className || '').text(message);
+            $container.append($line);
+            if (index < messages.length - 1) {
+                $container.append('<br>');
+            }
+        });
+    }
     
     function showResult(btn, message, success = true) {
         const resultSpan = $(btn).closest('.ep-license-card-box').find('.ep-extension-action-result');
-        resultSpan.html(message).css('color', success ? 'green' : 'red');
+        renderPlainMessage(resultSpan, message, success);
     }
     
     function showLicenseStatus(btn, message, success = true) {
         const resultSpan = $(btn).closest('.ep-license-status').find('.ep-extension-action-result');
-        resultSpan.html(message).css('color', success ? 'green' : 'red');
+        renderPlainMessage(resultSpan, message, success);
     }
     
     function showbundleLicenseStatus(btn, message, success = true) {
         const resultSpan = $(btn).closest('.ep-ext-box-description').find('.ep-extension-action-result');
-        resultSpan.html(message).css('color', success ? 'green' : 'red');
+        renderPlainMessage(resultSpan, message, success);
     }
     
     $('#ep_setting_form').on('keydown', 'input', function(event) {
@@ -400,9 +422,8 @@ function handleLicenseResponse(response) {
                 location.reload();
             }, 1000);
         } else {
-            $('.ep-license-error-message')
-                .html(errorMessages.join('<br>'))
-                .fadeIn();
+            renderPlainMessageLines($('.ep-license-error-message'), errorMessages, 'ep-text-danger');
+            $('.ep-license-error-message').fadeIn();
         }
 
     } else {
@@ -501,11 +522,9 @@ function showError(message) {
                             // Auto-download and install using response.url, or update status only
                             //$resultSpan.html('<span class="ep-text-success">Installed & Activated</span>');
                         } else if (response.message) {
-                            $resultSpan.html('<span class="ep-text-danger">' + response.message + '</span>');
-                             
+                            renderPlainMessageLines($resultSpan, [response.message], 'ep-text-danger');
                         } else {
-                            $resultSpan.html('<span class="ep-text-danger">Unexpected response</span>');
-                            
+                            renderPlainMessageLines($resultSpan, ['Unexpected response'], 'ep-text-danger');
                         }
                         $button.children('.spinner').remove();
                              $button.removeAttr('disabled');
@@ -515,7 +534,7 @@ function showError(message) {
                 {
                     $button.children('.spinner').remove();
                     $button.removeAttr('disabled');
-                    $resultSpan.html('<span class="ep-text-danger">' + data.error + '</span>');
+                    renderPlainMessageLines($resultSpan, [data.error || 'Download unavailable.'], 'ep-text-danger');
                     //console.log(data);
                 }
             });
