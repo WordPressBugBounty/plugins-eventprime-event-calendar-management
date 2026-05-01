@@ -520,7 +520,6 @@ class EventPrime_License {
     }
     
     public function ep_get_license_extension_html() {
-    $ep_functions = new Eventprime_Basic_Functions;
     
     $ep_license_data = get_option('metagauss_license_data', []);
     $ext_list = $this->ep_get_all_extensions();
@@ -556,6 +555,7 @@ class EventPrime_License {
 
     // Helper function to print extension cards
     $print_extension_card = function($ext_details,$type) {
+        $ep_functions = new Eventprime_Basic_Functions;
         $global_settings = new Eventprime_Global_Settings;
         $options = $global_settings->ep_get_settings();
 
