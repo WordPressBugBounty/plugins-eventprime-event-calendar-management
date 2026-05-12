@@ -5,7 +5,7 @@ Tags: event calendar, organizer , event manager, tickets, event booking, event b
 Requires at least: 4.8
 Tested up to: 6.9
 Requires PHP: 7.2
-Stable tag: 4.3.2.3
+Stable tag: 4.3.3.0
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -666,6 +666,10 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.3.3.0: May 12, 2026 =
+* Improved: Email notification handling, including correct CC support, subject usage, and configured admin recipient handling.
+* Fixed: Duplicate booking cancellation email trigger and improved reliability of admin booking notification data.
 
 = 4.3.2.3: May 01, 2026 =
 * Fixed: Minor bugs on License page.
@@ -2342,6 +2346,10 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.3.3.0: May 12, 2026 =
+* Improved: Email notification handling, including correct CC support, subject usage, and configured admin recipient handling.
+* Fixed: Duplicate booking cancellation email trigger and improved reliability of admin booking notification data.
 
 = 4.3.2.3: May 01, 2026 =
 * Fixed: Minor bugs on License page.

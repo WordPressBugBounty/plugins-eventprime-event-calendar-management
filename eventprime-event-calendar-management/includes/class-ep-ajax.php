@@ -897,9 +897,6 @@ class EventM_Ajax_Service {
 
                             $booking_controller->update_status( $booking_id, 'cancelled' );
 
-                            // send cancellation mail 
-                            $notification->booking_cancel( $booking_id );
-
                             do_action( 'ep_after_booking_cancelled', $booking );
 
                             wp_send_json_success( array( 'message' => esc_html__( 'Booking Cancelled Successfully', 'eventprime-event-calendar-management' ) ) );

@@ -43,6 +43,16 @@ $sub_options = $global_settings->sub_options;
                     wp_editor( $content, 'booking_confirmed_email' );?>
                 </td>
             </tr>
+            <tr valign="top">
+                <th scope="row" class="titledesc">
+                    <label for="booking_confirmed_email_cc">
+                        <?php esc_html_e( 'Email CC', 'eventprime-event-calendar-management' );?>
+                    </label>
+                </th>
+                <td class="forminp forminp-text">
+                    <input name="booking_confirmed_email_cc" class="regular-text" id="booking_confirmed_email_cc" type="text" value="<?php echo isset($global_options->booking_confirmed_email_cc) ? esc_attr($global_options->booking_confirmed_email_cc) : '';?>">
+                </td>
+            </tr>
             
         </tbody>
     </table>

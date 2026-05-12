@@ -6,6 +6,50 @@
 defined( 'ABSPATH' ) || exit;
 
 class EventM_Notification_Service {
+    private function get_admin_notification_email( $global_setting = null ) {
+        if ( empty( $global_setting ) ) {
+            $settings = new Eventprime_Global_Settings();
+            $global_setting = $settings->ep_get_settings();
+        }
+
+        if ( ! empty( $global_setting->ep_admin_email_to ) && is_email( $global_setting->ep_admin_email_to ) ) {
+            return $global_setting->ep_admin_email_to;
+        }
+
+        return get_option( 'admin_email' );
+    }
+
+    private function get_email_headers( $global_setting = null, $cc_list = '' ) {
+        if ( empty( $global_setting ) ) {
+            $settings = new Eventprime_Global_Settings();
+            $global_setting = $settings->ep_get_settings();
+        }
+
+        $from_email = get_option( 'admin_email' );
+        if ( ! empty( $global_setting->ep_admin_email_from ) && is_email( $global_setting->ep_admin_email_from ) ) {
+            $from_email = $global_setting->ep_admin_email_from;
+        }
+
+        $headers = array(
+            'From: ' . get_bloginfo( 'name' ) . ' <' . $from_email . '>',
+        );
+
+        if ( ! empty( $cc_list ) ) {
+            $mails = array();
+            foreach ( array_map( 'trim', explode( ',', $cc_list ) ) as $mail ) {
+                $mail = sanitize_email( $mail );
+                if ( is_email( $mail ) ) {
+                    $mails[] = $mail;
+                }
+            }
+
+            if ( ! empty( $mails ) ) {
+                $headers[] = 'Cc: ' . implode( ',', $mails );
+            }
+        }
+
+        return $headers;
+    }
     
     /**
      * Send booking confirmation email
@@ -254,7 +298,6 @@ class EventM_Notification_Service {
         $subject = ( ! empty( $global_setting->booking_confirm_email_subject ) ? $global_setting->booking_confirm_email_subject : esc_html__( 'Your booking is confirmed!', 'eventprime-event-calendar-management' ) );
         $this->configure_mail();
         
-        $headers = array();
         $attachments = array();
         $ticket_sub_total = 0;
         $offers = 0;
@@ -278,15 +321,11 @@ class EventM_Notification_Service {
             $booking_user_phone = (isset($order_info['user_phone']) && !empty($order_info['user_phone']) ? $order_info['user_phone'] : 'N/A');
         }
 
-        // if admin email from set in global settings
-        if( isset( $global_setting->ep_admin_email_from ) && ! empty( $global_setting->ep_admin_email_from ) ){
-            $admin_email = $global_setting->ep_admin_email_from;
-            $from = get_bloginfo('name') . '<' . $admin_email . '>';
-        }else{
-            $from = get_bloginfo('name') . '<' . get_bloginfo('admin_email') . '>';
-        }
-        $headers[] = 'From: ' . $from;
         if( ! empty( $global_setting->send_booking_confirm_email ) && empty( $global_setting->disable_frontend_email ) ) {
+            $headers = $this->get_email_headers(
+                $global_setting,
+                isset( $global_setting->booking_confirmed_email_cc ) ? $global_setting->booking_confirmed_email_cc : ''
+            );
             $gcal_link = $this->gcal_link($booking->event_data, $booking->event_data->venue_details);
             $iCal_link = $this->iCal_link($booking->event_data, $booking->event_data->venue_details);
 
@@ -449,12 +488,20 @@ class EventM_Notification_Service {
         
         /* send Mail to Admin */   
         if( empty( $global_setting->disable_admin_email ) && $global_setting->send_admin_booking_confirm_email == 1 ) {
-            $mail_body = $global_setting->admin_booking_confirmed_email;
-            if( isset( $global_setting->ep_admin_email_to ) && ! empty( $global_setting->ep_admin_email_to ) ){
-                $to = $global_setting->ep_admin_email_to; 
-            }else{
-                $to = get_option('admin_email'); 
+            if ( empty( $event_date_time ) && isset( $booking->event_data->em_start_date ) ) {
+                $event_date_time = esc_html( $ep_functions->ep_timestamp_to_date( $booking->event_data->em_start_date, $ep_functions->ep_get_datepicker_format(), 1 ) );
+                if( ! empty( $booking->event_data->em_start_time ) ) {
+                    $event_date_time .= ', ' . esc_html( $ep_functions->ep_convert_time_with_format( $booking->event_data->em_start_time ) );
+                }
             }
+            if ( empty( $sub_total ) && ! empty( $tickets ) ) {
+                foreach( $tickets as $ticket ) {
+                    $sub_total += $ticket->subtotal;
+                }
+                $sub_total += isset( $order_info['event_fixed_price'] ) ? $order_info['event_fixed_price'] : 0;
+            }
+            $mail_body = $global_setting->admin_booking_confirmed_email;
+            $to = $this->get_admin_notification_email( $global_setting );
             $subject = ( ! empty( $global_setting->admin_booking_confirmed_email_subject ) ? $global_setting->admin_booking_confirmed_email_subject : esc_html__( 'New event booking', 'eventprime-event-calendar-management' ) );
             $mail_body = str_replace( "(user_email)", $booking_user_email, $mail_body );
             $mail_body = str_replace( "(event_name)", $booking->em_name, $mail_body );
@@ -515,16 +562,10 @@ class EventM_Notification_Service {
             
             }
 
-            //Add CC to admin emails
-            $mail_cc = $ep_functions->ep_get_global_settings('admin_booking_confirmed_email_cc');
-            if( ! empty( $mail_cc ) ) {
-                $mails = explode( ",", $mail_cc );
-                if( ! empty( $mails ) ) {
-                    foreach( $mails as $mail ) {
-                        $headers[] = 'CC: '.$mail;
-                    }
-                }
-            }
+            $headers = $this->get_email_headers(
+                $global_setting,
+                $ep_functions->ep_get_global_settings('admin_booking_confirmed_email_cc')
+            );
             $mail_body = $this->ep_filter_email_content($mail_body, $booking);
             $mail_body = apply_filters( 'event_magic_booking_confirmed_admin_content', $mail_body, $booking );
             wp_mail( $to, $subject, $mail_body, $headers);
@@ -555,9 +596,11 @@ class EventM_Notification_Service {
         } else {
             $booking_user_email = $to = isset( $order_info['user_email'] ) ? $order_info['user_email'] : '';
         }
-        $from = get_bloginfo('name') . '<' . get_bloginfo('admin_email') . '>';
-        $headers[] = 'From: ' . $from;
         if( ! empty( $global_setting->send_booking_refund_email ) && empty( $global_setting->disable_frontend_email ) ) {
+            $headers = $this->get_email_headers(
+                $global_setting,
+                isset( $global_setting->booking_refund_email_cc ) ? $global_setting->booking_refund_email_cc : ''
+            );
             $mail_body = isset( $booking->order_info['seat_sequences'] ) ? str_replace( "(Seat No.)", implode( ',', $booking->order_info['seat_sequences'] ), $mail_body ) : str_replace( "(Seat No.)", "Standing Event", $mail_body );
             $mail_body = str_replace( "ID",$booking_id, $mail_body) ;
             $mail_body = str_replace( "Event Name", $booking->em_name, $mail_body ) ;
@@ -625,24 +668,18 @@ class EventM_Notification_Service {
             $sent = wp_mail( $to, $subject, $mail_body, $headers );
         }
 
-        //Admin notification
-        //Add CC to admin emails
         if( empty( $global_setting->disable_admin_email ) ) {
-            $mail_cc = $ep_functions->ep_get_global_settings('booking_refund_email_cc');
-            if( ! empty( $mail_cc ) ) {
-                $mails = explode( ",", $mail_cc );
-                if( ! empty( $mails ) ) {
-                    foreach( $mails as $mail ) {
-                        $headers[] = 'CC: '.$mail;
-                    }
+            if ( empty( $ticket_sub_total ) && ! empty( $tickets ) ) {
+                foreach( $tickets as $ticket ) {
+                    $ticket_sub_total += $ticket->subtotal;
                 }
             }
-            $admin_email = get_option('admin_email');  
-            $to = $admin_email; 
+            $headers = $this->get_email_headers( $global_setting );
+            $to = $this->get_admin_notification_email( $global_setting );
             $subject = sprintf(esc_html__( 'Booking Refund on Booking ID# %d', 'eventprime-event-calendar-management'), $booking_id );        
             $body = sprintf(esc_html__( 'A refund of %s has been issued to booking #%d for %s', 'eventprime-event-calendar-management'), $ep_functions->ep_price_with_position( $ticket_sub_total ), $booking_id, $booking->em_name );
             $body = $this->ep_filter_email_content($body, $booking);
-            $body = apply_filters( 'event_magic_booking_refund_admin_content', $lastFootUpdate, $booking );
+            $body = apply_filters( 'event_magic_booking_refund_admin_content', $body, $booking );
             wp_mail( $to, $subject, $body, $headers );
         }
     }
@@ -681,9 +718,11 @@ class EventM_Notification_Service {
             $booking_user_name = isset($order_info['user_name']) ? $order_info['user_name'] : '';
             $booking_user_phone = (isset($order_info['user_phone']) && !empty($order_info['user_phone']) ? $order_info['user_phone'] : 'N/A');
         }
-        $from = get_bloginfo('name') . '<' . get_bloginfo('admin_email') . '>';
-        $headers[] = 'From: ' . $from;
         if( ! empty( $global_setting->send_booking_pending_email ) && empty( $global_setting->disable_frontend_email ) ) {
+            $headers = $this->get_email_headers(
+                $global_setting,
+                isset( $global_setting->booking_pending_email_cc ) ? $global_setting->booking_pending_email_cc : ''
+            );
             $mail_body = isset( $booking->order_info['seat_sequences'] ) ? str_replace( "(Seat No.)", implode( ',', $booking->order_info['seat_sequences']), $mail_body ) : str_replace( "(Seat No.)", "Standing Event", $mail_body );
             $mail_body = str_replace( "ID", $booking_id, $mail_body );
             $mail_body = str_replace( "Event Name", $booking->em_name, $mail_body );
@@ -754,13 +793,21 @@ class EventM_Notification_Service {
         // Admin email
         $sub_total = $ticket_sub_total + $order_info['event_fixed_price'];
         if( empty( $global_setting->disable_admin_email ) && $global_setting->send_booking_pending_admin_email == 1 ) {
+            if ( empty( $event_date_time ) && isset( $booking->event_data->em_start_date ) ) {
+                $event_date_time = esc_html( $ep_functions->ep_timestamp_to_date( $booking->event_data->em_start_date, $ep_functions->ep_get_datepicker_format(), 1 ) );
+                if( ! empty( $booking->event_data->em_start_time ) ) {
+                    $event_date_time .= ', ' . esc_html( $ep_functions->ep_convert_time_with_format( $booking->event_data->em_start_time ) );
+                }
+            }
+            if ( empty( $sub_total ) && ! empty( $tickets ) ) {
+                foreach( $tickets as $ticket ) {
+                    $ticket_sub_total += $ticket->subtotal;
+                }
+                $sub_total = $ticket_sub_total + $order_info['event_fixed_price'];
+            }
             $mail_body = isset($global_setting->booking_pending_admin_email) ? $global_setting->booking_pending_admin_email : sprintf( esc_html__( 'User %s has Booking Pending with Booking ID #%d.', 'eventprime-event-calendar-management' ), $booking_user_email, $booking_id );
             
-            if( isset( $global_setting->ep_admin_email_to ) && ! empty( $global_setting->ep_admin_email_to ) ){
-                $to = $global_setting->ep_admin_email_to; 
-            }else{
-                $to = get_option('admin_email'); 
-            }
+            $to = $this->get_admin_notification_email( $global_setting );
             $subject = ( ! empty( $global_setting->booking_pending_admin_email_subject ) ? $global_setting->booking_pending_admin_email_subject : esc_html__( 'Booking Pending', 'eventprime-event-calendar-management' ) );
             $mail_body = str_replace( "(user_email)", $booking_user_email, $mail_body );
             $mail_body = str_replace( "(event_name)", $booking->em_name, $mail_body );
@@ -782,15 +829,10 @@ class EventM_Notification_Service {
             $mail_body = str_replace( "(user_last_name)", $user_last_name, $mail_body );
             $mail_body = str_replace( "(user_phone)", $booking_user_phone, $mail_body );
             
-            $mail_cc = isset($global_setting->booking_pending_admin_email_cc) ? $global_setting->booking_pending_admin_email_cc : "";
-            if( ! empty( $mail_cc ) ) {
-                $mails = explode( ",", $mail_cc );
-                if( ! empty( $mails ) ) {
-                    foreach( $mails as $mail ){
-                        $headers[] = 'CC: '.$mail;
-                    }
-                }
-            }
+            $headers = $this->get_email_headers(
+                $global_setting,
+                isset($global_setting->booking_pending_admin_email_cc) ? $global_setting->booking_pending_admin_email_cc : ""
+            );
 
             $mail_body = $this->ep_filter_email_content($mail_body, $booking);
             $mail_body = apply_filters( 'event_magic_booking_pending_admin_content', $mail_body, $booking );
@@ -824,9 +866,11 @@ class EventM_Notification_Service {
         } else {
             $booking_user_email = $to = isset($order_info['user_email']) ? $order_info['user_email'] :'';
         }
-        $from = get_bloginfo('name') . '<' . get_bloginfo('admin_email') . '>';
-        $headers[] = 'From: ' . $from;
-        if( ! empty( $global_setting->send_booking_pending_email ) && empty( $global_setting->disable_frontend_email ) ) {
+        if( ! empty( $global_setting->send_booking_cancellation_email ) && empty( $global_setting->disable_frontend_email ) ) {
+            $headers = $this->get_email_headers(
+                $global_setting,
+                isset( $global_setting->booking_cancelation_email_cc ) ? $global_setting->booking_cancelation_email_cc : ''
+            );
             $mail_body= isset($booking->order_info['seat_sequences']) ? str_replace("(Seat No.)",implode(',',$booking->order_info['seat_sequences']), $mail_body) : str_replace("(Seat No.)", "Standing Event", $mail_body);
             $mail_body = str_replace("ID",$booking_id, $mail_body);
             $mail_body = str_replace("Event Name", $booking->em_name, $mail_body);
@@ -891,29 +935,18 @@ class EventM_Notification_Service {
             $sent = wp_mail( $to, $subject, $mail_body, $headers);
         }
 
-        // Admin email
-        //Add CC to admin emails
         if( empty( $global_setting->disable_admin_email ) ) {
-            $mail_cc = $ep_functions->ep_get_global_settings('booking_cancelation_email_cc');
-            if( ! empty( $mail_cc ) ) {
-                $mails = explode( ",", $mail_cc );
-                if( ! empty( $mails ) ) {
-                    foreach( $mails as $mail ) {
-                        $headers[] = 'CC: '.$mail;
-                    }
-                }
-            }
+            $headers = $this->get_email_headers( $global_setting );
             $mail_body = file_get_contents(plugin_dir_path( EP_PLUGIN_FILE )  . 'admin/partials/settings/emailers/mail/admin_cancellation.php' );  
             $mail_body = str_replace( "Event Name", $booking->em_name, $mail_body );
             
-            $admin_email = get_option('admin_email'); 
             $mail_body = str_replace( "#ID", $booking_id, $mail_body );
             $mail_body = str_replace( "(User Email)", $booking_user_email, $mail_body );
-            $to = $admin_email;
+            $to = $this->get_admin_notification_email( $global_setting );
             $subject = esc_html__( 'Booking Cancellation', 'eventprime-event-calendar-management' );
             $mail_body = $this->ep_filter_email_content($mail_body, $booking);
             $mail_body = apply_filters( 'event_magic_booking_cancel_admin_content', $mail_body, $booking );
-            wp_mail( $to, $subject, $mail_body ); 
+            wp_mail( $to, $subject, $mail_body, $headers ); 
         }
     }
     
@@ -936,13 +969,16 @@ class EventM_Notification_Service {
         }
         
         if( ! empty( $user_data ) ) {
-            wp_mail( $user_data->email, $registration_email_subject, $mail_body );
+            if ( empty( $global_setting->disable_frontend_email ) ) {
+                wp_mail( $user_data->email, $registration_email_subject, $mail_body, $this->get_email_headers( $global_setting ) );
+            }
 
-            $admin_email = get_option('admin_email'); 
-            $to = $admin_email;
-            $subject = esc_html__( 'New User Registered', 'eventprime-event-calendar-management' ); 
-            $body = sprintf(esc_html__( 'New user %s has Registered', 'eventprime-event-calendar-management' ), $user_data->email );
-            wp_mail( $to, $subject, $body );
+            if ( empty( $global_setting->disable_admin_email ) ) {
+                $to = $this->get_admin_notification_email( $global_setting );
+                $subject = esc_html__( 'New User Registered', 'eventprime-event-calendar-management' ); 
+                $body = sprintf(esc_html__( 'New user %s has Registered', 'eventprime-event-calendar-management' ), $user_data->email );
+                wp_mail( $to, $subject, $body, $this->get_email_headers( $global_setting ) );
+            }
             return true;
         }
         return false;
@@ -968,10 +1004,12 @@ class EventM_Notification_Service {
         $mail_body = str_replace("@username",$user->user_email,$mail_body);
         $mail_body = str_replace("@password",$new_user_password,$mail_body);   
         
-        $to = $user->user_email;
-        $subject = esc_html__('New Password','eventprime-event-calendar-management');
-        $body = $mail_body;
-        wp_mail( $to, $subject, $body );
+        if ( empty( $global_setting->disable_frontend_email ) ) {
+            $to = $user->user_email;
+            $subject = ! empty( $global_setting->reset_password_mail_subject ) ? $global_setting->reset_password_mail_subject : esc_html__('New Password','eventprime-event-calendar-management');
+            $body = $mail_body;
+            wp_mail( $to, $subject, $body, $this->get_email_headers( $global_setting ) );
+        }
         
         $admin_email = get_option('admin_email'); 
         $to = $admin_email;
@@ -1004,20 +1042,12 @@ class EventM_Notification_Service {
         $mail_body = str_replace( "@EventEndDate", $ep_functions->ep_timestamp_to_date( get_post_meta( $event_id, 'em_end_date', true ) ), $mail_body );
        
         /* Send Mail to Admin */    
-        $from = get_bloginfo('name') . '<' . get_bloginfo('admin_email') . '>';
-        $headers[] = 'From: ' . $from;
-        //Add CC to admin emails
-        $mail_cc = $ep_functions->ep_get_global_settings('event_submitted_email_cc');
-        if( ! empty( $mail_cc ) ) {
-            $mails = explode( ",", $mail_cc );
-            if( ! empty( $mails ) ) {
-                foreach( $mails as $mail ) {
-                    $headers[] = 'CC: '.$mail;
-                }
-            }
-        }
-        $to = get_option('admin_email');
-        $subject = esc_html__( 'Event submitted successfully!', 'eventprime-event-calendar-management' );
+        $headers = $this->get_email_headers(
+            $global_setting,
+            $ep_functions->ep_get_global_settings('event_submitted_email_cc')
+        );
+        $to = $this->get_admin_notification_email( $global_setting );
+        $subject = ! empty( $global_setting->event_submitted_email_subject ) ? $global_setting->event_submitted_email_subject : esc_html__( 'Event submitted successfully!', 'eventprime-event-calendar-management' );
         
         wp_mail( $to, $subject, $mail_body, $headers );
     }
