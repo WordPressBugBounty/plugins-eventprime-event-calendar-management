@@ -23,7 +23,10 @@ $ep_requests = new EP_Requests;
     } else{
         // check if user role restricted
         $hasUserRestriction = 0;
-        $frontend_submission_roles = (array) $ep_functions->ep_get_global_settings( 'frontend_submission_roles' );
+        $frontend_submission_roles = isset( $args->frontend_submission_roles ) ? $args->frontend_submission_roles : array();
+        if ( ! is_array( $frontend_submission_roles ) ) {
+            $frontend_submission_roles = array_filter( (array) $frontend_submission_roles );
+        }
         if( ! empty( $frontend_submission_roles ) ) {
             $user = wp_get_current_user();
             foreach ( $user->roles as $key => $value ) {

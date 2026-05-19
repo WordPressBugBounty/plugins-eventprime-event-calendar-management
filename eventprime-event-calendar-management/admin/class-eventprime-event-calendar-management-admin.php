@@ -3889,6 +3889,8 @@ class Eventprime_Event_Calendar_Management_Admin {
         $admin_notices = new EventM_Admin_Notices();
         $admin_notices->ep_print_notices();
         $this->ep_paypal_secret_notice();
+        $this->ep_conflict_notices();
+        $this->ep_the_events_calendar_migration_notice();
         $this->ep_maybe_send_paypal_secret_missing_email();
     }
 
@@ -3948,10 +3950,66 @@ class Eventprime_Event_Calendar_Management_Admin {
         }
     }
 
+    private function ep_the_events_calendar_migration_notice() {
+        if ( ! $this->ep_should_show_tec_migration_notice() || ! $this->ep_should_render_plugin_notices() ) {
+            return;
+        }
+
+        $migration_url = 'https://theeventprime.com/all-extensions/events-import-export/';
+        ?>
+        <div class="notice notice-info">
+            <p>
+                <strong><?php esc_html_e( 'Migration tool available for The Events Calendar', 'eventprime-event-calendar-management' ); ?></strong>
+                <?php esc_html_e( 'The Events Calendar plugin is active and has existing events. EventPrime offers a dedicated Events Import Export extension to help migrate those events.', 'eventprime-event-calendar-management' ); ?>
+            </p>
+            <p>
+                <a href="<?php echo esc_url( $migration_url ); ?>" target="_blank" rel="noopener noreferrer" class="button button-primary">
+                    <?php esc_html_e( 'Visit Site', 'eventprime-event-calendar-management' ); ?>
+                </a>
+            </p>
+        </div>
+        <?php
+    }
+
+    private function ep_should_show_tec_migration_notice() {
+        if ( ! defined( 'TRIBE_EVENTS_FILE' ) || ! post_type_exists( 'tribe_events' ) ) {
+            return false;
+        }
+
+        if ( class_exists( 'Eventprime_Event_Import_Export' ) ) {
+            return false;
+        }
+
+        $event_counts = wp_count_posts( 'tribe_events' );
+        if ( ! $event_counts || ! is_object( $event_counts ) ) {
+            return false;
+        }
+
+        foreach ( $event_counts as $status => $count ) {
+            if ( 'trash' === $status || 'auto-draft' === $status ) {
+                continue;
+            }
+
+            if ( absint( $count ) > 0 ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function ep_should_render_plugin_notices() {
+        return is_admin() && ! wp_doing_ajax();
+    }
+
     public function ep_conflict_notices() {
+        if ( ! $this->ep_should_render_plugin_notices() ) {
+            return;
+        }
+
 		if ( defined( 'EM_VERSION' ) ) {
             ?>
-                <div class="notice notice-info" id="ep_dismissible_plugin">
+                <div class="notice notice-error">
             <p><?php esc_html_e( 'Using EventPrime with Events Manager may cause conflicts with shortcodes or slugs. If you experience issues, consider disabling Events Manager to resolve the conflict.', 'eventprime-event-calendar-management' ); ?></p>
             </div>
             <?php
@@ -3959,7 +4017,7 @@ class Eventprime_Event_Calendar_Management_Admin {
 
 		if ( defined( 'TRIBE_EVENTS_FILE' ) ) {
 			?>
-                <div class="notice notice-info" id="ep_dismissible_plugin">
+                <div class="notice notice-error">
             <p><?php esc_html_e( 'Using EventPrime with The Events Calendar may cause conflicts with shortcodes or slugs. If you experience issues, consider disabling The Events Calendar to resolve the conflict.', 'eventprime-event-calendar-management' ); ?></p>
             </div>
             <?php

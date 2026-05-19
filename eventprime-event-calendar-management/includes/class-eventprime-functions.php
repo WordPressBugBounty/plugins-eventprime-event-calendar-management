@@ -3835,11 +3835,15 @@ public function ep_get_event_date_time_diff( $event ) {
         foreach ($meta as $key => $val) {
             $event->{$key} = $this->ep_get_safe_event_meta_value( $key, $val[0] );
         }
+        if ( ! isset( $event->em_fixed_event_price ) ) {
+            $event->em_fixed_event_price = 0;
+        }
         if (empty($post)) {
             $post = get_post($post_id);
         }
         if ($post) {
             $event->id = $post->ID;
+            $event->em_id = $post->ID;
             $event->name = $post->post_title;
             $event->slug = $post->post_name;
             $event->description = $this->ep_get_rendered_post_content( $post );
@@ -3896,11 +3900,15 @@ public function ep_get_event_date_time_diff( $event ) {
         foreach ($meta as $key => $val) {
             $event->{$key} = $this->ep_get_safe_event_meta_value( $key, $val[0] );
         }
+        if ( ! isset( $event->em_fixed_event_price ) ) {
+            $event->em_fixed_event_price = 0;
+        }
         if (empty($post)) {
             $post = get_post($post_id);
         }
         if ($post) {
             $event->id = $post->ID;
+            $event->em_id = $post->ID;
             $event->name = $post->post_title;
             $event->slug = $post->post_name;
             $event->description = $this->ep_get_rendered_post_content( $post );
@@ -3954,11 +3962,15 @@ public function ep_get_event_date_time_diff( $event ) {
         foreach ($meta as $key => $val) {
             $event->{$key} = $this->ep_get_safe_event_meta_value( $key, $val[0] );
         }
+        if ( ! isset( $event->em_fixed_event_price ) ) {
+            $event->em_fixed_event_price = 0;
+        }
         if (empty($post)) {
             $post = get_post($post_id);
         }
         if ($post) {
             $event->id = $post->ID;
+            $event->em_id = $post->ID;
             $event->name = $post->post_title;
             $event->slug = $post->post_name;
             $event->description = $this->ep_get_rendered_post_content( $post );

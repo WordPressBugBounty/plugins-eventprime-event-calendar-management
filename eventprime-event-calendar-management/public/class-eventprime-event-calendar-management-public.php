@@ -818,7 +818,7 @@ class Eventprime_Event_Calendar_Management_Public {
             $fes_data     = $this->get_event_submission_options( $args );
             $fes_data     = apply_filters( 'ep_filter_frontend_event_submission_options', $fes_data, $atts );
             $template = 'eventprime-frontend-submission-form';
-            return $this->eventprime_get_template_html($template, $args);
+            return $this->eventprime_get_template_html($template, $fes_data);
         }
         
         public function get_event_submission_options( $args ) 

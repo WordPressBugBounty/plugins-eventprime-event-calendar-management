@@ -3,9 +3,9 @@ Contributors: metagauss
 Donate link: https://theeventprime.com/
 Tags: event calendar, organizer , event manager, tickets, event booking, event bookings, booking manager, bookings manager, event organizer, events organizer, event planner, events planner, paid events, event list, events list, event registration, event registrations
 Requires at least: 4.8
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 7.2
-Stable tag: 4.3.3.0
+Stable tag: 4.3.4.0
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -666,6 +666,13 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.3.4.0: May 19, 2026 =
+* Tested with WordPress 7.0.
+* Fixed frontend event submission rendering and access issues.
+* Fixed single-event booking and checkout flow issues.
+* Fixed checkout warnings caused by missing event property defaults.
+* Improved overall compatibility and stability with WordPress 7.0.
 
 = 4.3.3.0: May 12, 2026 =
 * Improved: Email notification handling, including correct CC support, subject usage, and configured admin recipient handling.
@@ -2346,6 +2353,13 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.3.4.0: May 19, 2026 =
+* Tested with WordPress 7.0.
+* Fixed frontend event submission rendering and access issues.
+* Fixed single-event booking and checkout flow issues.
+* Fixed checkout warnings caused by missing event property defaults.
+* Improved overall compatibility and stability with WordPress 7.0.
 
 = 4.3.3.0: May 12, 2026 =
 * Improved: Email notification handling, including correct CC support, subject usage, and configured admin recipient handling.
