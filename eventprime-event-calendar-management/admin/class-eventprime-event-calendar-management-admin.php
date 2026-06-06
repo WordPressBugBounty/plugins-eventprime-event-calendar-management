@@ -1468,8 +1468,11 @@ class Eventprime_Event_Calendar_Management_Admin {
 
     public function ep_add_event_performer_box() {
         global $post;
-        $dbhandler     = new EP_DBhandler();
-        $performer_ids = array();
+        $dbhandler             = new EP_DBhandler();
+        $ep_functions          = new Eventprime_Basic_Functions();
+        $performer_ids         = array();
+        $performer_text        = $ep_functions->ep_global_settings_button_title( 'Performer' );
+        $plural_performer_text = $ep_functions->ep_global_settings_button_title( 'Performers' );
         if ( !empty( $post ) && isset( $post->ID ) && !empty( $post->ID ) ) {
             $performer_ids = get_post_meta( $post->ID, 'em_performer', true );
         }
@@ -1495,6 +1498,31 @@ class Eventprime_Event_Calendar_Management_Admin {
 				}
 				?>
                 </ul>
+            </div>
+            <?php
+        } else {
+            ?>
+            <div class="ep-meta-box-empty-state">
+                <p>
+                    <?php
+                    printf(
+                        esc_html__( 'No %s found.', 'eventprime-event-calendar-management' ),
+                        esc_html( strtolower( $plural_performer_text ) )
+                    );
+                    ?>
+                </p>
+                <?php if ( current_user_can( 'edit_em_performers' ) || current_user_can( 'publish_em_performers' ) ) : ?>
+                    <p>
+                        <a href="<?php echo esc_url( admin_url( 'post-new.php?post_type=em_performer' ) ); ?>" class="button button-secondary" target="_blank" rel="noopener">
+                            <?php
+                            printf(
+                                esc_html__( 'Add %s', 'eventprime-event-calendar-management' ),
+                                esc_html( $performer_text )
+                            );
+                            ?>
+                        </a>
+                    </p>
+                <?php endif; ?>
             </div>
             <?php
         }

@@ -2417,6 +2417,70 @@ else
         $login_page = $ep_functions->ep_get_global_settings( 'login_page' );
         return esc_url( get_permalink( $login_page ) );
     }
+
+    public function ep_filter_event_post_type_link( $permalink, $post ) {
+        if ( empty( $post ) || empty( $post->post_type ) || 'em_event' !== $post->post_type ) {
+            return $permalink;
+        }
+
+        $ep_functions = new Eventprime_Basic_Functions();
+        if ( ! empty( $ep_functions->ep_get_global_settings( 'enable_seo_urls' ) ) ) {
+            return $permalink;
+        }
+
+        return $ep_functions->ep_get_custom_page_url( 'events_page', $post->ID, 'event' );
+    }
+
+    public function ep_redirect_event_to_canonical_url() {
+        if ( is_admin() || wp_doing_ajax() || is_feed() || is_embed() || is_preview() ) {
+            return;
+        }
+
+        $ep_functions = new Eventprime_Basic_Functions();
+        $event_id     = 0;
+        $target_url   = '';
+
+        global $wp_rewrite;
+        $pretty_permalinks = ! empty( $wp_rewrite->permalink_structure );
+        $seo_enabled       = ! empty( $ep_functions->ep_get_global_settings( 'enable_seo_urls' ) );
+
+        if ( is_singular( 'em_event' ) ) {
+            $event_id = get_queried_object_id();
+            if ( empty( $event_id ) || ( $seo_enabled && $pretty_permalinks ) ) {
+                return;
+            }
+
+            $target_url = $ep_functions->ep_get_custom_page_url( 'events_page', $event_id, 'event' );
+        } else {
+            $requested_event = get_query_var( 'event' );
+            if ( empty( $requested_event ) ) {
+                $requested_event = filter_input( INPUT_GET, 'event' );
+            }
+
+            $event_id       = absint( $requested_event );
+            $events_page_id = absint( $ep_functions->ep_get_global_settings( 'events_page' ) );
+
+            if ( empty( $event_id ) || empty( $events_page_id ) || ! is_page( $events_page_id ) || ! $seo_enabled || ! $pretty_permalinks ) {
+                return;
+            }
+
+            $target_url = get_permalink( $event_id );
+        }
+
+        if ( empty( $target_url ) ) {
+            return;
+        }
+
+        $current_request = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+        $current_url     = ! empty( $current_request ) ? home_url( $current_request ) : '';
+
+        if ( ! empty( $current_url ) && untrailingslashit( $current_url ) === untrailingslashit( $target_url ) ) {
+            return;
+        }
+
+        wp_safe_redirect( $target_url, 301 );
+        exit;
+    }
     
     public function eventprime_checkout_total_html_block($total_price,$total_tickets,$event_id,$extra)
     {

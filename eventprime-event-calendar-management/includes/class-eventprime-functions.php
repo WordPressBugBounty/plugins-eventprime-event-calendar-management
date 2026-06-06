@@ -5190,7 +5190,7 @@ public function ep_get_event_date_time_diff( $event ) {
                 }
                 $data['is_free'] = !$this->ep_check_for_premium_extension('Events Import Export');
                 $data['image'] = 'event_import_export_icon.png';
-                $data['desc'] = "Import or export events in popular file formats like CSV, ICS, XML and JSON.";
+                $data['desc'] = "Import or export events in popular file formats like CSV, ICS, XML and JSON. Also includes migration support for The Events Calendar and Eventbrite, helping you move existing event data into EventPrime more efficiently.";
                 break;
 
             case 'EventPrime MailPoet':
@@ -7696,7 +7696,7 @@ public function ep_get_event_date_time_diff( $event ) {
             if( ! empty( $event->em_event_type ) ) {
                 $single_et             =  $event->event_type_details;
                 $ev['bg_color']        = ( ! empty( $single_et->em_color ) ) ? $this->ep_hex2rgba( $single_et->em_color ) : 'rgb( 34,113,177 )';
-                $ev['type_text_color'] = ( !empty( $single_et->em_type_text_color ) ) ? $single_et->em_type_text_color : '#000000';
+                $ev['type_text_color'] = ( !empty( $single_et->em_type_text_color ) ) ? $single_et->em_type_text_color : '#ffffff';
             }
             // venue
             if( ! empty( $event->em_venue ) ) {
@@ -7783,7 +7783,7 @@ public function ep_get_event_date_time_diff( $event ) {
         $ev['start'] = $ev['end'] = '';
         $ev['start_time'] = $ev['end_time'] = '';
         $ev['bg_color'] = 'rgb( 34,113,177 )';
-        $ev['type_text_color'] = '#000000';
+        $ev['type_text_color'] = '#ffffff';
         $ev['address'] = $ev['image'] = $ev['date_custom_note'] = $ev['event_day'] = '';
 
         // >>>> NEW: display-only fields for popup
@@ -7951,7 +7951,7 @@ public function ep_get_event_date_time_diff( $event ) {
             if( ! empty( $event->em_event_type ) ) {
                 $single_et             = $this->get_single_event_type( $event->em_event_type );
                 $ev['bg_color']        = ( ! empty( $single_et->em_color ) ) ? $this->ep_hex2rgba( $single_et->em_color ) : 'rgb( 34,113,177 )';
-                $ev['type_text_color'] = ( !empty( $single_et->em_type_text_color ) ) ? $single_et->em_type_text_color : '#000000';
+                $ev['type_text_color'] = ( !empty( $single_et->em_type_text_color ) ) ? $single_et->em_type_text_color : '#ffffff';
             }
             // venue
             if( ! empty( $event->em_venue ) ) {

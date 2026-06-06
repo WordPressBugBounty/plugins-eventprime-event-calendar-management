@@ -626,7 +626,16 @@ if( $ep_functions->ep_get_global_settings('checkout_reg_google_recaptcha') == 1 
                                 </div>
                                 <div class="ep-my-3">
                                     <?php if( empty( $ep_functions->em_is_payment_gateway_enabled() ) ) {
-                                        esc_html_e( 'Payments are not enabled. Please contact website administrator for support.', 'eventprime-event-calendar-management' );
+                                        if ( is_user_logged_in() && current_user_can( 'manage_options' ) ) {
+                                            $payment_settings_url = $ep_functions->ep_get_dashboard_setting_url( 'payments' );
+                                            printf(
+                                                esc_html__( 'Payments are not enabled. Please configure a payment gateway from %sPayment Settings%s.', 'eventprime-event-calendar-management' ),
+                                                '<a href="' . esc_url( $payment_settings_url ) . '">',
+                                                '</a>'
+                                            );
+                                        } else {
+                                            esc_html_e( 'Payments are not enabled. Please contact website administrator for support.', 'eventprime-event-calendar-management' );
+                                        }
                                     } else{
                                         // if total price is 0 then payment option will not load
                                         if( empty( $total_price ) ) {?>

@@ -81,7 +81,7 @@ html.ep-embed-responsive .emagic{
 }
 .ep-dark-mode-enabled .ep-list-group{
     --ep-list-group-bg: 38, 38, 38;
-   /* --ep-list-group-color: ;*/
+    /* --ep-list-group-color: ;*/
 }
 .ep-dark-mode-enabled .ep-list-group-item{
     --ep-bg-opacity: 1;
@@ -1675,13 +1675,13 @@ body .emagic h6 {
     .ep-sm-text-center {
         text-align: center!important;
     }
-    
+
 }
-    
-    .ep-event-organizers-colored_grid-container .ep-organizer-colored_grid-wrap{
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
-    }
+
+.ep-event-organizers-colored_grid-container .ep-organizer-colored_grid-wrap{
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+}
 
 @media (min-width: 992px){
 
@@ -1690,7 +1690,7 @@ body .emagic h6 {
         flex: 0 0 33.33333%;
         max-width: 33.33333%;
     }
-    
+
     .ep-box-col-md-4 {
         -ms-flex: 0 0 25%;
         flex: 0 0 25%;
@@ -2916,7 +2916,7 @@ body.ep-modal-open-body {
 
 
 .ep-popover-wrap .ep-popover-info .ep-popover-nub{
- position: absolute;
+    position: absolute;
     top: -9px;
     left: 22px;
     width: 0;
@@ -2956,7 +2956,7 @@ body.ep-modal-open-body {
 }
 
 #ep_gdpr_modal.ep_gdpr_modal_active{
-    
+
 }
 
 /* GDPR Modal Styling */
@@ -3067,7 +3067,7 @@ ul.ep-gdpr-modal-content {
 
 .ep-cookie-banner .ep-cookie-accept {
     background-color: rgba(var(--themeColor), 1);
-   
+
 }
 
 .ep-cookie-banner .ep-cookie-accept:hover {
@@ -3097,6 +3097,7 @@ ul.ep-gdpr-modal-content {
 
 /*----General Issues----*/
 
-.ep_checkout_attendee-term-content{}
 
-
+.theme-twentytwentyfive .emagic {
+    max-width: 100%;
+}

@@ -508,12 +508,14 @@ class Eventprime_Event_Calendar_Management {
 
                 $this->loader->add_action('init',$plugin_public, 'ep_apply_slug_rules',10,0);
                 $this->loader->add_filter('query_vars',$plugin_public,'ep_filter_query_vars',10,1);
+                $this->loader->add_filter( 'post_type_link', $plugin_public, 'ep_filter_event_post_type_link', 10, 2 );
 
                 // Redirect to Login page upon Logging out 
                 $this->loader->add_filter( 'logout_redirect', $plugin_public, 'ep_handle_logout_redirect', 10, 0 );
                 $this->loader->add_action('ep_event_booking_event_total',$plugin_public,'eventprime_checkout_total_html_block',10,4);
                 $this->loader->add_filter('get_the_post_navigation',$plugin_public,'ep_remove_post_navigation');
                 $this->loader->add_action('template_redirect', $plugin_public,'ep_remove_post_navigation_action');
+                $this->loader->add_action('template_redirect', $plugin_public,'ep_redirect_event_to_canonical_url', 11);
                 // iCal download
                 $this->loader->add_action( 'init', $plugin_public, 'get_ical_file', 9999 ); // iCal file download.
                 $this->loader->add_action('ep_event_booking_before_checkout_button', $plugin_public, 'ep_gdpr_consent_checkbox',1,1);
