@@ -2423,12 +2423,29 @@ else
             return $permalink;
         }
 
+        static $processing_posts = array();
+        if ( ! empty( $post->ID ) && isset( $processing_posts[ $post->ID ] ) ) {
+            return $permalink;
+        }
+
         $ep_functions = new Eventprime_Basic_Functions();
         if ( ! empty( $ep_functions->ep_get_global_settings( 'enable_seo_urls' ) ) ) {
             return $permalink;
         }
 
-        return $ep_functions->ep_get_custom_page_url( 'events_page', $post->ID, 'event' );
+        if ( ! empty( $post->ID ) ) {
+            $processing_posts[ $post->ID ] = true;
+        }
+
+        try {
+            $event_url = $ep_functions->ep_get_custom_page_url( 'events_page', $post->ID, 'event' );
+        } finally {
+            if ( ! empty( $post->ID ) ) {
+                unset( $processing_posts[ $post->ID ] );
+            }
+        }
+
+        return $event_url;
     }
 
     public function ep_redirect_event_to_canonical_url() {

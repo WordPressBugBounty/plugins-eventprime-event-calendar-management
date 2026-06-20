@@ -352,6 +352,16 @@ class EventM_Ajax_Service {
                     wp_send_json_error( array( 'error' => esc_html__( 'Something went wrong.', 'eventprime-event-calendar-management' ) ) );
                     die;
                 }
+                if ( isset( $data['ep_booking_attendee_fields'] ) ) {
+                    if ( ! is_array( $data['ep_booking_attendee_fields'] ) ) {
+                        wp_send_json_error( array( 'error' => esc_html__( 'Invalid attendee details submitted.', 'eventprime-event-calendar-management' ) ) );
+                        die;
+                    }
+
+                    $data['ep_booking_attendee_fields'] = $ep_functions->ep_normalize_booking_attendee_fields( $data['ep_booking_attendee_fields'] );
+                } else {
+                    $data['ep_booking_attendee_fields'] = array();
+                }
                 if(!isset($data['ep_event_booking_event_fixed_price']))
                 {
                     $data['ep_event_booking_event_fixed_price'] = 0;
@@ -506,8 +516,7 @@ class EventM_Ajax_Service {
                 update_post_meta( $new_post_id, 'em_payment_log', array() );
                 update_post_meta( $new_post_id, 'em_booked_seats', array() );
                 update_post_meta( $new_post_id, 'eventprime_updated_pattern',1);
-                $ep_booking_attendee_fields =(isset($data['ep_booking_attendee_fields']))?$sanitizer->sanitize($data['ep_booking_attendee_fields']):array();
-                update_post_meta( $new_post_id, 'em_attendee_names', $ep_booking_attendee_fields );
+                update_post_meta( $new_post_id, 'em_attendee_names', $data['ep_booking_attendee_fields'] );
                 // check for booking fields data
                 $em_booking_fields_data = array();
                 if( ! empty( $data['ep_booking_booking_fields'] ) ) {
@@ -2717,7 +2726,6 @@ class EventM_Ajax_Service {
      * Update booking action
      */
     public function update_event_booking_action() {
-        $sanitizer = new EventPrime_sanitizer;
         parse_str( wp_unslash( $_POST['data'] ?? '' ), $data );
         $ep_functions = new Eventprime_Basic_Functions;
         if ( empty( $data['ep_update_event_booking_nonce'] ) || ! wp_verify_nonce( $data['ep_update_event_booking_nonce'], 'ep_update_event_booking' ) ) {
@@ -2748,7 +2756,11 @@ class EventM_Ajax_Service {
             $single_booking = $booking_controller->load_booking_detail( $ep_event_booking_id );
             if( ! empty( $single_booking ) ) {
                 if( ! empty( $data['ep_booking_attendee_fields'] ) ) {
-                    $ep_booking_attendde_field = $sanitizer->sanitize($data['ep_booking_attendee_fields']);
+                    if ( ! is_array( $data['ep_booking_attendee_fields'] ) ) {
+                        wp_send_json_error( array( 'message' => esc_html__( 'Invalid attendee details submitted.', 'eventprime-event-calendar-management' ) ) );
+                    }
+
+                    $ep_booking_attendde_field = $ep_functions->ep_normalize_booking_attendee_fields( $data['ep_booking_attendee_fields'] );
                     update_post_meta( $ep_event_booking_id, 'em_attendee_names', $ep_booking_attendde_field );
                 }
             }
@@ -2815,7 +2827,7 @@ class EventM_Ajax_Service {
                     $row = 1;
                     foreach( $event_bookings as $booking ) {
                         $booking_id = $booking->ID;
-                        $em_attendee_names = get_post_meta( $booking_id, 'em_attendee_names', true );
+                        $em_attendee_names = $ep_functions->ep_normalize_booking_attendee_fields( get_post_meta( $booking_id, 'em_attendee_names', true ) );
                         if( ! empty( $em_attendee_names ) ) {
                             $ticket_name = '';
                             foreach( $em_attendee_names as $ticket_id => $ticket_attendees ) {
@@ -3142,11 +3154,15 @@ class EventM_Ajax_Service {
     }
     
     public function edit_booking_attendee_data_save(){
-        $sanitizer = new EventPrime_sanitizer;
+        $ep_functions = new Eventprime_Basic_Functions;
         parse_str( wp_unslash( $_POST['data'] ), $data );
         
         if( wp_verify_nonce( $_POST['security'], 'ep_booking_attendee_data' ) ) {
-            $attendees_names = isset($data['ep_booking_attendee_fields']) ? $sanitizer->sanitize($data['ep_booking_attendee_fields']) : array();
+            if ( isset( $data['ep_booking_attendee_fields'] ) && ! is_array( $data['ep_booking_attendee_fields'] ) ) {
+                wp_send_json_error( array( 'message' => esc_html__( 'Invalid attendee details submitted.', 'eventprime-event-calendar-management' ) ) );
+            }
+
+            $attendees_names = isset($data['ep_booking_attendee_fields']) ? $ep_functions->ep_normalize_booking_attendee_fields($data['ep_booking_attendee_fields']) : array();
             if(is_array($attendees_names)){
                 update_post_meta( $_POST['booking_id'], 'em_attendee_names', $attendees_names );
             }

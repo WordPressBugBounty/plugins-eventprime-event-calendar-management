@@ -66,7 +66,7 @@ $ep_functions = new Eventprime_Basic_Functions;
                         if( ! empty( $event_bookings ) ) {
                             foreach( $event_bookings as $booking ) {
                                 $booking_id = $booking->ID;
-                                $em_attendee_names = get_post_meta( $booking_id, 'em_attendee_names', true );
+                                $em_attendee_names = $ep_functions->ep_normalize_booking_attendee_fields( get_post_meta( $booking_id, 'em_attendee_names', true ) );
                                 if( ! empty( $em_attendee_names ) ) {
                                     $ticket_name = '';
                                     foreach( $em_attendee_names as $ticket_id => $ticket_attendees ) {

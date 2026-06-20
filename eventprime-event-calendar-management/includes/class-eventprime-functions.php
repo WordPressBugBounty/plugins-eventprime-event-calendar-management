@@ -62,6 +62,60 @@ class Eventprime_Basic_Functions {
         return maybe_unserialize( $meta_value );
     }
 
+    public function ep_safe_maybe_unserialize( $data ) {
+        if ( ! is_string( $data ) || ! function_exists( 'is_serialized' ) || ! is_serialized( $data ) ) {
+            return $data;
+        }
+
+        set_error_handler(
+            static function () {
+                return true;
+            }
+        );
+        $unserialized = unserialize( trim( $data ), array( 'allowed_classes' => false ) );
+        restore_error_handler();
+
+        if ( false === $unserialized && 'b:0;' !== $data ) {
+            return $data;
+        }
+
+        if ( $this->ep_contains_object( $unserialized ) ) {
+            return $data;
+        }
+
+        return $unserialized;
+    }
+
+    public function ep_contains_object( $value ) {
+        if ( is_object( $value ) ) {
+            return true;
+        }
+
+        if ( is_array( $value ) ) {
+            foreach ( $value as $item ) {
+                if ( $this->ep_contains_object( $item ) ) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public function ep_normalize_booking_attendee_fields( $attendee_fields ) {
+        if ( is_string( $attendee_fields ) ) {
+            $attendee_fields = $this->ep_safe_maybe_unserialize( $attendee_fields );
+        }
+
+        if ( ! is_array( $attendee_fields ) || $this->ep_contains_object( $attendee_fields ) ) {
+            return array();
+        }
+
+        $sanitizer = new EventPrime_sanitizer();
+
+        return $sanitizer->sanitize( $attendee_fields );
+    }
+
     public function ep_sanitize_eventprime_download_url( $url ) {
         $url = esc_url_raw( $url, array( 'https' ) );
         if ( empty( $url ) ) {
@@ -206,7 +260,7 @@ class Eventprime_Basic_Functions {
     public function ep_get_custom_page_url($page, $id = null, $slug = null, $type = 'post', $taxonomy = '') 
     {
         global $wp_rewrite;
-        $url = get_permalink($this->ep_get_global_settings($page));
+        $url = $this->ep_get_custom_page_base_url( $page );
         $permalink = $wp_rewrite->permalink_structure;
         if (!empty($id)) {
             if (!empty($slug)) {
@@ -236,6 +290,29 @@ class Eventprime_Basic_Functions {
             }
         }
         return $url;
+    }
+
+    public function ep_get_custom_page_base_url( $page ) {
+        $page_id = absint( $this->ep_get_global_settings( $page ) );
+        if ( empty( $page_id ) ) {
+            return home_url( '/' );
+        }
+
+        $page_post = get_post( $page_id );
+        if ( empty( $page_post ) || empty( $page_post->post_type ) ) {
+            return home_url( '/' );
+        }
+
+        if ( 'page' === $page_post->post_type ) {
+            return get_page_link( $page_id );
+        }
+
+        // Prevent recursive event permalink generation when a page setting is misconfigured to point at an event.
+        if ( 'em_event' === $page_post->post_type ) {
+            return home_url( '/' );
+        }
+
+        return get_permalink( $page_id );
     }
     
     
@@ -4122,7 +4199,11 @@ public function ep_get_event_date_time_diff( $event ) {
 
         $meta = get_post_meta($order_id);
         foreach ($meta as $key => $val) {
-            $booking->{$key} = maybe_unserialize($val[0]);
+            if ( 'em_attendee_names' === $key ) {
+                $booking->{$key} = $this->ep_normalize_booking_attendee_fields( $val[0] );
+            } else {
+                $booking->{$key} = maybe_unserialize($val[0]);
+            }
         }
 
         $detail_url = get_permalink($this->ep_get_global_settings('booking_details_page'));
@@ -14183,12 +14264,18 @@ public function ep_get_events( $fields ) {
         $attendee_count   = 0;
 
         if ( ! empty( $booking->em_attendee_names ) ) {
-            $attendee_names = maybe_unserialize( $booking->em_attendee_names );
+            $attendee_names = $this->ep_normalize_booking_attendee_fields( $booking->em_attendee_names );
 
             foreach ( $attendee_names as $ticket_id => $attendee_data ) {
+                if ( ! isset( $attendee_data[1] ) || ! is_array( $attendee_data[1] ) ) {
+                    continue;
+                }
                 $labels_list = $this->ep_get_booking_attendee_field_labels( $attendee_data[1] );
 
                 foreach ( $attendee_data as $attendee ) {
+                    if ( ! is_array( $attendee ) ) {
+                        continue;
+                    }
                     $attendee_count++;
                     $attendee_line = '';
                     $serialize_attendee = print_r($attendee,true);
@@ -14232,7 +14319,7 @@ public function ep_get_events( $fields ) {
                'event'          => $booking->em_name,
                'start'          => $start,
                'end'            => $end,
-               'tickets'        => count( (array) $booking->em_attendee_names ),
+               'tickets'        => count( $attendee_names ),
                 'attendees'      => trim( $attendee_summary ),
                'total'          => isset( $booking->em_order_info['booking_total'] )
                                       ? $booking->em_order_info['booking_total']

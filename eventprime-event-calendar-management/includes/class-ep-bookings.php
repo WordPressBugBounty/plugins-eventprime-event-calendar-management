@@ -44,7 +44,11 @@ class EventPrime_Bookings {
         }
         $meta = get_post_meta( $order_id );
         foreach ( $meta as $key => $val ) {
-            $booking->{$key} = maybe_unserialize( $val[0] );
+            if ( 'em_attendee_names' === $key ) {
+                $booking->{$key} = $ep_functions->ep_normalize_booking_attendee_fields( $val[0] );
+            } else {
+                $booking->{$key} = maybe_unserialize( $val[0] );
+            }
         }
 
         $detail_url = get_permalink( $ep_functions->ep_get_global_settings( 'booking_details_page' ) );
@@ -634,7 +638,7 @@ class EventPrime_Bookings {
                 
                 $attendees_count = 0;
                 if( ! empty( $booking->em_attendee_names ) && count( $booking->em_attendee_names ) > 0 ) {
-                    $attendee_names = isset($booking->em_attendee_names) &&!empty($booking->em_attendee_names) ? maybe_unserialize($booking->em_attendee_names): array();
+                    $attendee_names = $ep_functions->ep_normalize_booking_attendee_fields( $booking->em_attendee_names );
                     foreach( $attendee_names as $ticket_id => $attendee_data ) {
                         foreach( $attendee_data as $booking_attendees ) {
                             $booking_attendees_val = array_values( $booking_attendees );
