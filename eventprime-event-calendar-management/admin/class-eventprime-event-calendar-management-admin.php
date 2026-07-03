@@ -1970,14 +1970,14 @@ class Eventprime_Event_Calendar_Management_Admin {
         if ( 'color' === $column ) {
             $color = get_term_meta( $id, 'em_color', true );
             if ( $color ) {
-                $columns .= '<span class="color-block" style="background-color: ' . $color . '"></span>';
+                $columns .= '<span class="color-block" style="background-color: ' . esc_attr( $color ) . '"></span>';
             }
         }
 
         if ( 'type_text_color' === $column ) {
             $type_text_color = get_term_meta( $id, 'em_type_text_color', true );
             if ( $type_text_color ) {
-                $columns .= '<span class="color-block" style="background-color: ' . $type_text_color . '"></span>';
+                $columns .= '<span class="color-block" style="background-color: ' . esc_attr( $type_text_color ) . '"></span>';
             }
         }
 
@@ -2000,8 +2000,9 @@ class Eventprime_Event_Calendar_Management_Admin {
         if ( isset( $_POST['tax_ID'] ) && !empty( $_POST['tax_ID'] ) ) {
             return;
         }
-        $color           = isset( $_POST['em_color'] ) ? sanitize_text_field( wp_unslash( $_POST['em_color'] ) ) : '';
-        $type_text_color = isset( $_POST['em_type_text_color'] ) ? sanitize_text_field( wp_unslash( $_POST['em_type_text_color'] ) ) : '';
+        $ep_functions    = new Eventprime_Basic_Functions();
+        $color           = isset( $_POST['em_color'] ) ? $ep_functions->ep_sanitize_hex_color( wp_unslash( $_POST['em_color'] ), '#FF5599' ) : '#FF5599';
+        $type_text_color = isset( $_POST['em_type_text_color'] ) ? $ep_functions->ep_sanitize_hex_color( wp_unslash( $_POST['em_type_text_color'] ), '#43CDFF' ) : '#43CDFF';
         $image_id        = isset( $_POST['em_image_id'] ) ? sanitize_text_field( wp_unslash( $_POST['em_image_id'] ) ) : '';
         $is_featured     = isset( $_POST['em_is_featured'] ) ? 1 : '0';
         $em_age_group    = isset( $_POST['em_age_group'] ) ? sanitize_text_field( wp_unslash( $_POST['em_age_group'] ) ) : 'all';

@@ -5,7 +5,7 @@ Tags: event calendar, organizer , event manager, tickets, event booking, event b
 Requires at least: 4.8
 Tested up to: 7.0
 Requires PHP: 7.2
-Stable tag: 4.3.4.2
+Stable tag: 4.3.4.3
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -666,6 +666,9 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.3.4.3: July 03, 2026 =
+* Added: Security fixes.
 
 = 4.3.4.2: June 20, 2026 =
 * Added: Security fixes.
@@ -2360,6 +2363,9 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.3.4.3: July 03, 2026 =
+* Added: Security fixes.
 
 = 4.3.4.2: June 20, 2026 =
 * Added: Security fixes.

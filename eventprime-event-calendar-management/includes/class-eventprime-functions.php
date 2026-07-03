@@ -6229,6 +6229,26 @@ public function ep_get_event_date_time_diff( $event ) {
 
         return $output;
     }
+
+    public function ep_sanitize_hex_color( $color, $fallback = '' ) {
+        $color = is_string( $color ) ? trim( $color ) : '';
+
+        if ( '' !== $color ) {
+            $sanitized_color = sanitize_hex_color( $color );
+            if ( ! empty( $sanitized_color ) ) {
+                return $sanitized_color;
+            }
+        }
+
+        if ( '' !== $fallback ) {
+            $fallback = sanitize_hex_color( $fallback );
+            if ( ! empty( $fallback ) ) {
+                return $fallback;
+            }
+        }
+
+        return '';
+    }
     
     public function check_published_em_event() {
         // Define query arguments
@@ -9780,8 +9800,8 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
                     );
             $term_id = isset($types['term_id']) ? $types['term_id'] : 0;
             
-            $em_color = isset($data['em_color']) && !empty($data['em_color']) ? sanitize_text_field($data['em_color']) : 'FF5599';
-            $em_type_text_color = isset($data['em_type_text_color']) && !empty($data['em_type_text_color']) ? sanitize_text_field($data['em_type_text_color']) : '#43CDFF';
+            $em_color = isset($data['em_color']) && !empty($data['em_color']) ? $this->ep_sanitize_hex_color( $data['em_color'], '#FF5599' ) : '#FF5599';
+            $em_type_text_color = isset($data['em_type_text_color']) && !empty($data['em_type_text_color']) ? $this->ep_sanitize_hex_color( $data['em_type_text_color'], '#43CDFF' ) : '#43CDFF';
             $em_image_id = isset($data['em_image_id']) ? $data['em_image_id']: '';
             $em_is_featured = isset($data['em_is_featured']) ? sanitize_text_field($data['em_is_featured']): 0;
             $em_age_group = isset($data['em_age_group']) ? $data['em_age_group'] : 'all';

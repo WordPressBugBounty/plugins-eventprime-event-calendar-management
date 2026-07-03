@@ -5458,6 +5458,7 @@ class Eventprime_Rest_Api {
             return rest_ensure_response( array( 'status' => 'error', 'message' => 'Core functions unavailable.' ), 500 );
         }
 
+        $ep = new Eventprime_Basic_Functions();
         $payload = array( 'name' => $name );
         $text_fields = array(
             'description'                    => 'sanitize_textarea_field',
@@ -5767,13 +5768,16 @@ class Eventprime_Rest_Api {
             $payload['description'] = wp_kses_post( $body['description'] );
         }
         $map = array(
-            'em_color'           => 'sanitize_text_field',
-            'em_type_text_color' => 'sanitize_text_field',
-            'em_age_group'       => 'sanitize_text_field',
+            'em_age_group' => 'sanitize_text_field',
         );
         foreach ( $map as $field => $callback ) {
             if ( isset( $body[ $field ] ) ) {
                 $payload[ $field ] = call_user_func( $callback, $body[ $field ] );
+            }
+        }
+        foreach ( array( 'em_color' => '#FF5599', 'em_type_text_color' => '#43CDFF' ) as $field => $fallback ) {
+            if ( isset( $body[ $field ] ) ) {
+                $payload[ $field ] = $ep->ep_sanitize_hex_color( $body[ $field ], $fallback );
             }
         }
         if ( isset( $body['em_image_id'] ) ) {
@@ -5786,7 +5790,6 @@ class Eventprime_Rest_Api {
             $payload['em_status'] = $this->ep_param_truthy( $body, 'em_status' );
         }
 
-        $ep      = new Eventprime_Basic_Functions();
         $term_id = 0;
         $create_error = '';
 

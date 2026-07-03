@@ -1197,8 +1197,8 @@ class EventM_Ajax_Service {
                         $eventType = $type_data->name;
                         $type_term = get_term_by( 'name', $eventType, 'em_event_type' );
                         if( empty( $type_term ) ) {
-                            $type_data->em_color = isset($data['new_event_type_background_color']) ? sanitize_text_field($data['new_event_type_background_color']) : '#FF5599';
-                            $type_data->em_type_text_color = isset($data['new_event_type_text_color']) ? sanitize_text_field($data['new_event_type_text_color']) : '#43CDFF';
+                            $type_data->em_color = isset($data['new_event_type_background_color']) ? $ep_functions->ep_sanitize_hex_color( $data['new_event_type_background_color'], '#FF5599' ) : '#FF5599';
+                            $type_data->em_type_text_color = isset($data['new_event_type_text_color']) ? $ep_functions->ep_sanitize_hex_color( $data['new_event_type_text_color'], '#43CDFF' ) : '#43CDFF';
                             $type_data->em_age_group = isset($data['new_event_type_age_group']) ? sanitize_text_field($data['new_event_type_age_group']) : 'all';
                             $type_data->em_custom_group = isset($data['new_event_type_custom_group']) ? sanitize_text_field($data['new_event_type_custom_group']) : '';
                             $type_data->description = isset($data['new_event_type_description']) ? wp_kses_post($data['new_event_type_description']) : '';
