@@ -378,6 +378,7 @@ class Eventprime_Event_Calendar_Management {
 
                 $this->loader->add_action( 'save_post', $plugin_admin, 'ep_save_event_meta_boxes', 1, 2 );
                 $this->loader->add_filter( 'wp_insert_post_data', $plugin_admin, 'ep_respect_requested_post_status', 10, 2 );
+                $this->loader->add_filter( 'sanitize_title', $plugin_admin, 'ep_sanitize_posts_slug', 10, 3 );
                 $this->loader->add_filter( 'manage_em_event_posts_columns', $plugin_admin, 'ep_filter_event_columns'  );
 		$this->loader->add_action( 'manage_em_event_posts_custom_column', $plugin_admin, 'ep_filter_event_columns_content', 10, 2 );
 		$this->loader->add_filter( 'manage_edit-em_event_sortable_columns',$plugin_admin, 'ep_sortable_event_columns', 10, 1 );
@@ -449,7 +450,7 @@ class Eventprime_Event_Calendar_Management {
                 $this->loader->add_filter('wp_privacy_personal_data_exporters',$plugin_admin,'ep_privacy_personal_data_exporters',10,1);
                 $this->loader->add_action('ep_update_retention_cron_schedule',$plugin_admin,'ep_update_retention_cron_schedule');
                 $this->loader->add_action( 'ep_gdpr_cleanup_hook', $plugin_admin,'ep_gdpr_cleanup_old_bookings' );
-
+                
                 
 	}
 

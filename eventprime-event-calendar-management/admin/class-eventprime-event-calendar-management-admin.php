@@ -1668,6 +1668,52 @@ class Eventprime_Event_Calendar_Management_Admin {
         return $data;
     }
 
+    public function ep_sanitize_posts_slug( $title, $raw_title = '', $context = 'display' ) {
+        $supported_post_types = array( 'em_event', 'em_performer', 'em_sponsor' );
+        $supported_post_types = apply_filters( 'ep_sanitize_posts_slug_post_types', $supported_post_types );
+        $post_type = $this->ep_get_slug_sanitize_post_type();
+
+        if ( 'save' !== $context || empty( $post_type ) || ! in_array( $post_type, $supported_post_types, true ) ) {
+            return $title;
+        }
+
+        $source_title = '' !== $raw_title ? $raw_title : $title;
+        $clean_title = preg_replace(
+            '/(?:[\x{1F1E6}-\x{1F1FF}]{2}|[\x{1F300}-\x{1FAFF}]|[\x{2600}-\x{27BF}]|\x{200D}|\x{FE0F})/u',
+            '',
+            $source_title
+        );
+
+        if ( $clean_title === $source_title ) {
+            return $title;
+        }
+
+        $clean_title = strip_tags( $clean_title );
+        $clean_title = remove_accents( $clean_title );
+
+        return sanitize_title_with_dashes( $clean_title, '', $context );
+    }
+
+    private function ep_get_slug_sanitize_post_type() {
+        if ( ! empty( $_POST['post_type'] ) ) {
+            return sanitize_key( wp_unslash( $_POST['post_type'] ) );
+        }
+
+        if ( ! empty( $_POST['post_ID'] ) ) {
+            return get_post_type( absint( $_POST['post_ID'] ) );
+        }
+
+        if ( ! empty( $_GET['post_type'] ) ) {
+            return sanitize_key( wp_unslash( $_GET['post_type'] ) );
+        }
+
+        if ( ! empty( $_GET['post'] ) ) {
+            return get_post_type( absint( $_GET['post'] ) );
+        }
+
+        return '';
+    }
+
     /**
      * Add columns to event list table
      */

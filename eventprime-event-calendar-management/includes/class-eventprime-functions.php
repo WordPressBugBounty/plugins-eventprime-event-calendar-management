@@ -1860,7 +1860,10 @@ class Eventprime_Basic_Functions {
                 "twilio_service_id",
                 "twilio_number",
                 "zapier_api_key",
-                "paypal_client_secret"
+                "paypal_client_secret",
+                "ep_license_key",
+                "weather_api_key",
+                "google_recaptcha_secret_key",
             ];
             $exclude_fields = apply_filters('ep_extend_global_exclude_fields', $exclude_fields, $global_options);
             foreach($exclude_fields as $field) {

@@ -156,6 +156,17 @@ jQuery( function( $ ) {
             }
         });
     }
+
+    function ep_get_event_start_date_for_datepicker() {
+        var startDate = String( $( '#em_start_date' ).val() || '' ).trim();
+        if ( startDate ) {
+            try {
+                return $.datepicker.parseDate( date_format, startDate );
+            } catch ( e ) {}
+        }
+        return new Date();
+    }
+
     if( eventprime.global_settings.datepicker_format ) {
         settings_date_format = eventprime.global_settings.datepicker_format;
         if( settings_date_format ) {
@@ -319,22 +330,23 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
         // recurring custom date option
         var cdates = [];
         $( '#ep_recurrence_custom_dates').datepicker({
-            changeYear: true,
-            changeMonth: true,
-            dateFormat: date_format,
-            gotoCurrent: true,
-            showButtonPanel: true,
-            controlType: 'select',
-            oneLine: true,
-            minDate: new Date(),
-            autoClose: false,
-            onSelect: function (dateText, inst) {
-                addOrRemoveDate( dateText, cdates );
-                setTimeout(function(){
-                    $( '#recurrence_custom_dates' ).datepicker( "refresh" );
-                    $( '#ui-datepicker-div' ).show();
-                    $( '#hide_date_picker' ).show();
-                }, 300);
+                changeYear: true,
+                changeMonth: true,
+                dateFormat: date_format,
+                gotoCurrent: true,
+                showButtonPanel: true,
+                controlType: 'select',
+                oneLine: true,
+                defaultDate: ep_get_event_start_date_for_datepicker(),
+                minDate: ep_get_event_start_date_for_datepicker(),
+                autoClose: false,
+                onSelect: function (dateText, inst) {
+                    addOrRemoveDate( dateText, cdates );
+                    setTimeout(function(){
+                        $( '#ep_recurrence_custom_dates' ).datepicker( "refresh" );
+                        $( '#ui-datepicker-div' ).show();
+                        $( '#hide_date_picker' ).show();
+                    }, 300);
             },
         }).focus(function() {
             $( '.ui-datepicker-close' ).on( 'click', function() {
@@ -342,12 +354,12 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
                 $( '#hide_date_picker' ).hide();
             });
         });
+
         jQuery(document).on('click','.ep-remove-custom-date', function(e){
             var datetext = jQuery(this).parent().find('.ep-cus-date-cont').html();
             addOrRemoveDate(datetext, cdates);
-            
-            
         });
+
         $( "#accordion" ).accordion({
             collapsible: true
         });
@@ -715,6 +727,12 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
         if (endDate < startDate) {
             $('#em_end_date').val(st_val);
         }
+
+        var eventStartDate = ep_get_event_start_date_for_datepicker();
+        $( '#ep_recurrence_custom_dates' ).datepicker( 'option', {
+            defaultDate: eventStartDate,
+            minDate: eventStartDate
+        });
     });
 
     // show/hide event start and end time on all day
@@ -966,8 +984,9 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
 
     // advanced recurring options
     $( document ).on( 'click', '.ep-recurrence-advanced-week-day', function() {
-        let ep_recurrence_advanced_dates = [];
+        let ep_recurrence_advanced_dates; 
         ep_recurrence_advanced_dates = $( '#ep_recurrence_advanced_dates' ).val();
+        
         if( $( this ).hasClass( 'active' ) ) {
             $( this ).removeClass( 'active' );
         } else{
@@ -4347,7 +4366,5 @@ function ep_open_ticket_tab(tagid)
 jQuery(document).ready(function($) {
    
 });
-
-
 
 

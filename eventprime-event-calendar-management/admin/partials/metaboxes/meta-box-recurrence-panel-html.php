@@ -26,7 +26,7 @@ if( empty( $post->post_parent ) ) {
     $em_recurrence_yearly_weekno   = get_post_meta( $post->ID, 'em_recurrence_yearly_weekno', true );
     $em_recurrence_yearly_fullweekday = get_post_meta( $post->ID, 'em_recurrence_yearly_fullweekday', true );
     $em_recurrence_yearly_monthday = get_post_meta( $post->ID, 'em_recurrence_yearly_monthday', true );
-    $em_recurrence_advanced_dates  = get_post_meta( $post->ID, 'em_recurrence_advanced_dates', true );
+    $em_recurrence_advanced_dates  =  metadata_exists( 'post', $post->ID, 'em_recurrence_advanced_dates' ) ? get_post_meta( $post->ID, 'em_recurrence_advanced_dates', true ) : [];
     $em_recurrence_selected_custom_dates = get_post_meta( $post->ID, 'em_recurrence_selected_custom_dates', true );
     $em_add_slug_in_event_title    = get_post_meta( $post->ID, 'em_add_slug_in_event_title', true );
     $em_event_slug_type_options    = get_post_meta( $post->ID, 'em_event_slug_type_options', true );
@@ -193,7 +193,7 @@ if( empty( $post->post_parent ) ) {
                 <!-- Advanced days options -->
                 <div id="em_show_advanced_options" <?php if( $em_recurrence_interval != 'advanced' ) { echo 'style="display: none;"'; }?>>
                     <div class="ep-recurrence-advanced-wrapper">
-                        <input type="hidden" name="em_recurrence_advanced_dates" id="ep_recurrence_advanced_dates" value="<?php echo wp_json_encode( $em_recurrence_advanced_dates );?>">
+                        <input type="hidden" name="em_recurrence_advanced_dates" id="ep_recurrence_advanced_dates" value="<?php echo esc_attr( wp_json_encode( $em_recurrence_advanced_dates ) ); ?>">
                         <?php foreach( $ep_functions->ep_get_week_number() as $wk => $wnum) { ?>
                             <ul>
                                 <li class="ep-recurrence-week"><?php echo esc_html($wnum);?></li>
