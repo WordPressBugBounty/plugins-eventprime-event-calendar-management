@@ -1968,6 +1968,119 @@ class Eventprime_Event_Calendar_Management_Public {
         }
     }
 
+    private function log_weather_api_error( $message ) {
+        error_log( $message );
+
+        if ( current_user_can( 'manage_options' ) ) { ?> 
+            <div class="ep-alert ep-alert-warning ep-mt-3">
+               <?php echo esc_html( $message ); ?> 
+            </div><?php
+        } else { ?>
+            <div class="ep-alert ep-alert-warning ep-mt-3">
+                <?php esc_html_e(
+                    'Weather information is currently unavailable. Please try again later.',
+                    'eventprime-event-calendar-management'
+                ); ?>
+            </div> <?php 
+        }
+    }
+
+    private function get_weather_api_error_message( $response, $status, $city = '' ) {
+        $response_message = wp_remote_retrieve_response_message( $response );
+        $body             = wp_remote_retrieve_body( $response );
+        $api_error_code   = '';
+        $api_error_text   = '';
+
+        if ( ! empty( $body ) ) {
+            $data = json_decode( $body );
+
+            if ( JSON_ERROR_NONE === json_last_error() && ! empty( $data->error ) ) {
+                if ( isset( $data->error->code ) ) {
+                    $api_error_code = absint( $data->error->code );
+                }
+
+                if ( ! empty( $data->error->message ) ) {
+                    $api_error_text = sanitize_text_field( $data->error->message );
+                }
+            }
+        }
+
+        $message = sprintf(
+            'Weather API returned HTTP %d%s',
+            absint( $status ),
+            ! empty( $response_message ) ? ' (' . sanitize_text_field( $response_message ) . ')' : ''
+        );
+
+        if ( ! empty( $api_error_text ) ) {
+            $message .= ': ' . $api_error_text;
+        } else {
+            $message .= '. Check the Weather API key, request quota, configured venue city, and API account permissions.';
+        }
+
+        if ( ! empty( $api_error_code ) ) {
+            $message .= ' Error code: ' . $api_error_code . '.';
+        }
+
+        if ( ! empty( $city ) ) {
+            $message .= ' City: ' . sanitize_text_field( $city ) . '.';
+        }
+
+        return $message;
+    }
+    
+    public function get_weather_api_data($api_key, $city) {
+        $params = [
+            'key'     => $api_key,
+            'q'       => $city,
+            'days'    => 7,
+            'aqi'     => 'no',
+            'alerts'  => 'no',
+        ];
+        $url = add_query_arg(
+            $params,
+            'https://api.weatherapi.com/v1/forecast.json'
+        );
+
+        $response = wp_remote_get( $url ); 
+        if ( is_wp_error( $response ) ) {
+            $this->log_weather_api_error(
+                sprintf(
+                    'Weather API request failed: %s',
+                    $response->get_error_message()
+                )
+            );
+
+            return false;
+        }
+
+        $status = wp_remote_retrieve_response_code( $response );
+        if ( 200 !== $status ) {
+            $this->log_weather_api_error( $this->get_weather_api_error_message( $response, $status, $city ) );
+
+            return false;
+        }
+
+        $body = wp_remote_retrieve_body( $response );
+        $data = json_decode( $body );
+        if ( JSON_ERROR_NONE !== json_last_error() ) {
+            $this->log_weather_api_error(
+                sprintf(
+                    'Weather API JSON decode failed: %s',
+                    json_last_error_msg()
+                )
+            );
+
+            return false;
+        }
+
+        if ( ! empty( $data->error ) ) {
+            $this->log_weather_api_error( $this->get_weather_api_error_message( $response, $status, $city ) );
+
+            return false;
+        }
+
+        return $data; 
+    }
     
     
     /**
@@ -1983,63 +2096,65 @@ class Eventprime_Event_Calendar_Management_Public {
         $weather_api_key = $ep_functions->ep_get_global_settings( 'weather_api_key' );
         if( ! empty($weather_api_key  ) && !empty($venue) && isset($venue->em_locality) && !empty($venue->em_locality) ) {
             $api_key = $weather_api_key;
-$city = $venue->em_locality;
-$api_url = "http://api.weatherapi.com/v1/forecast.json?key={$api_key}&q={$city}&days=7&aqi=no&alerts=no";
-$temp_unit = $ep_functions->ep_get_global_settings('weather_unit_fahrenheit');
-$response = file_get_contents($api_url);
-$data = json_decode($response);
-//print_r($data);
-if(!empty($temp_unit) && $temp_unit == 1)
-{
-    $currenttemp = $data->current->temp_f.'°F';
-}
-else
-{
-    $currenttemp = $data->current->temp_c.'°C';
-}
+            $city = $venue->em_locality;
+            $temp_unit = $ep_functions->ep_get_global_settings('weather_unit_fahrenheit');
+            
+            $data = $this->get_weather_api_data($api_key, $city);
+            //print_r($data);
 
-?>
+            if ( ! $data ) {
+                return;
+            }
+            
+            if(!empty($temp_unit) && $temp_unit == 1)
+            {
+                $currenttemp = $data->current->temp_f.'°F';
+            }
+            else
+            {
+                $currenttemp = $data->current->temp_c.'°C';
+            }
 
-<div class="ep-weather-widget">
-    
-    <div class="ep-current-weather">
-        <div class="ep-location-wrap">
-            <div class="ep-location-name ep-fs-4 ep-fw-bold"><?php echo esc_html($data->location->name); ?> </div>
-            <div class="ep-location-title ep-fs-6"><?php esc_html_e('Weather','eventprime-event-calendar-management');?></div>
-        </div>
-        <img src="https:<?php echo esc_attr($data->current->condition->icon); ?>" alt="<?php esc_attr_e('Current Weather Icon','eventprime-event-calendar-management');?>">
-        <div class="ep-temp-wrap">
-        <div class="ep-temp ep-fs-4 ep-fw-bold"><?php echo esc_html($currenttemp); ?></div>
-        <div class="ep-desc ep-fs-6"><?php echo esc_html($data->current->condition->text); ?></div>
-        </div>
-    </div>
+            ?>
 
-    <div class="ep-weather-forecast">
-        <?php foreach($data->forecast->forecastday as $day): ?>
-            <div class="ep-weather-day">
-                <div><?php echo esc_html(date('D', strtotime($day->date))); ?></div>
-                <img src="https:<?php echo esc_attr($day->day->condition->icon); ?>" alt="">
-                <?php
+            <div class="ep-weather-widget">
                 
-                if(!empty($temp_unit) && $temp_unit == 1){
-                    $maxtemp = $day->day->maxtemp_f.'°F';
-                    $mintemp = $day->day->mintemp_f.'°F';
-                }
-                else
-                {
-                    $maxtemp = $day->day->maxtemp_c.'°C';
-                    $mintemp = $day->day->mintemp_c.'°C';
-                }
-                ?>
-                <div class="max-temp"><?php echo esc_html($maxtemp); ?></div>
-                <div class="min-temp"><?php echo esc_html($mintemp); ?></div>
-            </div>
-        <?php endforeach; ?>
-    </div>
-</div> <?php
-        }
-        else
-        {                     
+                <div class="ep-current-weather">
+                    <div class="ep-location-wrap">
+                        <div class="ep-location-name ep-fs-4 ep-fw-bold"><?php echo esc_html($data->location->name); ?> </div>
+                        <div class="ep-location-title ep-fs-6"><?php esc_html_e('Weather','eventprime-event-calendar-management');?></div>
+                    </div>
+                    <img src="https:<?php echo esc_attr($data->current->condition->icon); ?>" alt="<?php esc_attr_e('Current Weather Icon','eventprime-event-calendar-management');?>">
+                    <div class="ep-temp-wrap">
+                    <div class="ep-temp ep-fs-4 ep-fw-bold"><?php echo esc_html($currenttemp); ?></div>
+                    <div class="ep-desc ep-fs-6"><?php echo esc_html($data->current->condition->text); ?></div>
+                    </div>
+                </div>
+
+                <div class="ep-weather-forecast">
+                    <?php foreach($data->forecast->forecastday as $day): ?>
+                        <div class="ep-weather-day">
+                            <div><?php echo esc_html(date('D', strtotime($day->date))); ?></div>
+                            <img src="https:<?php echo esc_attr($day->day->condition->icon); ?>" alt="">
+                            <?php
+                            
+                            if(!empty($temp_unit) && $temp_unit == 1){
+                                $maxtemp = $day->day->maxtemp_f.'°F';
+                                $mintemp = $day->day->mintemp_f.'°F';
+                            }
+                            else
+                            {
+                                $maxtemp = $day->day->maxtemp_c.'°C';
+                                $mintemp = $day->day->mintemp_c.'°C';
+                            }
+                            ?>
+                            <div class="max-temp"><?php echo esc_html($maxtemp); ?></div>
+                            <div class="min-temp"><?php echo esc_html($mintemp); ?></div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div> <?php
+        } else {                     
             if( ! empty( $venue ) && ! empty( $venue->em_place_id ) ) {
                 $place_url = $ep_functions->fetch_url_content( 'https://forecast7.com/api/getUrl/' . $venue->em_place_id );
 

@@ -594,6 +594,9 @@ class Eventprime_Global_Settings{
         
         $options = (object)get_option('em_global_settings');
         foreach( $global_settings as $key => $val ){
+            if ( '' === $key ) {
+                continue;
+            }
             $options->$key = $val;
         }
         update_option( 'em_global_settings', $options );
