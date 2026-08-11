@@ -483,53 +483,63 @@ jQuery( function( $ ) {
                         $( this ).show();
                         $( this ).html( ep_event_booking.confirm_booking_text );
                     }
-                }
-            }
-        }
-        else if( active_step == 2 ) {
-            var form = $( "#ep_event_checkout_form" );
-            let data = { 
-                action: 'ep_save_event_booking', 
-                data  : form.serialize(),
-            };
-            jQuery('.ep-event-loader').show();
-            $.ajax({
-                type    : "POST",
-                url     : eventprime.ajaxurl,
-                data    : data,
-                success : function( response ) {
-                    if( response.success == true ) {
-                        if( response.data.payment_method == "paypal" ) {
-                            let order_id      = response.data.order_id;
-                            let booking_total = response.data.booking_total;
-                            let item_total    = response.data.item_total;
-                            if( $( '#ep_paypal_item_number' ).length > 0 ) {
-                                $( '#ep_paypal_item_number' ).val( item_total );
+	                }
+	            }
+	        }
+	        else if( active_step == 2 ) {
+	            var $checkout_btn = $( this );
+	            if( $checkout_btn.data( 'epBookingSubmitting' ) ) {
+	                return false;
+	            }
+	            $checkout_btn.data( 'epBookingSubmitting', true ).prop( 'disabled', true );
+	            var form = $( "#ep_event_checkout_form" );
+	            let data = { 
+	                action: 'ep_save_event_booking', 
+	                data  : form.serialize(),
+                };
+                jQuery('.ep-event-loader').show();
+                $.ajax({
+                    type    : "POST",
+                    url     : eventprime.ajaxurl,
+                    data    : data,
+                    success : function( response ) {
+                        if( response.success == true ) {
+                            if( response.data.payment_method == "paypal" ) {
+                                let order_id      = response.data.order_id;
+                                let booking_total = response.data.booking_total;
+                                let item_total    = response.data.item_total;
+                                if( $( '#ep_paypal_item_number' ).length > 0 ) {
+                                    $( '#ep_paypal_item_number' ).val( item_total );
+                                }
+                                if( $( '#ep_paypal_item_price' ).length > 0 ) {
+                                    $( '#ep_paypal_item_price' ).val( booking_total );
+                                }
+                                if( $( '#ep_paypal_order_id' ).length > 0 ) {
+                                    $( '#ep_paypal_order_id' ).val( order_id );
+                                }
+                                if( $( '#ep_paypal_order_return_url' ).length > 0 ) {
+                                    let return_url = $( '#ep_paypal_order_return_url' ).val();
+                                    return_url = return_url + '=' + order_id;
+                                    $( '#ep_paypal_order_return_url' ).val( return_url );
+                                }
+                                $( '#ep_paypal_payment_form' ).submit();
+                            } else{
+                                if( response.data.redirect ) {
+                                    location.href = response.data.redirect;
+                                }
                             }
-                            if( $( '#ep_paypal_item_price' ).length > 0 ) {
-                                $( '#ep_paypal_item_price' ).val( booking_total );
-                            }
-                            if( $( '#ep_paypal_order_id' ).length > 0 ) {
-                                $( '#ep_paypal_order_id' ).val( order_id );
-                            }
-                            if( $( '#ep_paypal_order_return_url' ).length > 0 ) {
-                                let return_url = $( '#ep_paypal_order_return_url' ).val();
-                                return_url = return_url + '=' + order_id;
-                                $( '#ep_paypal_order_return_url' ).val( return_url );
-                            }
-                            $( '#ep_paypal_payment_form' ).submit();
-                        } else{
-                            if( response.data.redirect ) {
-                                location.href = response.data.redirect;
-                            }
+                        }else{
+                            show_toast( 'error', response.data.error );
+                            $checkout_btn.data( 'epBookingSubmitting', false ).prop( 'disabled', false );
                         }
-                    }else{
-                        show_toast( 'error', response.data.error );
+                        jQuery('.ep-event-loader').hide();
+                    },
+                    error : function() {
+                        $checkout_btn.data( 'epBookingSubmitting', false ).prop( 'disabled', false );
+                        jQuery('.ep-event-loader').hide();
                     }
-                    jQuery('.ep-event-loader').hide();
-                }
-            });
-        }
+                });
+            }
     });
 
     // Cancel button/link while performing Standard booking process. 

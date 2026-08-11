@@ -495,6 +495,7 @@ class EventPrime_Admin_settings{
         $global_settings_data->hide_past_events                = isset($form_data['hide_past_events']) ? (int) $form_data['hide_past_events'] : 0;
         $global_settings_data->show_no_of_events_card          = sanitize_text_field( $form_data['show_no_of_events_card'] );
         $global_settings_data->card_view_custom_value          = isset( $form_data['card_view_custom_value'] ) ? (int) $form_data['card_view_custom_value'] : 1;
+        $global_settings_data->events_order                    = isset( $form_data['events_order'] ) && in_array( $form_data['events_order'], array( 'asc', 'desc' ), true ) ? sanitize_text_field( $form_data['events_order'] ) : 'asc';
         $global_settings_data->disable_filter_options          = isset( $form_data['disable_filter_options'] ) ? (int) $form_data['disable_filter_options'] : 0;
         $global_settings_data->hide_old_bookings               = isset( $form_data['hide_old_bookings'] ) ? (int) $form_data['hide_old_bookings'] : 0;
         $global_settings_data->calendar_column_header_format   = sanitize_text_field( $form_data['calendar_column_header_format'] );

@@ -3324,8 +3324,11 @@ class EP_DBhandler {
             //print_r($old_post_metas);die;
             // add all metas
             if (!empty($old_post_metas)) {
+                $skip_meta_keys = $ep_functions->ep_get_skip_event_meta_keys( array(), $post->ID, $new_post_id, 'create' );
                 foreach ($old_post_metas as $meta_key => $meta_value) {
-                    if ($meta_key == 'em_start_date') {
+                    if ( in_array( $meta_key, $skip_meta_keys, true ) ) {
+                        continue;
+                    } elseif ($meta_key == 'em_start_date') {
                         update_post_meta($new_post_id, $meta_key, $start_date);
                     } elseif ($meta_key == 'em_end_date') {
                         update_post_meta($new_post_id, $meta_key, $end_date);
@@ -3835,8 +3838,14 @@ class EP_DBhandler {
 				  	// Update the post into the database
 					wp_update_post( $child_post_update );
 					if( ! empty( $parent_post_metas ) ) {
+                        $skip_meta_keys = $ep_functions->ep_get_skip_event_meta_keys(
+                            array( 'em_start_date', 'em_end_date', 'em_id', 'em_ls_seat_plan', 'em_seat_data', 'meeting_data' ),
+                            $post_id,
+                            $child_post->ID,
+                            'update'
+                        );
 						foreach( $parent_post_metas as $meta_key => $meta_value ) {
-							if( $meta_key == 'em_start_date' || $meta_key == 'em_end_date' || $meta_key == 'em_id' || $meta_key == 'em_ls_seat_plan' || $meta_key == 'em_seat_data' || $meta_key == 'meeting_data' ) {
+							if ( in_array( $meta_key, $skip_meta_keys, true ) ) {
 								continue;
 							} elseif( $meta_key == 'em_name' ) {
 								update_post_meta( $child_post->ID, $meta_key, $child_event_name );

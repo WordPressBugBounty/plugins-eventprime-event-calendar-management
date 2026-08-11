@@ -31,6 +31,59 @@ class Eventprime_Rest_Api {
         return $this->integration_helpers;
     }
 
+    protected function ep_sideload_featured_image_from_url( $image_url, $post_id ) {
+        $image_url = esc_url_raw( $image_url );
+        $post_id   = absint( $post_id );
+
+        if ( empty( $image_url ) || empty( $post_id ) ) {
+            return new WP_Error( 'ep_invalid_featured_image', 'Invalid featured image URL or event ID.' );
+        }
+
+        if ( ! function_exists( 'media_handle_sideload' ) ) {
+            require_once ABSPATH . 'wp-admin/includes/media.php';
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+            require_once ABSPATH . 'wp-admin/includes/image.php';
+        }
+
+        $tmp = download_url( $image_url );
+        if ( is_wp_error( $tmp ) ) {
+            return $tmp;
+        }
+
+        $path      = wp_parse_url( $image_url, PHP_URL_PATH );
+        $file_name = basename( (string) $path );
+        $file_name = sanitize_file_name( $file_name );
+
+        if ( empty( $file_name ) || false === strpos( $file_name, '.' ) ) {
+            $response_headers = wp_get_http_headers( $image_url );
+            $content_type     = is_array( $response_headers ) && ! empty( $response_headers['content-type'] )
+                ? strtolower( strtok( $response_headers['content-type'], ';' ) )
+                : '';
+            $extensions       = array(
+                'image/jpeg' => 'jpg',
+                'image/jpg'  => 'jpg',
+                'image/png'  => 'png',
+                'image/gif'  => 'gif',
+                'image/webp' => 'webp',
+            );
+            $extension        = isset( $extensions[ $content_type ] ) ? $extensions[ $content_type ] : 'jpg';
+            $file_name        = 'event-featured-image-' . $post_id . '.' . $extension;
+        }
+
+        $file_array = array(
+            'name'     => $file_name,
+            'tmp_name' => $tmp,
+        );
+
+        $attachment_id = media_handle_sideload( $file_array, $post_id );
+        if ( is_wp_error( $attachment_id ) ) {
+            wp_delete_file( $tmp );
+            return $attachment_id;
+        }
+
+        return absint( $attachment_id );
+    }
+
     /**
      * Enhanced initialization with support for REST, admin-ajax, and plain permalink bridges.
      */
@@ -2211,13 +2264,82 @@ class Eventprime_Rest_Api {
         $end = $end_dt_obj->format( 'Y-m-d H:i:s' );
     }
 
+    // Post status
+    $allowed_post_statuses = array( 'publish', 'draft', 'pending', 'private' );
+    $post_status = 'publish';
+    if ( isset( $body['post_status'] ) ) {
+        $requested_status = sanitize_key( $body['post_status'] );
+        if ( in_array( $requested_status, $allowed_post_statuses, true ) ) {
+            $post_status = $requested_status;
+        }
+    } elseif ( isset( $body['status'] ) ) {
+        $requested_status = sanitize_key( $body['status'] );
+        if ( in_array( $requested_status, $allowed_post_statuses, true ) ) {
+            $post_status = $requested_status;
+        }
+    }
+    if ( isset( $body['draft'] ) && $this->ep_param_truthy( $body, 'draft' ) ) {
+        $post_status = 'draft';
+    }
+
+    // Booking mode
+    $booking_mode = '';
+    if ( isset( $body['em_enable_booking'] ) ) {
+        $booking_mode = sanitize_key( $body['em_enable_booking'] );
+    }
+    if ( ! in_array( $booking_mode, array( 'bookings_on', 'bookings_off', 'external_bookings' ), true ) ) {
+        $booking_mode = '';
+    }
+
+    $external_booking_url = '';
+    if ( isset($body['em_custom_link']) && !empty($body['em_custom_link']) ) {
+        $external_booking_url = esc_url_raw( $body['em_custom_link'] );
+    }
+    if ( ! empty( $external_booking_url ) && empty( $booking_mode ) ) {
+        $booking_mode = 'external_bookings';
+    }
+
+    $external_booking_new_browser = 0;
+    if ( isset( $body['em_custom_link_new_browser'] ) && $this->ep_param_truthy( $body, 'em_custom_link_new_browser' ) ) {
+        $external_booking_new_browser = 1;
+    }
+
+    // Featured image
+    $featured_image_id    = 0;
+    $featured_image_url   = '';
+    $featured_image_error = '';
+    foreach ( array( 'featured_image_id', 'thumbnail_id', 'image_id' ) as $image_id_key ) {
+        if ( empty( $featured_image_id ) && ! empty( $body[ $image_id_key ] ) && is_numeric( $body[ $image_id_key ] ) ) {
+            $featured_image_id = absint( $body[ $image_id_key ] );
+        }
+    }
+    foreach ( array( 'featured_image_url', 'image_url', 'thumbnail_url' ) as $image_url_key ) {
+        if ( empty( $featured_image_url ) && ! empty( $body[ $image_url_key ] ) ) {
+            $featured_image_url = esc_url_raw( $body[ $image_url_key ] );
+        }
+    }
+    if ( empty( $featured_image_id ) && ! empty( $body['featured_image'] ) ) {
+        if ( is_numeric( $body['featured_image'] ) ) {
+            $featured_image_id = absint( $body['featured_image'] );
+        } else {
+            $featured_image_url = esc_url_raw( $body['featured_image'] );
+        }
+    }
+    if ( empty( $featured_image_id ) && ! empty( $body['thumbnail'] ) ) {
+        if ( is_numeric( $body['thumbnail'] ) ) {
+            $featured_image_id = absint( $body['thumbnail'] );
+        } else {
+            $featured_image_url = esc_url_raw( $body['thumbnail'] );
+        }
+    }
+
     // Description
     if ( isset( $body['em_description'] ) ) {
-        $description = sanitize_textarea_field( $body['em_description'] );
+        $description = wp_kses_post( $body['em_description'] );
     } elseif ( isset( $body['description'] ) ) {
-        $description = sanitize_textarea_field( $body['description'] );
+        $description = wp_kses_post( $body['description'] );
     } elseif ( isset( $body['event_description'] ) ) {
-        $description = sanitize_textarea_field( $body['event_description'] );
+        $description = wp_kses_post( $body['event_description'] );
     } else {
         $description = '';
     }
@@ -2230,7 +2352,7 @@ class Eventprime_Rest_Api {
 
     // Parse to timestamps
     if ( empty( $start_ts ) && ! empty( $start_date_for_ep ) ) {
-    if ( $ep && method_exists( $ep, 'ep_date_to_timestamp' ) ) {
+        if ( $ep && method_exists( $ep, 'ep_date_to_timestamp' ) ) {
             $try = $ep->ep_date_to_timestamp( $start_date_for_ep, 'Y-m-d', 1 );
             if ( $try ) { $start_ts = (int) $try; }
         }
@@ -2339,28 +2461,29 @@ class Eventprime_Rest_Api {
         return rest_ensure_response( array( 'status' => 'error', 'message' => 'Missing required event data.' ), 400 );
     }
 
-    // SIMPLE BOOKING DETECTION
-    $has_tickets = ( ! empty( $body['tickets'] ) && is_array( $body['tickets'] ) ) || ! empty( $body['ticket'] );
+	    // SIMPLE BOOKING DETECTION
+	    $has_tickets = ( ! empty( $body['tickets'] ) && is_array( $body['tickets'] ) ) || ! empty( $body['ticket'] );
+	    $event_booking_mode = ! empty( $booking_mode ) ? $booking_mode : ( $has_tickets ? 'bookings_on' : '' );
 
-    // Create event
-    if ( class_exists( 'Eventprime_Basic_Functions' ) ) {
-        $ep = new Eventprime_Basic_Functions();
-        $event_data = array( 'name' => $name, 'description' => $description );
-        $event_data['em_add_slug_in_event_title'] = 0;
+	    // Create event
+	    if ( class_exists( 'Eventprime_Basic_Functions' ) ) {
+	        $ep = new Eventprime_Basic_Functions();
+	        $event_data = array( 'name' => $name, 'description' => $description );
+	        $event_data['em_add_slug_in_event_title'] = 0;
         if ( ! empty( $final_start_ts ) ) { $event_data['em_start_date'] = $final_start_ts; $event_data['em_start_date_time'] = $final_start_ts; }
         if ( ! empty( $final_end_ts ) )   { $event_data['em_end_date']   = $final_end_ts;   $event_data['em_end_date_time']   = $final_end_ts; }
         if ( $venue_id )      { $event_data['em_venue']     = $venue_id; }
         if ( $organizer_id )  { $event_data['em_organizer'] = $organizer_id; }
-        if ( $performer_id )  { $event_data['em_performer'] = $performer_id; }
-        if ( $has_tickets )   { $event_data['em_enable_booking'] = 'bookings_on'; }
-        $event_id = $ep->insert_event_post_data( $event_data );
-    } else {
-        $post = array(
-            'post_title' => $name,
-            'post_content' => $description,
-            'post_status' => 'publish',
-            'post_type' => 'em_event',
-        );
+	        if ( $performer_id )  { $event_data['em_performer'] = $performer_id; }
+	        if ( ! empty( $event_booking_mode ) ) { $event_data['em_enable_booking'] = $event_booking_mode; }
+	        $event_id = $ep->insert_event_post_data( $event_data );
+	    } else {
+	        $post = array(
+	            'post_title' => $name,
+	            'post_content' => $description,
+	            'post_status' => $post_status,
+	            'post_type' => 'em_event',
+	        );
         if ( $venue_id )     $post['em_venue']     = $venue_id;
         if ( $organizer_id ) $post['em_organizer'] = $organizer_id;
         if ( $performer_id ) $post['em_performer'] = $performer_id;
@@ -2368,21 +2491,21 @@ class Eventprime_Rest_Api {
         if ( $event_id && ! is_wp_error( $event_id ) ) {
             if ( ! empty( $final_start_ts ) ) { update_post_meta( $event_id, 'em_start_date', $final_start_ts ); update_post_meta( $event_id, 'em_start_date_time', $final_start_ts ); }
             if ( ! empty( $final_end_ts ) )   { update_post_meta( $event_id, 'em_end_date',   $final_end_ts ); update_post_meta( $event_id, 'em_end_date_time',   $final_end_ts ); }
-            if ( $has_tickets )               { update_post_meta( $event_id, 'em_enable_booking', 'bookings_on' ); }
-            if ( $venue_id )      update_post_meta( $event_id, 'em_venue', $venue_id );
+	            if ( ! empty( $event_booking_mode ) ) { update_post_meta( $event_id, 'em_enable_booking', $event_booking_mode ); }
+	            if ( $venue_id )      update_post_meta( $event_id, 'em_venue', $venue_id );
             if ( $organizer_id )  update_post_meta( $event_id, 'em_organizer', $organizer_id );
             if ( $performer_id )  update_post_meta( $event_id, 'em_performer', $performer_id );
             update_post_meta( $event_id, 'em_add_slug_in_event_title', 0 );
         }
     }
 
-    if ( $event_id && ! is_wp_error( $event_id ) ) {
-        $original_name = $name;
-        $clean_name = preg_replace( '/[\s_\-]*\d{8,14}$/', '', $original_name );
-        $clean_name = trim( $clean_name );
-        if ( $clean_name !== $original_name ) { $name = $clean_name; }
-        wp_update_post( array( 'ID' => $event_id, 'post_title' => $name ) );
-    }
+	    if ( $event_id && ! is_wp_error( $event_id ) ) {
+	        $original_name = $name;
+	        $clean_name = preg_replace( '/[\s_\-]*\d{8,14}$/', '', $original_name );
+	        $clean_name = trim( $clean_name );
+	        if ( $clean_name !== $original_name ) { $name = $clean_name; }
+	        wp_update_post( array( 'ID' => $event_id, 'post_title' => $name, 'post_status' => $post_status, 'post_content' => $description ) );
+	    }
 
     if ( ! $event_id || is_wp_error( $event_id ) ) {
         return rest_ensure_response( array( 'status' => 'error', 'message' => 'Something went wrong.' ), 500 );
@@ -2399,7 +2522,9 @@ class Eventprime_Rest_Api {
     }
     $has_tickets = ( ! empty( $body['tickets'] ) && is_array( $body['tickets'] ) && count( $body['tickets'] ) > 0 ) || ! empty( $body['ticket'] );
     if ( $event_id && ! is_wp_error( $event_id ) ) {
-        if ( $has_tickets ) update_post_meta( $event_id, 'em_enable_booking', 'bookings_on' );
+	        if ( ! empty( $event_booking_mode ) ) {
+	            update_post_meta( $event_id, 'em_enable_booking', $event_booking_mode );
+	        }
         if ( ! empty( $body['tickets'] ) && is_array( $body['tickets'] ) ) {
             foreach ( $body['tickets'] as $tdata ) {
                 if ( ! is_array( $tdata ) ) continue;
@@ -2859,7 +2984,7 @@ class Eventprime_Rest_Api {
             }
         }
 
-        if ( $has_tickets ) update_post_meta( $event_id, 'em_enable_booking', 'bookings_on' );
+	        if ( ! empty( $event_booking_mode ) ) update_post_meta( $event_id, 'em_enable_booking', $event_booking_mode );
 
         // Taxonomy/meta attachments (unchanged)
         if ( ! empty( $event_type_ids ) ) {
@@ -2878,14 +3003,37 @@ class Eventprime_Rest_Api {
             if ( $organizer_id ) update_post_meta( $event_id, 'em_organizer_id', $organizer_id );
             if ( $organizer_id ) wp_set_object_terms( $event_id, array( $organizer_id ), 'em_event_organizer', false );
         }
-        if ( ! empty( $venue_ids ) ) {
-            update_post_meta( $event_id, 'em_venue', $venue_ids );
-            if ( $venue_id ) update_post_meta( $event_id, 'em_venue_id', $venue_id );
-            if ( $venue_id ) wp_set_object_terms( $event_id, array( $venue_id ), 'em_venue', false );
-        }
-    }
+	        if ( ! empty( $venue_ids ) ) {
+	            update_post_meta( $event_id, 'em_venue', $venue_ids );
+	            if ( $venue_id ) update_post_meta( $event_id, 'em_venue_id', $venue_id );
+	            if ( $venue_id ) wp_set_object_terms( $event_id, array( $venue_id ), 'em_venue', false );
+	        }
 
-    do_action( 'ep_api_event_created', $event_id, array( 'em_name' => $name ) );
+	        if ( 'external_bookings' === $event_booking_mode ) {
+	            update_post_meta( $event_id, 'em_custom_link', $external_booking_url );
+	            update_post_meta( $event_id, 'em_custom_link_new_browser', $external_booking_new_browser );
+	        }
+
+	        if ( ! empty( $featured_image_id ) ) {
+	            if ( wp_attachment_is_image( $featured_image_id ) ) {
+	                set_post_thumbnail( $event_id, $featured_image_id );
+	            } else {
+	                $featured_image_error = 'Provided featured image ID is not an image attachment.';
+	                $featured_image_id    = 0;
+	            }
+	        } elseif ( ! empty( $featured_image_url ) ) {
+	            $sideloaded_image_id = $this->ep_sideload_featured_image_from_url( $featured_image_url, $event_id );
+	            if ( ! is_wp_error( $sideloaded_image_id ) && ! empty( $sideloaded_image_id ) ) {
+	                $featured_image_id = absint( $sideloaded_image_id );
+	                set_post_thumbnail( $event_id, $featured_image_id );
+	            } elseif ( is_wp_error( $sideloaded_image_id ) ) {
+	                $featured_image_error = $sideloaded_image_id->get_error_message();
+	                error_log( 'EP API featured image sideload failed: ' . $featured_image_error );
+	            }
+	        }
+	    }
+
+	    do_action( 'ep_api_event_created', $event_id, array( 'em_name' => $name ) );
 
     $event_out = array(
         'id'           => $event_id,
@@ -2896,8 +3044,14 @@ class Eventprime_Rest_Api {
         'venue_id'     => $venue_id,
         'organizer_id' => $organizer_id,
         'performer_id' => $performer_id,
+        'post_status'  => $post_status,
+        'booking_mode' => $event_booking_mode,
+        'external_booking_url' => $external_booking_url,
+        'featured_image_id' => $featured_image_id,
+        'featured_image_url' => $featured_image_id ? wp_get_attachment_url( $featured_image_id ) : '',
+        'featured_image_error' => $featured_image_error,
         'tickets'      => $created_ticket_ids,
-    );
+	    );
 
     return rest_ensure_response( array( 'status' => 'success', 'count' => 1, 'event' => $event_out ) );
 }

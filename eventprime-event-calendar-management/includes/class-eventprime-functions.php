@@ -6316,9 +6316,21 @@ public function ep_get_event_date_time_diff( $event ) {
         if( isset( $atts['show'] ) && ! empty( $atts['show'] ) ){
             $events_data['limit'] = $atts['show'];
         }
-        $events_data['order'] = 'ASC';
-        if(isset($atts['order']) && ! empty($atts['order'])){
-           $events_data['order'] = $atts['order']; 
+        $events_data['order'] = isset( $events_settings->events_order ) ? strtoupper( sanitize_text_field( $events_settings->events_order ) ) : 'ASC';
+        if( ! in_array( $events_data['order'], array( 'ASC', 'DESC' ), true ) ) {
+            $events_data['order'] = 'ASC';
+        }
+        if( isset( $atts['order'] ) && ! empty( $atts['order'] ) ) {
+            $shortcode_order = strtoupper( sanitize_text_field( $atts['order'] ) );
+            if( in_array( $shortcode_order, array( 'ASC', 'DESC' ), true ) ) {
+                $events_data['order'] = $shortcode_order;
+            }
+        }
+        if( $load_more && isset( $_POST['order'] ) && ! empty( $_POST['order'] ) ) {
+            $load_more_order = strtoupper( sanitize_text_field( wp_unslash( $_POST['order'] ) ) );
+            if( in_array( $load_more_order, array( 'ASC', 'DESC' ), true ) ) {
+                $events_data['order'] = $load_more_order;
+            }
         }
         // limit will be -1 for calendar views
         if($events_data['display_style'] == 'slider' || $events_data['display_style'] == 'month' || $events_data['display_style'] == 'week' || $events_data['display_style'] == 'day' || $events_data['display_style'] == 'listweek' ){
@@ -13571,8 +13583,12 @@ public function ep_get_events( $fields ) {
         $new_post_id = wp_insert_post($new_post);
         // Get all the post meta data from the original post
         $post_meta = get_post_meta($post_id);
+        $skip_meta_keys = $this->ep_get_skip_event_meta_keys( array(), $post_id, $new_post_id, 'duplicate' );
         // Loop through each meta key and copy it to the new post
         foreach ($post_meta as $meta_key => $meta_values) {
+            if ( in_array( $meta_key, $skip_meta_keys, true ) ) {
+                continue;
+            }
             foreach ($meta_values as $meta_value) {
                 add_post_meta($new_post_id, $meta_key, maybe_unserialize($meta_value));
             }
@@ -14418,6 +14434,23 @@ public function ep_get_events( $fields ) {
         $DBhandler = new EP_DBhandler();
         $event_id = $DBhandler->get_value('TICKET','event_id', $ticket_id);
         return $event_id;
+    }
+
+    public function ep_get_skip_event_meta_keys( $default_keys = array(), $source_event_id = 0, $target_event_id = 0, $context = '' ) {
+        if ( ! is_array( $default_keys ) ) {
+            $default_keys = array();
+        }
+
+        $source_event_id = absint( $source_event_id );
+        $target_event_id = absint( $target_event_id );
+        $context         = sanitize_key( (string) $context );
+
+        $skip_meta_keys = apply_filters( 'ep_skip_child_event_meta_keys', $default_keys, $source_event_id, $target_event_id, $context );
+        if ( ! is_array( $skip_meta_keys ) ) {
+            $skip_meta_keys = $default_keys;
+        }
+
+        return array_values( array_unique( array_filter( $skip_meta_keys, 'is_string' ) ) );
     }
 
     

@@ -4467,6 +4467,7 @@ class Eventprime_Event_Calendar_Management_Admin {
                         }
 
                         do_action( 'ep_duplicate_event_extension_data', $event, $post_id );
+                        do_action( 'ep_duplicate_event_with_source_event_id', $event, $post_id, $event_id ); 
                 }
         }
          return $redirect;

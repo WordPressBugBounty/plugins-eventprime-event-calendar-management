@@ -164,6 +164,7 @@ class Eventprime_Global_Settings{
             'hide_past_events'                => 0,
             'show_no_of_events_card'          => 10,
             'card_view_custom_value'          => 1,
+            'events_order'                    => 'asc',
             'disable_filter_options'          => 0,
             'hide_old_bookings'               => 0,
             'calendar_column_header_format'   => 'dddd',

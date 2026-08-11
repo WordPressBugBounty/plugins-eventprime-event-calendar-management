@@ -339,6 +339,20 @@ $sub_options = $global_settings->sub_options;
                 <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( 'EventPrime displays current booking status, along with other event details, for each event on the event listings. You can display it as a progress bar or plain text.', 'eventprime-event-calendar-management' );?></div>
             </td>
         </tr>
+        <tr valign="top">
+            <th scope="row" class="titledesc">
+                <label for="events_order">
+                    <?php esc_html_e( 'Order', 'eventprime-event-calendar-management' );?>
+                </label>
+            </th>
+            <td class="forminp forminp-text">
+                <select name="events_order" id="events_order" class="ep-form-control">
+                    <option value="asc" <?php selected( isset( $global_options->events_order ) ? $global_options->events_order : 'asc', 'asc' );?>><?php esc_html_e( 'Ascending', 'eventprime-event-calendar-management' );?></option>
+                    <option value="desc" <?php selected( isset( $global_options->events_order ) ? $global_options->events_order : 'asc', 'desc' );?>><?php esc_html_e( 'Descending', 'eventprime-event-calendar-management' );?></option>
+                </select>
+                <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( 'Choose whether events are displayed by start date in ascending or descending order.', 'eventprime-event-calendar-management' );?></div>
+            </td>
+        </tr>
     </tbody>
 </table>
 <div class="ep-setting-tab-content">
