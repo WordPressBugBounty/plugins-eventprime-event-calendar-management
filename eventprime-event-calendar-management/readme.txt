@@ -1,11 +1,11 @@
-=== EventPrime – Events Calendar, Bookings and Tickets ===
+=== Event Prime – Events Calendar, Bookings and Tickets ===
 Contributors: metagauss
 Donate link: https://theeventprime.com/
 Tags: event calendar, organizer , event manager, tickets, event booking, event bookings, booking manager, bookings manager, event organizer, events organizer, event planner, events planner, paid events, event list, events list, event registration, event registrations
 Requires at least: 4.8
 Tested up to: 7.0
 Requires PHP: 7.2
-Stable tag: 4.3.4.6
+Stable tag: 4.3.4.7
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -15,9 +15,9 @@ Modern Events Calendar plugin ❤️ for creating free or paid events. Supports 
 
 == Description ==
 
-EventPrime is an easy-to-use, modern WordPress Events Calendar plugin. With the EventPrime events plugin, you can publish new events on your website in a few simple clicks. Just pick a date on the Events Calendar in the WordPress Dashboard area, and start creating your event! Publish free, as well as paid events by enabling Bookings from EventPrime's event settings.
+Event Prime is an easy-to-use, modern WordPress Events Calendar plugin. With the Event Prime events plugin, you can publish new events on your website in a few simple clicks. Just pick a date on the Events Calendar in the WordPress Dashboard area, and start creating your event! Publish free, as well as paid events by enabling Bookings from Event Prime's event settings.
 
-Some of the top EventPrime features include:
+Some of the top Event Prime features include:
 
 * Supports multi-day and recurring events.
 * Event Calendar features month, week, agenda and day views.
@@ -39,20 +39,20 @@ Some of the top EventPrime features include:
 * Dedicated frontend user area for bookings management, wish-listing and downloading/ printing tickets.
 * And much much more!
 
-EventPrime also offers a wide selection of [free and premium extensions](https://theeventprime.com/all-extensions/) for all your requirements.
+Event Prime also offers a wide selection of [free and premium extensions](https://theeventprime.com/all-extensions/) for all your requirements.
 
 >For any issues, bugs, feature requests and general help, contact our awesome support!
  
->Cheers, EventPrime Team
+>Cheers, Event Prime Team
 
-With our WordPress events plugin, you now have an advanced event management system to create and manage an event list the way you always wanted! No more difference between the dashboard WordPress event calendar and the calendar that is visible to your visitors on the front-end. The Event Calendar on the front-end will appear exactly the way you configure it from the dashboard area. Finally, a WordPress Events Calendar plugin which works effortlessly! Event management in WordPress was never this easy, thanks to the EventPrime events plugin.
+With our WordPress events plugin, you now have an advanced event management system to create and manage an event list the way you always wanted! No more difference between the dashboard WordPress event calendar and the calendar that is visible to your visitors on the front-end. The Event Calendar on the front-end will appear exactly the way you configure it from the dashboard area. Finally, a WordPress Events Calendar plugin which works effortlessly! Event management in WordPress was never this easy, thanks to the Event Prime events plugin.
 
-EventPrime is a WordPress Events Calendar plugin that supports free event bookings, paid event bookings, single day events, multi-day events, event performers, event venues and locations, event gallery, event registration, event calendar widget and a lot more. Check out our [Starter Guide](https://theeventprime.com/starter-guide/) to get up and running with this awesome event manager tool.
+Event Prime is a WordPress Events Calendar plugin that supports free event bookings, paid event bookings, single day events, multi-day events, event performers, event venues and locations, event gallery, event registration, event calendar widget and a lot more. Check out our [Starter Guide](https://theeventprime.com/starter-guide/) to get up and running with this awesome event manager tool.
 
 > If you want more out of our new WordPress events plugin, do check out its [Extensions](https://theeventprime.com/all-extensions/). We have added Live Seating, Event Sponsors, Stripe Payments, Offline Payments, Event Coupon Codes, Invoices and a lot more planned for the future!
 
 
-== EventPrime Backend ==
+== Event Prime Backend ==
 
 = Events Calendar View =
 
@@ -165,7 +165,7 @@ Each Performer has following properties you can set:
 * Image of the performer.
 * A separate Gallery of performer images.
 * Description of the performer.
-* Display in List - if you wish to hide or show Performer from EventPrime's fronted Performers list view.
+* Display in List - if you wish to hide or show Performer from Event Prime's fronted Performers list view.
 * Contact fields like Phone, Email and Website.
 * Social media pages like Facebook, Instagram, LinkedIn, Twitter etc.
 
@@ -221,11 +221,11 @@ A built-in emailing system to quickly send emails to specific attendees or all a
 
 = Settings =
 
-Settings page allows granular EventPrime configuration. It has multiple tabs which organize related options together. These are:
+Settings page allows granular Event Prime configuration. It has multiple tabs which organize related options together. These are:
 
 = General =
 
-This tab has all the basic settings for EventPrime.
+This tab has all the basic settings for Event Prime.
 
 * Hide or show past events from events directory or Wordpress calendar.
 * Default WordPress calendar view.
@@ -246,7 +246,7 @@ This tab has all the basic settings for EventPrime.
 * Hide event time from calendar view.
 
 = Email Notifications =
-Here you can modify layout and content of different emails sent out from EventPrime. You can also turn them on or off individually.
+Here you can modify layout and content of different emails sent out from Event Prime. You can also turn them on or off individually.
 * User registration email
 * Booking pending email
 * Booking confirmation email
@@ -272,7 +272,7 @@ Here you can modify layout and content of different emails sent out from EventPr
 * Google reCaptcha for spam protection.
 
 = Default Pages =
-Here you can set default pages for various fronted EventPrime views. These include:
+Here you can set default pages for various fronted Event Prime views. These include:
 * Performers Page
 * Event Sites Page
 * Events Page
@@ -284,10 +284,10 @@ Here you can set default pages for various fronted EventPrime views. These inclu
 * Event Organizers Page
 
 = Custom CSS =
-Add custom CSS to EventPrime pages for tailor-made appearance for your theme. You can re-style Wordpress event calendar to match your website's looks.
+Add custom CSS to Event Prime pages for tailor-made appearance for your theme. You can re-style Wordpress event calendar to match your website's looks.
 
 = Custom CSS =
-Frontend event submissions allow your users to submit events to EventPrime events database. You have full control over the submission process of these events.
+Frontend event submissions allow your users to submit events to Event Prime events database. You have full control over the submission process of these events.
 * Define confirmation message to be displayed upon a successful submission.
 * Allow public submissions.
 * Message for non-logged in users if public submissions are off.
@@ -306,7 +306,7 @@ Frontend event submissions allow your users to submit events to EventPrime event
 Customize general labels and button labels for different frontend pages based on your requirements.
 
 =Extensions Settings=
-A lot of EventPrime extensions add plugin-wide settings. These settings pages will appear in a separate sections opened by clicking corresponding icons in Extensions Settings area.
+A lot of Event Prime extensions add plugin-wide settings. These settings pages will appear in a separate sections opened by clicking corresponding icons in Extensions Settings area.
 
 = SEO =
 Enable pretty URLs and define custom subdirectories. Following subdirectories are supported:
@@ -377,9 +377,9 @@ Detailed settings for single Organizer and multi-organizer frontend pages.
 * Custom shortcode format to publish this view with all above properties passed as variables.
 
 = User Capabilities =
-Allow granular control to EventPrime dashboard area based on user roles.
+Allow granular control to Event Prime dashboard area based on user roles.
 
-== EventPrime Frontend ==
+== Event Prime Frontend ==
 
 = The Events Page including Events Calendar =
 
@@ -422,7 +422,7 @@ While in the calendar view, events are displayed color coded with their respecti
 
 = Directory Pages =
 
-In addition to the comprehensive Events Calendar view, the EventPrime events plugin offers complete directories for entities associated with events. The directory pages are created automatically on your site along with the installation and activation of our WordPress events plugin. These pages contain shortcodes for their respective directories. So you can use the shortcodes to add them onto any other pages you'd like. The directory pages are:
+In addition to the comprehensive Events Calendar view, the Event Prime events plugin offers complete directories for entities associated with events. The directory pages are created automatically on your site along with the installation and activation of our WordPress events plugin. These pages contain shortcodes for their respective directories. So you can use the shortcodes to add them onto any other pages you'd like. The directory pages are:
 
 * Event Types Directory
 * Event Sites Directory
@@ -438,12 +438,12 @@ From the Submit Event frontend page, any user can submit his/her own event. The 
 * User submitting an event can submit its name, start date, end date, description, event type, venue, and performers.
 * Enable bookings, set booking start and end date, and also set the booking price.
 * Upon submitting the form, user will see a confirmation message that is customizable from the Global Settings.
-* Upon submitting event, EventPrime will send an email to site admin that a new event has been submitted with the event's details.
+* Upon submitting event, Event Prime will send an email to site admin that a new event has been submitted with the event's details.
 
 
 = Single Entities =
 
-The EventPrime events plugin also allows you to create individual entity pages using shortcodes with ID parameter. Shortcodes are availabe for the following pages:
+The Event Prime events plugin also allows you to create individual entity pages using shortcodes with ID parameter. Shortcodes are availabe for the following pages:
 
 * Single Event
 * Single Event Type
@@ -454,12 +454,12 @@ The EventPrime events plugin also allows you to create individual entity pages u
 
 = User Account Area =
 
-The Directory and Single entity pages are for displaying Events and related entities. For a user to see his/her own activity with events, our event booking plugin offers a full-fledged User Account Area on the front-end. With this EventPrime page, users can login and manage their event booking. Users can also cancel their event booking and find directions to Event Sites where Events are booked.
+The Directory and Single entity pages are for displaying Events and related entities. For a user to see his/her own activity with events, our event booking plugin offers a full-fledged User Account Area on the front-end. With this Event Prime page, users can login and manage their event booking. Users can also cancel their event booking and find directions to Event Sites where Events are booked.
 
 
 == Widgets ==
 
-The EventPrime events plugin offers you 4 highly useful WordPress calendar widget to setup anywhere on your site. These are:
+The Event Prime events plugin offers you 4 highly useful WordPress calendar widget to setup anywhere on your site. These are:
 
 * Countdown Event Widget- This is a reverse countdown to upcoming events which you can select from the Widget settings. The upcoming events countdown displays the Days, Hours, Minutes and Seconds left till the event goes live.
 * Slider Event Widget - This widget is a slideshow of the Featured Images from various Events on your site. Clicking on a Feature Image from the slideshow will lead to that Event's individual page.
@@ -469,38 +469,38 @@ The EventPrime events plugin offers you 4 highly useful WordPress calendar widge
 3 more widgets can be added to our WordPress Events Calendar plugin using the "Event List Widgets" extensions.
 
 
-= EventPrime Free Extensions =
+= Event Prime Free Extensions =
 
 = Event Analytics Free =
 
 Analyze event performance and bookings through essential data organized into tables and charts.
 
->Functionality of this extension has been integrated into EventPrime version 3. Therefore it has been deprecated for version 3 and above.
+>Functionality of this extension has been integrated into Event Prime version 3. Therefore it has been deprecated for version 3 and above.
 
 = Events Import Export Free =
 
-Import events from other plugins for easy migration to EventPrime WordPress calendar. You can also export EventPrime events for backup and other purposes.
+Import events from other plugins for easy migration to Event Prime WordPress calendar. You can also export Event Prime events for backup and other purposes.
 
-[Download Events Import Export Extension for EventPrime - Modern Events Calendar](https://theeventprime.com/all-extensions/events-import-export/)
+[Download Events Import Export Extension for Event Prime - Modern Events Calendar](https://theeventprime.com/all-extensions/events-import-export/)
 
 
-= EventPrime WooCommerce Integration Free =
+= Event Prime WooCommerce Integration Free =
 
 Add merchandise and other products as mandatory/ optional items for attendees while they checkout for event bookings.
 
-[Download EventPrime WooCommerce Integration for EventPrime - Modern Events Calendar](https://theeventprime.com/all-extensions/woocommerce-integration/)
+[Download Event Prime WooCommerce Integration for Event Prime - Modern Events Calendar](https://theeventprime.com/all-extensions/woocommerce-integration/)
 
-= EventPrime Zapier Integration Free =
+= Event Prime Zapier Integration Free =
 
-Connect with over 3000 apps by building custom templates using EventPrime triggers.
+Connect with over 3000 apps by building custom templates using Event Prime triggers.
 
-[Download EventPrime Zapier Integration for EventPrime - Modern Events Calendar](https://theeventprime.com/all-extensions/zapier-integration/)
+[Download Event Prime Zapier Integration for Event Prime - Modern Events Calendar](https://theeventprime.com/all-extensions/zapier-integration/)
 
-= EventPrime Premium Extensions =
+= Event Prime Premium Extensions =
 
 = Live Seating =
 
-Every modern events calendar plugin needs a powerful live seating system, and we have built the most advanced one for our WordPress calendar plugin. EventPrime Live Seating extension supports custom layouts, seat numbers, frontend seat selection views, full booking checkout support and deep integration with our other extensions.
+Every modern events calendar plugin needs a powerful live seating system, and we have built the most advanced one for our WordPress calendar plugin. Event Prime Live Seating extension supports custom layouts, seat numbers, frontend seat selection views, full booking checkout support and deep integration with our other extensions.
 
 [Download Live Seating](https://theeventprime.com/all-extensions/live-seating/)
 
@@ -526,7 +526,7 @@ Use popular Stripe payment system with your WordPress event calendar and receive
 
 Add recurring events to your WordPress event calendar! Our powerful recurrence creation tool allows you to fine tune how regularly the events repeat. Once created, you can make edits to all events simultaneously or individual instances. Users can be allowed to book for separate instances or a single booking for all event recurrences. 
 
->Functionality of this extension has been integrated into EventPrime version 3. Therefore it has been deprecated for version 3 and above.
+>Functionality of this extension has been integrated into Event Prime version 3. Therefore it has been deprecated for version 3 and above.
 
 = Coupon Codes =
 
@@ -550,7 +550,7 @@ Allows visitors to book events without logging in on your website. You can optio
 
 Allow your users to save events in their personal wishlists. Wishlisted events will be visible to users from user account area. Wishlist can be used by the users to quick-book their favorite events.
 
->Functionality of this extension has been integrated into EventPrime version 3. Therefore it has been deprecated for version 3 and above.
+>Functionality of this extension has been integrated into Event Prime version 3. Therefore it has been deprecated for version 3 and above.
 
 = Event List Widgets =
 
@@ -562,7 +562,7 @@ Spruce up your website by showcasing different events in widget areas of your th
 
 Allow users to post comments under events. Comments can be reviewed and moderate by the admin. 
 
->EventPrime version 3 and above use WordPress' core comments feature instead of this extension.
+>Event Prime version 3 and above use WordPress' core comments feature instead of this extension.
 
 = Admin Attendee Bookings =
 
@@ -574,15 +574,15 @@ Allows admins to create custom bookings from dashboard and add attendees manuall
 
 Offer discounts to your users based on preset conditions. Discounts are automatically applied during checkout if those conditions are met. You can show promotional message to eligible user on frontend.
 
->Functionality of this extension has been integrated into EventPrime version 3. Therefore it has been deprecated for version 3 and above.
+>Functionality of this extension has been integrated into Event Prime version 3. Therefore it has been deprecated for version 3 and above.
 
 = Google Import Export =
 
-Import events from your Google Calendar to EventPrime WordPress Calendar. Or export from your WordPress calendar to Google Calendar, if that's what you prefer! You can choose events while importing or exporting.
+Import events from your Google Calendar to Event Prime WordPress Calendar. Or export from your WordPress calendar to Google Calendar, if that's what you prefer! You can choose events while importing or exporting.
 
 [Download Import Export](https://theeventprime.com/all-extensions/events-import-export/)
 
->Functionality of this extension has been merged with Import Export Extension for EventPrime version 3. Therefore it has been deprecated for version 3 and above.
+>Functionality of this extension has been merged with Import Export Extension for Event Prime version 3. Therefore it has been deprecated for version 3 and above.
 
 = Twilio Text Notifications =
 
@@ -590,23 +590,23 @@ Send notifications to your users when they complete a booking along with booking
 
 [Download Twilio Text Notifications](https://theeventprime.com/all-extensions/twilio-text-notifications/)
 
-= EventPrime MailPoet Integration =
+= Event Prime MailPoet Integration =
 
 Sign-up event attendees for MailPoet newsletter lists and ramp up customer engagement with event updates and other stuff.
 
-[Download EventPrime MailPoet Integration for EventPrime - Modern Events Calendar](https://theeventprime.com/all-extensions/mailpoet-integration/)
+[Download Event Prime MailPoet Integration for Event Prime - Modern Events Calendar](https://theeventprime.com/all-extensions/mailpoet-integration/)
 
-= EventPrime Zoom Integration =
+= Event Prime Zoom Integration =
 
-Allow users to book Zoom meetings from EventPrime booking system. Zoom meeting details are shared with attendees once their booking is confirmed.
+Allow users to book Zoom meetings from Event Prime booking system. Zoom meeting details are shared with attendees once their booking is confirmed.
 
-[Download EventPrime Zoom Integration For EventPrime - Modern Events Calendar](https://theeventprime.com/all-extensions/zoom-integration/)
+[Download Event Prime Zoom Integration For Event Prime - Modern Events Calendar](https://theeventprime.com/all-extensions/zoom-integration/)
 
 = Invoices =
 
 Create customized invoicing template with your own branding, and attach automatically to booking confirmation emails.
 
-[Download EventPrime Invoices Extension for EventPrime - Modern Events Calendar](https://theeventprime.com/all-extensions/invoices/)
+[Download Event Prime Invoices Extension for Event Prime - Modern Events Calendar](https://theeventprime.com/all-extensions/invoices/)
 
 == Installation ==
 
@@ -621,15 +621,15 @@ Create customized invoicing template with your own branding, and attach automati
 
 == Frequently Asked Questions ==
 
-= How can I get started with EventPrime? =
+= How can I get started with Event Prime? =
 
-Check out our [Starter Guide](https://theeventprime.com/starter-guide/) to get up and running with EventPrime.
+Check out our [Starter Guide](https://theeventprime.com/starter-guide/) to get up and running with Event Prime.
 
-= I found a bug in EventPrime. How should I report it to you? =
+= I found a bug in Event Prime. How should I report it to you? =
 
 That's easy. Just write to us at our [Contact page](https://theeventprime.com/support/) and our support team will get in touch with you in a matter of minutes.
 
-= I like EventPrime, but it doesn't have some of the features I really require. How can I get them? =
+= I like Event Prime, but it doesn't have some of the features I really require. How can I get them? =
 
 We are always happy to hear your particular needs and requirements. Similar to reporting a bug, just write to us at our [Contact page](https://theeventprime.com/support/). Our support team will contact you right away.
 
@@ -666,6 +666,10 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.3.4.7: August 20, 2026 =
+* Fixed: Restored a visible keyboard focus indicator for Event card footer links.
+* Fixed: Removed an invalid CSS declaration in the single Event stylesheet.
 
 = 4.3.4.6: August 11, 2026 =
 * Added: Added global ordering options for Event Listings.
@@ -805,7 +809,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 = 4.2.1.0: November 11, 2025 =
 * Added: New extension – Square payments for simple, secure, and seamless event bookings.
-* Added: New extension – hCaptcha Security to EventPrime for safer logins, registrations, and checkouts.
+* Added: New extension – hCaptcha Security to Event Prime for safer logins, registrations, and checkouts.
 
 = 4.2.0.1: November 04, 2025 =
 * Added: Security fixes.
@@ -971,7 +975,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 = 4.0.8.0: February 10, 2025 =
 * New: Introduced the Layout Template option – Now, you can create event-specific templates, allowing more customization for individual events.
 * New: Added the ability to create a new Event Type, Organizer, and Venue directly from the event creation page, streamlining event setup.
-* New: Introduced an option to choose your own custom theme for all EventPrime pages, giving more control over the look and feel of your events.
+* New: Introduced an option to choose your own custom theme for all Event Prime pages, giving more control over the look and feel of your events.
 * New: Added an option to show or hide Event Types on the Calendar View, allowing better control over event visibility.
 * Added: Security enhancements and fixes for improved protection.
 * Fixed: Multiple bug fixes to enhance stability and performance.
@@ -1193,7 +1197,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Fixed: Stripe payment activation error.
 * Fixed: Warnings on booking detail page.
 * Fixed: Currency symbol issue on the ticket pdf.
-* Fixed: Design issue with the EventPrime elementor integration.
+* Fixed: Design issue with the Event Prime elementor integration.
 * Fixed: Card view load more issue.
 
 = 3.3.4 =
@@ -1221,7 +1225,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 = 3.3.0 =
 * Fixed: Compatibility with PHP versions 8.1 and 8.2
-* Fixed: Checkout page issue with EventPrime WooCommerce Checkout extension.
+* Fixed: Checkout page issue with Event Prime WooCommerce Checkout extension.
 * Fixed: Wrong display on the frontend for Multi-day Events.
 * Updated: Revamped Feedback Form.
 
@@ -1364,7 +1368,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 = 3.1.3 =
 * Introducing admin calendar!
-* New Extension Launch: EventPrime Advanced Reports!
+* New Extension Launch: Event Prime Advanced Reports!
 * Added: New OAuth type authentication method in the Zoom integration extension.
 * Added: Option to create event in just one click from the admin calendar.
 * Added: Options to list, add, edit, and view event from the admin calendar.
@@ -1672,13 +1676,13 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Fixed: QR code URL issue on the single event page.
 
 = 2.6.3 =
-* New Extension Launch: EventPrime Twilio Text Notifications!
+* New Extension Launch: Event Prime Twilio Text Notifications!
 * Added: User capabilities for Event site/locations, Performers, and Organizers.
 * Added: Intl phone number feature for registration form phone field.
 * Added: Price tier feature for child events with recurring event extension.
 * Updated: Button Labels section.
 * Updated: Automatic Discount extension.
-* Updated: EventPrime MailPoet extension.
+* Updated: Event Prime MailPoet extension.
 * Updated: WooCommerce Integration extension.
 * Updated: Recurring Event extension.
 
@@ -1727,7 +1731,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Fixed: An issue with upcoming events section on event type, site, performers, and organizers.
 
 = 2.5.0 =
-* New Extension Launch: EventPrime Invoices.
+* New Extension Launch: Event Prime Invoices.
 * New: Customizable user-friendly URLs features!
 * New: Option to select Organizers in Add/Edit event popup.
 * New: Option to select Event Image in Add/Edit event popup.
@@ -1757,7 +1761,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Fixed: Attendee name issue on single event page (with Attendees List extension) (User suggestion: Bill Zonios).
 * Fixed: Some notices on booking page (with Mailpoet Integration extension).
 * Fixed: Admin Event popup dashboard link not displaying issue.
-* Updated: EventPrime MailPoet extension.
+* Updated: Event Prime MailPoet extension.
 * Updated: Attendees List extension.
 
 = 2.4.4 =
@@ -1770,7 +1774,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Updated: Stripe Payments extension.
 * Updated: Event Comment extension.
 * Updated: Automatic Discount extension.
-* Updated: EventPrime MailPoet extension.
+* Updated: Event Prime MailPoet extension.
 * Updated: WooCommerce Integration extension.
 
 = 2.4.3 =
@@ -1790,7 +1794,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Added: Booking status option in admin views.
 
 = 2.4.1 =
-* New: EventPrime WooCommerce Integration extension is now available!
+* New: Event Prime WooCommerce Integration extension is now available!
 * Fixed: Price increment issue with max tickets per booking condition.
 * Fixed: Responsive layout issue with the List view.
 * Minor UI improvements.
@@ -1818,7 +1822,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Fixed: Minor issues.
 
 = 2.3.8 =
-* Added: Option to open booking of all future events instantly in EventPrime Recurring Event extension.
+* Added: Option to open booking of all future events instantly in Event Prime Recurring Event extension.
 * Fixed: Single event organizer page issue.
 * Fixed: Minor warnings.
 
@@ -1865,11 +1869,11 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Added: Option to print QR code on Tickets in Global settings.
 
 = 2.3.1 =
-* Added: Option to download EventPrime Zapier Integration (beta).
+* Added: Option to download Event Prime Zapier Integration (beta).
 * Added: Option to show/hide add new event type option on frontend event submission form.
 * Added: Option to show/hide add new event site option on frontend event submission form.
 * Added: Option to show/hide add new event performer option on frontend event submission form.
-* Added: Auto-format Event title option in EventPrime Recurring Event extension.
+* Added: Auto-format Event title option in Event Prime Recurring Event extension.
 * Fixed: Slider view previous slide change issue.
 * Fixed: Recurring events image issue in upcoming events section on single event type, site and performer pages.
 
@@ -1903,15 +1907,15 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Update: Attendee booking fields data on export attendees.
 
 = 2.2.3 =
-* Added: Option to download EventPrime WooCommerce Integration (beta).
-* Added: Option to download EventPrime Zoom Integration (beta).
+* Added: Option to download Event Prime WooCommerce Integration (beta).
+* Added: Option to download Event Prime Zoom Integration (beta).
 * Fixed: Booking confirmation detail not showing if no location added issue on checkout page.
 
 = 2.2.2 =
 * Minor UI changes.
 
 = 2.2.1 =
-* New Extension Launch: EventPrime Mailpoet
+* New Extension Launch: Event Prime Mailpoet
 * Minor UI improvements.
 
 = 2.2.0 =
@@ -2318,7 +2322,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Added option to select default event calendar view from the Global Settings
 
 = 1.2.6 =
-* Added support for ProfileGrid-EventPrime Integration
+* Added support for ProfileGrid-Event Prime Integration
 
 = 1.2.5 =
 * Number of Events for a Performer will now appear on the Performer card in dashboard
@@ -2330,7 +2334,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Minor improvements to the admin Event Types page
 
 = 1.2.2 =
-* Added compatibility with EventPrime Stripe Payments extension
+* Added compatibility with Event Prime Stripe Payments extension
 * Minor improvements to the admin Attendees page
 
 = 1.2.1 =
@@ -2338,7 +2342,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 = 1.2.0 =
 * Added paid bookings
-* Added compatibility with EventPrime Extensions: Live Seating, Event Analytics & Event Sponsors
+* Added compatibility with Event Prime Extensions: Live Seating, Event Analytics & Event Sponsors
 
 = 1.1.0 =
 * Added better compatibility with most popular themes
@@ -2362,7 +2366,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Minor improvements to the frontend events calendar
 
 = 1.0.3 =
-* Added link to Starter Guide in EventPrime Dashboard
+* Added link to Starter Guide in Event Prime Dashboard
 
 = 1.0.2 =
 * Minor improvements to event settings and help-texts
@@ -2374,6 +2378,10 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.3.4.7: August 20, 2026 =
+* Fixed: Restored a visible keyboard focus indicator for Event card footer links.
+* Fixed: Removed an invalid CSS declaration in the single Event stylesheet.
 
 = 4.3.4.6: August 11, 2026 =
 * Added: Added global ordering options for Event Listings.
@@ -2513,7 +2521,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 = 4.2.1.0: November 11, 2025 =
 * Added: New extension – Square payments for simple, secure, and seamless event bookings.
-* Added: New extension – hCaptcha Security to EventPrime for safer logins, registrations, and checkouts.
+* Added: New extension – hCaptcha Security to Event Prime for safer logins, registrations, and checkouts.
 
 = 4.2.0.1: November 04, 2025 =
 * Added: Security fixes.
@@ -2676,7 +2684,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 = 4.0.8.0: February 10, 2025 =
 * New: Introduced the Layout Template option – Now, you can create event-specific templates, allowing more customization for individual events.
 * New: Added the ability to create a new Event Type, Organizer, and Venue directly from the event creation page, streamlining event setup.
-* New: Introduced an option to choose your own custom theme for all EventPrime pages, giving more control over the look and feel of your events.
+* New: Introduced an option to choose your own custom theme for all Event Prime pages, giving more control over the look and feel of your events.
 * New: Added an option to show or hide Event Types on the Calendar View, allowing better control over event visibility.
 * Added: Security enhancements and fixes for improved protection.
 * Fixed: Multiple bug fixes to enhance stability and performance.
@@ -2897,7 +2905,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Fixed: Stripe payment activation error.
 * Fixed: Warnings on booking detail page.
 * Fixed: Currency symbol issue on the ticket pdf.
-* Fixed: Design issue with the EventPrime elementor integration.
+* Fixed: Design issue with the Event Prime elementor integration.
 * Fixed: Card view load more issue.
 
 = 3.3.4 =
@@ -2925,7 +2933,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 = 3.3.0 =
 * Fixed: Compatibility with PHP versions 8.1 and 8.2
-* Fixed: Checkout page issue with EventPrime WooCommerce Checkout extension.
+* Fixed: Checkout page issue with Event Prime WooCommerce Checkout extension.
 * Fixed: Wrong display on the frontend for Multi-day Events.
 * Updated: Revamped Feedback Form.
 
@@ -3068,7 +3076,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 = 3.1.3 =
 * Introducing admin calendar!
-* New Extension Launch: EventPrime Advanced Reports!
+* New Extension Launch: Event Prime Advanced Reports!
 * Added: New OAuth type authentication method in the Zoom integration extension.
 * Added: Option to create event in just one click from the admin calendar.
 * Added: Options to list, add, edit, and view event from the admin calendar.
@@ -3376,13 +3384,13 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Fixed: QR code URL issue on the single event page.
 
 = 2.6.3 =
-* New Extension Launch: EventPrime Twilio Text Notifications!
+* New Extension Launch: Event Prime Twilio Text Notifications!
 * Added: User capabilities for Event site/locations, Performers, and Organizers.
 * Added: Intl phone number feature for registration form phone field.
 * Added: Price tier feature for child events with recurring event extension.
 * Updated: Button Labels section.
 * Updated: Automatic Discount extension.
-* Updated: EventPrime MailPoet extension.
+* Updated: Event Prime MailPoet extension.
 * Updated: WooCommerce Integration extension.
 * Updated: Recurring Event extension.
 
@@ -3431,7 +3439,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Fixed: An issue with upcoming events section on event type, site, performers, and organizers.
 
 = 2.5.0 =
-* New Extension Launch: EventPrime Invoices.
+* New Extension Launch: Event Prime Invoices.
 * New: Customizable user-friendly URLs features!
 * New: Option to select Organizers in Add/Edit event popup.
 * New: Option to select Event Image in Add/Edit event popup.
@@ -3461,7 +3469,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Fixed: Attendee name issue on single event page (with Attendees List extension) (User suggestion: Bill Zonios).
 * Fixed: Some notices on booking page (with Mailpoet Integration extension).
 * Fixed: Admin Event popup dashboard link not displaying issue.
-* Updated: EventPrime MailPoet extension.
+* Updated: Event Prime MailPoet extension.
 * Updated: Attendees List extension.
 
 = 2.4.4 =
@@ -3474,7 +3482,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Updated: Stripe Payments extension.
 * Updated: Event Comment extension.
 * Updated: Automatic Discount extension.
-* Updated: EventPrime MailPoet extension.
+* Updated: Event Prime MailPoet extension.
 * Updated: WooCommerce Integration extension.
 
 = 2.4.3 =
@@ -3494,7 +3502,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Added: Booking status option in admin views.
 
 = 2.4.1 =
-* New: EventPrime WooCommerce Integration extension is now available!
+* New: Event Prime WooCommerce Integration extension is now available!
 * Fixed: Price increment issue with max tickets per booking condition.
 * Fixed: Responsive layout issue with the List view.
 * Minor UI improvements.
@@ -3522,7 +3530,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Fixed: Minor issues.
 
 = 2.3.8 =
-* Added: Option to open booking of all future events instantly in EventPrime Recurring Event extension.
+* Added: Option to open booking of all future events instantly in Event Prime Recurring Event extension.
 * Fixed: Single event organizer page issue.
 * Fixed: Minor warnings.
 
@@ -3569,11 +3577,11 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Added: Option to print QR code on Tickets in Global settings.
 
 = 2.3.1 =
-* Added: Option to download EventPrime Zapier Integration (beta).
+* Added: Option to download Event Prime Zapier Integration (beta).
 * Added: Option to show/hide add new event type option on frontend event submission form.
 * Added: Option to show/hide add new event site option on frontend event submission form.
 * Added: Option to show/hide add new event performer option on frontend event submission form.
-* Added: Auto-format Event title option in EventPrime Recurring Event extension.
+* Added: Auto-format Event title option in Event Prime Recurring Event extension.
 * Fixed: Slider view previous slide change issue.
 * Fixed: Recurring events image issue in upcoming events section on single event type, site and performer pages.
 
@@ -3607,15 +3615,15 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Update: Attendee booking fields data on export attendees.
 
 = 2.2.3 =
-* Added: Option to download EventPrime WooCommerce Integration (beta).
-* Added: Option to download EventPrime Zoom Integration (beta).
+* Added: Option to download Event Prime WooCommerce Integration (beta).
+* Added: Option to download Event Prime Zoom Integration (beta).
 * Fixed: Booking confirmation detail not showing if no location added issue on checkout page.
 
 = 2.2.2 =
 * Minor UI changes.
 
 = 2.2.1 =
-* New Extension Launch: EventPrime Mailpoet
+* New Extension Launch: Event Prime Mailpoet
 * Minor UI improvements.
 
 = 2.2.0 =
@@ -4022,7 +4030,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Added option to select default event calendar view from the Global Settings
 
 = 1.2.6 =
-* Added support for ProfileGrid-EventPrime Integration
+* Added support for ProfileGrid-Event Prime Integration
 
 = 1.2.5 =
 * Number of Events for a Performer will now appear on the Performer card in dashboard
@@ -4034,7 +4042,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Minor improvements to the admin Event Types page
 
 = 1.2.2 =
-* Added compatibility with EventPrime Stripe Payments extension
+* Added compatibility with Event Prime Stripe Payments extension
 * Minor improvements to the admin Attendees page
 
 = 1.2.1 =
@@ -4042,7 +4050,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 = 1.2.0 =
 * Added paid bookings
-* Added compatibility with EventPrime Extensions: Live Seating, Event Analytics & Event Sponsors
+* Added compatibility with Event Prime Extensions: Live Seating, Event Analytics & Event Sponsors
 
 = 1.1.0 =
 * Added better compatibility with most popular themes
@@ -4066,7 +4074,7 @@ We are always happy to hear your particular needs and requirements. Similar to r
 * Minor improvements to the frontend events calendar
 
 = 1.0.3 =
-* Added link to Starter Guide in EventPrime Dashboard
+* Added link to Starter Guide in Event Prime Dashboard
 
 = 1.0.2 =
 * Minor improvements to event settings and help-texts

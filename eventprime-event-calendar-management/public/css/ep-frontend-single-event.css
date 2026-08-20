@@ -875,9 +875,6 @@ ul.ep-event-share:after {
 
 /*---- Theme Fixes----*/
 
-html.hillstar-theme *{
-    padding:
-}
 .ep-select-event-ticket-number input[type="number"] {
     max-width: 65px;
 }
