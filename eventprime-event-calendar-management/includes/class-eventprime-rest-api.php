@@ -4217,9 +4217,6 @@ class Eventprime_Rest_Api {
                 );
             case 'em_event_type':
                 $collection = $this->ep_fetch_event_types_collection( $params );
-                if ( empty( $collection['items'] ) ) {
-                    return array( 'status' => 'error', 'message' => esc_html__( 'No terms found.', 'eventprime-event-calendar-management' ) );
-                }
                 return array(
                     'status'      => 'success',
                     'count'       => (int) $collection['total'],
@@ -4560,9 +4557,13 @@ class Eventprime_Rest_Api {
         $query = $ep->get_event_types_data( $args );
         $items = ( $query instanceof WP_Term_Query ) ? $query->terms : (array) $query;
 
-        $count_args = $args;
-        unset( $count_args['number'], $count_args['offset'] );
-        $total = $ep->get_event_types_count( $count_args, $search, $featured, $popular );
+        if ( empty( $items ) ) {
+            $total = 0;
+        } else {
+            $count_args = $args;
+            unset( $count_args['number'], $count_args['offset'] );
+            $total = $ep->get_event_types_count( $count_args, $search, $featured, $popular );
+        }
 
         return array(
             'items' => array_values( $items ),
@@ -5916,6 +5917,8 @@ class Eventprime_Rest_Api {
         if ( ! class_exists( 'Eventprime_Basic_Functions' ) ) {
             return rest_ensure_response( array( 'status' => 'error', 'message' => 'Core functions unavailable.' ), 500 );
         }
+
+        $ep = new Eventprime_Basic_Functions();
 
         $payload = array( 'name' => $name );
         if ( isset( $body['description'] ) ) {

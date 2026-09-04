@@ -379,6 +379,10 @@
     object-position: center;
 }
 
+.ep_event_popup_image img[src=""] {
+    display: none;
+}
+
 .ep_event_popup_image {
     padding: 10px;
     padding-bottom: 8px

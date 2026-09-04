@@ -80,6 +80,7 @@ class Eventprime_Event_Calendar_Management {
 		$this->define_gutenberg_block_hooks();
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
+                $this->define_ability_hooks();
                 $this->define_paypal_hook();
                 $this->add_ajax_request();
 
@@ -162,6 +163,7 @@ class Eventprime_Event_Calendar_Management {
                 
                 require_once plugin_dir_path( dirname( __FILE__)) . 'includes/class-ep-report-controller-list.php';
                 require_once plugin_dir_path(dirname( __FILE__)) . 'includes/class-ep-widgets.php';
+                require_once plugin_dir_path(dirname( __FILE__)) . 'includes/class-ep-abilities.php';
                 include_once  plugin_dir_path(dirname( __FILE__)) . 'includes/blocks/class-ep-magic-blocks.php';
 		$this->loader = new Eventprime_Event_Calendar_Management_Loader();
 
@@ -199,6 +201,12 @@ class Eventprime_Event_Calendar_Management {
                   $this->loader->add_filter( 'ep_payments_gateways_list', $global_settings, 'ep_payments_gateways_list');
                   $this->loader->add_filter('em_cpt_event',$global_settings, 'filer_eventmanager_post');
 	}
+
+        private function define_ability_hooks() {
+                $plugin_abilities = new EventPrime_Abilities();
+                $this->loader->add_action( 'wp_abilities_api_categories_init', $plugin_abilities, 'register_categories' );
+                $this->loader->add_action( 'wp_abilities_api_init', $plugin_abilities, 'register_abilities' );
+        }
 
 	/**
 	 * Register all of the hooks related to the admin area functionality
