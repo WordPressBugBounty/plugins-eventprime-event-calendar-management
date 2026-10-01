@@ -209,7 +209,12 @@ class Eventprime_Event_Calendar_Management_Public {
                 '_nonce'                => wp_create_nonce( 'ep-frontend-nonce' ),
                 'ajaxurl'               => admin_url( 'admin-ajax.php' ),
                 'nonce_error'           => esc_html__( 'Please refresh the page and try again.', 'eventprime-event-calendar-management' ),
-                'delete_event_confirm'  => esc_html__( 'Are you sure you want to delete this event?', 'eventprime-event-calendar-management' )
+				'delete_event_confirm'      => esc_html__( 'Are you sure you want to delete this event?', 'eventprime-event-calendar-management' ),
+				'login_unexpected_error'    => esc_html__( 'Unexpected login response. Please try again.', 'eventprime-event-calendar-management' ),
+				'login_request_failed'      => esc_html__( 'Login request failed. Please try again.', 'eventprime-event-calendar-management' ),
+				'register_unexpected_error' => esc_html__( 'Unexpected registration response. Please try again.', 'eventprime-event-calendar-management' ),
+				'register_request_timeout'  => esc_html__( 'Registration request timed out. The account may have been created; please check before trying again.', 'eventprime-event-calendar-management' ),
+				'register_request_failed'   => esc_html__( 'Registration request failed. Please try again.', 'eventprime-event-calendar-management' ),
             )
         );
             

@@ -513,6 +513,7 @@ class EventPrime_Admin_settings{
         $global_settings_data->no_of_event_types_displayed     = ( ! empty( $form_data['no_of_event_types_displayed'] ) ) ? (int) $form_data['no_of_event_types_displayed'] : 5;
         $global_settings_data->show_events_per_event_type      = isset( $form_data['show_events_per_event_type'] ) ? (int) $form_data['show_events_per_event_type'] : 0;
         $global_settings_data->sort_by_events_or_bookings      = isset( $form_data['sort_by_events_or_bookings'] ) ? $form_data['sort_by_events_or_bookings'] : '';
+		$global_settings_data->no_events_message           = isset( $form_data['no_events_message'] ) ? sanitize_text_field( wp_unslash( $form_data['no_events_message'] ) ) : '';
 
         $global_settings->ep_save_settings( $global_settings_data );
         $admin_notices->ep_add_notice( 'success', esc_html__('Setting saved successfully', 'eventprime-event-calendar-management' ) );

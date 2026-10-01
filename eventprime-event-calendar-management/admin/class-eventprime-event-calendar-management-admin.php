@@ -2918,7 +2918,11 @@ class Eventprime_Event_Calendar_Management_Admin {
             $user_id = isset( $booking->em_user ) ? (int) $booking->em_user : 0;
             if ( $user_id ) {
                 $user = get_userdata( $user_id );
-                echo esc_html( $user->user_email );
+				if ( $user instanceof WP_User && ! empty( $user->user_email ) ) {
+					echo esc_html( $user->user_email );
+				} else {
+					echo esc_html__( 'N/A (user not found)', 'eventprime-event-calendar-management' );
+				}
             } else {
                 $order_info = $booking->em_order_info;
                 if ( !empty( $order_info ) && !empty( $order_info['user_email'] ) ) {
@@ -3964,6 +3968,7 @@ class Eventprime_Event_Calendar_Management_Admin {
         $admin_notices = new EventM_Admin_Notices();
         $admin_notices->ep_print_notices();
         $this->ep_paypal_secret_notice();
+		$this->ep_recaptcha_keys_notice();
         $this->ep_conflict_notices();
         $this->ep_the_events_calendar_migration_notice();
         $this->ep_maybe_send_paypal_secret_missing_email();
@@ -3993,6 +3998,43 @@ class Eventprime_Event_Calendar_Management_Admin {
         </div>
         <?php
     }
+
+	/**
+	 * Warn on EventPrime screens when login/register reCAPTCHA is on but a key is missing.
+	 * In that state the frontend check is skipped, so the form is unprotected.
+	 */
+	private function ep_recaptcha_keys_notice() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( ! $screen || ! in_array( $screen->post_type, array( 'em_event', 'em_booking' ), true ) ) {
+			return;
+		}
+		$ep_functions = new Eventprime_Basic_Functions();
+		$recaptcha_on = 1 === (int) $ep_functions->ep_get_global_settings( 'login_google_recaptcha' )
+			|| 1 === (int) $ep_functions->ep_get_global_settings( 'register_google_recaptcha' );
+		if ( ! $recaptcha_on || $ep_functions->ep_recaptcha_keys_configured() ) {
+			return;
+		}
+
+		$link = add_query_arg(
+			array( 'tab_nonce' => wp_create_nonce( 'ep_settings_tab' ) ),
+			admin_url( 'edit.php?post_type=em_event&page=ep-settings&tab=general&sub_tab=external' )
+		);
+
+		$message = sprintf(
+			/* translators: 1: opening link tag, 2: closing link tag */
+			esc_html__( 'reCAPTCHA is enabled on the EventPrime login or registration form, but the site key or secret key is missing, so reCAPTCHA is not being checked. Add both keys in the %1$sThird-Party settings%2$s.', 'eventprime-event-calendar-management' ),
+			'<a href="' . esc_url( $link ) . '">',
+			'</a>'
+		);
+		?>
+		<div class="notice notice-warning">
+			<p><?php echo wp_kses_post( $message ); ?></p>
+		</div>
+		<?php
+	}
 
     private function ep_maybe_send_paypal_secret_missing_email() {
         $settings = new Eventprime_Global_Settings();

@@ -3,9 +3,9 @@ Contributors: metagauss
 Donate link: https://theeventprime.com/
 Tags: event, events, event calendar, event organizer , event manager, event tickets, event booking, booking manager, events organizer, events planner, paid events, free events, event list, event registration
 Requires at least: 4.8
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 7.2
-Stable tag: 4.3.4.8
+Stable tag: 4.3.5.0
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -65,7 +65,7 @@ Why click through the dashboard when you can just ask? EventPrime is built for A
 * "Pull the attendee list for last week's fundraiser so I can send a thank-you email."
 * "A few people can't make the workshop anymore. Cancel bookings #482 and #491 for me."
 
-Every one of those happens through the same permission system that already protects your site: your agent can only do what your WordPress user account is allowed to do, nothing more. It's your event calendar, just one conversation away.
+Every one of those happens through the same permission system that already protects your site: your agent can only do what your WordPress user account is allowed to do, nothing more. Actions that change data, or read bookings and attendee lists, also follow EventPrime's REST Access Policies (Settings > API / Webhooks), and a single setting turns EventPrime's AI abilities off if you don't want them. It's your event calendar, just one conversation away.
 
 
 == EventPrime Backend ==
@@ -432,6 +432,7 @@ Admins have full control over the frontend events page layout and features. Here
 * Set calendar column heading format.
 * Hide upcoming events.
 * Control month changing buttons.
+* Customize the message shown when there are no events to display.
 
 
 While in the calendar view, events are displayed color coded with their respective Event Type settings. Hovering cursor above them displays additional event details 
@@ -682,6 +683,18 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.3.5.0: October 01, 2026 =
+* Security: Hardened permission checks for AI abilities (Abilities API / MCP) and the REST API. Thanks to Mathieu Herve for responsibly reporting the issue.
+* Security: Hardened reCAPTCHA verification on the login and registration forms.
+* Added: Setting to turn EventPrime AI abilities on or off (Settings > API / Webhooks > Enable AI Abilities).
+* Added: Option to customize the message shown when there are no events (Settings > Frontend Views > Event Listings), with the `eventprime_no_events_message` filter for developers. Props @lpint for the suggestion.
+* Changed: AI abilities that change data, or read bookings and attendees, now require a logged-in user allowed by the matching REST Access Policy (Settings > API / Webhooks).
+* Fixed: Login and registration no longer fail when reCAPTCHA is enabled but a key is missing; an admin notice now flags the missing key.
+* Fixed: Clearer messages when a login or registration request fails or times out, and the registration form can no longer be submitted twice.
+* Fixed: Phone field label shown twice on the registration form.
+* Fixed: Cancelling a booking through AI abilities now sets the correct status.
+* Fixed: Bookings whose user account was deleted no longer cause an error in the admin booking list.
 
 = 4.3.4.8: September 04, 2026 =
 Added: Enabled MCP access for AI abilities.
@@ -2399,6 +2412,9 @@ Fixed: empty event-type lists to return 0 results successfully.
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.3.5.0 =
+Security release, update recommended. Hardens AI ability (Abilities API / MCP) permissions and reCAPTCHA login/registration checks. AI abilities that change data now follow your REST Access Policies (Settings > API / Webhooks).
 
 = 4.3.4.8: September 04, 2026 =
 Added: Enabled MCP access for AI abilities.

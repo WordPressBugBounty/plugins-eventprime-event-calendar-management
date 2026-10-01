@@ -911,6 +911,16 @@ class Eventprime_Rest_Api {
         return true;
     }
 
+	/**
+	 * Check the current user against a REST access policy (used by the Abilities API).
+	 *
+	 * @param string $policy_key REST access policy key.
+	 * @return true|WP_Error
+	 */
+	public function ep_user_passes_policy( $policy_key ) {
+		return $this->ep_validate_rest_policy_for_user( $policy_key );
+	}
+
     /**
      * Enforce the resolved REST access policy on the current request.
      *
@@ -3164,11 +3174,32 @@ class Eventprime_Rest_Api {
         $event_id = isset( $body['event_id'] ) ? absint( $body['event_id'] ) : 0;
         $ticket_id = isset( $body['ticket_id'] ) ? absint( $body['ticket_id'] ) : 0;
         $email = isset( $body['email'] ) ? sanitize_email( $body['email'] ) : '';
-        $booking_status = isset( $body['booking_status'] ) ? sanitize_text_field( $body['booking_status'] ) : 'completed';
+		$booking_status = isset( $body['booking_status'] ) ? sanitize_key( $body['booking_status'] ) : 'completed';
+
+		$can_manage = current_user_can( 'manage_options' );
 
         if ( empty( $event_id ) || empty( $ticket_id ) || empty( $email ) || ! is_email( $email ) ) {
             return rest_ensure_response( array( 'status' => 'error', 'message' => 'Missing required booking data.' ), 400 );
         }
+
+		$event_post = get_post( $event_id );
+		if ( empty( $event_post ) || 'em_event' !== $event_post->post_type ) {
+			return new WP_Error( 'ep_invalid_event', esc_html__( 'Invalid event.', 'eventprime-event-calendar-management' ), array( 'status' => 400 ) );
+		}
+
+		// Only site managers may choose the booking status; everyone else gets a pending booking.
+		if ( ! $can_manage ) {
+			$booking_status = 'pending';
+		} else {
+			$allowed_statuses = array( 'completed', 'cancelled', 'pending', 'refunded', 'failed' );
+			if ( class_exists( 'Eventprime_Basic_Functions' ) ) {
+				$status_ep        = new Eventprime_Basic_Functions();
+				$allowed_statuses = array_keys( $status_ep->ep_get_booking_status() );
+			}
+			if ( ! in_array( $booking_status, $allowed_statuses, true ) ) {
+				return new WP_Error( 'ep_invalid_booking_status', esc_html__( 'Invalid booking status.', 'eventprime-event-calendar-management' ), array( 'status' => 400 ) );
+			}
+		}
 
         // validate ticket via Eventprime_Basic_Functions if available
         $ticket_ok = true;
@@ -3186,10 +3217,19 @@ class Eventprime_Rest_Api {
         // find or create user
         $user = get_user_by( 'email', $email );
         if ( empty( $user ) ) {
+			if ( ! current_user_can( 'create_users' ) ) {
+				return new WP_Error( 'rest_forbidden', esc_html__( 'No user exists with this email address.', 'eventprime-event-calendar-management' ), array( 'status' => 403 ) );
+			}
             $username = sanitize_user( current( explode( '@', $email ) ) );
             $random_password = wp_generate_password( 12, true );
             $user_id = wp_create_user( $username, $random_password, $email );
+			if ( is_wp_error( $user_id ) ) {
+				return new WP_Error( 'ep_user_create_failed', $user_id->get_error_message(), array( 'status' => 400 ) );
+			}
         } else {
+			if ( ! $can_manage && get_current_user_id() !== (int) $user->ID ) {
+				return new WP_Error( 'rest_forbidden', esc_html__( 'You can only create bookings for your own account.', 'eventprime-event-calendar-management' ), array( 'status' => 403 ) );
+			}
             $user_id = $user->ID;
         }
 
@@ -4802,6 +4842,10 @@ class Eventprime_Rest_Api {
         if ( empty( $post ) || $post->post_type !== 'em_event' ) return null;
 
         $expose_sensitive = $this->ep_should_expose_sensitive_event_data();
+
+		// Hide the body of password-protected events from callers who haven't unlocked them.
+		$hide_content = post_password_required( $post ) && ! current_user_can( 'edit_post', $post->ID );
+
         $visible_ticket_ids = null;
         if ( ! $expose_sensitive ) {
             $visible_ticket_ids = $this->ep_get_visible_ticket_ids( $post->ID );
@@ -5106,6 +5150,9 @@ class Eventprime_Rest_Api {
                         }
                     }
 
+				if ( $hide_content ) {
+					$out['content'] = '';
+				}
                     return $out;
             }
         }
@@ -5271,6 +5318,9 @@ class Eventprime_Rest_Api {
             }
         }
         $out['tickets'] = $tickets;
+		if ( $hide_content ) {
+			$out['content'] = '';
+		}
         return $out;
     }
 

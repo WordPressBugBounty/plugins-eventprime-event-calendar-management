@@ -182,6 +182,7 @@ class Eventprime_Global_Settings{
             'no_of_event_types_displayed'     => 5,
             'show_events_per_event_type'      => 0,
             'sort_by_events_or_bookings'      => '',
+			'no_events_message'                     => '',
         );
         if( $return_options == TRUE ) {
             return $events_options;
@@ -562,6 +563,8 @@ class Eventprime_Global_Settings{
     $options->enable_api = isset( $data['enable_api'] ) ? ( $data['enable_api'] ? 1 : '' ) : '';
 
         update_option( 'em_global_settings', $options );
+
+		update_option( 'ep_enable_abilities_api', ! empty( $data['ep_enable_abilities_api'] ) ? 1 : 0 );
 
         $sanitized_policies = array();
         if ( class_exists( 'Eventprime_Rest_Api' ) ) {

@@ -4,7 +4,13 @@ $ep_requests = new EP_Requests;
 if( !isset( $args->events ) || empty( $args->events ) ) {
     ?>
     <div class="ep-alert ep-alert-warning ep-mt-3">
-        <?php ( isset( $_GET['ep_search'] ) ) ? esc_html_e( 'No event found related to your search.', 'eventprime-event-calendar-management' ) : esc_html_e( 'Currently, there are no events planned. Please check back later.', 'eventprime-event-calendar-management' ); ?>
+		<?php
+		if ( isset( $_GET['ep_search'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only display flag.
+			esc_html_e( 'No event found related to your search.', 'eventprime-event-calendar-management' );
+		} else {
+			echo wp_kses_post( $ep_functions->ep_get_no_events_message( 'events_load_more' ) );
+		}
+		?>
     </div><?php
 }
             switch ( $args->display_style ) {

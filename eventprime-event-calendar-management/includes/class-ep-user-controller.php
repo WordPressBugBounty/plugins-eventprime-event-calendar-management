@@ -45,7 +45,12 @@ class EventM_User_Controller {
                 '_nonce'                => wp_create_nonce( 'ep-frontend-nonce' ),
                 'ajaxurl'               => admin_url( 'admin-ajax.php' ),
                 'nonce_error'           => esc_html__( 'Please refresh the page and try again.', 'eventprime-event-calendar-management' ),
-                'delete_event_confirm'  => esc_html__( 'Are you sure you want to delete this event?', 'eventprime-event-calendar-management' )
+				'delete_event_confirm'      => esc_html__( 'Are you sure you want to delete this event?', 'eventprime-event-calendar-management' ),
+				'login_unexpected_error'    => esc_html__( 'Unexpected login response. Please try again.', 'eventprime-event-calendar-management' ),
+				'login_request_failed'      => esc_html__( 'Login request failed. Please try again.', 'eventprime-event-calendar-management' ),
+				'register_unexpected_error' => esc_html__( 'Unexpected registration response. Please try again.', 'eventprime-event-calendar-management' ),
+				'register_request_timeout'  => esc_html__( 'Registration request timed out. The account may have been created; please check before trying again.', 'eventprime-event-calendar-management' ),
+				'register_request_failed'   => esc_html__( 'Registration request failed. Please try again.', 'eventprime-event-calendar-management' ),
             )
         );
     }
@@ -411,27 +416,53 @@ class EventM_User_Controller {
         if(isset($checkpoint['success']) && empty($checkpoint['success'])){
             return $checkpoint;
         }
-        $recaptcha = true;  
-        if( $ep_functions->ep_get_global_settings('login_google_recaptcha') == 1 ) {
-            if( isset( $_POST['g-recaptcha-response'] ) && !empty( $ep_functions->ep_get_global_settings( 'google_recaptcha_secret_key' ) ) ) {
-            $response = json_decode(file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=".$ep_functions->ep_get_global_settings('google_recaptcha_secret_key')."&response=".$_POST['g-recaptcha-response']."&remoteip=".$_SERVER['REMOTE_ADDR']), true);
-                if(!$response['success']){
-                    $recaptcha = false;
-                    return $result = array(
-                        'success' => 0,
-                        'msg'     => esc_html__( 'Recaptcha validation failed.', 'eventprime-event-calendar-management' ),
-                    );
-                }
-            }
-            if(isset($_POST['g-recaptcha-response']) && empty($ep_functions->ep_get_global_settings('google_recaptcha_secret_key'))){
-                $recaptcha = false;
-                return $result = array(
-                    'success' => 0,
-                    'msg'     => esc_html__( 'Recaptcha validation failed.', 'eventprime-event-calendar-management' ),
-                );
-            }
+			$recaptcha = true;
+			// Missing keys skip the check (admin notice prompts for them) rather than locking users out.
+			if ( 1 === (int) $ep_functions->ep_get_global_settings( 'login_google_recaptcha' ) && $ep_functions->ep_recaptcha_keys_configured() ) {
+				$recaptcha_secret = trim( (string) $ep_functions->ep_get_global_settings( 'google_recaptcha_secret_key' ) );
+				$recaptcha_token  = isset( $_POST['g-recaptcha-response'] ) && is_string( $_POST['g-recaptcha-response'] )
+					? sanitize_text_field( wp_unslash( $_POST['g-recaptcha-response'] ) )
+					: '';
 
-        }
+				// Fail closed when the token is missing.
+				if ( '' === $recaptcha_token ) {
+					return array(
+						'success' => 0,
+						'msg'     => esc_html__( 'Please complete the reCAPTCHA verification.', 'eventprime-event-calendar-management' ),
+					);
+				}
+
+				$recaptcha_request = wp_remote_post(
+					'https://www.google.com/recaptcha/api/siteverify',
+					array(
+						'timeout' => 10,
+						'body'    => array(
+							'secret'   => $recaptcha_secret,
+							'response' => $recaptcha_token,
+							'remoteip' => isset( $_SERVER['REMOTE_ADDR'] )
+								? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) )
+								: '',
+						),
+					)
+				);
+
+				if ( is_wp_error( $recaptcha_request ) ) {
+					return array(
+						'success' => 0,
+						'msg'     => esc_html__( 'Unable to verify reCAPTCHA. Please try again.', 'eventprime-event-calendar-management' ),
+					);
+				}
+
+				$recaptcha_response_code = wp_remote_retrieve_response_code( $recaptcha_request );
+				$recaptcha_response      = json_decode( wp_remote_retrieve_body( $recaptcha_request ), true );
+
+				if ( 200 !== $recaptcha_response_code || ! is_array( $recaptcha_response ) || empty( $recaptcha_response['success'] ) ) {
+					return array(
+						'success' => 0,
+						'msg'     => esc_html__( 'reCAPTCHA validation failed. Please try again.', 'eventprime-event-calendar-management' ),
+					);
+				}
+			}
         if(isset($_POST['login_id_field']) && !empty($_POST['login_id_field'])){
             $login_field = sanitize_text_field(wp_unslash($_POST['login_id_field']));
             if(!empty($login_field) && $login_field == 'email'){
@@ -557,29 +588,58 @@ class EventM_User_Controller {
             if(isset($checkpoint['success']) && empty($checkpoint['success'])){
                 return $checkpoint;
             }
-            if( $ep_functions->ep_get_global_settings( 'register_google_recaptcha') == 1 ) {
-                if( isset( $_POST['g-recaptcha-response'] ) && ! empty( $ep_functions->ep_get_global_settings( 'google_recaptcha_secret_key' ) ) ) {
-                $response = json_decode( file_get_contents( "https://www.google.com/recaptcha/api/siteverify?secret=".$ep_functions->ep_get_global_settings( 'google_recaptcha_secret_key' )."&response=".$_POST['g-recaptcha-response']."&remoteip=".$_SERVER['REMOTE_ADDR'] ), true );
-                    if( ! $response['success'] ) {
-                        $recaptcha = false;
-                        $result = array(
-                            'success' => 0,
-                            'msg'     => esc_html__( 'Recaptcha validation failed.', 'eventprime-event-calendar-management' ),
-                        );
-                    }
-                }
-                if( isset( $_POST['g-recaptcha-response'] ) && empty( $ep_functions->ep_get_global_settings('google_recaptcha_secret_key') ) ) {
-                    $recaptcha = false;
-                    $result = array(
-                        'success' => 0,
-                        'msg'     => esc_html__( 'Recaptcha validation failed.', 'eventprime-event-calendar-management' ),
-                    );
-                }
-            }
+			// Missing keys skip the check (admin notice prompts for them) rather than locking users out.
+			if ( 1 === (int) $ep_functions->ep_get_global_settings( 'register_google_recaptcha' ) && $ep_functions->ep_recaptcha_keys_configured() ) {
+				$recaptcha_secret = trim( (string) $ep_functions->ep_get_global_settings( 'google_recaptcha_secret_key' ) );
+				$recaptcha_token  = isset( $_POST['g-recaptcha-response'] ) && is_string( $_POST['g-recaptcha-response'] )
+					? sanitize_text_field( wp_unslash( $_POST['g-recaptcha-response'] ) )
+					: '';
+
+				// Fail closed when the token is missing.
+				if ( '' === $recaptcha_token ) {
+					return array(
+						'success' => 0,
+						'msg'     => esc_html__( 'Please complete the reCAPTCHA verification.', 'eventprime-event-calendar-management' ),
+					);
+				}
+
+				$recaptcha_request = wp_remote_post(
+					'https://www.google.com/recaptcha/api/siteverify',
+					array(
+						'timeout' => 10,
+						'body'    => array(
+							'secret'   => $recaptcha_secret,
+							'response' => $recaptcha_token,
+							'remoteip' => isset( $_SERVER['REMOTE_ADDR'] )
+								? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) )
+								: '',
+						),
+					)
+				);
+
+				if ( is_wp_error( $recaptcha_request ) ) {
+					return array(
+						'success' => 0,
+						'msg'     => esc_html__( 'Unable to verify reCAPTCHA. Please try again.', 'eventprime-event-calendar-management' ),
+					);
+				}
+
+				$recaptcha_response_code = wp_remote_retrieve_response_code( $recaptcha_request );
+				$recaptcha_response      = json_decode( wp_remote_retrieve_body( $recaptcha_request ), true );
+
+				if ( 200 !== $recaptcha_response_code || ! is_array( $recaptcha_response ) || empty( $recaptcha_response['success'] ) ) {
+					return array(
+						'success' => 0,
+						'msg'     => esc_html__( 'reCAPTCHA validation failed. Please try again.', 'eventprime-event-calendar-management' ),
+					);
+				}
+			}
             if( $recaptcha) {
                 
                     $username = isset($_POST['user_name']) ? sanitize_text_field(wp_unslash($_POST['user_name'])) : '';
-                    $email = sanitize_email( wp_unslash( $_POST['email'] ) );
+					$email       = isset( $_POST['email'] ) && is_string( $_POST['email'] )
+						? sanitize_email( wp_unslash( $_POST['email'] ) )
+						: '';
                     $password = isset($_POST['password']) ? sanitize_text_field(wp_unslash($_POST['password'])) : '';
                     $re_password = isset($_POST['repeat_password']) ? sanitize_text_field(wp_unslash($_POST['repeat_password'])) : '';
                     $dob = isset($_POST['dob']) ? sanitize_text_field(wp_unslash($_POST['dob'])) : '';
@@ -744,7 +804,7 @@ class EventM_User_Controller {
                                 //exit;
                             }
                         }
-                    } catch (Exception $e) {
+				} catch ( Throwable $e ) {
                         do_action( 'ep_registration_process_failed' );
                         return $result = array(
                             'success' => 0,

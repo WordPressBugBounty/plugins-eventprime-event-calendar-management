@@ -28,16 +28,16 @@ jQuery( function( $ ) {
         var formData = new FormData(document.getElementById('ep_attendee_login_form'));
         formData.append('action', 'ep_submit_login_form');
         $('.ep-spinner').addClass('ep-is-active');
-        $('.ep-login-response').html();
+        $('.ep-login-response').empty();
         $.ajax({
             type : "POST",
             url : ep_frontend.ajaxurl,
             data: formData,
             contentType: false,
-            processData: false,       
+            processData: false,
+            timeout: 30000,
             success: function(response) {
-                $('.ep-spinner').removeClass('ep-is-active');
-                if( response.data.success ) {
+                if( response && response.data && response.data.success ) {
                     $( '.ep-login-response' ).html( '<div class="ep-login-success">' + response.data.msg + '</div>' );
                     // redirect
                     if( response.data.redirect ) {
@@ -51,23 +51,38 @@ jQuery( function( $ ) {
                     } else{
                         $( document ).trigger( 'afterEPLogin', { response: response } );
                     }
-                }else{
-                    if ( eventprime.global_settings.login_google_recaptcha ) {
+                } else if ( response && response.data ) {
+                    if ( typeof grecaptcha !== 'undefined' && typeof eventprime !== 'undefined' && eventprime.global_settings.login_google_recaptcha ) {
                         grecaptcha.reset();
                     }
                     $('.ep-login-response').html('<div class="ep-error-message">'+response.data.msg+'</div>');
+                } else {
+                    $('.ep-login-response').html('<div class="ep-error-message">'+ep_frontend.login_unexpected_error+'</div>');
                 }
-                
+            },
+            error: function() {
+                $('.ep-login-response').html('<div class="ep-error-message">'+ep_frontend.login_request_failed+'</div>');
+                if ( typeof grecaptcha !== 'undefined' && typeof eventprime !== 'undefined' && eventprime.global_settings.login_google_recaptcha ) {
+                    grecaptcha.reset();
+                }
+            },
+            complete: function() {
+                $('.ep-spinner').removeClass('ep-is-active');
             }
         });
     });
     
     $( document ).on( 'click', '.ep-register-form-submit', function(e){
         e.preventDefault();
+        var $registerButton = $( this );
+        if ( $registerButton.data( 'epRegisterSubmitting' ) ) {
+            return;
+        }
         var formData = new FormData(document.getElementById('ep_attendee_register_form'));
         formData.append('action', 'ep_submit_register_form');
+        $registerButton.data( 'epRegisterSubmitting', true ).prop( 'disabled', true );
         $('.ep-spinner').addClass('ep-is-active');
-        $('.ep-register-response').html();
+        $('.ep-register-response').empty();
         if($('#ep_register_phone').length){
             if($('#ep_register_phone').val() != ''){
                 var validPhone = registrationPhoneCheck($('#ep_register_phone').val());
@@ -75,6 +90,7 @@ jQuery( function( $ ) {
                 if(validPhone === false){
                     $('.ep-register-response').html('<div class="ep-error-message">'+$("#ep_register_phone").data('validate')+'</div>');
                     $('.ep-spinner').removeClass('ep-is-active');
+                    $registerButton.data( 'epRegisterSubmitting', false ).prop( 'disabled', false );
         
                     return false;
                     
@@ -87,6 +103,7 @@ jQuery( function( $ ) {
         if ( !isEmailValid ) {
             show_toast( 'error', 'Incorrect Email, please verify.' ); 
             $('.ep-spinner').removeClass('ep-is-active');
+            $registerButton.data( 'epRegisterSubmitting', false ).prop( 'disabled', false );
             return false; 
         }
         $.ajax({
@@ -94,10 +111,10 @@ jQuery( function( $ ) {
             url : ep_frontend.ajaxurl,
             data: formData,
             contentType: false,
-            processData: false,       
+            processData: false,
+            timeout: 30000,
             success: function(response) {
-                $('.ep-spinner').removeClass('ep-is-active');
-                if( response.data.success ) {
+                if( response && response.data && response.data.success ) {
                     $('.ep-register-response').html('<div class="ep-success-message">'+response.data.msg+"</div>");
                     if( response.data.redirect !== '' ) {
                         setTimeout(function() {
@@ -110,12 +127,27 @@ jQuery( function( $ ) {
                             }
                         }, 1000 );
                     }
-                }else{
-                    if ( eventprime.global_settings.register_google_recaptcha ) {
+                } else if ( response && response.data ) {
+                    if ( typeof grecaptcha !== 'undefined' && typeof eventprime !== 'undefined' && eventprime.global_settings.register_google_recaptcha ) {
                         grecaptcha.reset();
                     }
                     $('.ep-register-response').html('<div class="ep-error-message">'+response.data.msg+"</div>");
+                } else {
+                    $('.ep-register-response').html('<div class="ep-error-message">'+ep_frontend.register_unexpected_error+'</div>');
                 }
+            },
+            error: function(xhr, textStatus) {
+                var message = textStatus === 'timeout'
+                    ? ep_frontend.register_request_timeout
+                    : ep_frontend.register_request_failed;
+                $('.ep-register-response').html('<div class="ep-error-message">'+message+'</div>');
+                if ( typeof grecaptcha !== 'undefined' && typeof eventprime !== 'undefined' && eventprime.global_settings.register_google_recaptcha ) {
+                    grecaptcha.reset();
+                }
+            },
+            complete: function() {
+                $('.ep-spinner').removeClass('ep-is-active');
+                $registerButton.data( 'epRegisterSubmitting', false ).prop( 'disabled', false );
             }
         });
     });

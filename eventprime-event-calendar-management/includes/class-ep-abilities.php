@@ -7,8 +7,17 @@ defined( 'ABSPATH' ) || exit;
 
 class EventPrime_Abilities {
 
+	/**
+	 * Whether EventPrime abilities should be registered (EventPrime -> Settings -> API).
+	 *
+	 * @return bool
+	 */
+	public static function is_enabled() {
+		return (bool) get_option( 'ep_enable_abilities_api', 1 );
+	}
+
 	public function register_categories() {
-		if ( ! function_exists( 'wp_register_ability_category' ) ) {
+		if ( ! self::is_enabled() || ! function_exists( 'wp_register_ability_category' ) ) {
 			return;
 		}
 
@@ -22,7 +31,7 @@ class EventPrime_Abilities {
 	}
 
 	public function register_abilities() {
-		if ( ! class_exists( 'WP_Ability' ) || ! function_exists( 'wp_register_ability' ) ) {
+		if ( ! self::is_enabled() || ! class_exists( 'WP_Ability' ) || ! function_exists( 'wp_register_ability' ) ) {
 			return;
 		}
 
@@ -170,7 +179,7 @@ class EventPrime_Abilities {
 				'input_schema'        => $this->get_booking_create_input_schema(),
 				'output_schema'       => $this->get_entity_output_schema( 'booking', esc_html__( 'The created booking.', 'eventprime-event-calendar-management' ) ),
 				'execute_callback'    => array( $this, 'execute_create_booking' ),
-				'permission_callback' => array( $this, 'allow_public_access' ),
+				'permission_callback' => array( $this, 'can_create_booking' ),
 				'meta'                => $this->get_mutation_meta(),
 			)
 		);
@@ -187,7 +196,7 @@ class EventPrime_Abilities {
 				'output_schema'       => $this->get_entity_output_schema( 'booking', esc_html__( 'The returned booking.', 'eventprime-event-calendar-management' ) ),
 				'execute_callback'    => array( $this, 'execute_get_booking' ),
 				'permission_callback' => array( $this, 'can_view_booking' ),
-				'meta'                => $this->get_read_meta(),
+				'meta'                => $this->get_private_read_meta(),
 			)
 		);
 	}
@@ -234,7 +243,7 @@ class EventPrime_Abilities {
 				'input_schema'        => $this->get_named_entity_input_schema(),
 				'output_schema'       => $this->get_entity_output_schema( 'venue', esc_html__( 'The created venue payload.', 'eventprime-event-calendar-management' ) ),
 				'execute_callback'    => array( $this, 'execute_create_venue' ),
-				'permission_callback' => array( $this, 'can_manage_event_terms' ),
+				'permission_callback' => array( $this, 'can_create_venue' ),
 				'meta'                => $this->get_mutation_meta(),
 			)
 		);
@@ -298,7 +307,7 @@ class EventPrime_Abilities {
 				'input_schema'        => $this->get_named_entity_input_schema(),
 				'output_schema'       => $this->get_entity_output_schema( 'organizer', esc_html__( 'The created organizer payload.', 'eventprime-event-calendar-management' ) ),
 				'execute_callback'    => array( $this, 'execute_create_organizer' ),
-				'permission_callback' => array( $this, 'can_manage_event_terms' ),
+				'permission_callback' => array( $this, 'can_create_organizer' ),
 				'meta'                => $this->get_mutation_meta(),
 			)
 		);
@@ -330,7 +339,7 @@ class EventPrime_Abilities {
 				'input_schema'        => $this->get_named_entity_input_schema(),
 				'output_schema'       => $this->get_entity_output_schema( 'event_type', esc_html__( 'The created event type payload.', 'eventprime-event-calendar-management' ) ),
 				'execute_callback'    => array( $this, 'execute_create_event_type' ),
-				'permission_callback' => array( $this, 'can_manage_event_terms' ),
+				'permission_callback' => array( $this, 'can_create_event_type' ),
 				'meta'                => $this->get_mutation_meta(),
 			)
 		);
@@ -347,7 +356,7 @@ class EventPrime_Abilities {
 				'output_schema'       => $this->get_collection_output_schema( 'attendees', esc_html__( 'The exported attendees.', 'eventprime-event-calendar-management' ) ),
 				'execute_callback'    => array( $this, 'execute_export_attendees' ),
 				'permission_callback' => array( $this, 'can_export_attendees' ),
-				'meta'                => $this->get_read_meta(),
+				'meta'                => $this->get_private_read_meta(),
 			)
 		);
 	}
@@ -526,7 +535,7 @@ class EventPrime_Abilities {
 			'handle_booking_update',
 			'POST',
 			'/eventprime/v1/bookings/' . $booking_id,
-			array( 'status' => 'canceled' ),
+			array( 'status' => 'cancelled' ),
 			array(
 				'id' => $booking_id,
 			)
@@ -645,7 +654,45 @@ class EventPrime_Abilities {
 		return true;
 	}
 
+	/**
+	 * Require a logged-in user who passes the matching REST Access Policy.
+	 *
+	 * Abilities call the REST handlers directly, so the route permission
+	 * callbacks never run; this applies the same policy instead.
+	 *
+	 * @param string $policy_key REST access policy key.
+	 * @return true|WP_Error
+	 */
+	protected function check_rest_policy( $policy_key ) {
+		if ( ! is_user_logged_in() ) {
+			return new WP_Error( 'ep_not_logged_in', esc_html__( 'You must be logged in to use this ability.', 'eventprime-event-calendar-management' ), array( 'status' => 401 ) );
+		}
+
+		if ( ! class_exists( 'Eventprime_Rest_Api' ) ) {
+			return new WP_Error( 'ep_rest_api_missing', esc_html__( 'EventPrime REST API is unavailable.', 'eventprime-event-calendar-management' ), array( 'status' => 500 ) );
+		}
+
+		$rest_api = new Eventprime_Rest_Api();
+		return $rest_api->ep_user_passes_policy( $policy_key );
+	}
+
+	/**
+	 * Permission: create a booking (REST policy action_create_booking).
+	 *
+	 * @param array $input Ability input.
+	 * @return true|WP_Error
+	 */
+	public function can_create_booking( $input = array() ) {
+		unset( $input );
+		return $this->check_rest_policy( 'action_create_booking' );
+	}
+
 	public function can_create_event( $input = array() ) {
+		$policy = $this->check_rest_policy( 'action_create_event' );
+		if ( true !== $policy ) {
+			return $policy;
+		}
+
 		unset( $input );
 
 		if ( current_user_can( 'manage_options' ) || current_user_can( 'publish_em_events' ) || current_user_can( 'edit_em_events' ) ) {
@@ -656,6 +703,11 @@ class EventPrime_Abilities {
 	}
 
 	public function can_update_event( $input = array() ) {
+		$policy = $this->check_rest_policy( 'action_update_event' );
+		if ( true !== $policy ) {
+			return $policy;
+		}
+
 		$event_id = isset( $input['id'] ) ? absint( $input['id'] ) : 0;
 		if ( empty( $event_id ) ) {
 			return new WP_Error( 'ep_missing_event_id', esc_html__( 'An event ID is required.', 'eventprime-event-calendar-management' ), array( 'status' => 400 ) );
@@ -669,6 +721,11 @@ class EventPrime_Abilities {
 	}
 
 	public function can_delete_event( $input = array() ) {
+		$policy = $this->check_rest_policy( 'action_delete_event' );
+		if ( true !== $policy ) {
+			return $policy;
+		}
+
 		$event_id = isset( $input['id'] ) ? absint( $input['id'] ) : 0;
 		if ( empty( $event_id ) ) {
 			return new WP_Error( 'ep_missing_event_id', esc_html__( 'An event ID is required.', 'eventprime-event-calendar-management' ), array( 'status' => 400 ) );
@@ -682,6 +739,21 @@ class EventPrime_Abilities {
 	}
 
 	public function can_view_booking( $input = array() ) {
+		$policy = $this->check_rest_policy( 'route_booking' );
+		if ( true !== $policy ) {
+			return $policy;
+		}
+
+		return $this->user_owns_or_can_edit_booking( $input );
+	}
+
+	/**
+	 * Whether the current user owns the booking or can edit it.
+	 *
+	 * @param array $input Ability input.
+	 * @return true|WP_Error
+	 */
+	protected function user_owns_or_can_edit_booking( $input = array() ) {
 		$booking_id = isset( $input['id'] ) ? absint( $input['id'] ) : 0;
 		if ( empty( $booking_id ) ) {
 			return new WP_Error( 'ep_missing_booking_id', esc_html__( 'A booking ID is required.', 'eventprime-event-calendar-management' ), array( 'status' => 400 ) );
@@ -696,7 +768,12 @@ class EventPrime_Abilities {
 	}
 
 	public function can_cancel_booking( $input = array() ) {
-		return $this->can_view_booking( $input );
+		$policy = $this->check_rest_policy( 'action_update_booking' );
+		if ( true !== $policy ) {
+			return $policy;
+		}
+
+		return $this->user_owns_or_can_edit_booking( $input );
 	}
 
 	public function can_manage_event_terms( $input = array() ) {
@@ -709,7 +786,57 @@ class EventPrime_Abilities {
 		return new WP_Error( 'ep_forbidden', esc_html__( 'You are not allowed to manage EventPrime terms.', 'eventprime-event-calendar-management' ), array( 'status' => 403 ) );
 	}
 
+	/**
+	 * Permission: create a venue (REST policy action_create_venue).
+	 *
+	 * @param array $input Ability input.
+	 * @return true|WP_Error
+	 */
+	public function can_create_venue( $input = array() ) {
+		$policy = $this->check_rest_policy( 'action_create_venue' );
+		if ( true !== $policy ) {
+			return $policy;
+		}
+
+		return $this->can_manage_event_terms( $input );
+	}
+
+	/**
+	 * Permission: create an organizer (REST policy action_create_organizer).
+	 *
+	 * @param array $input Ability input.
+	 * @return true|WP_Error
+	 */
+	public function can_create_organizer( $input = array() ) {
+		$policy = $this->check_rest_policy( 'action_create_organizer' );
+		if ( true !== $policy ) {
+			return $policy;
+		}
+
+		return $this->can_manage_event_terms( $input );
+	}
+
+	/**
+	 * Permission: create an event type (REST policy action_create_event_type).
+	 *
+	 * @param array $input Ability input.
+	 * @return true|WP_Error
+	 */
+	public function can_create_event_type( $input = array() ) {
+		$policy = $this->check_rest_policy( 'action_create_event_type' );
+		if ( true !== $policy ) {
+			return $policy;
+		}
+
+		return $this->can_manage_event_terms( $input );
+	}
+
 	public function can_create_performer( $input = array() ) {
+		$policy = $this->check_rest_policy( 'action_create_performer' );
+		if ( true !== $policy ) {
+			return $policy;
+		}
+
 		unset( $input );
 
 		if ( current_user_can( 'manage_options' ) || current_user_can( 'publish_em_performers' ) || current_user_can( 'edit_em_performers' ) ) {
@@ -720,6 +847,11 @@ class EventPrime_Abilities {
 	}
 
 	public function can_export_attendees( $input = array() ) {
+		$policy = $this->check_rest_policy( 'action_bookings' );
+		if ( true !== $policy ) {
+			return $policy;
+		}
+
 		$event_id = isset( $input['event_id'] ) ? absint( $input['event_id'] ) : 0;
 		if ( empty( $event_id ) ) {
 			return new WP_Error( 'ep_missing_event_id', esc_html__( 'An event ID is required.', 'eventprime-event-calendar-management' ), array( 'status' => 400 ) );
@@ -855,12 +987,30 @@ class EventPrime_Abilities {
 		);
 	}
 
+	/**
+	 * Meta for read abilities that are not public (not exposed as public MCP tools).
+	 *
+	 * @return array
+	 */
+	protected function get_private_read_meta() {
+		return array(
+			'show_in_rest' => true,
+			'annotations'  => array(
+				'readonly'    => true,
+				'destructive' => false,
+				'idempotent'  => true,
+			),
+		);
+	}
+
+	/**
+	 * Meta for abilities that change data (not exposed as public MCP tools).
+	 *
+	 * @return array
+	 */
 	protected function get_mutation_meta() {
 		return array(
 			'show_in_rest' => true,
-			'mcp'          => array(
-				'public' => true,
-			),
 			'annotations'  => array(
 				'readonly'    => false,
 				'destructive' => false,

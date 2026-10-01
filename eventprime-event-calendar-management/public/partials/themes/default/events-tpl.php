@@ -59,7 +59,13 @@ do_action( 'ep_events_list_before_render_content', $event_data ); ?>
             if( !isset( $event_data->events ) || empty( $event_data->events ) ) {
                 ?>
                 <div class="ep-alert ep-alert-warning ep-mt-3">
-                    <?php ( isset( $_GET['ep_search'] ) ) ? esc_html_e( 'No event found related to your search.', 'eventprime-event-calendar-management' ) : esc_html_e( 'Currently, there are no events planned. Please check back later.', 'eventprime-event-calendar-management' ); ?>
+					<?php
+				if ( isset( $_GET['ep_search'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only display flag.
+					esc_html_e( 'No event found related to your search.', 'eventprime-event-calendar-management' );
+				} else {
+					echo wp_kses_post( $ep_functions->ep_get_no_events_message( 'events' ) );
+				}
+				?>
                 </div><?php
             }
                 

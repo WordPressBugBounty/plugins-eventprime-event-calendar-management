@@ -183,6 +183,17 @@ $sub_options = $global_settings->sub_options;
                 <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( 'If enabled, third-party booking links will not be visible to logged-out users.', 'eventprime-event-calendar-management' );?></div>
             </td>
         </tr>
+		<tr valign="top">
+			<th scope="row" class="titledesc">
+				<label for="no_events_message">
+					<?php esc_html_e( 'No Events Message', 'eventprime-event-calendar-management' ); ?>
+				</label>
+			</th>
+			<td class="forminp forminp-text">
+				<textarea id="no_events_message" name="no_events_message" class="large-text" rows="3" placeholder="<?php esc_attr_e( 'Currently, there are no events planned. Please check back later.', 'eventprime-event-calendar-management' ); ?>"><?php echo esc_textarea( isset( $global_options->no_events_message ) ? $global_options->no_events_message : '' ); ?></textarea>
+				<div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( 'Message displayed in event lists, grids, sliders and calendars when there are no events to show. Leave blank to use the default message shown in the box. Search results with no matches keep their own message.', 'eventprime-event-calendar-management' ); ?></div>
+			</td>
+		</tr>
     </tbody>
 </table>
 <h2><?php esc_html_e( 'Calendar View Settings', 'eventprime-event-calendar-management' );?></h2>

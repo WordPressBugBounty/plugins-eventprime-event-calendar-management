@@ -156,7 +156,6 @@ if( ! empty( $args->current_user ) && ! empty( $args->current_user->ID ) ) {?>
                     <?php if( ! empty( $args->register_phone_show ) ) {?>
                         <div class="ep-form-row ep-form-group ep-mb-3">
                             <label for="phone" class="ep-form-label">
-                                <?php echo wp_kses_post( stripslashes( $args->register_phone_label ) ); ?>&nbsp;
                                 <?php if( $args->register_phone_mandatory == 1 ) {
                                     echo wp_kses_post( stripslashes( $args->register_phone_label ).'<span class="required">*</span>' );
                                 }

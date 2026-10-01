@@ -49,6 +49,19 @@ $saved_rest_policies = get_option( 'ep_rest_api_policies', array() );
         </div>
     </div>
 
+	<div style="margin:18px 0;">
+		<label class="ep-toggle-btn">
+			<input name="ep_enable_abilities_api" id="ep_enable_abilities_api" type="checkbox" value="1" <?php checked( (bool) get_option( 'ep_enable_abilities_api', 1 ) ); ?>>
+			<span class="ep-toogle-slider round"></span>
+		</label>
+		<label for="ep_enable_abilities_api" style="margin-left:8px; font-weight:600;">
+			<?php esc_html_e( 'Enable AI Abilities (Abilities API / MCP)', 'eventprime-event-calendar-management' ); ?>
+		</label>
+		<div class="ep-help-tip-info ep-my-2 ep-text-muted">
+			<?php esc_html_e( 'Registers EventPrime abilities with the WordPress Abilities API so AI tools and MCP clients can use them. Abilities that change data follow the same REST Access Policies as the matching API actions below.', 'eventprime-event-calendar-management' ); ?>
+		</div>
+	</div>
+
     <div style="width:100%; max-width:none;">
         <h3 style="margin-bottom:8px;"><?php esc_html_e( 'REST Access Policies', 'eventprime-event-calendar-management' ); ?></h3>
         <p class="description" style="margin-bottom:12px;">

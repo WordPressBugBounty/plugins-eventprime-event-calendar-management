@@ -1876,6 +1876,20 @@ class Eventprime_Basic_Functions {
         return false;
     }
 
+	/**
+	 * Get the message shown when no events match.
+	 *
+	 * @param string $context Where the message is shown.
+	 * @return string
+	 */
+	public function ep_get_no_events_message( $context = 'events' ) {
+		$message = trim( (string) $this->ep_get_global_settings( 'no_events_message' ) );
+		if ( '' === $message ) {
+			$message = __( 'Currently, there are no events planned. Please check back later.', 'eventprime-event-calendar-management' );
+		}
+		return apply_filters( 'eventprime_no_events_message', $message, $context );
+	}
+
     /**
      * Convert timestamp to date
      * 
@@ -9712,7 +9726,18 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
             }
             return $enabled;
         }
-        
+
+	/**
+	 * Whether both reCAPTCHA keys are saved. Without them the widget can't be
+	 * rendered or verified, so login/register skip the check instead of locking users out.
+	 *
+	 * @return bool
+	 */
+	public function ep_recaptcha_keys_configured() {
+		return '' !== trim( (string) $this->ep_get_global_settings( 'google_recaptcha_site_key' ) )
+			&& '' !== trim( (string) $this->ep_get_global_settings( 'google_recaptcha_secret_key' ) );
+	}
+
         public function ep_enabled_woocommerce_checkout(){
             $enabled_woocommerce_checkout = 0;
             $activate_extensions = $this->ep_get_activate_extensions();
