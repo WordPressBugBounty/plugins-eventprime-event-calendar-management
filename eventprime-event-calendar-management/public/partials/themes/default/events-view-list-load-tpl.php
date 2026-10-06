@@ -77,7 +77,7 @@ if(!isset($args->display_style) || (isset($args->display_style) && $args->displa
                 <input type="hidden" id="ep-events-venues-ids-<?php echo esc_attr( $args->section_id );?>" value="<?php echo esc_attr( isset( $args->venue_ids ) ? implode( ',', $args->venue_ids ) : '' ); ?>"/>
                 <input type="hidden" id="ep-events-cols-<?php echo esc_attr( $args->section_id );?>" value="<?php echo esc_attr( $args->cols );?>"/>
                 <input type="hidden" id="ep-events-i-events-<?php echo esc_attr( $args->section_id );?>" value="<?php echo esc_attr( $args->i_events );?>"/>
-                <button data-max="<?php echo esc_attr( $args->events->max_num_pages );?>" id="ep-loadmore-events" class="ep-bg-white ep-btn ep-btn-outline-primary ep-loadmore-events" data-section_id="<?php echo esc_attr( $args->section_id );?>">
+				<button data-max="<?php echo esc_attr( $args->events->max_num_pages ); ?>" id="ep-loadmore-events-<?php echo esc_attr( $args->section_id ); ?>" class="ep-bg-white ep-btn ep-btn-outline-primary ep-loadmore-events" data-section_id="<?php echo esc_attr( $args->section_id ); ?>" data-event_atts="<?php echo esc_attr( wp_json_encode( isset( $args->atts ) && is_array( $args->atts ) ? $args->atts : array() ) ); ?>">
                     <span class="ep-spinner ep-spinner-border-sm ep-mr-1 ep-spinner-<?php echo esc_attr( $args->section_id );?>"></span>
                     <?php echo wp_kses_post( $args->load_more_text );   ?>
                 </button>

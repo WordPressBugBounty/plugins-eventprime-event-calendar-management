@@ -10731,6 +10731,24 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
         }
     }
 
+	/**
+	 * Shortcode attributes posted by the events listing (Load More, filters).
+	 *
+	 * The listing posts the attributes of its own [em_events] shortcode as JSON.
+	 * Each value is sanitized after decoding, so JSON syntax is never mangled.
+	 *
+	 * @return array Sanitized attributes, or an empty array when missing or invalid.
+	 */
+	public function ep_get_posted_event_atts() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Read-only public listing; a nonce would go stale on cached pages.
+		if ( empty( $_POST['event_atts'] ) || ! is_string( $_POST['event_atts'] ) ) {
+			return array();
+		}
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Read-only; every decoded value is sanitized below.
+		$atts = json_decode( wp_unslash( $_POST['event_atts'] ), true );
+		return is_array( $atts ) ? map_deep( $atts, 'sanitize_text_field' ) : array();
+	}
+
     /*
      * load more
      */
@@ -10739,7 +10757,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
         $load_more = 1;
         $ep_requests     = new EP_Requests;
         // $events_data = $this->load_event_common_options( $atts = array('order'=>$order), $load_more );
-        $atts = json_decode( sanitize_text_field( wp_unslash( $_POST['event_atts'] ) ), true );  
+		$atts        = $this->ep_get_posted_event_atts();
         $events_data = $this->load_event_common_options( $atts, $load_more );
         ob_start();
         if( $events_data['calendar_view'] == 1 ) {
@@ -11720,7 +11738,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
     
     public function get_filtered_event_content() {
         $ep_requests = new EP_Requests;
-        $atts = ( ! empty( $_POST['event_atts'] ) ? (array)json_decode( stripslashes( $_POST['event_atts'] ) ) : array() );
+		$atts        = $this->ep_get_posted_event_atts();
         $events_data = $this->load_event_common_options( $atts );
         ob_start();
          $cal_events = array();
@@ -11729,6 +11747,8 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
         $this->ep_get_template_part( $themepath, null, (object)$events_data );
 	    $data['html'] = ob_get_clean();
         $data['paged'] = $events_data['paged'];
+		$data['section_id'] = $events_data['section_id'];
+		$data['event_atts'] = $atts;
         if( $events_data['calendar_view'] == 1 ) {
             $data['cal_events'] = $cal_events;
         }

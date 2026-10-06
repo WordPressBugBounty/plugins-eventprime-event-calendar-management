@@ -5,7 +5,7 @@ Tags: event, events, event calendar, event organizer , event manager, event tick
 Requires at least: 4.8
 Tested up to: 7.1
 Requires PHP: 7.2
-Stable tag: 4.3.5.0
+Stable tag: 4.3.5.1
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -683,6 +683,9 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.3.5.1: October 06, 2026 =
+* Fixed: "Load More" on event lists now keeps the list's shortcode settings, so lists with `upcoming="1"` no longer show past events on later pages, including pages with more than one event list. Thanks to @didymos234 for reporting the issue.
 
 = 4.3.5.0: October 01, 2026 =
 * Security: Hardened permission checks for AI abilities (Abilities API / MCP) and the REST API. Thanks to Mathieu Herve for responsibly reporting the issue.
@@ -2412,6 +2415,9 @@ Fixed: empty event-type lists to return 0 results successfully.
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.3.5.1 =
+Fixes "Load More" showing past events on event lists set to upcoming events only, and keeps each list's settings when a page has more than one event list.
 
 = 4.3.5.0 =
 Security release, update recommended. Hardens AI ability (Abilities API / MCP) permissions and reCAPTCHA login/registration checks. AI abilities that change data now follow your REST Access Policies (Settings > API / Webhooks).

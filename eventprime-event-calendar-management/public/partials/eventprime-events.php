@@ -118,6 +118,14 @@ wp_localize_script(
         )
 );
 
+// Keep shortcode attributes scoped to each rendered events listing. The
+// localized object above is retained for backwards compatibility, but it is
+// overwritten when more than one [em_events] shortcode is present on a page.
+$eventprime_instance_script = 'window.epEventInstances = window.epEventInstances || {};'
+	. 'window.epEventInstances[' . wp_json_encode( (string) $events_data['section_id'] ) . '] = '
+	. wp_json_encode( array( 'event_attributes' => $atts ), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ) . ';';
+wp_add_inline_script( 'ep-front-events-js', $eventprime_instance_script, 'before' );
+
 // localized global settings
 $global_settings = $ep_functions->ep_get_global_settings();
 $currency_symbol = $ep_functions->ep_currency_symbol();

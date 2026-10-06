@@ -38,12 +38,12 @@ jQuery(function ($) {
     });
 
     // Load More
-    // $(document).on('click','#ep-loadmore-events',function(e){
     $(document).on('click', '.ep-loadmore-events', function (e) {
+        var loadMoreButton = $(this);
         var max_page = $(this).data('max');
         var section_id = $(this).data('section_id');
         $('.ep-spinner-' + section_id).addClass('ep-is-active');
-        $('#ep-loadmore-events').prop("disabled", true);
+        loadMoreButton.prop("disabled", true);
         var paged = $('#ep-events-paged-' + section_id).val();
         var display_style = $('#ep-events-style-' + section_id).val();
         var limit = $('#ep-events-limit-' + section_id).val();
@@ -69,7 +69,14 @@ jQuery(function ($) {
             formData.append('keyword', $('#ep_keyword').val());
             formData.append('ep_search', true);
         }
-        formData.append('event_atts', JSON.stringify(em_front_event_object.event_attributes));
+        var eventAttributes = loadMoreButton.attr('data-event_atts');
+        if (!eventAttributes && window.epEventInstances && window.epEventInstances[section_id]) {
+            eventAttributes = JSON.stringify(window.epEventInstances[section_id].event_attributes || {});
+        }
+        if (!eventAttributes && typeof em_front_event_object !== 'undefined') {
+            eventAttributes = JSON.stringify(em_front_event_object.event_attributes || {});
+        }
+        formData.append('event_atts', eventAttributes || '{}');
 
         $('.ep-register-response').html();
         $.ajax({
@@ -80,7 +87,7 @@ jQuery(function ($) {
             processData: false,
             success: function (response) {
                 $('.ep-spinner-' + section_id).removeClass('ep-is-active');
-                $('#ep-loadmore-events').prop("disabled", false);
+                loadMoreButton.prop("disabled", false);
                 $('#ep-events-paged-' + section_id).val(response.data.paged);
                 if (response.data.paged >= max_page) {
                     $('.ep-events-load-more-' + section_id).hide();
@@ -485,6 +492,12 @@ function event_applied_filters(event_view_name, event_search_params) {
         success: function (response) {
             jQuery('.ep-event-loader').hide();
             if (response.success) {
+                if (response.data.section_id && response.data.event_atts) {
+                    window.epEventInstances = window.epEventInstances || {};
+                    window.epEventInstances[response.data.section_id] = {
+                        event_attributes: response.data.event_atts
+                    };
+                }
                 if (response.data.html) {
                     // check for view
                     let existing_display_style = jQuery('#ep-events-style').val();
