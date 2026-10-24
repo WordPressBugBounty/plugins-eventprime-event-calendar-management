@@ -431,10 +431,12 @@ class EventPrime_License_Notices {
 
 		return array(
 			'message' => esc_html__( "Couldn't reach license server, using last known status.", 'eventprime-event-calendar-management' ),
+			// With a key, the License tab renders a button that re-runs the status check; the URL (reload the tab) is the fallback.
 			'cta'     => array(
-				'url'    => admin_url( 'admin-ajax.php?action=ep_check_license_status' ),
-				'label'  => esc_html__( 'Retry check', 'eventprime-event-calendar-management' ),
-				'target' => '_self',
+				'url'         => admin_url( 'edit.php?post_type=em_event&page=ep-settings&tab=license&tab_nonce=' . wp_create_nonce( 'ep_settings_tab' ) ),
+				'label'       => esc_html__( 'Retry check', 'eventprime-event-calendar-management' ),
+				'target'      => '_self',
+				'license_key' => $state['license_key'] ?? '',
 			),
 		);
 	}

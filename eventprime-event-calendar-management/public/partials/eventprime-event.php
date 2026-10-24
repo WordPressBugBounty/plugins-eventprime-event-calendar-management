@@ -121,7 +121,8 @@ if( ! empty( $post ) && $post->post_type=='em_event') {
         'ep-event-single-script', 
         'em_front_event_object', 
         array(
-            'em_event_data' => $localized_script,
+			// Only browser-safe event data goes into the page source.
+			'em_event_data' => array_merge( $localized_script, array( 'event' => $ep_functions->ep_get_frontend_safe_event( $localized_script['event'] ) ) ),
         )
     );
     // enqueue custom scripts and styles from extension

@@ -1484,7 +1484,55 @@ jQuery( function( $ ) {
             $( '#em_ticket_qty_error_' + parent_id ).text( error_msg );
         }
     });
-    
+
+    // Sticky Get Tickets bar on phones: mirrors #ep_single_event_ticket_now_btn and opens it.
+    function ep_init_sticky_book_bar() {
+        let bar = document.querySelector( '.ep-sticky-book-bar' );
+        let box = document.querySelector( '.ep-buy-ticket-section' );
+        if( ! bar || ! box ) {
+            return;
+        }
+        let bar_btn = bar.querySelector( '.ep-sticky-book-btn' );
+        let price = bar.querySelector( '.ep-sticky-book-price' );
+        let phone = window.matchMedia( '(max-width: 767px)' );
+        let box_on_screen = true;
+
+        function sync() {
+            let btn = document.getElementById( 'ep_single_event_ticket_now_btn' );
+            let show = !! btn && btn.getClientRects().length > 0 && ! box_on_screen && phone.matches && ! document.body.classList.contains( 'ep-modal-open-body' );
+            if( show ) {
+                let first_price = document.querySelector( '#ep_single_event_ticket_price h6' );
+                price.textContent = first_price ? first_price.textContent.replace( /\s+/g, ' ' ).trim() : '';
+            }
+            bar.classList.toggle( 'ep-sticky-book-bar-on', show );
+            bar.setAttribute( 'aria-hidden', show ? 'false' : 'true' );
+            bar_btn.setAttribute( 'tabindex', show ? '0' : '-1' );
+            document.body.classList.toggle( 'ep-sticky-book-bar-active', show );
+        }
+
+        bar_btn.addEventListener( 'click', function() {
+            $( '#ep_single_event_ticket_now_btn' ).trigger( 'click' );
+        });
+
+        if( 'IntersectionObserver' in window ) {
+            new IntersectionObserver( function( entries ) {
+                box_on_screen = entries[entries.length - 1].isIntersecting;
+                sync();
+            }).observe( box );
+        }
+        if( 'MutationObserver' in window ) {
+            // The button is shown/hidden by date switches, RSVP and Waiting List; the modal sets a body class.
+            let observer = new MutationObserver( sync );
+            observer.observe( box, { attributes: true, attributeFilter: [ 'style', 'class' ], childList: true, subtree: true } );
+            observer.observe( document.body, { attributes: true, attributeFilter: [ 'class' ] } );
+        }
+        if( phone.addEventListener ) {
+            phone.addEventListener( 'change', sync );
+        }
+        sync();
+    }
+    ep_init_sticky_book_bar();
+
 });
 
 /*--

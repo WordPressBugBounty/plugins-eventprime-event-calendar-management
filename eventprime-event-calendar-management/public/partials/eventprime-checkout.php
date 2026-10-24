@@ -116,6 +116,11 @@ if( ! empty( $default_payment_processor ) && 'paypal_processor' !== $default_pay
         $default_payment_processor = 'paypal_processor';
     }
 }
+// Only browser-safe event data goes into the page source.
+$eventprime_safe_booking_data = $booking_data;
+if ( ! empty( $eventprime_safe_booking_data['event'] ) ) {
+	$eventprime_safe_booking_data['event'] = $ep_functions->ep_get_frontend_safe_event( $eventprime_safe_booking_data['event'] );
+}
 wp_localize_script(
     'ep-event-booking-script', 
     'ep_event_booking', 
@@ -128,7 +133,7 @@ wp_localize_script(
         'previous_event_url'              => $previous_event_url,
         'event_page_url'                  => esc_url( get_permalink( $ep_functions->ep_get_global_settings( 'event_page' ) ) ),
         'is_payment_method_enabled'       => $ep_functions->em_is_payment_gateway_enabled(),
-        'booking_data'                    => $booking_data,
+		'booking_data'                    => $eventprime_safe_booking_data,
         'enabled_guest_booking'           => $ep_functions->ep_enabled_guest_booking(),
         'enabled_woocommerce_integration' => $ep_functions->ep_enabled_woocommerce_integration(),
         'create_account_validation'       => $create_account_validation,
@@ -137,6 +142,7 @@ wp_localize_script(
         'enable_captcha_registration'     => $ep_functions->ep_enabled_reg_captcha(),
         'default_payment_processor'       => $default_payment_processor,
         'enabled_woocommerce_checkout'    => $ep_functions->ep_enabled_woocommerce_checkout(),
+		'paypal_unconfirmed_text'         => esc_html__( 'We could not confirm your PayPal payment. Please do not pay again. Check your email or contact the event organiser.', 'eventprime-event-calendar-management' ),
     )
 );
 $args = (object)$booking_data;

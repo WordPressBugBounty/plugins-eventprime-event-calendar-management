@@ -40,16 +40,29 @@ class EventPrime_License {
                 'status'  => false,
                 'type'    => 'server_error',
                 'message' => sprintf(
-                    __('License activation failed: %s', 'eventprime-event-calendar-management'),
-                    $response->get_error_message()
+					/* translators: %s: connection error reported by WordPress. */
+					__( 'License activation failed: %s', 'eventprime-event-calendar-management' ),
+					esc_html( $response->get_error_message() )
                 )
             );
         }
 
+		if ( 200 !== (int) wp_remote_retrieve_response_code( $response ) ) {
+			return array(
+				'status'  => false,
+				'type'    => 'http_error',
+				'message' => sprintf(
+					/* translators: %d: HTTP status code. */
+					esc_html__( 'The license server returned an unexpected response (HTTP %d). Please try again.', 'eventprime-event-calendar-management' ),
+					(int) wp_remote_retrieve_response_code( $response )
+				),
+			);
+		}
+
         $body = wp_remote_retrieve_body($response);
         $license_data = json_decode($body);
 
-        if (json_last_error() !== JSON_ERROR_NONE || !is_object($license_data)) {
+		if ( json_last_error() !== JSON_ERROR_NONE || ! is_object( $license_data ) || ! isset( $license_data->success ) ) {
             return array(
                 'status'  => false,
                 'type'    => 'invalid_json',
@@ -57,7 +70,7 @@ class EventPrime_License {
             );
         }
 
-        if (!empty($license_data->success) && $license_data->license === 'valid') {
+		if ( ! empty( $license_data->success ) && isset( $license_data->license ) && 'valid' === $license_data->license ) {
             return array(
                 'status'  => true,
                 'type'    => 'success',
@@ -126,16 +139,29 @@ class EventPrime_License {
                 'status'  => false,
                 'type'    => 'server_error',
                 'message' => sprintf(
-                    __('License deactivation failed: %s', 'eventprime-event-calendar-management'),
-                    $response->get_error_message()
+					/* translators: %s: connection error reported by WordPress. */
+					__( 'License deactivation failed: %s', 'eventprime-event-calendar-management' ),
+					esc_html( $response->get_error_message() )
                 )
             );
         }
 
+		if ( 200 !== (int) wp_remote_retrieve_response_code( $response ) ) {
+			return array(
+				'status'  => false,
+				'type'    => 'http_error',
+				'message' => sprintf(
+					/* translators: %d: HTTP status code. */
+					esc_html__( 'The license server returned an unexpected response (HTTP %d). Please try again.', 'eventprime-event-calendar-management' ),
+					(int) wp_remote_retrieve_response_code( $response )
+				),
+			);
+		}
+
         $body = wp_remote_retrieve_body($response);
         $license_data = json_decode($body);
 
-        if (json_last_error() !== JSON_ERROR_NONE || !is_object($license_data)) {
+		if ( json_last_error() !== JSON_ERROR_NONE || ! is_object( $license_data ) || ! isset( $license_data->success ) ) {
             return array(
                 'status'  => false,
                 'type'    => 'invalid_json',
@@ -170,7 +196,12 @@ class EventPrime_License {
         );
 
         $error_code = $license_data->error ?? 'unknown_error';
-        $message    = $edd_errors[$error_code] ?? sprintf(__('License deactivated successfully.', 'eventprime-event-calendar-management'), esc_html($error_code));
+		if ( 'unknown_error' === $error_code && isset( $license_data->license ) && 'failed' === $license_data->license ) {
+			$message = __( 'The license server could not deactivate this license for this site. It may not have been active here.', 'eventprime-event-calendar-management' );
+		} else {
+			/* translators: %s: error code returned by the license server. */
+			$message = $edd_errors[ $error_code ] ?? sprintf( __( 'Unknown error: %s', 'eventprime-event-calendar-management' ), esc_html( $error_code ) );
+		}
 
         return array(
             'status'  => false,
@@ -181,116 +212,139 @@ class EventPrime_License {
     }
 
     
-    public function ep_activate_license($license,$item_id,$prefix)
-    {
-        $return = array();
-        $error_status = '';
-        $ep_store_url = "https://theeventprime.com/";
-        $home_url = home_url();
-        // data to send in our API request
-           $api_params = array(
-               'edd_action' => 'activate_license',
-               'license'    => $license,
-               'item_id'    => $item_id,
-               'url'        => $home_url
-           );
+	/**
+	 * Activates a licence on the store and stores the answer for this site.
+	 *
+	 * @param string $license Licence key.
+	 * @param string $item_id Store download ID.
+	 * @param string $prefix  Option prefix of the extension, for example ep_guest.
+	 * @return array license_data (null when the server gave no usable answer), license_status_block, expire_date,
+	 *               message, status (true only when activated) and request_error ('' or connection / http_error / invalid_response).
+	 */
+	public function ep_activate_license( $license, $item_id, $prefix ) {
+		$ep_store_url = 'https://theeventprime.com/';
+		// Data to send in our API request.
+		$api_params = array(
+			'edd_action' => 'activate_license',
+			'license'    => $license,
+			'item_id'    => $item_id,
+			'url'        => home_url(),
+		);
 
-           // Call the custom API.
-           $response = wp_remote_post( $ep_store_url, array( 'timeout' => 15, 'sslverify' => false, 'body' => $api_params ) );
-           
-            // make sure the response came back okay
-            if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-                $message =  ( is_wp_error( $response ) && ! empty( $response->get_error_message() ) ) ? $response->get_error_message() : esc_html__( 'An error occurred, please try again.' );
-            } else {
-                $license_data = json_decode( wp_remote_retrieve_body( $response ) );
-                $error_status = (isset($license_data->error))?$license_data->error:'';
-                if ( false === $license_data->success ) {
-                    if( isset( $license_data->error ) ){
-                        switch( $license_data->error ) {
-                            case 'expired' :
-                                $message = sprintf(
-                                    esc_html__( 'Your license key expired on %s.', 'profilegrid-user-profiles-groups-and-communities' ),
-                                    wp_date( get_option( 'date_format' ), strtotime( $license_data->expires, current_time( 'timestamp' ,true) ) )
-                                );
-                                break;
-                            case 'revoked' :
-                                $message = esc_html__( 'Your license key has been disabled.' , 'eventprime-event-calendar-management' );
-                                break;
-                            case 'missing' :
-                                $message = esc_html__( 'Your license key is invalid.' , 'eventprime-event-calendar-management' );
-                                break;
-                            case 'invalid' :
-                            case 'site_inactive' :
-                                $message = esc_html__( 'Your license is not active for this URL.' , 'eventprime-event-calendar-management' );
-                                break;
-                            case 'item_name_mismatch' :
-                                $message = esc_html__( 'The key you have entered seems to be invalid. Please verify and try again.', 'eventprime-event-calendar-management'  );
-                                break;
-                            case 'no_activations_left':
-                                $message = esc_html__( 'Your license key has reached its activation limit.', 'eventprime-event-calendar-management'  );
-                                break;
-                            default :
-                                $message = esc_html__( 'The key you have entered seems to be invalid. Please verify and try again.', 'eventprime-event-calendar-management'  );
-                                break;
-                        }
-                    }
-                }
-            }
+		// Call the custom API.
+		$response      = wp_remote_post(
+			$ep_store_url,
+			array(
+				'timeout'   => 15,
+				'sslverify' => false,
+				'body'      => $api_params,
+			)
+		);
+		$license_data  = null;
+		$message       = '';
+		$request_error = '';
+		$keep_saved    = esc_html__( 'Your saved license details have not been changed. Please try again.', 'eventprime-event-calendar-management' );
 
-            // Check if anything passed on a message constituting a failure
-            if ( ! empty( $message ) ) {
-            }
-            
-            if( !empty( $license_data ) ){
-                // $license_data->license will be either "valid" or "invalid"
-                $license_status  = ( isset( $license_data->license ) && ! empty( $license_data->license ) && $license_data->license == 'valid' ) ? $license_data->license : '';
-                $license_response  = ( isset( $license_data ) && ! empty( $license_data ) ) ? $license_data : '';
-                update_option( $prefix.'_license_status', $license_status );
-                update_option( $prefix.'_license_response', $license_response );
-                update_option( $prefix.'_item_id', $item_id );
-            }
-            
-            if( isset( $license_data->expires ) && ! empty( $license_data->expires ) ) {
-                if( $license_data->expires == 'lifetime' ){
-                    $expire_date = esc_html__( 'Your license key is activated for lifetime', 'eventprime-event-calendar-management' );
-                }else{
-                    $expire_date = sprintf( esc_html__( 'Your license Key expires on %s.', 'eventprime-event-calendar-management' ), gmdate( 'F d, Y', strtotime($license_data->expires) ) );
-                }
-            }else{
-                $expire_date = '';
-            }   
-            
-            ob_start(); ?>
-                <?php if( isset( $license_data->license ) && $license_data->license == 'valid' ){ ?>
-                    <button type="button" class="button action pg-my-2 pg_license_deactivate" data-prefix="<?php echo esc_attr( $item_id ); ?>" name="<?php echo esc_attr( $prefix); ?>_license_deactivate" id="<?php echo esc_attr( $prefix ); ?>_license_deactivate" value="<?php esc_html_e( 'Deactivate License', 'eventprime-event-calendar-management' );?>"><?php esc_html_e( 'Deactivate License', 'eventprime-event-calendar-management' );?></button>
-                <?php }elseif( isset( $license_data->license ) && $license_data->license == 'invalid' ){ ?>
-                    <button type="button" class="button action pg-my-2 pg_license_activate" data-prefix="<?php echo esc_attr( $item_id ); ?>" name="<?php echo esc_attr( $prefix ); ?>_license_activate" id="<?php echo esc_attr( $prefix ); ?>_license_activate" value="<?php esc_html_e( 'Activate License', 'eventprime-event-calendar-management' );?>"><?php esc_html_e( 'Activate License', 'eventprime-event-calendar-management' );?></button>
-                <?php }else{ ?>
-                    <button type="button" class="button action pg-my-2 pg_license_activate" data-prefix="<?php echo esc_attr($item_id); ?>" name="<?php echo esc_attr( $prefix ); ?>_license_activate" id="<?php echo esc_attr( $prefix ); ?>_license_activate" value="<?php esc_html_e( 'Activate License', 'eventprime-event-calendar-management' );?>"><?php esc_html_e( 'Activate License', 'eventprime-event-calendar-management' );?></button>
-                <?php } ?>      
-            <?php
-            $license_status_block = ob_get_clean();
+		// A failed or incomplete request says nothing about the license, so it must not change what is stored.
+		if ( is_wp_error( $response ) ) {
+			$request_error = 'connection';
+			/* translators: %s: connection error reported by WordPress, for example a cURL timeout. */
+			$message = sprintf( esc_html__( 'Could not connect to the license server (%s).', 'eventprime-event-calendar-management' ), esc_html( $response->get_error_message() ) ) . ' ' . $keep_saved;
+		} elseif ( 200 !== (int) wp_remote_retrieve_response_code( $response ) ) {
+			$request_error = 'http_error';
+			/* translators: %d: HTTP status code. */
+			$message = sprintf( esc_html__( 'The license server returned an unexpected response (HTTP %d).', 'eventprime-event-calendar-management' ), (int) wp_remote_retrieve_response_code( $response ) ) . ' ' . $keep_saved;
+		} else {
+			$decoded = json_decode( wp_remote_retrieve_body( $response ) );
+			if ( ! is_object( $decoded ) || ! isset( $decoded->success, $decoded->license ) ) {
+				$request_error = 'invalid_response';
+				$message       = esc_html__( 'The license server sent an incomplete response.', 'eventprime-event-calendar-management' ) . ' ' . $keep_saved;
+			} else {
+				$license_data = $decoded;
+			}
+		}
 
-            if ( empty( $message ) || $license_data->license == 'valid' ) {
-                if( isset( $license_data->license ) && $license_data->license == 'valid' ){
-                    $message = esc_html__( 'Your License key is activated.', 'eventprime-event-calendar-management'  );
-                }
-                if( isset( $license_data->license ) && $license_data->license == 'invalid' ){
-                    $message = esc_html__( 'Your license key is invalid.', 'eventprime-event-calendar-management'  );
-                }
-                if( isset( $license_data->license ) && $license_data->license == 'deactivated' ){
-                    $message = esc_html__( 'Your License key is deactivated.', 'eventprime-event-calendar-management'  );
-                }
-                if( isset( $license_data->license ) && $license_data->license == 'failed' ){
-                    $message = esc_html__( 'Your License key deactivation failed. Please try after some time.', 'eventprime-event-calendar-management'  );
-                }
-            }
+		if ( $license_data && false === $license_data->success && isset( $license_data->error ) ) {
+			switch ( $license_data->error ) {
+				case 'expired':
+					$message = sprintf(
+						/* translators: %s: licence expiry date. */
+						esc_html__( 'Your license key expired on %s.', 'eventprime-event-calendar-management' ),
+						date_i18n( get_option( 'date_format' ), strtotime( $license_data->expires ) )
+					);
+					break;
+				case 'revoked':
+					$message = esc_html__( 'Your license key has been disabled.', 'eventprime-event-calendar-management' );
+					break;
+				case 'missing':
+					$message = esc_html__( 'Your license key is invalid.', 'eventprime-event-calendar-management' );
+					break;
+				case 'invalid':
+				case 'site_inactive':
+					$message = esc_html__( 'Your license is not active for this URL.', 'eventprime-event-calendar-management' );
+					break;
+				case 'no_activations_left':
+					$message = esc_html__( 'Your license key has reached its activation limit.', 'eventprime-event-calendar-management' );
+					break;
+				default:
+					$message = esc_html__( 'The key you have entered seems to be invalid. Please verify and try again.', 'eventprime-event-calendar-management' );
+					break;
+			}
+		}
 
-            $return = array( 'license_data' => $license_data, 'license_status_block' => $license_status_block, 'expire_date' => $expire_date, 'message' => $message );
-        
-            return $return;
-           
-    }
+		if ( $license_data ) {
+			// $license_data->license will be either "valid" or "invalid".
+			update_option( $prefix . '_license_status', 'valid' === $license_data->license ? 'valid' : '' );
+			update_option( $prefix . '_license_response', $license_data );
+			update_option( $prefix . '_item_id', $item_id );
+		}
+
+		$expire_date = '';
+		if ( ! empty( $license_data->expires ) ) {
+			if ( 'lifetime' === $license_data->expires ) {
+				$expire_date = esc_html__( 'Your license key is activated for lifetime', 'eventprime-event-calendar-management' );
+			} else {
+				/* translators: %s: licence expiry date. */
+				$expire_date = sprintf( esc_html__( 'Your license Key expires on %s.', 'eventprime-event-calendar-management' ), gmdate( 'F d, Y', strtotime( $license_data->expires ) ) );
+			}
+		}
+
+		$is_valid = isset( $license_data->license ) && 'valid' === $license_data->license;
+		ob_start();
+		if ( $is_valid ) {
+			?>
+			<button type="button" class="button action pg-my-2 pg_license_deactivate" data-prefix="<?php echo esc_attr( $item_id ); ?>" name="<?php echo esc_attr( $prefix ); ?>_license_deactivate" id="<?php echo esc_attr( $prefix ); ?>_license_deactivate" value="<?php esc_html_e( 'Deactivate License', 'eventprime-event-calendar-management' ); ?>"><?php esc_html_e( 'Deactivate License', 'eventprime-event-calendar-management' ); ?></button>
+			<?php
+		} else {
+			?>
+			<button type="button" class="button action pg-my-2 pg_license_activate" data-prefix="<?php echo esc_attr( $item_id ); ?>" name="<?php echo esc_attr( $prefix ); ?>_license_activate" id="<?php echo esc_attr( $prefix ); ?>_license_activate" value="<?php esc_html_e( 'Activate License', 'eventprime-event-calendar-management' ); ?>"><?php esc_html_e( 'Activate License', 'eventprime-event-calendar-management' ); ?></button>
+			<?php
+		}
+		$license_status_block = ob_get_clean();
+
+		if ( $license_data && ( empty( $message ) || $is_valid ) ) {
+			$status_messages = array(
+				'valid'       => esc_html__( 'Your License key is activated.', 'eventprime-event-calendar-management' ),
+				'invalid'     => esc_html__( 'Your license key is invalid.', 'eventprime-event-calendar-management' ),
+				'deactivated' => esc_html__( 'Your License key is deactivated.', 'eventprime-event-calendar-management' ),
+				'failed'      => esc_html__( 'Your License key deactivation failed. Please try after some time.', 'eventprime-event-calendar-management' ),
+			);
+			if ( isset( $status_messages[ $license_data->license ] ) ) {
+				$message = $status_messages[ $license_data->license ];
+			}
+		}
+
+		// status: true only for a confirmed activation. request_error: '' when the server answered, else connection / http_error / invalid_response.
+		return array(
+			'license_data'         => $license_data,
+			'license_status_block' => $license_status_block,
+			'expire_date'          => $expire_date,
+			'message'              => $message,
+			'status'               => $is_valid && ! empty( $license_data->success ),
+			'request_error'        => $request_error,
+		);
+	}
+
       // deactivate license
     public function ep_deactivate_license($license,$item_id,$prefix)
     {

@@ -1189,12 +1189,10 @@ function loadPaymentSection() {
                                         });
                                     });
                                 },
-                                // Finalize the transaction
+                                // The server checks the order and captures it, so no money moves if the booking cannot be confirmed.
                                 onApprove: function( data, actions ) {
-                                    actions.order.capture().then( function( orderData ) {
-                                        jQuery('.ep-event-loader').show();
-                                        paypalPaymentOnApprove( orderData, order_id );
-                                    });
+                                    jQuery('.ep-event-loader').show();
+                                    paypalPaymentOnApprove( { id: data.orderID }, order_id, true );
                                 },
                                 onError: function (err) {
                                     alert("There seems to be a problem. Please refresh the page and try again");
@@ -1452,14 +1450,17 @@ function updateCheckoutSecurityTokens( responseData ) {
 }
 
 
-function paypalPaymentOnApprove( orderData, order_id ) {
-    let data = { 
+function paypalPaymentOnApprove( orderData, order_id, serverCapture, attempt ) {
+    attempt = attempt || 1;
+    let data = {
         action   : 'ep_paypal_sbpr',
         security    : ep_event_booking.flush_booking_timer_nonce,
         order_key : ep_event_booking.paypal_order_key,
         data     : orderData,
-        order_id : order_id
+        order_id : order_id,
+        server_capture : serverCapture ? 1 : 0
     };
+    let unconfirmedText = ep_event_booking.paypal_unconfirmed_text || 'We could not confirm your PayPal payment. Please do not pay again. Check your email or contact the event organiser.';
     jQuery.ajax({
         type    : "POST",
         url     : eventprime.ajaxurl,
@@ -1474,11 +1475,33 @@ function paypalPaymentOnApprove( orderData, order_id ) {
             else
             {
                 jQuery('.ep-event-loader').hide();
-                show_toast( 'error', response.data.error );
+                let message = ( response.data && response.data.error ) ? response.data.error : unconfirmedText;
+                show_toast( 'error', message );
+                // When money may have moved, replace the PayPal button so the buyer is not invited to pay twice.
+                if( response.data && response.data.payment_taken && response.data.payment_taken !== 'no' ) {
+                    showPaypalPaymentNotice( message );
+                }
             }
-            
+        },
+        error : function() {
+            // Each PayPal order confirms only one booking, so retrying after a network error is safe.
+            if( attempt < 3 ) {
+                setTimeout( function() {
+                    paypalPaymentOnApprove( orderData, order_id, serverCapture, attempt + 1 );
+                }, 2000 * attempt );
+                return;
+            }
+            jQuery('.ep-event-loader').hide();
+            show_toast( 'error', unconfirmedText );
+            showPaypalPaymentNotice( unconfirmedText );
         }
     });
+}
+
+function showPaypalPaymentNotice( message ) {
+    jQuery( '#ep-paypal-button-container' ).empty().show().append(
+        jQuery( '<div class="ep-alert ep-alert-warning ep-my-3" role="alert"></div>' ).text( message )
+    );
 }
 
 // reload user section

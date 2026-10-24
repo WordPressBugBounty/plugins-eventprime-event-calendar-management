@@ -2522,6 +2522,57 @@ class Eventprime_Event_Calendar_Management_Public {
         
     }
 
+	/**
+	 * Route private taxonomy permalinks through their configured shortcode pages.
+	 *
+	 * WordPress removes private taxonomy query vars before parse_request fires.
+	 * Read the matched rewrite, not visitor-supplied query parameters, instead.
+	 *
+	 * @param WP $wp Parsed WordPress request.
+	 */
+	public function eventprime_route_taxonomy_request( $wp ) {
+		if ( is_admin() || empty( $wp->matched_rule ) || empty( $wp->matched_query ) ) {
+			return;
+		}
+
+		$eventprime_routes  = array(
+			'em_venue'           => array( 'venue', 'venues_page' ),
+			'em_event_organizer' => array( 'organizer', 'event_organizers' ),
+			'em_event_type'      => array( 'event_type', 'event_types' ),
+		);
+		$eventprime_matched = array();
+		parse_str( $wp->matched_query, $eventprime_matched );
+		$eventprime_functions = new Eventprime_Basic_Functions();
+
+		foreach ( $eventprime_routes as $eventprime_taxonomy => $eventprime_route ) {
+			list( $eventprime_selector, $eventprime_setting ) = $eventprime_route;
+			$eventprime_slug                                  = '';
+			if ( isset( $eventprime_matched['taxonomy'], $eventprime_matched['term'] ) && $eventprime_taxonomy === $eventprime_matched['taxonomy'] ) {
+				$eventprime_slug = $eventprime_matched['term'];
+			} elseif ( isset( $eventprime_matched['pagename'], $eventprime_matched[ $eventprime_selector ] ) ) {
+				// Also support the custom SEO rules saved by previous versions.
+				$eventprime_slug = $eventprime_matched[ $eventprime_selector ];
+			} else {
+				continue;
+			}
+
+			$eventprime_term    = is_string( $eventprime_slug ) ? get_term_by( 'slug', $eventprime_slug, $eventprime_taxonomy ) : false;
+			$eventprime_page_id = absint( $eventprime_functions->ep_get_global_settings( $eventprime_setting ) );
+			$eventprime_page    = $eventprime_page_id ? get_post( $eventprime_page_id ) : null;
+			if ( ! $eventprime_term || ! $eventprime_page || 'page' !== $eventprime_page->post_type || 'publish' !== $eventprime_page->post_status || ! empty( $eventprime_matched['feed'] ) || ! empty( $eventprime_matched['embed'] ) || ! empty( $eventprime_matched['paged'] ) ) {
+				$wp->query_vars = array( 'error' => '404' );
+				return;
+			}
+
+			foreach ( array( 'taxonomy', 'term', 'pagename', 'name', 'post_type', 'p', 'attachment', 'attachment_id', 'error' ) as $eventprime_key ) {
+				unset( $wp->query_vars[ $eventprime_key ] );
+			}
+			$wp->query_vars['page_id']              = $eventprime_page->ID;
+			$wp->query_vars[ $eventprime_selector ] = $eventprime_term->term_id;
+			return;
+		}
+	}
+
     public function ep_filter_query_vars($query_vars)
     {
         //$query_vars[] = 'event';

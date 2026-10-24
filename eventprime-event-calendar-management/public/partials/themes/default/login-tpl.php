@@ -96,7 +96,7 @@ if( ! empty( $args->current_user ) && ! empty( $args->current_user->ID ) ) {?>
                     
                     <?php do_action( 'ep_attendee_login_form' ); ?>
                     
-                    <div class="ep-form-row ep-form-group ep-text-small ep-d-flex ep-justify-content-between ep-mb-3">
+					<div class="ep-form-row ep-form-group ep-text-small ep-d-flex ep-justify-content-between ep-mb-3 ep-login-remember-row">
                         <?php if( $ep_functions->ep_get_global_settings( 'login_show_rememberme' ) !== 0 ){ ?>
                             <label for="ep_login_rememberme" class="ep-form-label ep-checkbox-inline ep-text-small">
                                 <input type="checkbox" name="rememberme" id="ep_login_rememberme" class="ep-form-input ep-input-checkbox" />

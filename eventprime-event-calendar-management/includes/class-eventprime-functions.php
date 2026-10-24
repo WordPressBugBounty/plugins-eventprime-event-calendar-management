@@ -3969,7 +3969,7 @@ public function ep_get_event_date_time_diff( $event ) {
             $event->organizer_details = (!empty($event->em_organizer) ) ? $this->ep_get_event_organizer($event->em_organizer) : array();
             $event->performer_details = (!empty($event->em_performer) ) ? $this->get_ep_event_performer($event->em_performer) : array();
             $event->image_url = $this->get_event_image_url($event->id);
-            $event->placeholder_image_url = plugin_dir_url(__FILE__) . '../admin/partials/images/dummy_image.png';
+			$event->placeholder_image_url = plugin_dir_url( EP_PLUGIN_FILE ) . 'admin/partials/images/dummy_image.png';
             $other_events = $this->ep_get_child_events($post->ID);
             $event->child_events = array();
             if (!empty($other_events) && count($other_events) > 0) {
@@ -4028,7 +4028,7 @@ public function ep_get_event_date_time_diff( $event ) {
             $event->organizer_details = (!empty($event->em_organizer) ) ? $this->ep_get_event_organizer($event->em_organizer) : array();
             $event->performer_details = (!empty($event->em_performer) ) ? $this->get_ep_event_performer($event->em_performer) : array();
             $event->image_url = $this->get_event_image_url($event->id);
-            $event->placeholder_image_url = plugin_dir_url(__FILE__) . '../admin/partials/images/dummy_image.png';
+			$event->placeholder_image_url = plugin_dir_url( EP_PLUGIN_FILE ) . 'admin/partials/images/dummy_image.png';
             //$other_events = $this->ep_get_child_events($post->ID);
             $event->child_events = array();
 //            if (!empty($other_events) && count($other_events) > 0) {
@@ -4044,6 +4044,37 @@ public function ep_get_event_date_time_diff( $event ) {
         }
         return $event;
     }
+
+	/**
+	 * Get a copy of an event object that is safe to print in frontend page source.
+	 *
+	 * The event object holds every post meta value of the event, including values that
+	 * only server-side code should read. The copy leaves out protected meta (keys that
+	 * start with an underscore), post passwords and the keys returned by the
+	 * `eventprime_frontend_event_private_keys` filter. Child events get the same treatment.
+	 * The original object is not changed.
+	 *
+	 * @param object $event Event object from get_single_event() or get_single_event_detail().
+	 * @return object
+	 */
+	public function ep_get_frontend_safe_event( $event ) {
+		if ( ! is_object( $event ) ) {
+			return $event;
+		}
+		$private_keys = apply_filters( 'eventprime_frontend_event_private_keys', array( 'meeting_data', 'waitee_booking_token', 'post_password' ), $event );
+		$safe_event   = clone $event;
+		foreach ( array_keys( get_object_vars( $safe_event ) ) as $key ) {
+			if ( in_array( $key, $private_keys, true ) || is_protected_meta( $key, 'post' ) ) {
+				unset( $safe_event->$key );
+			}
+		}
+		foreach ( array( 'child_events', 'child_other_events' ) as $child_key ) {
+			if ( ! empty( $safe_event->$child_key ) && is_array( $safe_event->$child_key ) ) {
+				$safe_event->$child_key = array_map( array( $this, 'ep_get_frontend_safe_event' ), $safe_event->$child_key );
+			}
+		}
+		return $safe_event;
+	}
     
     
     
@@ -4101,7 +4132,7 @@ public function ep_get_event_date_time_diff( $event ) {
                 $event->performer_details = (!empty($event->em_performer) ) ? $this->get_ep_event_performer($event->em_performer) : array();
             }
             $event->image_url = $this->get_event_image_url($event->id);
-            $event->placeholder_image_url = plugin_dir_url(__FILE__) . '../admin/partials/images/dummy_image.png';
+			$event->placeholder_image_url = plugin_dir_url( EP_PLUGIN_FILE ) . 'admin/partials/images/dummy_image.png';
             
             $event->all_offers_data = $this->get_event_all_offers($event);
             $event->qr_code = $this->get_event_qr_code($event);
@@ -7193,7 +7224,7 @@ public function ep_get_event_date_time_diff( $event ) {
             $event->organizer_details  = ( ! empty( $event->em_organizer ) ) ? EventM_Factory_Service::get_organizers_by_id( $event->em_organizer ) : array();
             $event->performer_details  = ( ! empty( $event->em_performer) ) ? EventM_Factory_Service::get_performers_by_id( $event->em_performer ) : array(); */
             $event->image_url          = $this->get_event_image_url( $event->id );
-            $event->placeholder_image_url = plugin_dir_path(EP_PLUGIN_FILE) . 'public/partials/images/dummy_image.png';
+			$event->placeholder_image_url = plugin_dir_url( EP_PLUGIN_FILE ) . 'public/partials/images/dummy_image.png';
             //$other_events            = EventM_Factory_Service::ep_get_child_events( $post->ID );
             $event->child_events       = array();
             /* if( ! empty( $other_events ) && count( $other_events ) > 0 ) {
@@ -9074,16 +9105,42 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
         return $booking_status;
     }
     
+	/**
+	 * Match an association ID stored as a scalar or in a serialized numeric list.
+	 *
+	 * @param string $meta_key Association meta key.
+	 * @param int    $entity_id Performer or organizer ID.
+	 * @return array Meta query clauses.
+	 */
+	private function eventprime_get_association_meta_query( $meta_key, $entity_id ) {
+		$entity_id = absint( $entity_id );
+		return array(
+			'relation' => 'OR',
+			array(
+				'key'     => $meta_key,
+				'value'   => (string) $entity_id,
+				'compare' => '=',
+			),
+			array(
+				'key'     => $meta_key,
+				'value'   => 's:' . strlen( (string) $entity_id ) . ':"' . $entity_id . '";',
+				'compare' => 'LIKE',
+			),
+			array(
+				'key'     => $meta_key,
+				// Consume complete pairs from the array start: an integer key must never match as a value.
+				'value'   => '^a:[0-9]+:[{](i:[0-9]+;(i:[0-9]+;|s:[0-9]+:"[0-9]+";))*i:[0-9]+;i:' . $entity_id . ';',
+				'compare' => 'REGEXP',
+			),
+		);
+	}
+
     public function get_upcoming_events_for_organizer_new($organizer_id, $args = array()) 
     {
         $hide_past_events = $this->ep_get_global_settings('single_organizer_hide_past_events');
         $meta_query = array(
             'relation' => 'AND',
-            array(
-                'key'     => 'em_organizer',
-                'value'   => '%' . $organizer_id . '%',
-                'compare' => 'LIKE'
-            ),
+			$this->eventprime_get_association_meta_query( 'em_organizer', $organizer_id ),
         );
 
         if (!empty($hide_past_events)) {
@@ -9137,11 +9194,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
             'order'       => 'ASC',
             'meta_query'  => array( 'relation' => 'AND',
                 array(
-                    array(
-                        'key'     => 'em_organizer',
-                        'value'   =>  maybe_serialize( strval ( $organizer_id ) ),
-                        'compare' => 'LIKE'
-                    ),
+					$this->eventprime_get_association_meta_query( 'em_organizer', $organizer_id ),
                     $past_events_meta_qry,
                 )
             ),
@@ -10879,6 +10932,8 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
                 $localized_script['cal_events'] = $cal_events;
                 $localized_script['local'] = $this->ep_get_calendar_locale();
             }
+			// Only browser-safe event data goes into the page source.
+			$localized_script['event'] = $this->ep_get_frontend_safe_event( $localized_script['event'] );
             wp_localize_script(
                 'ep-event-single-script', 
                 'em_front_event_object', 
@@ -11343,6 +11398,50 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
         // Return result
         return $text;
     }
+
+	/**
+	 * Get the display value of one attendee field from a booking.
+	 *
+	 * Each attendee field is saved as array( 'label' => <label>, <slug> => <value> ).
+	 * Labels without Latin letters or digits (e.g. Chinese) all share the slug '---',
+	 * so the field is found by its saved label first, then by slug.
+	 *
+	 * @param array  $attendee_fields Saved fields of one attendee (array_values of the attendee data).
+	 * @param string $label           Field label.
+	 * @return string Field value, or '---' when empty or not found.
+	 */
+	public function ep_get_booking_attendee_field_value( $attendee_fields, $label ) {
+		$value = '';
+		if ( is_array( $attendee_fields ) && is_string( $label ) && '' !== $label ) {
+			$slug  = $this->ep_get_slug_from_string( $label );
+			$found = false;
+			foreach ( $attendee_fields as $field ) {
+				if ( ! is_array( $field ) || isset( $field['seat'] ) || ! isset( $field['label'] ) || $field['label'] !== $label ) {
+					continue;
+				}
+				$found = true;
+				if ( isset( $field[ $slug ] ) ) {
+					$value = $field[ $slug ];
+				} else {
+					unset( $field['label'] );
+					$value = reset( $field );
+				}
+				break;
+			}
+			if ( ! $found ) {
+				foreach ( $attendee_fields as $field ) {
+					if ( is_array( $field ) && ! empty( $field[ $slug ] ) ) {
+						$value = $field[ $slug ];
+						break;
+					}
+				}
+			}
+		}
+		if ( is_array( $value ) ) {
+			$value = implode( ', ', $value );
+		}
+		return ( empty( $value ) && '0' !== $value ) ? '---' : $value;
+	}
     
 
     public function ep_get_converted_price_in_cent( $price, $currency ) {
@@ -11409,11 +11508,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
             'order'       => 'ASC',
             'meta_query'  => array( 'relation' => 'AND',
                 array(
-                    array(
-                        'key'     => 'em_performer',
-                        'value'   =>  serialize( strval ( $performer_id ) ),
-                        'compare' => 'LIKE'
-                    ),
+					$this->eventprime_get_association_meta_query( 'em_performer', $performer_id ),
                     $past_events_meta_qry,
                     
                 )
@@ -11437,11 +11532,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
         // Initialize the meta query.
         $meta_query = array(
             'relation' => 'AND',
-            array(
-                'key'     => 'em_performer',
-                'value'   => '"' . intval($performer_id) . '"', // Target specific performer IDs in serialized data.
-                'compare' => 'LIKE'
-            )
+			$this->eventprime_get_association_meta_query( 'em_performer', $performer_id ),
         );
 
         // Add condition to hide past events.

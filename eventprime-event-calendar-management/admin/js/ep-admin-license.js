@@ -37,6 +37,31 @@ jQuery( function( $ ) {
         const resultSpan = $(btn).closest('.ep-ext-box-description').find('.ep-extension-action-result');
         renderPlainMessage(resultSpan, message, success);
     }
+
+    // Message from a licence AJAX reply (wp_send_json_* puts it in data or data.message), else the generic one.
+    function licenseResponseMessage(response) {
+        const data = response && response.data;
+        if (typeof data === 'string' && data) {
+            return data;
+        }
+        if (data && data.message) {
+            return data.message;
+        }
+        return ep_admin_license_settings.request_failed;
+    }
+
+    // Re-enable the clicked button so the request can be retried.
+    function restoreLicenseButton($btn) {
+        $btn.children('.spinner').remove();
+        $btn.removeAttr('disabled').removeClass('ep-pe-none');
+    }
+
+    // message is escaped by PHP: the toast shows it as HTML, the inline result as text (decoded first).
+    function showLicenseFailure($btn, message) {
+        restoreLicenseButton($btn);
+        show_toast('error', message);
+        showResult($btn, $('<textarea>').html(message).text(), false);
+    }
     
     $('#ep_setting_form').on('keydown', 'input', function(event) {
   if (event.key === 'Enter') {
@@ -53,10 +78,11 @@ jQuery( function( $ ) {
     $('.ep-deactivate-license-bundle').on('click', function (e) {
         
         e.preventDefault();
+        var $bundleBtn = $(this);
         var license_key = $(this).attr('data-license');
         var loader = $( '<span class="spinner is-active" style="float: none;"></span>' );
-        showbundleLicenseStatus(this, loader,true);
-        
+        $bundleBtn.append(loader).attr('disabled', 'disabled');
+
         let data = { 
             'action': 'ep_deactivate_bundle_license', 
             'nonce': ep_admin_license_settings.ep_license_nonce,
@@ -68,13 +94,19 @@ jQuery( function( $ ) {
             url :  get_ajax_url(),
             data: data,
             success: function( response ) {
-                //console.log(response);
-                show_toast( 'success', response.data.html );
-                setTimeout(function () {
-                    location.reload();
-                }, 3000);
-                
-            
+                if ( response && response.success ) {
+                    show_toast( 'success', response.data.html );
+                    setTimeout(function () {
+                        location.reload();
+                    }, 3000);
+                } else {
+                    restoreLicenseButton( $bundleBtn );
+                    show_toast( 'error', licenseResponseMessage( response ) );
+                }
+            },
+            error: function() {
+                restoreLicenseButton( $bundleBtn );
+                show_toast( 'error', ep_admin_license_settings.request_failed );
             }
         });
         
@@ -92,6 +124,7 @@ jQuery( function( $ ) {
         
         var loader = $( '<span class="spinner is-active ep-ml-1" style="float: none;"></span>' );
         //showResult(this, loader);
+        showResult(this, '');
         $epDeactivateBtn.append(loader);
           $(this).attr('disabled','disabled');
           $(this).addClass('ep-pe-none');
@@ -108,11 +141,18 @@ jQuery( function( $ ) {
             url :  get_ajax_url(),
             data: data,
             success: function( response ) {
-                //console.log(response);
-                show_toast( 'success', response.data.message );
-                setTimeout(function () {
-                    location.reload();
-                }, 3000);
+                if ( response && response.success ) {
+                    // The licence server answered; local records were removed, so reload either way.
+                    show_toast( response.data.status ? 'success' : 'warning', response.data.message );
+                    setTimeout(function () {
+                        location.reload();
+                    }, 3000);
+                } else {
+                    showLicenseFailure( $epDeactivateBtn, licenseResponseMessage( response ) );
+                }
+            },
+            error: function() {
+                showLicenseFailure( $epDeactivateBtn, ep_admin_license_settings.request_failed );
             }
         });
         
@@ -127,6 +167,7 @@ jQuery( function( $ ) {
         var ep_license_activate = 'activate';
         var loader = $( '<span class="spinner is-active ep-ml-1" style="float: none;"></span>' );
         //showResult(this, loader);
+        showResult(this, '');
         $epActivateBtn.append(loader);
         $(this).attr('disabled','disabled');
         $(this).addClass('ep-pe-none');
@@ -145,25 +186,19 @@ jQuery( function( $ ) {
             url :  get_ajax_url(),
             data: data,
             success: function( response ) {
-                //console.log(response);
-                if( response.data.license_data.success === true )
-                {
+                var licenseData = response && response.data ? response.data.license_data : null;
+                if ( response && response.success && licenseData && licenseData.success === true ) {
                     show_toast( 'success', response.data.message );
                     setTimeout(function () {
                         location.reload();
                     }, 3000);
+                } else {
+                    // Keep the page (and the message) so the admin can read it and retry.
+                    showLicenseFailure( $epActivateBtn, licenseResponseMessage( response ) );
                 }
-                else{
-                    show_toast( 'error', response.data.message );
-                   
-                    setTimeout(function () {
-                        location.reload();
-                    }, 3000);
-                }
-                
-                $(this).children('.spinner').remove();
-                $(this).removeAttr('disabled');
-            
+            },
+            error: function() {
+                showLicenseFailure( $epActivateBtn, ep_admin_license_settings.request_failed );
             }
         });
     });
@@ -211,18 +246,17 @@ $('.ep_check_license_update').on('click', function(e){
     $('.ep-license-error-message, .ep-license-success-message').hide().text('');
     $('.ep-license-upload-fallback').hide();
 
+    var $checkBtn = $(this);
+    let licenseKey = $(this).data('licensekey');
+    if(!licenseKey) return;
+
     // Show loader
     var loader = $( '<span class="spinner is-active" style="float: left;"></span>' );
     //showLicenseStatus(this, loader);
     //$('.ep_check_license_update').before(loader);
-    
+
       $(this).append(loader);
      $(this).attr('disabled','disabled');
-
-    let licenseKey = $(this).data('licensekey');
-
-    
-    if(!licenseKey) return;
 
     $.ajax({
         url: get_ajax_url(),
@@ -236,7 +270,7 @@ $('.ep_check_license_update').on('click', function(e){
             // Remove loader and enable button
             
 
-            if(response.success){
+            if(response && response.success){
                 if(response.data.html) {
                     
               
@@ -244,6 +278,8 @@ $('.ep_check_license_update').on('click', function(e){
                         $('.ep-license-success-message')
                         .text(response.data.html)
                         .fadeIn();
+                        // The success box is inside the closed Add License modal; show the result where the admin is looking.
+                        show_toast('success', response.data.html);
                         
                         setTimeout(function () {
 
@@ -262,9 +298,10 @@ $('.ep_check_license_update').on('click', function(e){
                
 
             } else {
-                $('.ep-license-btn-wrap .spinner').remove();
-                $('.ep_check_license_update').removeAttr('disabled');
-                if(response.data.error === 'connection') {
+                restoreLicenseButton($checkBtn);
+                // The stored licence details are unchanged; say so where the admin is looking (the modal is closed).
+                show_toast('error', licenseResponseMessage(response));
+                if(response && response.data && response.data.error === 'connection') {
                     // Show fallback file upload field
                     $('.ep-license-upload-fallback').slideDown();
                     $('#ep-license-fields').slideUp();
@@ -280,7 +317,7 @@ $('.ep_check_license_update').on('click', function(e){
                          
                 } else {
                     $('.ep-license-error-message')
-                        .text(response.data.message || 'Verification failed. Please try again.')
+                        .text((response && response.data && response.data.message) || 'Verification failed. Please try again.')
                         .fadeIn();
                 
                 
@@ -292,17 +329,54 @@ $('.ep_check_license_update').on('click', function(e){
             }
         },
         error: function() {
-            $('#ep-license-verify-submit .spinner').remove();
-            $('#ep-license-verify-submit').removeAttr('disabled');
-
-            $('.ep-license-error-message')
-                .text('Something went wrong. Please try again later.')
-                .fadeIn();
+            restoreLicenseButton($checkBtn);
+            show_toast('error', ep_admin_license_settings.request_failed);
         }
     });
-    
+
 });
 
+
+// License tab hint "Retry check": re-run the status check for the stored key without touching the Add License modal.
+$(document).on('click', '.ep-license-hint-retry', function(e) {
+    e.preventDefault();
+    const $btn = $(this);
+    const licenseKey = $btn.data('licensekey');
+    if (!licenseKey || $btn.prop('disabled')) {
+        return;
+    }
+    $btn.prop('disabled', true).attr('aria-busy', 'true').append('<span class="spinner is-active"></span>');
+
+    const fail = function(message) {
+        restoreLicenseButton($btn);
+        $btn.removeAttr('aria-busy');
+        show_toast('error', message);
+    };
+
+    $.ajax({
+        url: get_ajax_url(),
+        method: 'POST',
+        data: {
+            action: 'ep_check_license_status',
+            ep_license_key: licenseKey,
+            nonce: ep_admin_license_settings.ep_license_nonce
+        },
+        success: function(response) {
+            if (response && response.success) {
+                show_toast('success', response.data.html);
+                $btn.closest('.ep-license-inline-hint').slideUp();
+                setTimeout(function() {
+                    location.reload();
+                }, 2000);
+            } else {
+                fail(licenseResponseMessage(response));
+            }
+        },
+        error: function() {
+            fail(ep_admin_license_settings.request_failed);
+        }
+    });
+});
 
 $('#ep-license-verify-submit').on('click', function(e) {
     e.preventDefault();
@@ -362,9 +436,11 @@ $('#ep-license-verify-submit').on('click', function(e) {
                     error: handleAjaxError
                 });
             } catch (err) {
+                resetVerifyButton();
                 showError('Invalid file format. Please upload a valid license file.');
             }
         }).catch(() => {
+            resetVerifyButton();
             showError('Failed to read file.');
         });
         //return;
@@ -394,10 +470,9 @@ $('#ep-license-verify-submit').on('click', function(e) {
 
 // ✅ Response handler
 function handleLicenseResponse(response) {
-    $('#ep-license-verify-submit + .spinner').remove();
-    $('#ep-license-verify-submit').removeAttr('disabled');
+    resetVerifyButton();
 
-    if (response.success) {
+    if (response && response.success) {
         const plugins = response.data.plugins || {};
         const validPlugins = {};
         const errorMessages = [];
@@ -427,7 +502,7 @@ function handleLicenseResponse(response) {
         }
 
     } else {
-        if (response.data?.error === 'connection') {
+        if (response?.data?.error === 'connection') {
             $('.ep-license-upload-fallback').slideDown();
             $('#ep-license-fields').slideUp();
             $('#ep-license-verify-submit').attr('data-method','file');
@@ -436,16 +511,21 @@ function handleLicenseResponse(response) {
             
             $("body").addClass("ep-license-manager-modal");
         } else {
-            showError(response.data?.message || 'License verification failed.');
+            showError(response?.data?.message || 'License verification failed.');
         }
     }
 }
 
 // ✅ Error fallback
 function handleAjaxError() {
-    $('#ep-license-verify-submit .spinner').remove();
-    $('#ep-license-verify-submit').removeAttr('disabled');
-    showError('Something went wrong. Please try again later.');
+    resetVerifyButton();
+    showError(ep_admin_license_settings.request_failed);
+}
+
+// Spinner sits after the modal Verify button; clear it so the admin can retry.
+function resetVerifyButton() {
+    $('#ep-license-verify-submit + .spinner').remove();
+    $('#ep-license-verify-submit').removeAttr('disabled').removeClass('ep-btn-disabled');
 }
 
 // ✅ Reusable showError function
@@ -521,13 +601,15 @@ function showError(message) {
                              
                             // Auto-download and install using response.url, or update status only
                             //$resultSpan.html('<span class="ep-text-success">Installed & Activated</span>');
-                        } else if (response.message) {
-                            renderPlainMessageLines($resultSpan, [response.message], 'ep-text-danger');
                         } else {
-                            renderPlainMessageLines($resultSpan, ['Unexpected response'], 'ep-text-danger');
+                            // wp_send_json_error() puts the reason in response.data(.message); it arrives HTML-escaped.
+                            renderPlainMessageLines($resultSpan, [$('<textarea>').html(licenseResponseMessage(response)).text()], 'ep-text-danger');
                         }
                         $button.children('.spinner').remove();
                              $button.removeAttr('disabled');
+                    }).fail(function() {
+                        restoreLicenseButton($button);
+                        renderPlainMessageLines($resultSpan, [ep_admin_license_settings.request_failed], 'ep-text-danger');
                     });
                 }
                 else
@@ -537,6 +619,10 @@ function showError(message) {
                     renderPlainMessageLines($resultSpan, [data.error || 'Download unavailable.'], 'ep-text-danger');
                     //console.log(data);
                 }
+            })
+            .catch(() => {
+                restoreLicenseButton($button);
+                renderPlainMessageLines($resultSpan, [ep_admin_license_settings.request_failed], 'ep-text-danger');
             });
     });
     
@@ -585,7 +671,11 @@ function showError(message) {
             data: data,
             success: function( response ) {
                 $( '.'+ prefix +  ' .' + prefix + '-license-status-block .ep_license_activate' ).removeClass( 'disabled' );
-                if( response.data.license_data.success === true )
+                if ( ! response || ! response.success || ! response.data ) {
+                    show_toast( 'error', licenseResponseMessage( response ) );
+                    return;
+                }
+                if( response.data.license_data && response.data.license_data.success === true )
                 {
                     show_toast( 'success', response.data.message );
                     // update license activate/deactivate button
@@ -606,6 +696,10 @@ function showError(message) {
                     show_toast( 'error', response.data.message );
                 }
             
+            },
+            error: function() {
+                $( '.'+ prefix +  ' .' + prefix + '-license-status-block .ep_license_activate' ).removeClass( 'disabled' );
+                show_toast( 'error', ep_admin_license_settings.request_failed );
             }
         });
     });
@@ -636,11 +730,16 @@ function showError(message) {
             data: data,
             success: function( response ) {
                 $( '.'+ prefix +  ' .' + prefix + '-license-status-block .ep_license_deactivate' ).removeClass( 'disabled' );
-                if( response.data.license_data.success === true )
+                if ( ! response || ! response.success || ! response.data ) {
+                    show_toast( 'error', licenseResponseMessage( response ) );
+                    return;
+                }
+                // This action answers with status (unified method); older replies carried license_data.
+                if( response.data.status === true || ( response.data.license_data && response.data.license_data.success === true ) )
                 {
                     show_toast( 'success', response.data.message );
                     // update license activate/deactivate button
-                    if( response.data.license_status_block != '' && response.data.license_status_block != 'undefined' ){
+                    if( response.data.license_status_block ){
                         if( prefix == 'ep_free' || prefix == 'ep_professional' || prefix == 'ep_essential' || prefix == 'ep_metabundle' || prefix == 'ep_metabundle_plus' || prefix == 'ep_premium_plus' ){
                             $('.ep_premium  .ep_premium-license-status-block').html(response.data.license_status_block);
                         }else{
@@ -656,7 +755,7 @@ function showError(message) {
                     }
                 }else{
                     show_toast( 'error', response.data.message );
-                    if( response.data.license_status_block != '' && response.data.license_status_block != 'undefined' ){
+                    if( response.data.license_status_block ){
                         if( prefix == 'ep_free' || prefix == 'ep_professional' || prefix == 'ep_essential' || prefix == 'ep_metabundle' || prefix == 'ep_metabundle_plus' || prefix == 'ep_premium_plus' ){
                             $('.ep_premium .ep_premium-license-status-block').html(response.data.license_status_block);
                         }else{
@@ -673,6 +772,10 @@ function showError(message) {
                         $('.'+prefix+ ' .license-expire-date').html(''); 
                     }
                 }
+            },
+            error: function() {
+                $( '.'+ prefix +  ' .' + prefix + '-license-status-block .ep_license_deactivate' ).removeClass( 'disabled' );
+                show_toast( 'error', ep_admin_license_settings.request_failed );
             }
         });
     });

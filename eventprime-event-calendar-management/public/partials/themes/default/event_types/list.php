@@ -10,12 +10,12 @@
 <?php foreach ( $args->event_types as $event_type ) {?>
     <div class="ep-box-col-12 ep-list-view-main ep-mb-4">
         <div class="ep-box-row ep-border ep-rounded ep-text-small ep-overflow-hidden">
-            <div class="ep-box-col-3 ep-p-0 ep-border-right ep-position-relative ep-event-type-row-img">
+			<div class="ep-box-col-3 ep-box-col-md-3 ep-p-0 ep-border-right ep-position-relative ep-event-type-row-img">
                 <a href="<?php echo esc_url( $event_type->event_type_url ); ?>" class="ep-img-link">
                     <img src="<?php echo esc_url( $event_type->image_url ); ?>" alt="<?php esc_attr( $event_type->name ); ?>"> 
                 </a>
             </div>
-            <div class="ep-box-col-6 ep-p-4 ep-text-small ep-bg-white ep-event-type-row-desc">
+			<div class="ep-box-col-6 ep-box-col-md-6 ep-p-4 ep-text-small ep-bg-white ep-event-type-row-desc">
                 <div class="ep-box-list-items">
                     <div class="ep-box-title ep-box-list-title">
                         <a class="ep-color-hover" data-event_type-id="<?php echo esc_attr( $event_type->id ); ?>" href="<?php echo esc_url( $event_type->event_type_url ); ?>" target="_self" rel="noopener">
@@ -29,7 +29,7 @@
                     <?php } ?>
                 </div>
             </div>
-            <div class="ep-box-col-3 ep-px-0 ep-pt-4 ep-border-left ep-position-relative ep-bg-white ep-event-type-btn-section">
+			<div class="ep-box-col-3 ep-box-col-md-3 ep-px-0 ep-pt-4 ep-border-left ep-position-relative ep-bg-white ep-event-type-btn-section">
                 <ul class="ep-box-social-links">
                 </ul>
                 <div class="ep-align-self-end ep-position-absolute ep-p-2 ep-box-w-100"  style="bottom:0">

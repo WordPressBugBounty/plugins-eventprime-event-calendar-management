@@ -1014,25 +1014,26 @@ ul.ep-event-share li.ep-event-social-icon:first-child svg {
 
 #ep_events_front_views_slider .ep-event-slider-nav .ep-event-rslides_nav {
     opacity: 1;
-    width: 54px;
-    height: 54px;
-    line-height: 66px;
-    border-radius: 0;
+    /* Round 40px buttons kept inside the slide (were 54px squares hanging 26px outside it) */
+    width: 40px;
+    height: 40px;
+    line-height: 48px;
+    border-radius: 50%;
     text-align: center;
-    background: #000;
+    background: rgba(0, 0, 0, 0.6);
     box-shadow: 0 2px 11px 0 rgb(0 0 0 / 5%);
     transition: all .25s ease;
     -webkit-transition: all .25s ease;
     position: absolute;
     top: 50%;
-    margin-top: -27px;
+    margin-top: -20px;
     cursor: pointer;
     z-index: 9;
 
 }
 /* if dark mode is enabled */
 .ep-dark-mode-enabled #ep_events_front_views_slider .ep-event-slider-nav .ep-event-rslides_nav{
-    background-color: rgb(67,67,67);
+    background-color: rgba(67, 67, 67, 0.8);
 }
 #ep_events_front_views_slider .ep-event-slider-nav .ep-event-rslides_nav span {
     color: #fff !important;
@@ -1041,12 +1042,28 @@ ul.ep-event-share li.ep-event-social-icon:first-child svg {
 
 #ep_events_front_views_slider .ep-event-slider-nav .ep-event-rslides_nav.prev {
     right: auto;
-    left: -26px;
+    left: 8px;
 }
 
 #ep_events_front_views_slider .ep-event-slider-nav .ep-event-rslides_nav.next {
     left: auto;
-    right: -26px;
+    right: 8px;
+}
+
+/* Side-by-side slide: while the text padding (6% of the slide) is under 56px, the text-side arrow
+   (8px + 40px) would cover the description, so it moves 8px inside the image half instead.
+   The clamp switches on the slide width itself, so it works with any theme gutter; the large
+   multiplier makes it a clean step (no in-between position) at any sub-pixel slide width. */
+@media screen and (min-width: 532px) {
+    #ep_events_front_views_slider .ep-event-slider-nav .ep-event-rslides_nav.prev {
+        left: clamp(8px, calc((56px - 6%) * 10000000), calc(50% + 8px));
+    }
+    [dir="rtl"] #ep_events_front_views_slider .ep-event-slider-nav .ep-event-rslides_nav.prev {
+        left: 8px;
+    }
+    [dir="rtl"] #ep_events_front_views_slider .ep-event-slider-nav .ep-event-rslides_nav.next {
+        right: clamp(8px, calc((56px - 6%) * 10000000), calc(50% + 8px));
+    }
 }
 
 #ep_events_front_views_slider .ep-slider-items .ep-slide-item {
@@ -1427,6 +1444,12 @@ ul.ep-event-share li.ep-event-social-icon:first-child svg {
         min-height: 228px;
     }
 
+    /* Stacked slide: centre the arrows on the square image on top, not on the whole card */
+    #ep_events_front_views_slider .ep-event-slider-nav .ep-event-rslides_nav {
+        top: min(calc(50vw - 59px), 190px);
+        margin-top: 0;
+    }
+
 
     #ep_event_search_form #ep_event_keyword_search {
         font-size: 0.7rem;
@@ -1470,4 +1493,189 @@ ul.ep-event-share li.ep-event-social-icon:first-child svg {
         justify-content: start;
         -webkit-justify-content: flex-start;
     }
+}
+
+/*-- Phone calendar (#ep_event_calendar.ep-mcal, set by epMobileCalendar() when the calendar is narrower than 640px) --*/
+
+#ep_event_calendar.fc.ep-mcal .fc-toolbar.fc-header-toolbar,
+#ep-events-content-container.ep-narrow #ep_event_calendar.fc.ep-mcal .fc-toolbar.fc-header-toolbar {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 0.25rem;
+    margin-bottom: 0.75rem !important;
+    border: 0 !important;
+    background: none;
+}
+
+#ep_event_calendar.fc.ep-mcal .fc-toolbar.fc-header-toolbar .fc-toolbar-chunk,
+#ep-events-content-container.ep-narrow #ep_event_calendar.fc.ep-mcal .fc-toolbar.fc-header-toolbar .fc-toolbar-chunk {
+    margin-bottom: 0 !important;
+}
+
+#ep_event_calendar.ep-mcal .fc-toolbar-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+#ep_event_calendar.fc.ep-mcal .fc-toolbar.fc-header-toolbar .fc-toolbar-chunk:last-child {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+@media (max-width: 380px) {
+    #ep_event_calendar.ep-mcal .fc-toolbar-title {
+        font-size: 1rem;
+    }
+
+    #ep_event_calendar.ep-mcal .fc-button {
+        padding: 0.25rem 0.4rem;
+    }
+}
+
+#ep_event_calendar.ep-mcal .fc-button {
+    padding: 0.3rem 0.55rem;
+    font-size: 0.85rem;
+}
+
+#ep_event_calendar.ep-mcal .fc-scrollgrid,
+#ep_event_calendar.ep-mcal .fc-scrollgrid td,
+#ep_event_calendar.ep-mcal .fc-scrollgrid th {
+    border-color: transparent !important;
+}
+
+#ep_event_calendar.ep-mcal .fc-col-header-cell-cushion {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #8a8a8a;
+    text-decoration: none;
+    padding: 0.25rem 0;
+}
+
+/* Hide FullCalendar's event chips; days show dots instead */
+#ep_event_calendar.ep-mcal .fc-daygrid-day-events,
+#ep_event_calendar.ep-mcal .fc-daygrid-day-bottom,
+#ep_event_calendar.ep-mcal .fc-daygrid-day-bg {
+    display: none;
+}
+
+#ep_event_calendar.ep-mcal .fc-daygrid-day {
+    cursor: pointer;
+}
+
+#ep_event_calendar.ep-mcal .fc-day-today {
+    background: none !important;
+}
+
+#ep_event_calendar.ep-mcal .fc-daygrid-day-frame {
+    min-height: 46px !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 2px;
+}
+
+#ep_event_calendar.ep-mcal .fc-daygrid-day-top {
+    justify-content: center;
+    flex-direction: row;
+}
+
+#ep_event_calendar.ep-mcal .fc-daygrid-day-number {
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    padding: 0;
+    text-align: center;
+    border-radius: 50%;
+    font-size: 0.95rem;
+    text-decoration: none;
+    color: inherit;
+}
+
+#ep_event_calendar.ep-mcal .fc-day-today .fc-daygrid-day-number {
+    color: rgb(var(--themeColor, 34, 113, 177));
+    font-weight: 700;
+    box-shadow: inset 0 0 0 1.5px rgb(var(--themeColor, 34, 113, 177));
+}
+
+#ep_event_calendar.ep-mcal .ep-mcal-selected .fc-daygrid-day-number {
+    background-color: rgb(var(--themeColor, 34, 113, 177));
+    color: #fff;
+    box-shadow: none;
+}
+
+#ep_event_calendar.ep-mcal .fc-day-other .fc-daygrid-day-number {
+    opacity: 0.4;
+}
+
+#ep_event_calendar.ep-mcal .ep-mcal-dots {
+    display: flex;
+    gap: 3px;
+    height: 6px;
+    margin-top: 2px;
+}
+
+#ep_event_calendar.ep-mcal .ep-mcal-dots i {
+    display: block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+/* Selected day's events, under the grid */
+.ep-mcal-list {
+    margin-top: 0.75rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.ep-mcal-list-date {
+    font-weight: 600;
+    padding: 0.75rem 0 0.25rem;
+}
+
+.ep-mcal-empty {
+    color: #8a8a8a;
+    font-size: 0.875rem;
+    padding: 0.5rem 0 1rem;
+}
+
+.ep-mcal-list .ep-mcal-item {
+    display: grid;
+    grid-template-columns: 4px 1fr;
+    column-gap: 0.75rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    color: inherit;
+    text-decoration: none;
+}
+
+.ep-mcal-list .ep-mcal-bar {
+    grid-row: 1 / span 3;
+    border-radius: 2px;
+}
+
+.ep-mcal-list .ep-mcal-time {
+    font-size: 0.75rem;
+    color: #6b6b6b;
+}
+
+.ep-mcal-list .ep-mcal-title {
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.ep-mcal-list .ep-mcal-venue {
+    font-size: 0.75rem;
+    color: #8a8a8a;
+}
+
+.ep-dark-mode-enabled .ep-mcal-list .ep-mcal-time,
+.ep-dark-mode-enabled .ep-mcal-list .ep-mcal-venue,
+.ep-dark-mode-enabled .ep-mcal-empty {
+    color: #b5b5b5;
 }

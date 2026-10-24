@@ -30,13 +30,15 @@ class Eventprime_Event_Calendar_Management_Activator {
 	 * @since    1.0.0
 	 */
 	public function activate() {
+		// Capture install state before migration can create the settings option.
+		$eventprime_new_install = empty( get_option( 'em_global_settings' ) );
            if ( is_multisite() ) {
                     $blog_id = get_current_blog_id();
                     switch_to_blog( $blog_id );
                     if( ! get_option( 'ep_update_revamp_version' ) ) {
                             $this->ep_update_new_global_settings();
                     }
-                    $this->ep_update_global_settings();
+			$this->ep_update_global_settings( $eventprime_new_install );
                     $this->create_pages();
                     $this->default_settings();
                     $this->ep_create_table();
@@ -47,7 +49,7 @@ class Eventprime_Event_Calendar_Management_Activator {
                     if( ! get_option( 'ep_update_revamp_version' ) ) {
                             $this->ep_update_new_global_settings();
                     }
-                    $this->ep_update_global_settings();
+			$this->ep_update_global_settings( $eventprime_new_install );
                     $this->create_pages();
                     $this->default_settings();
                     $this->ep_create_table();
@@ -58,13 +60,26 @@ class Eventprime_Event_Calendar_Management_Activator {
             update_option( 'event_magic_do_activation_redirect', true );
 	}
         
-        public function ep_update_global_settings() {
-            $global_settings = new Eventprime_Global_Settings;
-            $setting_options = (object)$global_settings->setting_options;
-            $global_options = (object)get_option( 'em_global_settings' );
-            $default_settings = (object) array_merge((array) $setting_options, (array) $global_options);
-            update_option('em_global_settings', $default_settings );
-        }
+	/**
+	 * Merge the default global settings under the saved ones (saved values win).
+	 *
+	 * @param bool|null $eventprime_new_install Install state before migration, or null to inspect saved settings.
+	 */
+	public function ep_update_global_settings( $eventprime_new_install = null ) {
+		$global_settings = new Eventprime_Global_Settings();
+		$setting_options = (object) $global_settings->setting_options;
+		$saved_options   = get_option( 'em_global_settings' );
+		// New installs only: event lists open on upcoming events. Existing sites keep their saved choice.
+		if ( null === $eventprime_new_install ) {
+			$eventprime_new_install = empty( $saved_options );
+		}
+		if ( $eventprime_new_install ) {
+			$setting_options->hide_past_events = 1;
+		}
+		$global_options   = (object) $saved_options;
+		$default_settings = (object) array_merge( (array) $setting_options, (array) $global_options );
+		update_option( 'em_global_settings', $default_settings );
+	}
         
         public function upgrade_db()
         {
@@ -414,7 +429,8 @@ class Eventprime_Event_Calendar_Management_Activator {
 		$this->default_notifications();
 		
 		$global_options = get_option( 'em_global_settings' );
-		if( ! $ep_functions->ep_get_global_settings( 'payment_test_mode' ) ) {
+		// Only default a missing mode: a saved 0 is PayPal live mode and must survive reactivation.
+		if ( ! isset( $global_options->payment_test_mode ) ) {
 			$global_options->payment_test_mode = 1;
 		}
 		if( ! $ep_functions->ep_get_global_settings( 'currency' ) ) {

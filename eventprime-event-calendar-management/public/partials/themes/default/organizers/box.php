@@ -44,7 +44,7 @@ foreach ( $args->organizers as $organizer ) {
     $light_bg_color = $ep_functions->ep_hex2rgba( $bg_color, .5 );
     $bg_color = $ep_functions->ep_hex2rgba( $bg_color, 1 );
     ?>
-    <div class="ep-box-col-<?php echo absint( $args->cols ); ?> ep-box-column ep-box-px-0 ep-organizer-col-section" data-id="<?php echo esc_attr( $organizer->id ); ?>" data-element_type="column">
+	<div class="ep-box-col-<?php echo absint( $args->cols ); ?> ep-box-col-md-6 ep-box-column ep-box-px-0 ep-organizer-col-section" data-id="<?php echo esc_attr( $organizer->id ); ?>" data-element_type="column">
         <div class="ep-column-wrap ep-column-populated" style="background-image: linear-gradient(190deg,<?= esc_attr( $bg_color );?>,<?= esc_attr( $light_bg_color );?>); background-color: transparent;">
             <div class="ep-box-widget-wrap" data-id="<?php echo esc_attr( $organizer->id );?>">
                 <div class="ep-box-box-item">

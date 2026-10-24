@@ -29,6 +29,12 @@ if( isset( $_POST['action'] ) && 'edit_booking' == sanitize_text_field( $_POST['
         array( 'jquery' ), EVENTPRIME_VERSION
     );
     $checkout_text = $ep_functions->ep_global_settings_button_title('Checkout');
+	// Only browser-safe event data goes into the page source.
+	$eventprime_safe_booking_data = $booking_data;
+	if ( ! empty( $eventprime_safe_booking_data['booking_data']->event_data ) ) {
+		$eventprime_safe_booking_data['booking_data']             = clone $eventprime_safe_booking_data['booking_data'];
+		$eventprime_safe_booking_data['booking_data']->event_data = $ep_functions->ep_get_frontend_safe_event( $eventprime_safe_booking_data['booking_data']->event_data );
+	}
     wp_localize_script(
         'ep-event-booking-script', 
         'ep_event_booking', 
@@ -41,7 +47,7 @@ if( isset( $_POST['action'] ) && 'edit_booking' == sanitize_text_field( $_POST['
             'previous_event_url'              => $previous_event_url,
             'event_page_url'                  => esc_url( get_permalink( $ep_functions->ep_get_global_settings( 'event_page' ) ) ),
             'is_payment_method_enabled'       => $ep_functions->em_is_payment_gateway_enabled(),
-            'booking_data'                    => $booking_data,
+			'booking_data'                    => $eventprime_safe_booking_data,
             'enabled_guest_booking'           => $ep_functions->ep_enabled_guest_booking(),
             'enabled_woocommerce_integration' => $ep_functions->ep_enabled_woocommerce_integration(),
             'enabled_woocommerce_checkout'    => $ep_functions->ep_enabled_woocommerce_checkout(),

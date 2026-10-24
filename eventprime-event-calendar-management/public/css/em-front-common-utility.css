@@ -789,6 +789,43 @@ html.ep-embed-responsive .emagic{
     white-space: nowrap;
 }
 
+/* Titles and names: up to two lines, then ellipsis */
+.ep-text-clamp-2,
+.ep-box-title.ep-text-truncate,
+.ep-card-title.ep-text-truncate,
+.ep-performer-name.ep-text-truncate,
+#ep_event_ticket_modal_right_event_name.ep-text-truncate {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: normal;
+}
+
+/* Rows view: the title wrapper also holds the event type line, so clamp the title link itself
+   and keep the event type on one line (as before) */
+.ep-box-title.ep-box-list-title.ep-text-truncate {
+    display: block;
+    -webkit-line-clamp: none;
+    line-clamp: none;
+    overflow: visible;
+}
+
+.ep-box-title.ep-box-list-title.ep-text-truncate > div {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ep-box-title.ep-box-list-title.ep-text-truncate > a {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
 .ep-content-truncate {
     --ep-line-clamp: 5;
     -webkit-line-clamp:  var(--ep-line-clamp);
@@ -1652,23 +1689,6 @@ body .emagic h6 {
         flex: 0 0 100%;
         max-width: 100%;
     }
-    #ep-event-organizers-loader-section .ep-box-col-6 {
-        -ms-flex: 0 0 50%;
-        flex: 0 0 50%;
-        max-width: 50%;
-    }
-    #ep-event-organizers-loader-section .ep-box-col-3 {
-        -ms-flex: 0 0 25%;
-        flex: 0 0 25%;
-        max-width: 25%;
-    }
-
-    #ep-event-organizers-loader-section .ep-box-col-4 {
-        -ms-flex: 0 0 33.33333%;
-        flex: 0 0 33.33333%;
-        max-width: 33.33333%;
-    }
-
 
     /*---Other CSS--*/
 
@@ -1683,7 +1703,26 @@ body .emagic h6 {
     padding-right: 1rem !important;
 }
 
-@media (min-width: 992px){
+/*--- Tablet tier (768px+): kept before the 1068px block so the unprefixed desktop columns still win from 1068px ---*/
+@media (min-width: 768px){
+
+    .ep-box-col-md-1 {
+        -ms-flex: 0 0 8.333333%;
+        flex: 0 0 8.333333%;
+        max-width: 8.333333%;
+    }
+
+    .ep-box-col-md-2 {
+        -ms-flex: 0 0 16.66667%;
+        flex: 0 0 16.66667%;
+        max-width: 16.66667%;
+    }
+
+    .ep-box-col-md-3 {
+        -ms-flex: 0 0 25%;
+        flex: 0 0 25%;
+        max-width: 25%;
+    }
 
     .ep-box-col-md-4 {
         -ms-flex: 0 0 33.33333%;
@@ -1691,10 +1730,53 @@ body .emagic h6 {
         max-width: 33.33333%;
     }
 
-    .ep-box-col-md-4 {
-        -ms-flex: 0 0 25%;
-        flex: 0 0 25%;
-        max-width: 25%;
+    .ep-box-col-md-5 {
+        -ms-flex: 0 0 41.66667%;
+        flex: 0 0 41.66667%;
+        max-width: 41.66667%;
+    }
+
+    .ep-box-col-md-6,
+    .ep-col-md-6 {
+        -ms-flex: 0 0 50%;
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+
+    .ep-box-col-md-7 {
+        -ms-flex: 0 0 58.3333333333%;
+        flex: 0 0 58.3333333333%;
+        max-width: 58.3333333333%;
+    }
+
+    .ep-box-col-md-8 {
+        -ms-flex: 0 0 66.666667%;
+        flex: 0 0 66.666667%;
+        max-width: 66.666667%;
+    }
+
+    .ep-box-col-md-9 {
+        -ms-flex: 0 0 75%;
+        flex: 0 0 75%;
+        max-width: 75%;
+    }
+
+    .ep-box-col-md-10 {
+        -ms-flex: 0 0 83.3333333333%;
+        flex: 0 0 83.3333333333%;
+        max-width: 83.3333333333%;
+    }
+
+    .ep-box-col-md-11 {
+        -ms-flex: 0 0 91.666667%;
+        flex: 0 0 91.666667%;
+        max-width: 91.666667%;
+    }
+
+    .ep-box-col-md-12 {
+        -ms-flex: 0 0 100%;
+        flex: 0 0 100%;
+        max-width: 100%;
     }
 
 }
@@ -1714,9 +1796,6 @@ body .emagic h6 {
     }
     .ep-booking-payment-option-button-container{
         justify-content: center !important;
-    }
-    .ep-user-coming-up-section{
-        margin-left: 1rem;
     }
 }
 /*@media (min-width: 1080px){*/
@@ -1850,6 +1929,43 @@ body .emagic h6 {
 .ep-box-row-cols-4>* {
     flex: 0 0 auto;
     width: 25%;
+}
+
+/* Responsive row-cols: 1 per row, 2 from 576px, 3 from 1068px (desktop) */
+.ep-box-row-cols-1>* {
+    flex: 0 0 auto;
+    width: 100%;
+}
+
+@media (min-width: 576px){
+    .ep-box-row-cols-sm-2>* {
+        flex: 0 0 auto;
+        width: 50%;
+    }
+}
+
+@media (min-width: 1068px){
+    .ep-box-row-cols-lg-3>* {
+        flex: 0 0 auto;
+        width: 33.3333333333%;
+    }
+}
+
+/* Profile cards: let button labels wrap instead of spilling out of the button */
+.ep-coming-up-card-content .ep-btn {
+    white-space: normal;
+}
+
+/*---Rows drawn as boxes: drop the gutter's negative margins so the border lines up with the content column---*/
+
+.ep-box-row.ep-buy-ticket-section,
+.ep-box-row.ep-age-group-section,
+.ep-box-row.ep-event-booking-attendee-head,
+.ep-box-row.ep-event-booking-attendee-section,
+.ep-box-row.ep-event-booking-booking-section,
+#ep-coming-up-bookings > .ep-box-row:first-child {
+    margin-left: 0;
+    margin-right: 0;
 }
 
 /*---Gutter Spacing--*/
@@ -2204,6 +2320,40 @@ body.ep-modal-open-body {
     position: relative;
     flex: 1 1 auto;
     padding: var(--ep-modal-padding);
+}
+
+/*---Single event ticket modal---*/
+
+/* Summary lines (label | amount) stay side by side at every width */
+#ep_event_ticket_modal_right .ep-box-row > .ep-box-col-6 {
+    -ms-flex: 0 0 50%;
+    flex: 0 0 50%;
+    max-width: 50%;
+}
+
+@media (max-width: 575px) {
+    /* Phones: use the screen width, keep Checkout / Close in reach */
+    /* The modal sits inside an .ep-box-row, so it also picks up the row's gutter padding */
+    #ep-event-ticket-checkout-modal {
+        --ep-modal-margin: 0.5rem;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    #ep-event-ticket-checkout-modal .ep-ticket-modal-actions {
+        position: sticky;
+        bottom: 0;
+        z-index: 2;
+        margin-left: -0.75rem;
+        margin-right: -0.75rem;
+        padding: 0.5rem 0.75rem;
+        background: #fff;
+        box-shadow: 0 -6px 12px -8px rgba(0, 0, 0, 0.25);
+    }
+
+    .ep-dark-mode-enabled #ep-event-ticket-checkout-modal .ep-ticket-modal-actions {
+        background: #333;
+    }
 }
 
 .ep-modal-lg {
@@ -2806,13 +2956,82 @@ body.ep-modal-open-body {
         padding-top: 1rem!important;
         padding-bottom: 1rem!important;
     }
+}
 
+/* Checkout/edit booking: while the form and the summary are stacked (below 1068px), show the form first */
+@media (max-width: 1067px){
     .ep-col-order-1{
         order:1
     }
 
     .ep-col-order-2{
         order:2
+    }
+
+    /* Step 1 / timer / Step 2 on one line */
+    .ep-checkout-steps-row {
+        flex-wrap: nowrap;
+        align-items: flex-start;
+    }
+
+    .ep-checkout-steps-row > .ep-checkout-steps-section,
+    .ep-checkout-steps-row > .ep-checkout-cart-section {
+        flex: 0 0 auto;
+        width: auto;
+        max-width: 40%;
+        margin-top: 0;
+    }
+
+    .ep-checkout-steps-row > .ep-checkout-timer-col {
+        flex: 1 1 auto;
+        width: auto;
+        min-width: 0;
+        padding-top: 0.5rem;
+    }
+
+    /* Event thumbnail: fixed size instead of a percentage column */
+    .ep-checkout-event-head {
+        flex-wrap: nowrap;
+        align-items: center;
+    }
+
+    .ep-checkout-event-head > .ep-checkout-img-col {
+        flex: 0 0 88px;
+        width: 88px;
+        max-width: 88px;
+    }
+
+    .ep-checkout-event-head > .ep-checkout-img-col img {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        object-fit: cover;
+    }
+
+    .ep-checkout-event-head > .ep-checkout-img-col + div {
+        flex: 1 1 auto;
+        width: auto;
+        max-width: none;
+        min-width: 0;
+    }
+}
+
+/* Phones: both steps side by side, timer on its own line below them */
+@media (max-width: 575px){
+    .ep-checkout-steps-row {
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+
+    .ep-checkout-steps-row > .ep-checkout-steps-section,
+    .ep-checkout-steps-row > .ep-checkout-cart-section {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+
+    .ep-checkout-steps-row > .ep-checkout-timer-col {
+        order: 3;
+        flex: 0 0 100%;
+        max-width: 100%;
     }
 }
 
@@ -3100,4 +3319,92 @@ ul.ep-gdpr-modal-content {
 
 .theme-twentytwentyfive .emagic {
     max-width: 100%;
+}
+/*----Forms, search and booking details on small screens----*/
+
+/* Login: "Remember me" and "Forgot password? Click here" wrap as whole items, not word by word */
+.ep-login-remember-row {
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 1rem;
+}
+
+.ep-login-remember-row > .ep-checkbox-inline,
+.ep-login-remember-row > .ep-login-forgotpass {
+    white-space: nowrap;
+}
+
+/* Booking details: "Event Page" and "Account area" stay on one line */
+.ep-event-link-container,
+.ep-account-link-container {
+    -ms-flex: 0 0 50%;
+    flex: 0 0 50%;
+    max-width: 50%;
+}
+
+.ep-event-link-container .ep-btn,
+.ep-account-link-container .ep-btn {
+    white-space: nowrap;
+}
+
+@media (max-width: 400px) {
+    .ep-event-link-container .ep-btn,
+    .ep-account-link-container .ep-btn {
+        padding-left: 0.6rem;
+        padding-right: 0.6rem;
+        font-size: 0.875rem;
+    }
+}
+
+@media (max-width: 767px) {
+    .ep-booking-thanks {
+        font-size: 1.25rem !important;
+        margin-top: 1.5rem !important;
+        margin-bottom: 1.5rem !important;
+    }
+}
+
+/* Booking details attendee table: it scrolls sideways on phones, so show edge shadows as a hint */
+@media (max-width: 600px) {
+    .ep-add-scroll-attendee-check-in {
+        background:
+            linear-gradient(to right, #fff 30%, rgba(255, 255, 255, 0)) left center / 40px 100% no-repeat local,
+            linear-gradient(to left, #fff 30%, rgba(255, 255, 255, 0)) right center / 40px 100% no-repeat local,
+            radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) left center / 14px 100% no-repeat scroll,
+            radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) right center / 14px 100% no-repeat scroll;
+        background-color: #fff;
+    }
+
+    .ep-dark-mode-enabled .ep-add-scroll-attendee-check-in {
+        background: none;
+    }
+}
+
+/* Event search bar on phones: give the keyword field the room (placeholder was cut to "Search Keyw") */
+@media (max-width: 480px) {
+    #ep_event_search_form .ep-box-search-form-wrap {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+
+    #ep_event_search_form .ep-search-filter-bar {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+
+    #ep_event_search_form .ep-search-filter-bar .ep-input-group-text {
+        padding-left: 0.4rem;
+        padding-right: 0.4rem;
+    }
+
+    #ep_event_search_form .ep-input-group #ep_event_keyword_search {
+        font-size: 0.875rem;
+        min-width: 0;
+    }
+
+    #ep_event_search_form #ep_event_find_events_btn {
+        padding-left: 0.6rem;
+        padding-right: 0.6rem;
+        font-size: 0.8rem;
+    }
 }

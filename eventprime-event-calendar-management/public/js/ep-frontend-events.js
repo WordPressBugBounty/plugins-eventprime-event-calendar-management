@@ -1037,7 +1037,6 @@ function ep_load_calendar_view(search_param = '')
             titleFormat: {year: 'numeric', month: 'long', day: 'numeric'},
             dayHeaderFormat: {weekday: column_header_format},
             eventDidMount: function (info) {
-                console.log(info);
                 let light_bg_color = '';
                 if (info.event.extendedProps.hasOwnProperty('bg_color')) {
                     var epColorRgb = info.event.extendedProps.bg_color;
@@ -1247,6 +1246,7 @@ function ep_load_calendar_view(search_param = '')
           }
 
         calendar.render();
+        epMobileCalendar( calendar, calendarEl );
 
         let calAreaWidht = $("#ep-events-content-container").innerWidth();
         if (calAreaWidht <= 720) {
@@ -1671,6 +1671,7 @@ function ep_load_calendar_view_new(search_param = '') {
         });
 
         calendar.render();
+        epMobileCalendar( calendar, calendarEl );
 
         let calAreaWidht = $("#ep-events-content-container").innerWidth();
         if (calAreaWidht <= 720) {
@@ -2063,6 +2064,7 @@ function ep_load_calendar_view_new2(search_param = '') {
     });
 
     calendar.render();
+    epMobileCalendar( calendar, calendarEl );
 
     let calAreaWidht = $("#ep-events-content-container").innerWidth();
     if (calAreaWidht <= 720) {
@@ -2424,6 +2426,7 @@ function ep_load_calendar_view_new3(search_param = '') {
     });
 
     calendar.render();
+    epMobileCalendar( calendar, calendarEl );
 
     // Responsive header
     const width = $("#ep-events-content-container").innerWidth();
@@ -2822,6 +2825,7 @@ function ep_load_calendar_view_old(search_param='')
             });
         
             calendar.render();
+            epMobileCalendar( calendar, calendarEl );
 
             let calAreaWidht = $( "#ep-events-content-container" ).innerWidth();
             if( calAreaWidht <= 720 ) {
@@ -2970,4 +2974,245 @@ function ep_load_calendar_view_old(search_param='')
     //   Event square card Image Setting end
 }
 
+/**
+ * Phone calendar: when the calendar is narrower than 640px, show a compact
+ * month grid with coloured dots on event days and list the selected day's
+ * events under it (like the iOS / Android calendar apps). Wider calendars keep
+ * the configured views. Called after every calendar.render(); safe to call
+ * again when the calendar is rebuilt (search, view switch).
+ */
+function epMobileCalendar( calendar, el ) {
+    if ( ! calendar || ! el ) {
+        return;
+    }
+    var state = el.epMobileCalendar;
+    if ( ! state ) {
+        state = el.epMobileCalendar = {};
+        window.addEventListener( 'resize', function () {
+            epMobileCalendarApply( el );
+        } );
+        el.addEventListener( 'click', function ( e ) {
+            if ( ! state.mobile ) {
+                return;
+            }
+            var cell = e.target.closest( '.fc-daygrid-day[data-date]' );
+            if ( ! cell || ! el.contains( cell ) ) {
+                return;
+            }
+            e.preventDefault();
+            state.selected = cell.getAttribute( 'data-date' );
+            epMobileCalendarRefresh( el, false );
+        } );
+    }
+    state.calendar = calendar;
+    state.mobile = null;
+    state.selected = null;
+    state.desktop = {
+        headerToolbar: calendar.getOption( 'headerToolbar' ),
+        navLinks: calendar.getOption( 'navLinks' ),
+        titleFormat: calendar.getOption( 'titleFormat' ),
+        view: calendar.view ? calendar.view.type : 'dayGridMonth'
+    };
+    calendar.on( 'datesSet', function () {
+        epMobileCalendarRefresh( el, true );
+    } );
+    calendar.on( 'eventsSet', function () {
+        epMobileCalendarRefresh( el, false );
+    } );
+    epMobileCalendarApply( el );
+}
 
+function epMobileCalendarApply( el ) {
+    var state = el.epMobileCalendar;
+    if ( ! state || ! state.calendar ) {
+        return;
+    }
+    var calendar = state.calendar;
+    var mobile = el.clientWidth > 0 && el.clientWidth < 640;
+    if ( mobile === state.mobile ) {
+        return;
+    }
+    state.mobile = mobile;
+    var list = epMobileCalendarList( el );
+    if ( mobile ) {
+        el.classList.add( 'ep-mcal' );
+        calendar.setOption( 'navLinks', false );
+        calendar.setOption( 'titleFormat', { year: 'numeric', month: 'long' } );
+        calendar.setOption( 'headerToolbar', { left: 'title', center: '', right: 'today prev,next' } );
+        if ( calendar.view.type !== 'dayGridMonth' ) {
+            calendar.changeView( 'dayGridMonth' );
+        }
+        list.style.display = '';
+    } else {
+        el.classList.remove( 'ep-mcal' );
+        calendar.setOption( 'navLinks', state.desktop.navLinks );
+        calendar.setOption( 'titleFormat', state.desktop.titleFormat );
+        calendar.setOption( 'headerToolbar', state.desktop.headerToolbar );
+        if ( calendar.view.type !== state.desktop.view ) {
+            calendar.changeView( state.desktop.view );
+        }
+        list.style.display = 'none';
+        el.querySelectorAll( '.ep-mcal-dots' ).forEach( function ( dots ) {
+            dots.remove();
+        } );
+    }
+    epMobileCalendarRefresh( el, true );
+}
+
+function epMobileCalendarList( el ) {
+    var list = el.nextElementSibling;
+    if ( ! list || ! list.classList.contains( 'ep-mcal-list' ) ) {
+        list = document.createElement( 'div' );
+        list.className = 'ep-mcal-list';
+        list.setAttribute( 'aria-live', 'polite' );
+        el.parentNode.insertBefore( list, el.nextSibling );
+    }
+    return list;
+}
+
+function epMobileCalendarYmd( d ) {
+    var pad = function ( n ) {
+        return String( n ).padStart( 2, '0' );
+    };
+    return d.getFullYear() + '-' + pad( d.getMonth() + 1 ) + '-' + pad( d.getDate() );
+}
+
+function epMobileCalendarRefresh( el, resetSelection ) {
+    var state = el.epMobileCalendar;
+    if ( ! state || ! state.mobile || ! state.calendar ) {
+        return;
+    }
+    var calendar = state.calendar;
+    var view = calendar.view;
+    // Events per day (multi-day events count on every day they cover).
+    var byDay = {};
+    calendar.getEvents().forEach( function ( ev ) {
+        if ( ! ev.start ) {
+            return;
+        }
+        var day = new Date( ev.start.getFullYear(), ev.start.getMonth(), ev.start.getDate() );
+        var last = ev.end ? new Date( ev.end.getTime() ) : new Date( ev.start.getTime() );
+        if ( ev.end && ( ev.allDay || ( last.getHours() === 0 && last.getMinutes() === 0 && last > ev.start ) ) ) {
+            last.setDate( last.getDate() - 1 ); // exclusive end
+        }
+        var guard = 0;
+        while ( day <= last && guard < 400 ) {
+            var key = epMobileCalendarYmd( day );
+            ( byDay[ key ] = byDay[ key ] || [] ).push( ev );
+            day.setDate( day.getDate() + 1 );
+            guard++;
+        }
+    } );
+    // Dots in the grid.
+    el.querySelectorAll( '.fc-daygrid-day[data-date]' ).forEach( function ( cell ) {
+        var old = cell.querySelector( '.ep-mcal-dots' );
+        if ( old ) {
+            old.remove();
+        }
+        var evs = byDay[ cell.getAttribute( 'data-date' ) ];
+        if ( ! evs ) {
+            return;
+        }
+        var dots = document.createElement( 'span' );
+        dots.className = 'ep-mcal-dots';
+        evs.slice( 0, 3 ).forEach( function ( ev ) {
+            var dot = document.createElement( 'i' );
+            dot.style.backgroundColor = epMobileCalendarColor( ev );
+            dots.appendChild( dot );
+        } );
+        var frame = cell.querySelector( '.fc-daygrid-day-frame' ) || cell;
+        frame.appendChild( dots );
+    } );
+    // Selected day: keep it if it is in the shown month, otherwise today, else the first day with events, else the 1st.
+    var monthStart = epMobileCalendarYmd( view.currentStart );
+    var monthEndDate = new Date( view.currentEnd.getTime() );
+    monthEndDate.setDate( monthEndDate.getDate() - 1 );
+    var monthEnd = epMobileCalendarYmd( monthEndDate );
+    var inMonth = function ( key ) {
+        return key && key >= monthStart && key <= monthEnd;
+    };
+    if ( resetSelection || ! inMonth( state.selected ) ) {
+        var today = epMobileCalendarYmd( new Date() );
+        if ( inMonth( today ) ) {
+            state.selected = today;
+        } else {
+            var withEvents = Object.keys( byDay ).filter( inMonth ).sort();
+            state.selected = withEvents.length ? withEvents[ 0 ] : monthStart;
+        }
+    }
+    el.querySelectorAll( '.ep-mcal-selected' ).forEach( function ( cell ) {
+        cell.classList.remove( 'ep-mcal-selected' );
+    } );
+    var selectedCell = el.querySelector( '.fc-daygrid-day[data-date="' + state.selected + '"]' );
+    if ( selectedCell ) {
+        selectedCell.classList.add( 'ep-mcal-selected' );
+    }
+    epMobileCalendarRenderList( el, state.selected, byDay[ state.selected ] || [] );
+}
+
+function epMobileCalendarColor( ev ) {
+    var color = ev.extendedProps && ev.extendedProps.bg_color ? String( ev.extendedProps.bg_color ) : '';
+    color = color.replace( /\s+/g, '' );
+    return /^(rgb|rgba|hsl)\([\d.,%]+\)$|^#[0-9a-f]{3,8}$/i.test( color ) ? color : '#2271b1';
+}
+
+function epMobileCalendarRenderList( el, ymd, events ) {
+    var list = epMobileCalendarList( el );
+    var i18n = window.em_front_event_object || {};
+    var parts = ymd.split( '-' );
+    var date = new Date( Number( parts[0] ), Number( parts[1] ) - 1, Number( parts[2] ) );
+    var heading = ymd;
+    try {
+        heading = new Intl.DateTimeFormat( ( i18n.local || undefined ), { weekday: 'long', day: 'numeric', month: 'long' } ).format( date );
+    } catch ( err ) {
+        heading = date.toDateString();
+    }
+    list.textContent = '';
+    var head = document.createElement( 'div' );
+    head.className = 'ep-mcal-list-date';
+    head.textContent = heading;
+    list.appendChild( head );
+    if ( ! events.length ) {
+        var empty = document.createElement( 'div' );
+        empty.className = 'ep-mcal-empty';
+        empty.textContent = i18n.mcal_no_events_text || 'No events on this day';
+        list.appendChild( empty );
+        return;
+    }
+    events.slice().sort( function ( a, b ) {
+        return a.start - b.start;
+    } ).forEach( function ( ev ) {
+        var props = ev.extendedProps || {};
+        var item = document.createElement( ev.url ? 'a' : 'div' );
+        item.className = 'ep-mcal-item';
+        if ( ev.url ) {
+            item.href = ev.url;
+            if ( String( props.open_event_in_new_tab ) === '1' ) {
+                item.target = '_blank';
+                item.rel = 'noopener';
+            }
+        }
+        var bar = document.createElement( 'span' );
+        bar.className = 'ep-mcal-bar';
+        bar.style.backgroundColor = epMobileCalendarColor( ev );
+        item.appendChild( bar );
+        var time = document.createElement( 'span' );
+        time.className = 'ep-mcal-time';
+        var start = props.hideStartTime ? '' : ( props.display_start_time || '' );
+        var end = props.hideEndTime ? '' : ( props.display_end_time || '' );
+        time.textContent = ev.allDay ? ( i18n.mcal_all_day_text || 'All day' ) : ( start && end ? start + ' – ' + end : start || end );
+        item.appendChild( time );
+        var title = document.createElement( 'span' );
+        title.className = 'ep-mcal-title';
+        title.textContent = ev.title || '';
+        item.appendChild( title );
+        var place = props.venue_name ? String( props.venue_name ) : ( props.address ? String( props.address ) : '' );
+        if ( place ) {
+            var venue = document.createElement( 'span' );
+            venue.className = 'ep-mcal-venue';
+            venue.textContent = place;
+            item.appendChild( venue );
+        }
+        list.appendChild( item );
+    } );
+}

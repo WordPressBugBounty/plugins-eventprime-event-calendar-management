@@ -112,6 +112,8 @@ wp_localize_script(
             'venues' => $ep_functions->ep_global_settings_button_title('Venues'),
             'organizers' => $ep_functions->ep_global_settings_button_title('Organizers'),
             'list_week_btn_text' => esc_html__('Agenda', 'eventprime-event-calendar-management'),
+			'mcal_no_events_text'         => esc_html__( 'No events on this day', 'eventprime-event-calendar-management' ),
+			'mcal_all_day_text'           => esc_html__( 'All day', 'eventprime-event-calendar-management' ),
             'hide_time_on_front_calendar' => $ep_functions->ep_get_global_settings( 'hide_time_on_front_calendar' ),
             'timezone' => $ep_functions->ep_get_site_timezone(),
             'timeformat' => $ep_functions->ep_get_global_settings( 'time_format' )

@@ -17,7 +17,7 @@ if( $ep_functions->ep_get_global_settings('checkout_reg_google_recaptcha') == 1 
     <div class="emagic ep-position-relative" id="ep_event_checkout_page">
         <?php do_action( 'ep_add_loader_section' );?>
         <div class="ep-box-wrap">
-            <div class="ep-box-row ep-text-center ep-text-small">
+			<div class="ep-box-row ep-text-center ep-text-small ep-checkout-steps-row">
                 <div class="ep-box-col-2 ep-checkout-steps-section">
                     <div class="ep-flex-column">
                         <div class="">
@@ -31,7 +31,7 @@ if( $ep_functions->ep_get_global_settings('checkout_reg_google_recaptcha') == 1 
                         </div>
                     </div>
                 </div>
-                <div class="ep-box-col-8 small text-danger">
+				<div class="ep-box-col-8 small text-danger ep-checkout-timer-col">
                     <div id="ep_checkout_timer_section">
                         <?php
                         $checkout_timer_sec = 260;
@@ -76,9 +76,10 @@ if( $ep_functions->ep_get_global_settings('checkout_reg_google_recaptcha') == 1 
 
             </div>
         
-            <div class="ep-box-row ep-mt-5 ep-mb-3"><?php
+			<div class="ep-box-row ep-mt-5 ep-mb-3 ep-checkout-event-head">
+				<?php
                 if( ! empty( $args->event->image_url ) ) {?>
-                    <div class="ep-box-col-2 ep-pr-2 ep-border-right ep-border-warning ep-border-3 ep-lh-0 ep-box-col-sm-2 ep-box-col-xsm-2">
+					<div class="ep-checkout-img-col ep-box-col-2 ep-pr-2 ep-border-right ep-border-warning ep-border-3 ep-lh-0 ep-box-col-sm-2 ep-box-col-xsm-2">
                         <img class="ep-checkout-img-icon ep-rounded-1" src="<?php echo esc_url( $args->event->image_url );?>" alt="<?php echo esc_html( $args->event->name );?>" style="max-width:100%;">
                     </div><?php
                 }?>

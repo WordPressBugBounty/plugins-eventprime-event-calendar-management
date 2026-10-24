@@ -13,8 +13,11 @@ $is_able_to_purchase = $ep_functions->ep_check_event_restrictions( $args->event 
 $max_ticket_reached_message = ( isset($args->event->em_event_max_tickets_reached_message) && ! empty($args->event->em_event_max_tickets_reached_message))?$args->event->em_event_max_tickets_reached_message:esc_html__('You have already reached the maximum ticket limit for this event and cannot purchase additional tickets.','eventprime-event-calendar-management');
 $max_ticket_per_order = $is_able_to_purchase[0];
 
+// Set to true when the Get Tickets Now button is rendered (sticky bar on phones).
+$eventprime_sticky_book_bar = false;
+
 ?>
-<div class="ep-box-col-4 ep-position-relative" id="ep-sl-right-area">
+<div class="ep-box-col-4 ep-box-col-md-5 ep-position-relative" id="ep-sl-right-area">
     <?php do_action( 'ep_event_detail_before_ticket_block', $args->event );
     if( ( ! empty( $args->event->em_enable_booking ) && $args->event->em_enable_booking != 'bookings_off' ) || ( $ep_functions->ep_get_global_settings( 'show_qr_code_on_single_event' ) == 1 ) ) {?>
         <div class="ep-box-row ep-border ep-rounded ep-buy-ticket-section ep-bg-white"><?php
@@ -110,6 +113,7 @@ $max_ticket_per_order = $is_able_to_purchase[0];
                                     <button type="button" id="ep_single_event_ticket_now_btn" class="ep-btn ep-btn-dark ep-box-w-100 ep-mb-2 ep-py-2" ep-modal-open="ep_single_event_page_ticket_modal" <?php echo esc_attr( $ticket_button_style );?>>
                                         <?php echo esc_html( $get_ticket_now_text ); ?>
                                     </button><?php
+									$eventprime_sticky_book_bar = true;
                                 }
                             }?>
                         </div>
@@ -227,7 +231,29 @@ $max_ticket_per_order = $is_able_to_purchase[0];
             </div>
         </div> <?php
     }?>
-    
+	<?php
+	// Only offer the shortcut when at least one ticket is on sale and not sold out.
+	if ( $eventprime_sticky_book_bar ) {
+		$eventprime_available_event                   = clone $args->event;
+		$eventprime_available_event->all_tickets_data = array();
+		foreach ( $all_tickets as $eventprime_ticket ) {
+			$eventprime_ticket_status = $ep_functions->check_for_ticket_available_for_booking( $eventprime_ticket, $args->event );
+			if ( isset( $eventprime_ticket_status['status'] ) && 'on' === $eventprime_ticket_status['status'] ) {
+				$eventprime_available_event->all_tickets_data[] = $eventprime_ticket;
+			}
+		}
+		$eventprime_sticky_book_bar = ! $ep_functions->ep_is_event_sold_out( $eventprime_available_event );
+	}
+	// Narrow-screen shortcut to the Get Tickets Now button above; shown by ep-frontend-single-event.js.
+	if ( ! empty( $eventprime_sticky_book_bar ) ) {
+		?>
+		<div class="ep-sticky-book-bar" aria-hidden="true">
+			<div class="ep-sticky-book-price"></div>
+			<button type="button" class="ep-btn ep-btn-dark ep-py-2 ep-sticky-book-btn" tabindex="-1"><?php echo esc_html( $get_ticket_now_text ); ?></button>
+		</div>
+		<?php
+	}
+	?>
 </div>
 <?php if( ! empty( $booking_allowed ) && $args->event->post_status == 'publish' && ! $is_event_expired ) {
 
@@ -286,7 +312,7 @@ $max_ticket_per_order = $is_able_to_purchase[0];
                                     </div><?php
                                 }
                             } else{?>
-                                <div class="ep-box-col-8 ep-box-col-sm-8 ep-py-3" id="ep_event_ticket_modal_left">
+								<div class="ep-box-col-8 ep-box-col-sm-8 ep-box-col-md-7 ep-py-3" id="ep_event_ticket_modal_left">
                                     <div class="ep-event-ticket-wrap ep-box-w-100 ep-overflow-auto">
                                     <?php foreach( $all_tickets as $ticket ) {
                                        
@@ -514,7 +540,7 @@ $max_ticket_per_order = $is_able_to_purchase[0];
                                     }?>
                                     </div>
                                 </div>
-                                <div class="ep-box-col-4 ep-box-col-sm-4" id="ep_event_ticket_modal_right">
+								<div class="ep-box-col-4 ep-box-col-sm-4 ep-box-col-md-5" id="ep_event_ticket_modal_right">
                                     <?php 
                                     $total_price = 0;
                                     if ( has_post_thumbnail( $args->event->em_id ) ){ ?>
@@ -557,7 +583,7 @@ $max_ticket_per_order = $is_able_to_purchase[0];
                                             <div class="ep-box-col-6 ep-text-end ep-fw-bold mt-2" id="ep_ticket_price_total"><?php echo esc_html( $ep_functions->ep_price_with_position( $total_price ) );?></div>
                                         </div>
                                     </div>
-                                    <div class="ep-mt-3">
+									<div class="ep-mt-3 ep-ticket-modal-actions">
                                         <div class="ep-error-message" id="ep_single_event_before_checkout_error_msg"></div>
                                         <?php if( $ticket_booking_start == 1 ) {?>
                                             <form action="<?php echo esc_url( get_permalink( $ep_functions->ep_get_global_settings( 'booking_page' ) ) ); ?>" method="post" name="ep_event_booking" id="ep_event_booking_form">

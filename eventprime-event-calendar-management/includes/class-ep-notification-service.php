@@ -431,17 +431,7 @@ class EventM_Notification_Service {
                                 //print_r($booking_attendees);
                                //print_r($booking_attendees_val);die;
                                 foreach( $booking_attendees_field_labels as $label_keys => $labels ){
-                                    $formated_val = $ep_functions->ep_get_slug_from_string( $labels );
-                                    $at_val = '---';
-                                    foreach( $booking_attendees_val as $baval ) {
-                                        if( isset( $baval[$formated_val] ) && ! empty( $baval[$formated_val] ) ) {
-                                            $at_val = is_array($baval[$formated_val]) ? implode(", ", $baval[$formated_val]) : $baval[$formated_val];
-                                            break;
-                                        }
-                                        
-                                        
-                                       
-                                    }
+									$at_val = $ep_functions->ep_get_booking_attendee_field_value( $booking_attendees_val, $labels );
                                     $at_val = apply_filters('ep_booking_attendees_filter_value',$at_val,$labels,$booking_attendees_val[0],$booking_attendees_val,$booking_attendees);
                                     $labels = apply_filters('ep_booking_attendees_filter_labels',$labels,$label_keys,$at_val,$booking_attendees_val[0],$booking_attendees_val,$booking_attendees);
                                     
@@ -538,14 +528,7 @@ class EventM_Notification_Service {
                                 $attendee_name_html .= '<td style="text-align:left;border-top-width:4px;color:#737373;border:1px solid #e4e4e4;padding:12px">';
                                     $booking_attendees_val = array_values( $booking_attendees );
                                     foreach( $booking_attendees_field_labels as $label_keys => $labels ){
-                                        $formated_val = $ep_functions->ep_get_slug_from_string( $labels );
-                                        $at_val = '---';
-                                        foreach( $booking_attendees_val as $baval ) {
-                                            if( isset( $baval[$formated_val] ) && ! empty( $baval[$formated_val] ) ) {
-                                                $at_val = is_array($baval[$formated_val]) ? implode(", ", $baval[$formated_val]) : $baval[$formated_val]; 
-                                                break;
-                                            }
-                                        }
+										$at_val = $ep_functions->ep_get_booking_attendee_field_value( $booking_attendees_val, $labels );
                                         $at_val = apply_filters('ep_booking_attendees_filter_value',$at_val,$labels,$booking_attendees_val[0],$booking_attendees_val,$booking_attendees);
                                         $labels = apply_filters('ep_booking_attendees_filter_labels',$labels,$at_val,$booking_attendees_val[0],$booking_attendees_val,$booking_attendees);
                                     
@@ -640,14 +623,7 @@ class EventM_Notification_Service {
                         $attendee_name_html .= '<td colspan ="2" style="text-align:left;border-top-width:4px;color:#737373;border:1px solid #e4e4e4;padding:12px">';
                         $booking_attendees_val = array_values( $booking_attendees );
                         foreach( $booking_attendees_field_labels as $label_keys => $labels ){
-                            $formated_val = $ep_functions->ep_get_slug_from_string( $labels );
-                            $at_val = '---';
-                            foreach( $booking_attendees_val as $baval ) {
-                                if( isset( $baval[$formated_val] ) && ! empty( $baval[$formated_val] ) ) {
-                                    $at_val = is_array($baval[$formated_val]) ? implode(", ", $baval[$formated_val]) : $baval[$formated_val]; 
-                                    break;
-                                }
-                            }
+							$at_val = $ep_functions->ep_get_booking_attendee_field_value( $booking_attendees_val, $labels );
                             $at_val = apply_filters('ep_booking_attendees_filter_value',$at_val,$labels,$booking_attendees_val[0],$booking_attendees_val,$booking_attendees);
                             $labels = apply_filters('ep_booking_attendees_filter_labels',$labels,$label_keys,$at_val,$booking_attendees_val[0],$booking_attendees_val,$booking_attendees);
                                     
@@ -761,14 +737,7 @@ class EventM_Notification_Service {
                         $attendee_name_html .= '<td colspan ="2" style="text-align:left;border-top-width:4px;color:#737373;border:1px solid #e4e4e4;padding:12px">';
                         $booking_attendees_val = array_values( $booking_attendees );
                         foreach( $booking_attendees_field_labels as $label_keys => $labels ){
-                            $formated_val = $ep_functions->ep_get_slug_from_string( $labels );
-                            $at_val = '---';
-                            foreach( $booking_attendees_val as $baval ) {
-                                if( isset( $baval[$formated_val] ) && ! empty( $baval[$formated_val] ) ) {
-                                    $at_val = is_array($baval[$formated_val]) ? implode(", ", $baval[$formated_val]) : $baval[$formated_val]; 
-                                    break;
-                                }
-                            }
+							$at_val = $ep_functions->ep_get_booking_attendee_field_value( $booking_attendees_val, $labels );
                             $at_val = apply_filters('ep_booking_attendees_filter_value',$at_val,$labels,$booking_attendees_val[0],$booking_attendees_val,$booking_attendees);
                             $labels = apply_filters('ep_booking_attendees_filter_labels',$labels,$label_keys,$at_val,$booking_attendees_val[0],$booking_attendees_val,$booking_attendees);
                                     
@@ -906,14 +875,7 @@ class EventM_Notification_Service {
                         $attendee_name_html .= '<td colspan ="2" style="text-align:left;border-top-width:4px;color:#737373;border:1px solid #e4e4e4;padding:12px">';
                         $booking_attendees_val = array_values( $booking_attendees );
                         foreach( $booking_attendees_field_labels as $label_keys => $labels ){
-                            $formated_val = $ep_functions->ep_get_slug_from_string( $labels );
-                            $at_val = '---';
-                            foreach( $booking_attendees_val as $baval ) {
-                                if( isset( $baval[$formated_val] ) && ! empty( $baval[$formated_val] ) ) {
-                                    $at_val = is_array($baval[$formated_val]) ? implode(", ", $baval[$formated_val]) : $baval[$formated_val]; 
-                                    break;
-                                }
-                            }
+							$at_val = $ep_functions->ep_get_booking_attendee_field_value( $booking_attendees_val, $labels );
                             $at_val = apply_filters('ep_booking_attendees_filter_value',$at_val,$labels,$booking_attendees_val[0],$booking_attendees_val,$booking_attendees);
                             $labels = apply_filters('ep_booking_attendees_filter_labels',$labels,$label_keys,$at_val,$booking_attendees_val[0],$booking_attendees_val,$booking_attendees);
                                     

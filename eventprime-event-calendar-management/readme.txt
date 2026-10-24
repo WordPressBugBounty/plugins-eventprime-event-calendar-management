@@ -5,7 +5,7 @@ Tags: event, events, event calendar, event organizer , event manager, event tick
 Requires at least: 4.8
 Tested up to: 7.1
 Requires PHP: 7.2
-Stable tag: 4.3.5.1
+Stable tag: 4.3.6.0
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -23,6 +23,8 @@ Some of the top EventPrime features include:
 
 * Supports multi-day and recurring events.
 * Event Calendar features month, week, agenda and day views.
+* Compact month calendar on phones, with event dots and a list for the selected day.
+* Sticky Get Tickets shortcut on phones when using the default single-event ticket template.
 * Accept payments for bookings via PayPal and Stripe.
 * Option to create multiple ticket types and categories for your events with in-built tickets creation module.
 * Add entrance or cover charges along with per-ticket fees.
@@ -683,6 +685,29 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.3.6.0: October 24, 2026 =
+* Security: Hardened frontend event data handling.
+* Security: Hardened PayPal payment confirmation.
+* Added: Compact calendar on phones with event dots and a list for the selected day. Props @misswyss and @massl for their mobile calendar suggestions.
+* Added: Sticky Get Tickets bar on phones using the default single-event ticket template, with the ticket price and a shortcut to ticket selection when tickets are on sale. Thanks to the requester of support ticket 58776 for the suggestion.
+* Changed: New installs now hide past events from event lists by default (Settings > Events). Existing sites keep their current setting.
+* Fixed: Event, venue, performer, organizer and event-type grids and rows now adapt to tablet widths, with improved single-event and profile columns.
+* Fixed: Venue, performer, organizer and event-type details fit smaller screens without sideways scrolling.
+* Fixed: Bordered booking and attendee boxes align with the content column.
+* Fixed: Checkout keeps attendee details before the summary below desktop widths, with clearer steps, timer and event thumbnails; edit-booking thumbnails also keep their size.
+* Fixed: Profile Coming Up cards adapt to phones and tablets, with wrapping button labels.
+* Fixed: Ticket selection modal uses phone and tablet space better, keeps summary amounts beside their labels and makes phone checkout actions easier to reach.
+* Fixed: Slider arrows stay inside the slide without covering the event text, and event titles and names can use two lines.
+* Fixed: Upcoming event rows on venue, organizer and event-type pages align with the details above them and adapt to smaller screens.
+* Fixed: Login, search and booking details are easier to use on phones, with clearer login prompts and attendee table scrolling.
+* Fixed: Guest Stripe checkout uses normalized placeholder image URLs for better Wordfence compatibility. Thanks to Jeff Corcoran for reporting this.
+* Fixed: PayPal live mode is preserved when reactivating EventPrime, with clearer confirmation messages, booking notes and retry handling. Thanks to Will Tuffin for reporting his payment experience.
+* Fixed: License request failures show a clear message, preserve saved details during connection failures and allow retrying, including the License tab Retry check button. Thanks to Chetan for reporting his activation experience.
+* Fixed: Attendee fields with non-Latin labels display their own values in booking details, emails and exports. Thanks to Danial (Du Yong) for reporting this.
+* Fixed: Performer and organizer event associations support saved integer and string IDs with exact matching.
+* Fixed: Venue establishment details display imported years, saved dates and legacy timestamps correctly.
+* Fixed: Pretty venue, organizer and event-type links open their configured published detail pages.
 
 = 4.3.5.1: October 06, 2026 =
 * Fixed: "Load More" on event lists now keeps the list's shortcode settings, so lists with `upcoming="1"` no longer show past events on later pages, including pages with more than one event list. Thanks to @didymos234 for reporting the issue.
@@ -2415,6 +2440,9 @@ Fixed: empty event-type lists to return 0 results successfully.
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.3.6.0 =
+Security release, update recommended. Hardens frontend event data and PayPal confirmation, improves phone/tablet layouts, and adds a compact phone calendar and ticket shortcut. PayPal users: check Sandbox Mode in Settings > Payments after updating.
 
 = 4.3.5.1 =
 Fixes "Load More" showing past events on event lists set to upcoming events only, and keeps each list's settings when a page has more than one event list.

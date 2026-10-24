@@ -582,277 +582,657 @@ class EventM_Ajax_Service {
         wp_send_json_success(true);
     }
 
-    /**
-     * Method call from paypal approval
-     */
-    public function paypal_sbpr() {
-        $booking_id    = absint( $_POST['order_id'] ?? 0 );
-        $request_order_key = isset( $_POST['order_key'] ) ? sanitize_text_field( $_POST['order_key'] ) : '';
-        $stored_order_key = ! empty( $booking_id ) ? get_post_meta( $booking_id, 'ep_order_key', true ) : '';
-        $is_valid_nonce = check_ajax_referer( 'flush_event_booking_timer_nonce', 'security', false );
-        $is_valid_order_key = ( ! empty( $stored_order_key ) && ! empty( $request_order_key ) && hash_equals( (string) $stored_order_key, (string) $request_order_key ) );
+	/**
+	 * Confirm a PayPal booking after the buyer approves the payment.
+	 *
+	 * Checkout pages send only the PayPal order ID. The order is checked with PayPal
+	 * (booking identity, ownership, amount and currency) and captured here, so no money
+	 * moves when the site cannot confirm the booking. Orders already captured in the
+	 * browser (pages loaded before 4.3.6.0) are verified as before. One PayPal order
+	 * confirms one booking; a repeated callback for a confirmed booking gets its redirect.
+	 */
+	public function paypal_sbpr() {
+		if ( empty( $_POST ) ) {
+			wp_send_json_error( array( 'error' => esc_html__( 'Data Not Found', 'eventprime-event-calendar-management' ) ) );
+		}
 
-        if ( empty( $_POST ) ) {
-            wp_send_json_error( array( 'error' => esc_html__( 'Data Not Found', 'eventprime-event-calendar-management' ) ) );
-        }
+		$is_valid_nonce    = check_ajax_referer( 'flush_event_booking_timer_nonce', 'security', false );
+		$booking_id        = isset( $_POST['order_id'] ) ? absint( $_POST['order_id'] ) : 0;
+		$request_order_key = isset( $_POST['order_key'] ) ? sanitize_text_field( wp_unslash( $_POST['order_key'] ) ) : '';
+		$server_capture    = ! empty( $_POST['server_capture'] );
+		$paypal_order_id   = '';
+		if ( isset( $_POST['data']['id'] ) ) {
+			$paypal_order_id = sanitize_text_field( wp_unslash( $_POST['data']['id'] ) );
+		} elseif ( isset( $_POST['data']['order_id'] ) ) {
+			$paypal_order_id = sanitize_text_field( wp_unslash( $_POST['data']['order_id'] ) );
+		}
 
-        $ep_functions  = new Eventprime_Basic_Functions;
-        $data          = $ep_functions->ep_sanitize_input( $_POST['data'] ?? array() );
-        if ( ! is_array( $data ) ) {
-            wp_send_json_error( array( 'error' => esc_html__( 'Invalid payment data.', 'eventprime-event-calendar-management' ) ) );
-        }
-        $payment_amount = $data['purchase_units'][0]['amount']['value'] ?? '';
-        $paypal_order_id = isset( $data['id'] ) ? sanitize_text_field( $data['id'] ) : ( isset( $data['order_id'] ) ? sanitize_text_field( $data['order_id'] ) : '' );
+		if ( empty( $booking_id ) || 'em_booking' !== get_post_type( $booking_id ) || ! preg_match( '/^[A-Za-z0-9-]{1,64}$/', $paypal_order_id ) ) {
+			wp_send_json_error( array( 'error' => esc_html__( 'Invalid payment data.', 'eventprime-event-calendar-management' ) ) );
+		}
 
-        if ( empty( $booking_id ) || empty( $data ) || $payment_amount === '' ) {
-            wp_send_json_error( array( 'error' => esc_html__( 'Invalid payment data.', 'eventprime-event-calendar-management' ) ) );
-        }
+		$ep_functions           = new Eventprime_Basic_Functions();
+		$stored_order_key       = (string) get_post_meta( $booking_id, 'ep_order_key', true );
+		$is_valid_order_key     = ( '' !== $stored_order_key && '' !== $request_order_key && hash_equals( $stored_order_key, $request_order_key ) );
+		$booking_user           = absint( get_post_meta( $booking_id, 'em_user', true ) );
+		$is_booking_owner       = ( ! empty( $booking_user ) && get_current_user_id() === $booking_user );
+		$stored_random_order_id = sanitize_text_field( (string) get_post_meta( $booking_id, 'em_random_order_id', true ) );
+		$order_info             = maybe_unserialize( get_post_meta( $booking_id, 'em_order_info', true ) );
+		// Notes are only written for requests tied to this booking, so they cannot be spammed.
+		$can_note = ( $is_valid_order_key || $is_booking_owner );
 
-        $order_info = maybe_unserialize( get_post_meta( $booking_id, 'em_order_info', true ) );
-        $booking_status = get_post_meta( $booking_id, 'em_status', true );
-        $booking_user = absint( get_post_meta( $booking_id, 'em_user', true ) );
-        $stored_random_order_id = sanitize_text_field( (string) get_post_meta( $booking_id, 'em_random_order_id', true ) );
+		if ( empty( $order_info['booking_total'] ) ) {
+			wp_send_json_error( array( 'error' => esc_html__( 'Payment amount mismatch.', 'eventprime-event-calendar-management' ) ) );
+		}
 
-        if ( empty( $order_info['booking_total'] ) ) {
-            wp_send_json_error( array( 'error' => esc_html__( 'Payment amount mismatch.', 'eventprime-event-calendar-management' ) ) );
-        }
+		$linked_booking_id = $this->ep_get_paypal_order_booking_id( $paypal_order_id );
+		if ( $this->ep_is_booking_completed( $booking_id ) ) {
+			if ( $linked_booking_id === $booking_id && $can_note ) {
+				wp_send_json_success(
+					array(
+						'status'   => 'success',
+						'redirect' => $this->ep_get_paypal_booking_redirect( $booking_id ),
+					)
+				);
+			}
+			wp_send_json_error( array( 'error' => esc_html__( 'Booking already completed.', 'eventprime-event-calendar-management' ) ) );
+		}
+		if ( ! empty( $linked_booking_id ) && $linked_booking_id !== $booking_id ) {
+			wp_send_json_error( array( 'error' => esc_html__( 'This PayPal payment is already linked to another booking.', 'eventprime-event-calendar-management' ) ) );
+		}
 
-        if ( ! empty( $booking_status ) && strtolower( $booking_status ) === 'completed' ) {
-            wp_send_json_error( array( 'error' => esc_html__( 'Booking already completed.', 'eventprime-event-calendar-management' ) ) );
-        }
+		// Pages from this version never capture in the browser; older pages may have.
+		$money_if_unchecked = $server_capture ? 'no' : 'unknown';
+		$api                = $this->ep_get_paypal_api_context( $booking_id, $paypal_order_id );
+		if ( is_wp_error( $api ) ) {
+			$this->ep_send_paypal_failure( $booking_id, $paypal_order_id, $api, $money_if_unchecked, $can_note );
+		}
+		$order = $this->ep_get_paypal_order( $api, $paypal_order_id, $booking_id );
+		if ( is_wp_error( $order ) ) {
+			$this->ep_send_paypal_failure( $booking_id, $paypal_order_id, $order, $money_if_unchecked, $can_note );
+		}
 
-        $verify = $this->verify_paypal_order( $paypal_order_id, $order_info['booking_total'], $ep_functions->ep_get_global_settings( 'currency' ), $booking_id );
-        if ( is_wp_error( $verify ) ) {
-            wp_send_json_error( array( 'error' => $verify->get_error_message() ) );
-        }
+		$is_verified_random_order = ( '' !== $stored_random_order_id && '' !== $order['custom_id'] && hash_equals( $stored_random_order_id, $order['custom_id'] ) );
+		if ( '' !== $stored_random_order_id && ! $is_verified_random_order ) {
+			wp_send_json_error( array( 'error' => esc_html__( 'You are not allowed to confirm this booking.', 'eventprime-event-calendar-management' ) ) );
+		}
+		if ( ! empty( $booking_user ) && ! $is_booking_owner && ! $is_valid_order_key && ! $is_verified_random_order ) {
+			wp_send_json_error( array( 'error' => esc_html__( 'You are not allowed to confirm this booking.', 'eventprime-event-calendar-management' ) ) );
+		}
+		if ( ! $is_valid_nonce && ! $is_valid_order_key && ! $is_verified_random_order ) {
+			wp_send_json_error( array( 'error' => esc_html__( 'Security check failed. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
+		}
+		$can_note = true;
 
-        $verified_random_order_id = sanitize_text_field( $verify['custom_id'] ?? '' );
-        $is_verified_random_order = ( ! empty( $stored_random_order_id ) && ! empty( $verified_random_order_id ) && hash_equals( (string) $stored_random_order_id, (string) $verified_random_order_id ) );
+		// Check the amount before capturing, so a wrong amount is never charged.
+		$expected_currency = $ep_functions->ep_get_global_settings( 'currency' );
+		$amount_check      = $this->ep_check_paypal_order_amount( $order, $order_info['booking_total'], $expected_currency );
+		if ( is_wp_error( $amount_check ) ) {
+			$this->ep_send_paypal_failure( $booking_id, $paypal_order_id, $amount_check, $order['money_taken'], $can_note );
+		}
 
-        if ( ! empty( $stored_random_order_id ) && ! $is_verified_random_order ) {
-            wp_send_json_error( array( 'error' => esc_html__( 'You are not allowed to confirm this booking.', 'eventprime-event-calendar-management' ) ) );
-        }
+		$locks = array();
+		foreach ( array( 'order_' . $paypal_order_id, 'booking_' . $booking_id ) as $lock_key ) {
+			$lock = $this->ep_acquire_paypal_lock( $lock_key );
+			if ( false === $lock ) {
+				$this->ep_release_paypal_locks( $locks );
+				wp_send_json_error( array( 'error' => esc_html__( 'This payment is already being processed. Please wait a moment and check your booking before trying again.', 'eventprime-event-calendar-management' ) ) );
+			}
+			$locks[] = $lock;
+		}
 
-        if ( ! empty( $booking_user ) && get_current_user_id() !== $booking_user && ! $is_valid_order_key && ! $is_verified_random_order ) {
-            wp_send_json_error( array( 'error' => esc_html__( 'You are not allowed to confirm this booking.', 'eventprime-event-calendar-management' ) ) );
-        }
+		$result = $this->ep_complete_paypal_booking( $api, $order, $booking_id, $paypal_order_id, $order_info['booking_total'], $expected_currency );
+		$this->ep_release_paypal_locks( $locks );
 
-        if ( ! $is_valid_nonce && ! $is_valid_order_key && ! $is_verified_random_order ) {
-            wp_send_json_error( array( 'error' => esc_html__( 'Security check failed. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
-        }
+		if ( is_wp_error( $result ) ) {
+			$error_data = $result->get_error_data();
+			$this->ep_send_paypal_failure( $booking_id, $paypal_order_id, $result, $error_data['money_taken'] ?? 'unknown', $can_note );
+		}
 
-        $payment_status = strtolower( $verify['status'] );
-        $payment_amount = $verify['amount'];
+		wp_send_json_success(
+			array(
+				'status'   => 'success',
+				'redirect' => $this->ep_get_paypal_booking_redirect( $booking_id ),
+			)
+		);
+	}
 
-        $data['payment_gateway'] = 'paypal';
-        $data['payment_status']  = $payment_status;
-        $data['total_amount']    = $payment_amount;
-        $data['currency']        = $verify['currency'];
-        if ( ! empty( $verify['reason'] ) ) {
-            $data['paypal_status_reason'] = $verify['reason'];
-        }
+	/**
+	 * Capture (when needed) and confirm a checked PayPal order. Runs while the order and
+	 * booking locks are held, and re-reads state another request may have changed.
+	 *
+	 * @param array  $api               PayPal API context.
+	 * @param array  $order             Parsed PayPal order.
+	 * @param int    $booking_id        Booking ID.
+	 * @param string $paypal_order_id   PayPal order ID.
+	 * @param float  $expected_amount   Booking total.
+	 * @param string $expected_currency Site currency.
+	 * @return true|WP_Error WP_Error data carries money_taken: no, yes or unknown.
+	 */
+	private function ep_complete_paypal_booking( $api, $order, $booking_id, $paypal_order_id, $expected_amount, $expected_currency ) {
+		wp_cache_delete( $booking_id, 'post_meta' );
+		$linked_booking_id = $this->ep_get_paypal_order_booking_id( $paypal_order_id );
+		if ( ! empty( $linked_booking_id ) && $linked_booking_id !== $booking_id ) {
+			return new WP_Error( 'ep_paypal_order_linked', esc_html__( 'This PayPal payment is already linked to another booking.', 'eventprime-event-calendar-management' ), array( 'money_taken' => $order['money_taken'] ) );
+		}
+		if ( $this->ep_is_booking_completed( $booking_id ) ) {
+			if ( $linked_booking_id === $booking_id ) {
+				return true;
+			}
+			return new WP_Error( 'ep_paypal_booking_completed', esc_html__( 'Booking already completed.', 'eventprime-event-calendar-management' ), array( 'money_taken' => $order['money_taken'] ) );
+		}
 
-        $booking_controller = new EventPrime_Bookings;
-        $booking_controller->confirm_booking( $booking_id, $data );
+		if ( 'APPROVED' === $order['status'] ) {
+			$order = $this->ep_capture_paypal_order( $api, $paypal_order_id, $booking_id );
+			if ( is_wp_error( $order ) ) {
+				return $order;
+			}
+			$amount_check = $this->ep_check_paypal_order_amount( $order, $expected_amount, $expected_currency );
+			if ( is_wp_error( $amount_check ) ) {
+				$amount_check->add_data( array( 'money_taken' => $order['money_taken'] ) );
+				return $amount_check;
+			}
+		}
 
-        $redirect   = add_query_arg( array( 'order_id' => $booking_id ), esc_url( get_permalink( $ep_functions->ep_get_global_settings( 'booking_details_page' ) ) ) );
-        $return_url = apply_filters( 'ep_booking_redirection_url', $redirect, $booking_id );
+		if ( ! in_array( $order['payment_status'], array( 'COMPLETED', 'PENDING' ), true ) ) {
+			$this->log_paypal_debug(
+				'PayPal payment is not completed.',
+				array(
+					'booking_id'      => $booking_id,
+					'environment'     => $api['environment'],
+					'paypal_order_id' => $paypal_order_id,
+					'status'          => $order['payment_status'],
+					'status_reason'   => $order['reason'],
+				)
+			);
+			return new WP_Error( 'ep_paypal_not_completed', esc_html__( 'Payment not completed.', 'eventprime-event-calendar-management' ), array( 'money_taken' => $order['money_taken'] ) );
+		}
+		if ( 'PENDING' === $order['payment_status'] ) {
+			$this->log_paypal_debug(
+				'PayPal payment is pending.',
+				array(
+					'booking_id'      => $booking_id,
+					'environment'     => $api['environment'],
+					'paypal_order_id' => $paypal_order_id,
+					'status_reason'   => $order['reason'],
+				)
+			);
+		}
 
-        $response = array( 'status' => 'success', 'redirect' => $return_url );
-        wp_send_json_success( $response );
-    }
+		// Link the order first: if confirmation stops half way, a retry finds the same booking.
+		update_post_meta( $booking_id, 'ep_paypal_order_id', $paypal_order_id );
+		if ( '' !== $order['capture_id'] ) {
+			update_post_meta( $booking_id, 'ep_paypal_capture_id', $order['capture_id'] );
+		}
 
-    private function verify_paypal_order( $paypal_order_id, $expected_amount, $expected_currency, $booking_id ) {
-        if ( empty( $paypal_order_id ) ) {
-            return new WP_Error( 'ep_paypal_missing_order', esc_html__( 'Missing PayPal order id.', 'eventprime-event-calendar-management' ) );
-        }
+		$data                    = $order['body'];
+		$data['payment_gateway'] = 'paypal';
+		$data['payment_status']  = strtolower( $order['payment_status'] );
+		$data['total_amount']    = (float) $order['amount'];
+		$data['currency']        = $order['currency'];
+		if ( '' !== $order['reason'] ) {
+			$data['paypal_status_reason'] = $order['reason'];
+		}
 
-        $ep_functions = new Eventprime_Basic_Functions;
-        $client_id = $ep_functions->ep_get_global_settings( 'paypal_client_id' );
-        $client_secret = $this->get_paypal_client_secret( $booking_id );
+		$booking_controller = new EventPrime_Bookings();
+		$booking_controller->confirm_booking( $booking_id, $data );
+		$booking_controller->add_notes(
+			$booking_id,
+			sprintf(
+				/* translators: 1: PayPal order ID, 2: PayPal capture ID, 3: PayPal payment status. */
+				esc_html__( 'PayPal payment checked with PayPal: order %1$s, capture %2$s, status %3$s.', 'eventprime-event-calendar-management' ),
+				esc_html( $paypal_order_id ),
+				esc_html( '' !== $order['capture_id'] ? $order['capture_id'] : '-' ),
+				esc_html( strtolower( $order['payment_status'] ) )
+			)
+		);
+		return true;
+	}
 
-        if ( empty( $client_id ) || empty( $client_secret ) ) {
-            return new WP_Error( 'ep_paypal_missing_credentials', esc_html__( 'PayPal client credentials are not configured.', 'eventprime-event-calendar-management' ) );
-        }
+	/**
+	 * Get a PayPal API access token for the saved mode.
+	 *
+	 * @param int    $booking_id      Booking ID.
+	 * @param string $paypal_order_id PayPal order ID, for debug logs.
+	 * @return array|WP_Error array( base, token, environment ).
+	 */
+	private function ep_get_paypal_api_context( $booking_id, $paypal_order_id ) {
+		$ep_functions  = new Eventprime_Basic_Functions();
+		$client_id     = $ep_functions->ep_get_global_settings( 'paypal_client_id' );
+		$client_secret = $this->get_paypal_client_secret( $booking_id );
 
-        $is_test = $ep_functions->ep_get_global_settings( 'payment_test_mode' );
-        $base = ! empty( $is_test ) ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
+		if ( empty( $client_id ) || empty( $client_secret ) ) {
+			return new WP_Error( 'ep_paypal_missing_credentials', esc_html__( 'PayPal client credentials are not configured.', 'eventprime-event-calendar-management' ) );
+		}
 
-        $token_response = wp_remote_post(
-            $base . '/v1/oauth2/token',
-            array(
-                'headers' => array(
-                    'Authorization' => 'Basic ' . base64_encode( $client_id . ':' . $client_secret ),
-                    'Content-Type'  => 'application/x-www-form-urlencoded',
-                ),
-                'body'    => array( 'grant_type' => 'client_credentials' ),
-                'timeout' => 20,
-            )
-        );
+		$is_test     = ! empty( $ep_functions->ep_get_global_settings( 'payment_test_mode' ) );
+		$environment = $is_test ? 'sandbox' : 'live';
+		$base        = $is_test ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
 
-        if ( is_wp_error( $token_response ) ) {
-            $this->log_paypal_debug(
-                'PayPal token request failed.',
-                array(
-                    'booking_id' => $booking_id,
-                    'environment' => ! empty( $is_test ) ? 'sandbox' : 'live',
-                    'paypal_order_id' => $paypal_order_id,
-                    'error' => $token_response->get_error_message(),
-                )
-            );
-            return new WP_Error( 'ep_paypal_token_error', esc_html__( 'Unable to authenticate with PayPal.', 'eventprime-event-calendar-management' ) );
-        }
+		$token_response = wp_remote_post(
+			$base . '/v1/oauth2/token',
+			array(
+				'headers' => array(
+					'Authorization' => 'Basic ' . base64_encode( $client_id . ':' . $client_secret ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- HTTP Basic auth required by PayPal OAuth.
+					'Content-Type'  => 'application/x-www-form-urlencoded',
+				),
+				'body'    => array( 'grant_type' => 'client_credentials' ),
+				'timeout' => 20,
+			)
+		);
 
-        $token_code = (int) wp_remote_retrieve_response_code( $token_response );
-        $token_body = json_decode( wp_remote_retrieve_body( $token_response ), true );
-        $access_token = is_array( $token_body ) && ! empty( $token_body['access_token'] ) ? $token_body['access_token'] : '';
-        if ( empty( $access_token ) ) {
-            $paypal_error = is_array( $token_body ) ? ( $token_body['error'] ?? '' ) : '';
-            $environment_label = ! empty( $is_test ) ? 'sandbox' : 'live';
-            $this->log_paypal_debug(
-                'PayPal token response did not include an access token.',
-                array(
-                    'booking_id' => $booking_id,
-                    'environment' => $environment_label,
-                    'paypal_order_id' => $paypal_order_id,
-                    'http_code' => $token_code,
-                    'response' => $token_body,
-                )
-            );
-            if ( $token_code === 401 || $paypal_error === 'invalid_client' ) {
-                return new WP_Error(
-                    'ep_paypal_token_error',
-                    sprintf(
-                        /* translators: %s: PayPal environment. */
-                        esc_html__( 'PayPal rejected the %s API credentials. Check the client ID, secret, and mode.', 'eventprime-event-calendar-management' ),
-                        esc_html( $environment_label )
-                    )
-                );
-            }
-            return new WP_Error( 'ep_paypal_token_error', esc_html__( 'Unable to authenticate with PayPal. Check PayPal mode and API credentials.', 'eventprime-event-calendar-management' ) );
-        }
+		if ( is_wp_error( $token_response ) ) {
+			$this->log_paypal_debug(
+				'PayPal token request failed.',
+				array(
+					'booking_id'      => $booking_id,
+					'environment'     => $environment,
+					'paypal_order_id' => $paypal_order_id,
+					'error'           => $token_response->get_error_message(),
+				)
+			);
+			return new WP_Error( 'ep_paypal_token_error', esc_html__( 'Unable to authenticate with PayPal.', 'eventprime-event-calendar-management' ) );
+		}
 
-        $order_response = wp_remote_get(
-            $base . '/v2/checkout/orders/' . rawurlencode( $paypal_order_id ),
-            array(
-                'headers' => array(
-                    'Authorization' => 'Bearer ' . $access_token,
-                    'Content-Type'  => 'application/json',
-                ),
-                'timeout' => 20,
-            )
-        );
+		$token_code   = (int) wp_remote_retrieve_response_code( $token_response );
+		$token_body   = json_decode( wp_remote_retrieve_body( $token_response ), true );
+		$access_token = is_array( $token_body ) && ! empty( $token_body['access_token'] ) ? $token_body['access_token'] : '';
+		if ( empty( $access_token ) ) {
+			$paypal_error = is_array( $token_body ) ? ( $token_body['error'] ?? '' ) : '';
+			$this->log_paypal_debug(
+				'PayPal token response did not include an access token.',
+				array(
+					'booking_id'      => $booking_id,
+					'environment'     => $environment,
+					'paypal_order_id' => $paypal_order_id,
+					'http_code'       => $token_code,
+					'error'           => $paypal_error,
+				)
+			);
+			if ( 401 === $token_code || 'invalid_client' === $paypal_error ) {
+				return new WP_Error(
+					'ep_paypal_token_error',
+					sprintf(
+						/* translators: %s: PayPal environment. */
+						esc_html__( 'PayPal rejected the %s API credentials. Check the client ID, secret, and mode.', 'eventprime-event-calendar-management' ),
+						esc_html( $environment )
+					),
+					array( 'http_code' => $token_code )
+				);
+			}
+			return new WP_Error( 'ep_paypal_token_error', esc_html__( 'Unable to authenticate with PayPal. Check PayPal mode and API credentials.', 'eventprime-event-calendar-management' ), array( 'http_code' => $token_code ) );
+		}
 
-        if ( is_wp_error( $order_response ) ) {
-            $this->log_paypal_debug(
-                'PayPal order verification request failed.',
-                array(
-                    'booking_id' => $booking_id,
-                    'environment' => ! empty( $is_test ) ? 'sandbox' : 'live',
-                    'paypal_order_id' => $paypal_order_id,
-                    'error' => $order_response->get_error_message(),
-                )
-            );
-            return new WP_Error( 'ep_paypal_order_error', esc_html__( 'Unable to verify PayPal order.', 'eventprime-event-calendar-management' ) );
-        }
+		return array(
+			'base'        => $base,
+			'token'       => $access_token,
+			'environment' => $environment,
+		);
+	}
 
-        $order_code = (int) wp_remote_retrieve_response_code( $order_response );
-        $order_body = json_decode( wp_remote_retrieve_body( $order_response ), true );
-        if ( ! is_array( $order_body ) || empty( $order_body['status'] ) ) {
-            $this->log_paypal_debug(
-                'PayPal order verification returned an invalid response.',
-                array(
-                    'booking_id' => $booking_id,
-                    'environment' => ! empty( $is_test ) ? 'sandbox' : 'live',
-                    'paypal_order_id' => $paypal_order_id,
-                    'http_code' => $order_code,
-                    'response' => $order_body,
-                )
-            );
-            return new WP_Error( 'ep_paypal_order_error', esc_html__( 'Unable to verify PayPal order.', 'eventprime-event-calendar-management' ) );
-        }
+	/**
+	 * Read a PayPal order from the PayPal API.
+	 *
+	 * @param array  $api             PayPal API context.
+	 * @param string $paypal_order_id PayPal order ID.
+	 * @param int    $booking_id      Booking ID, for debug logs.
+	 * @return array|WP_Error Parsed order, see ep_parse_paypal_order().
+	 */
+	private function ep_get_paypal_order( $api, $paypal_order_id, $booking_id ) {
+		$order_response = wp_remote_get(
+			$api['base'] . '/v2/checkout/orders/' . rawurlencode( $paypal_order_id ),
+			array(
+				'headers' => array(
+					'Authorization' => 'Bearer ' . $api['token'],
+					'Content-Type'  => 'application/json',
+				),
+				'timeout' => 20,
+			)
+		);
 
-        $status = strtoupper( $order_body['status'] );
-        $capture = $order_body['purchase_units'][0]['payments']['captures'][0] ?? array();
-        $status_reason = '';
+		if ( is_wp_error( $order_response ) ) {
+			$this->log_paypal_debug(
+				'PayPal order verification request failed.',
+				array(
+					'booking_id'      => $booking_id,
+					'environment'     => $api['environment'],
+					'paypal_order_id' => $paypal_order_id,
+					'error'           => $order_response->get_error_message(),
+				)
+			);
+			return new WP_Error( 'ep_paypal_order_error', esc_html__( 'Unable to verify PayPal order.', 'eventprime-event-calendar-management' ) );
+		}
 
-        if ( ! empty( $capture['status'] ) ) {
-            $status = strtoupper( $capture['status'] );
-            $status_reason = $capture['status_details']['reason'] ?? '';
-        }
+		$order_code = (int) wp_remote_retrieve_response_code( $order_response );
+		$order_body = json_decode( wp_remote_retrieve_body( $order_response ), true );
+		if ( ! is_array( $order_body ) || empty( $order_body['status'] ) ) {
+			$this->log_paypal_debug(
+				'PayPal order verification returned an invalid response.',
+				array(
+					'booking_id'      => $booking_id,
+					'environment'     => $api['environment'],
+					'paypal_order_id' => $paypal_order_id,
+					'http_code'       => $order_code,
+					'response'        => $order_body,
+				)
+			);
+			// A 404 here usually means the order belongs to the other PayPal mode.
+			return new WP_Error( 'ep_paypal_order_error', esc_html__( 'Unable to verify PayPal order.', 'eventprime-event-calendar-management' ), array( 'http_code' => $order_code ) );
+		}
 
-        if ( ! in_array( $status, array( 'COMPLETED', 'PENDING' ), true ) ) {
-            $this->log_paypal_debug(
-                'PayPal payment is not completed.',
-                array(
-                    'booking_id' => $booking_id,
-                    'environment' => ! empty( $is_test ) ? 'sandbox' : 'live',
-                    'paypal_order_id' => $paypal_order_id,
-                    'http_code' => $order_code,
-                    'status' => $status,
-                    'status_reason' => $status_reason,
-                    'response' => $order_body,
-                )
-            );
-            return new WP_Error( 'ep_paypal_not_completed', esc_html__( 'Payment not completed.', 'eventprime-event-calendar-management' ) );
-        }
+		return $this->ep_parse_paypal_order( $order_body );
+	}
 
-        $amount = '';
-        $currency = '';
-        if ( ! empty( $capture['amount'] ) ) {
-            $amount = $capture['amount']['value'] ?? '';
-            $currency = $capture['amount']['currency_code'] ?? '';
-        } elseif ( ! empty( $order_body['purchase_units'][0]['amount'] ) ) {
-            $amount = $order_body['purchase_units'][0]['amount']['value'] ?? '';
-            $currency = $order_body['purchase_units'][0]['amount']['currency_code'] ?? '';
-        }
+	/**
+	 * Capture an approved PayPal order. The request ID makes a repeated capture of the same
+	 * booking and order return the first result instead of charging again.
+	 *
+	 * @param array  $api             PayPal API context.
+	 * @param string $paypal_order_id PayPal order ID.
+	 * @param int    $booking_id      Booking ID.
+	 * @return array|WP_Error Parsed order; WP_Error data carries money_taken.
+	 */
+	private function ep_capture_paypal_order( $api, $paypal_order_id, $booking_id ) {
+		$args = array(
+			'headers' => array(
+				'Authorization'     => 'Bearer ' . $api['token'],
+				'Content-Type'      => 'application/json',
+				'Prefer'            => 'return=representation',
+				'PayPal-Request-Id' => 'ep-' . $booking_id . '-' . $paypal_order_id,
+			),
+			'body'    => '{}',
+			'timeout' => 30,
+		);
+		$url  = $api['base'] . '/v2/checkout/orders/' . rawurlencode( $paypal_order_id ) . '/capture';
 
-        if ( $amount === '' || $currency === '' ) {
-            $this->log_paypal_debug(
-                'PayPal order verification did not return amount or currency.',
-                array(
-                    'booking_id' => $booking_id,
-                    'environment' => ! empty( $is_test ) ? 'sandbox' : 'live',
-                    'paypal_order_id' => $paypal_order_id,
-                    'http_code' => $order_code,
-                    'response' => $order_body,
-                )
-            );
-            return new WP_Error( 'ep_paypal_order_error', esc_html__( 'Unable to verify PayPal order.', 'eventprime-event-calendar-management' ) );
-        }
+		$capture_response = wp_remote_post( $url, $args );
+		if ( is_wp_error( $capture_response ) ) {
+			// Same request ID, so retrying once after a network error cannot charge twice.
+			$capture_response = wp_remote_post( $url, $args );
+		}
+		if ( is_wp_error( $capture_response ) ) {
+			$this->log_paypal_debug(
+				'PayPal capture request failed.',
+				array(
+					'booking_id'      => $booking_id,
+					'environment'     => $api['environment'],
+					'paypal_order_id' => $paypal_order_id,
+					'error'           => $capture_response->get_error_message(),
+				)
+			);
+			return new WP_Error( 'ep_paypal_capture_error', esc_html__( 'Unable to confirm the PayPal payment.', 'eventprime-event-calendar-management' ), array( 'money_taken' => 'unknown' ) );
+		}
 
-        $amount_float = (float) $amount;
-        $expected_float = (float) $expected_amount;
-        if ( abs( $amount_float - $expected_float ) > 0.01 ) {
-            return new WP_Error( 'ep_paypal_amount_mismatch', esc_html__( 'Payment amount mismatch.', 'eventprime-event-calendar-management' ) );
-        }
+		$capture_code = (int) wp_remote_retrieve_response_code( $capture_response );
+		$capture_body = json_decode( wp_remote_retrieve_body( $capture_response ), true );
+		$issue        = is_array( $capture_body ) ? (string) ( $capture_body['details'][0]['issue'] ?? '' ) : '';
 
-        if ( ! empty( $expected_currency ) && strtoupper( $currency ) !== strtoupper( $expected_currency ) ) {
-            return new WP_Error( 'ep_paypal_currency_mismatch', esc_html__( 'Payment currency mismatch.', 'eventprime-event-calendar-management' ) );
-        }
+		if ( 'ORDER_ALREADY_CAPTURED' === $issue ) {
+			$order = $this->ep_get_paypal_order( $api, $paypal_order_id, $booking_id );
+			if ( is_wp_error( $order ) ) {
+				$order->add_data( array( 'money_taken' => 'yes' ) );
+			}
+			return $order;
+		}
 
-        if ( $status === 'PENDING' ) {
-            $this->log_paypal_debug(
-                'PayPal payment is pending.',
-                array(
-                    'booking_id' => $booking_id,
-                    'environment' => ! empty( $is_test ) ? 'sandbox' : 'live',
-                    'paypal_order_id' => $paypal_order_id,
-                    'status_reason' => $status_reason,
-                    'amount' => $amount_float,
-                    'currency' => $currency,
-                )
-            );
-        }
+		if ( $capture_code < 200 || $capture_code >= 300 || ! is_array( $capture_body ) || empty( $capture_body['status'] ) ) {
+			$this->log_paypal_debug(
+				'PayPal capture was not completed.',
+				array(
+					'booking_id'      => $booking_id,
+					'environment'     => $api['environment'],
+					'paypal_order_id' => $paypal_order_id,
+					'http_code'       => $capture_code,
+					'issue'           => $issue,
+				)
+			);
+			// PayPal answers 4xx when it refused the capture; 5xx leaves the outcome unknown.
+			$money_taken = ( $capture_code >= 400 && $capture_code < 500 ) ? 'no' : 'unknown';
+			if ( 'INSTRUMENT_DECLINED' === $issue ) {
+				return new WP_Error( 'ep_paypal_capture_declined', esc_html__( 'PayPal declined the payment. Please try again with another payment method.', 'eventprime-event-calendar-management' ), array( 'money_taken' => 'no' ) );
+			}
+			return new WP_Error(
+				'ep_paypal_capture_error',
+				esc_html__( 'Unable to confirm the PayPal payment.', 'eventprime-event-calendar-management' ),
+				array(
+					'money_taken' => $money_taken,
+					'http_code'   => $capture_code,
+				)
+			);
+		}
 
-        return array(
-            'status'   => strtolower( $status ),
-            'amount'   => $amount_float,
-            'currency' => $currency,
-            'reason'   => $status_reason,
-            'custom_id' => sanitize_text_field( $order_body['purchase_units'][0]['custom_id'] ?? '' ),
-        );
-    }
+		return $this->ep_parse_paypal_order( $capture_body );
+	}
+
+	/**
+	 * Reduce a PayPal order response to the fields the booking checks need.
+	 *
+	 * @param array $order_body Decoded PayPal order or capture response.
+	 * @return array
+	 */
+	private function ep_parse_paypal_order( $order_body ) {
+		$status         = strtoupper( (string) $order_body['status'] );
+		$capture        = $order_body['purchase_units'][0]['payments']['captures'][0] ?? array();
+		$payment_status = $status;
+		$reason         = '';
+		$amount         = '';
+		$currency       = '';
+
+		if ( ! empty( $capture['status'] ) ) {
+			$payment_status = strtoupper( (string) $capture['status'] );
+			$reason         = (string) ( $capture['status_details']['reason'] ?? '' );
+		}
+		if ( ! empty( $capture['amount'] ) ) {
+			$amount   = $capture['amount']['value'] ?? '';
+			$currency = $capture['amount']['currency_code'] ?? '';
+		} elseif ( ! empty( $order_body['purchase_units'][0]['amount'] ) ) {
+			$amount   = $order_body['purchase_units'][0]['amount']['value'] ?? '';
+			$currency = $order_body['purchase_units'][0]['amount']['currency_code'] ?? '';
+		}
+
+		// Whether the buyer's money has moved, for messages and booking notes.
+		$money_taken = 'no';
+		if ( in_array( $payment_status, array( 'COMPLETED', 'PENDING' ), true ) && ! empty( $capture ) ) {
+			$money_taken = 'yes';
+		} elseif ( 'COMPLETED' === $status && empty( $capture ) ) {
+			$money_taken = 'unknown';
+		}
+
+		return array(
+			'status'         => $status,
+			'payment_status' => $payment_status,
+			'amount'         => $amount,
+			'currency'       => $currency,
+			'reason'         => sanitize_text_field( $reason ),
+			'custom_id'      => sanitize_text_field( (string) ( $order_body['purchase_units'][0]['custom_id'] ?? '' ) ),
+			'capture_id'     => sanitize_text_field( (string) ( $capture['id'] ?? '' ) ),
+			'money_taken'    => $money_taken,
+			'body'           => $order_body,
+		);
+	}
+
+	/**
+	 * Check a parsed PayPal order against the booking total and site currency.
+	 *
+	 * @param array  $order             Parsed PayPal order.
+	 * @param float  $expected_amount   Booking total.
+	 * @param string $expected_currency Site currency.
+	 * @return true|WP_Error
+	 */
+	private function ep_check_paypal_order_amount( $order, $expected_amount, $expected_currency ) {
+		if ( '' === $order['amount'] || '' === $order['currency'] ) {
+			return new WP_Error( 'ep_paypal_order_error', esc_html__( 'Unable to verify PayPal order.', 'eventprime-event-calendar-management' ) );
+		}
+		if ( abs( (float) $order['amount'] - (float) $expected_amount ) > 0.01 ) {
+			return new WP_Error( 'ep_paypal_amount_mismatch', esc_html__( 'Payment amount mismatch.', 'eventprime-event-calendar-management' ) );
+		}
+		if ( ! empty( $expected_currency ) && strtoupper( $order['currency'] ) !== strtoupper( $expected_currency ) ) {
+			return new WP_Error( 'ep_paypal_currency_mismatch', esc_html__( 'Payment currency mismatch.', 'eventprime-event-calendar-management' ) );
+		}
+		return true;
+	}
+
+	/**
+	 * Send a PayPal failure to the checkout and keep a trace on the booking.
+	 *
+	 * @param int      $booking_id      Booking ID.
+	 * @param string   $paypal_order_id PayPal order ID.
+	 * @param WP_Error $error           What failed.
+	 * @param string   $money_taken     Whether the buyer was charged: no, yes or unknown.
+	 * @param bool     $can_note        Whether the request may add a booking note.
+	 */
+	private function ep_send_paypal_failure( $booking_id, $paypal_order_id, $error, $money_taken, $can_note ) {
+		$error_data = $error->get_error_data();
+		$http_code  = is_array( $error_data ) && ! empty( $error_data['http_code'] ) ? (int) $error_data['http_code'] : 0;
+
+		if ( 'no' === $money_taken ) {
+			$message = $error->get_error_message() . ' ' . esc_html__( 'No payment has been taken.', 'eventprime-event-calendar-management' );
+		} else {
+			$message = $error->get_error_message() . ' ' . sprintf( // phpcs:ignore Generic.Formatting.MultipleStatementAlignment.NotSameWarning
+				/* translators: %d: booking ID. */
+				esc_html__( 'If PayPal shows that you have paid, please do not pay again. Contact the event organiser and quote booking #%d.', 'eventprime-event-calendar-management' ),
+				absint( $booking_id )
+			);
+		}
+
+		if ( $can_note ) {
+			$money_labels = array(
+				'no'      => esc_html__( 'no', 'eventprime-event-calendar-management' ),
+				'yes'     => esc_html__( 'yes', 'eventprime-event-calendar-management' ),
+				'unknown' => esc_html__( 'unknown', 'eventprime-event-calendar-management' ),
+			);
+			$note         = sprintf(
+				/* translators: 1: PayPal order ID, 2: no/yes/unknown, 3: error message, 4: error code. */
+				esc_html__( 'PayPal booking not confirmed. PayPal order %1$s. Payment taken: %2$s. Reason: %3$s (%4$s).', 'eventprime-event-calendar-management' ),
+				esc_html( $paypal_order_id ),
+				$money_labels[ $money_taken ] ?? $money_labels['unknown'],
+				esc_html( $error->get_error_message() ),
+				esc_html( $error->get_error_code() . ( $http_code ? ' ' . $http_code : '' ) )
+			);
+			if ( 'no' !== $money_taken ) {
+				$note .= ' ' . esc_html__( 'Check this order in your PayPal account. If it was paid, complete the booking manually or refund the payment. Do not ask the buyer to pay again.', 'eventprime-event-calendar-management' );
+			}
+			$booking_controller = new EventPrime_Bookings();
+			$booking_controller->add_notes( $booking_id, $note );
+		}
+
+		/**
+		 * Fires when a PayPal payment could not confirm its booking.
+		 *
+		 * @since 4.3.6.0
+		 *
+		 * @param int      $booking_id      Booking ID.
+		 * @param string   $paypal_order_id PayPal order ID.
+		 * @param WP_Error $error           What failed.
+		 * @param string   $money_taken     Whether the buyer was charged: no, yes or unknown.
+		 */
+		do_action( 'eventprime_paypal_booking_not_confirmed', $booking_id, $paypal_order_id, $error, $money_taken );
+
+		wp_send_json_error(
+			array(
+				'error'         => $message,
+				'payment_taken' => $money_taken,
+			)
+		);
+	}
+
+	/**
+	 * Find the booking a PayPal order already confirmed, including bookings confirmed
+	 * before 4.3.6.0, whose PayPal order ID is only in the payment log.
+	 *
+	 * @param string $paypal_order_id PayPal order ID.
+	 * @return int Booking ID or 0.
+	 */
+	private function ep_get_paypal_order_booking_id( $paypal_order_id ) {
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- must see other requests' writes.
+		$booking_id = (int) $wpdb->get_var( $wpdb->prepare( "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = 'ep_paypal_order_id' AND meta_value = %s LIMIT 1", $paypal_order_id ) );
+		if ( empty( $booking_id ) ) {
+			// The ID is a quoted serialized string in the old payment log.
+			$like = '%' . $wpdb->esc_like( '"' . $paypal_order_id . '"' ) . '%';
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- must see other requests' writes.
+			$booking_id = (int) $wpdb->get_var( $wpdb->prepare( "SELECT pm.post_id FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id WHERE pm.meta_key = 'em_payment_log' AND p.post_type = 'em_booking' AND pm.meta_value LIKE %s LIMIT 1", $like ) );
+		}
+		return $booking_id;
+	}
+
+	/**
+	 * Whether a booking is completed.
+	 *
+	 * @param int $booking_id Booking ID.
+	 * @return bool
+	 */
+	private function ep_is_booking_completed( $booking_id ) {
+		return 'completed' === strtolower( (string) get_post_meta( $booking_id, 'em_status', true ) );
+	}
+
+	/**
+	 * Booking details URL a confirmed PayPal booking redirects to.
+	 *
+	 * @param int $booking_id Booking ID.
+	 * @return string
+	 */
+	private function ep_get_paypal_booking_redirect( $booking_id ) {
+		$ep_functions = new Eventprime_Basic_Functions();
+		$redirect     = add_query_arg( array( 'order_id' => $booking_id ), esc_url( get_permalink( $ep_functions->ep_get_global_settings( 'booking_details_page' ) ) ) );
+		return apply_filters( 'ep_booking_redirection_url', $redirect, $booking_id ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- existing public hook.
+	}
+
+	/**
+	 * Take a short lock so concurrent callbacks cannot capture or confirm twice.
+	 * INSERT IGNORE on the unique option_name is atomic; a lock older than five
+	 * minutes (a request that died) is replaced.
+	 *
+	 * @param string $key Lock key.
+	 * @return array|false Lock handle, or false when another request holds it.
+	 */
+	private function ep_acquire_paypal_lock( $key ) {
+		global $wpdb;
+		$name = 'ep_paypal_lock_' . md5( $key );
+		for ( $attempt = 0; $attempt < 2; $attempt++ ) {
+			$value = time() . ':' . wp_generate_password( 12, false );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- atomic lock.
+			if ( $wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO {$wpdb->options} ( option_name, option_value, autoload ) VALUES ( %s, %s, 'no' )", $name, $value ) ) ) {
+				return array(
+					'name'  => $name,
+					'value' => $value,
+				);
+			}
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- atomic lock.
+			$held = (string) $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", $name ) );
+			if ( '' !== $held && (int) $held > time() - 300 ) {
+				return false;
+			}
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- atomic lock.
+			$wpdb->delete(
+				$wpdb->options,
+				array(
+					'option_name'  => $name,
+					'option_value' => $held,
+				)
+			);
+		}
+		return false;
+	}
+
+	/**
+	 * Release locks taken by ep_acquire_paypal_lock().
+	 *
+	 * @param array $locks Lock handles.
+	 */
+	private function ep_release_paypal_locks( $locks ) {
+		global $wpdb;
+		foreach ( $locks as $lock ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- atomic lock.
+			$wpdb->delete(
+				$wpdb->options,
+				array(
+					'option_name'  => $lock['name'],
+					'option_value' => $lock['value'],
+				)
+			);
+		}
+	}
 
     private function get_paypal_client_secret( $booking_id ) {
         $ep_functions = new Eventprime_Basic_Functions;
@@ -2400,14 +2780,7 @@ class EventM_Ajax_Service {
                         $attendee_name_data .= esc_html__( 'Attendees '.$i.' ', 'eventprime-event-calendar-management' );
                         $booking_attendees_val = array_values( $booking_attendees );
                         foreach( $booking_attendees_field_labels as $labels ){
-                            $formated_val = str_replace( ' ', '_', strtolower( $labels ) );
-                            $at_val = '---';
-                            foreach( $booking_attendees_val as $baval ) {
-                            if( isset( $baval[$formated_val] ) && ! empty( $baval[$formated_val] ) ) {
-                                    $at_val = is_array($baval[$formated_val]) ? implode(',',$baval[$formated_val]) : $baval[$formated_val];
-                                    break;
-                                }
-                            }
+							$at_val              = $ep_functions->ep_get_booking_attendee_field_value( $booking_attendees_val, $labels );
                             $attendee_name_data .= esc_html__( $labels, 'eventprime-event-calendar-management' ) .' : '. $at_val.', ';
                         }
 
@@ -2651,76 +3024,74 @@ class EventM_Ajax_Service {
         wp_send_json_success($response);
     }
 
-    public function eventprime_activate_license()
-        {
-            if ( ! current_user_can( 'manage_options' ) ) {
-                wp_send_json_error( array( 'message' => esc_html__( 'You are not allowed to manage licenses.', 'eventprime-event-calendar-management' ) ) );
-            }
-            $retrieved_nonce = filter_input( INPUT_POST, 'nonce' );
-            
-            if ( !wp_verify_nonce( $retrieved_nonce, 'ep-license-nonce' ) ) {
-                    die( esc_html__( 'Failed security check', 'eventprime-event-calendar-management' ) );
-            }
-            $ep_license_activate = sanitize_text_field(filter_input( INPUT_POST, 'ep_license_activate' ));
-            $license_key = sanitize_text_field(filter_input( INPUT_POST, 'ep_license' ));
-            $item_id = sanitize_text_field(filter_input( INPUT_POST, 'ep_item_id' ));
-            $item_key = sanitize_text_field(filter_input( INPUT_POST, 'ep_item_key' ));
-            update_option( $item_key.'_license_key', $license_key );
-            update_option( $item_key.'_license_id', $item_id );
-            
-            
-            $response = array();
-            if( isset( $ep_license_activate ) && ! empty( $ep_license_activate ) ){
-                $license = new EventPrime_License();
-                $response = $license->ep_activate_license($license_key,$item_id,$item_key);
-                wp_send_json_success( $response );
-            }
-            else
-            {
-                wp_send_json_error( array( 'message' => esc_html__( 'Security check failed. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
-            }
-            
-    }
+	/**
+	 * Activates one extension licence for this site (legacy and unified licence cards).
+	 * A licence server that cannot be reached returns a JSON error and leaves the stored licence untouched.
+	 */
+	public function eventprime_activate_license() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => esc_html__( 'You are not allowed to manage licenses.', 'eventprime-event-calendar-management' ) ) );
+		}
+		if ( ! check_ajax_referer( 'ep-license-nonce', 'nonce', false ) ) {
+			wp_send_json_error( array( 'message' => esc_html__( 'Failed security check. Please refresh the page and try again.', 'eventprime-event-calendar-management' ) ) );
+		}
+		$ep_license_activate = isset( $_POST['ep_license_activate'] ) ? sanitize_text_field( wp_unslash( $_POST['ep_license_activate'] ) ) : '';
+		$license_key         = isset( $_POST['ep_license'] ) ? sanitize_text_field( wp_unslash( $_POST['ep_license'] ) ) : '';
+		$item_id             = isset( $_POST['ep_item_id'] ) ? sanitize_text_field( wp_unslash( $_POST['ep_item_id'] ) ) : '';
+		$item_key            = isset( $_POST['ep_item_key'] ) ? sanitize_text_field( wp_unslash( $_POST['ep_item_key'] ) ) : '';
+		if ( empty( $ep_license_activate ) ) {
+			wp_send_json_error( array( 'message' => esc_html__( 'Security check failed. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
+		}
 
-    public function eventprime_deactivate_license(){
-        if ( ! current_user_can( 'manage_options' ) ) {
-            wp_send_json_error( array( 'message' => esc_html__( 'You are not allowed to manage licenses.', 'eventprime-event-calendar-management' ) ) );
-        }
-        
-        $retrieved_nonce = filter_input( INPUT_POST, 'nonce' );
-            if ( !wp_verify_nonce( $retrieved_nonce, 'ep-license-nonce' ) ) {
-                    die( esc_html__( 'Failed security check', 'eventprime-event-calendar-management' ) );
-            }
-            $ep_license_deactivate = sanitize_text_field(filter_input( INPUT_POST, 'ep_license_deactivate' ));
-            $license_key = sanitize_text_field(filter_input( INPUT_POST, 'ep_license' ));
-            $item_id = sanitize_text_field(filter_input( INPUT_POST, 'ep_item_id' ));
-            $item_key = sanitize_text_field(filter_input( INPUT_POST, 'ep_item_key' ));
-            update_option( $item_key.'_license_key', $license_key );
-            update_option( $item_key.'_license_id', $item_id );
-            $response = array();
-            if( isset( $ep_license_deactivate ) && ! empty( $ep_license_deactivate ) ){
-                $license = new EventPrime_License();
-                $response = $license->ep_deactivate_extension_license($license_key,$item_id);
-                $all_license_data = get_option('metagauss_license_data', []);
-                if(isset($all_license_data[$license_key]))
-                {
-                    unset($all_license_data[$license_key]);
-                    update_option('metagauss_license_data', $all_license_data);
-                }
+		$license  = new EventPrime_License();
+		$response = $license->ep_activate_license( $license_key, $item_id, $item_key );
+		// The server was not reached or did not answer properly: keep the saved key and status for a retry.
+		if ( ! empty( $response['request_error'] ) ) {
+			wp_send_json_error( $response );
+		}
+		update_option( $item_key . '_license_key', $license_key );
+		update_option( $item_key . '_license_id', $item_id );
+		wp_send_json_success( $response );
+	}
 
-                delete_option($item_key.'_license_response');
-                delete_option($item_key. '_license_status');
-                delete_option($item_key. '_license_key');
-                delete_option($item_key. '_item_id');
-                delete_option($item_key.'_license_id' );
-                wp_send_json_success( $response );
-            }
-            else
-            {
-                wp_send_json_error( array( 'message' => esc_html__( 'Security check failed. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
-            }
-        
-    }
+	/**
+	 * Deactivates one extension licence for this site and removes its local records.
+	 * A licence server that cannot be reached returns a JSON error and leaves the stored licence untouched.
+	 */
+	public function eventprime_deactivate_license() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => esc_html__( 'You are not allowed to manage licenses.', 'eventprime-event-calendar-management' ) ) );
+		}
+		if ( ! check_ajax_referer( 'ep-license-nonce', 'nonce', false ) ) {
+			wp_send_json_error( array( 'message' => esc_html__( 'Failed security check. Please refresh the page and try again.', 'eventprime-event-calendar-management' ) ) );
+		}
+		$ep_license_deactivate = isset( $_POST['ep_license_deactivate'] ) ? sanitize_text_field( wp_unslash( $_POST['ep_license_deactivate'] ) ) : '';
+		$license_key           = isset( $_POST['ep_license'] ) ? sanitize_text_field( wp_unslash( $_POST['ep_license'] ) ) : '';
+		$item_id               = isset( $_POST['ep_item_id'] ) ? sanitize_text_field( wp_unslash( $_POST['ep_item_id'] ) ) : '';
+		$item_key              = isset( $_POST['ep_item_key'] ) ? sanitize_text_field( wp_unslash( $_POST['ep_item_key'] ) ) : '';
+		if ( empty( $ep_license_deactivate ) ) {
+			wp_send_json_error( array( 'message' => esc_html__( 'Security check failed. Please refresh the page and try again later.', 'eventprime-event-calendar-management' ) ) );
+		}
+
+		$license  = new EventPrime_License();
+		$response = $license->ep_deactivate_extension_license( $license_key, $item_id );
+		// The server was not reached or did not answer properly: the site may still hold an activation, so keep the local records.
+		if ( empty( $response['status'] ) && in_array( $response['type'] ?? '', array( 'server_error', 'http_error', 'invalid_json' ), true ) ) {
+			wp_send_json_error( $response );
+		}
+		$all_license_data = get_option( 'metagauss_license_data', array() );
+		if ( isset( $all_license_data[ $license_key ] ) ) {
+			unset( $all_license_data[ $license_key ] );
+			update_option( 'metagauss_license_data', $all_license_data );
+		}
+
+		delete_option( $item_key . '_license_response' );
+		delete_option( $item_key . '_license_status' );
+		delete_option( $item_key . '_license_key' );
+		delete_option( $item_key . '_item_id' );
+		delete_option( $item_key . '_license_id' );
+		wp_send_json_success( $response );
+	}
 
     /**
      * Update booking action
@@ -3637,6 +4008,17 @@ class EventM_Ajax_Service {
                     'site_url' => $site_url
                 ]),
             ] );
+
+			// The server was not reached or failed: the site may still hold activations, so keep the local records for a retry.
+			if ( is_wp_error( $request ) || (int) wp_remote_retrieve_response_code( $request ) >= 500 ) {
+				$reason = is_wp_error( $request ) ? $request->get_error_message() : 'HTTP ' . (int) wp_remote_retrieve_response_code( $request );
+				wp_send_json_error(
+					array(
+						/* translators: %s: connection error or HTTP status. */
+						'message' => sprintf( esc_html__( 'Could not reach the license server (%s). Your license has not been deactivated. Please try again.', 'eventprime-event-calendar-management' ), esc_html( $reason ) ),
+					)
+				);
+			}
             
             $license_plugins = $license_data[$license_key]['plugins'];
             $status = array();
@@ -3659,11 +4041,13 @@ class EventM_Ajax_Service {
             unset($license_data[$license_key]); // Remove entire license record
             update_option('metagauss_license_data', $license_data);
 
-             wp_send_json_success([
-                'plugins' => $request,
-                'license_key' => $license_key,
-                'html' => esc_html__('License deactivated successfully.', 'eventprime-event-calendar-management')
-            ]);
+			wp_send_json_success(
+				array(
+					'plugins'     => json_decode( wp_remote_retrieve_body( $request ), true ),
+					'license_key' => $license_key,
+					'html'        => esc_html__( 'License deactivated successfully.', 'eventprime-event-calendar-management' ),
+				)
+			);
         }
         else
         {

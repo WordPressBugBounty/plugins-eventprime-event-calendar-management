@@ -45,11 +45,13 @@ $activate_license_btn = $key.'_license_activate';
         <div class="notice notice-warning ep-license-inline-hint" style="margin:15px 0;">
             <p>
                 <strong><?php echo esc_html( $ep_license_connection_hint['message'] ); ?></strong>
-                <?php if ( ! empty( $ep_license_connection_hint['cta'] ) ) : ?>
-                    <a class="button" href="<?php echo esc_url( $ep_license_connection_hint['cta']['url'] ); ?>" target="<?php echo esc_attr( $ep_license_connection_hint['cta']['target'] ); ?>">
-                        <?php echo esc_html( $ep_license_connection_hint['cta']['label'] ); ?>
-                    </a>
-                <?php endif; ?>
+				<?php if ( ! empty( $ep_license_connection_hint['cta']['license_key'] ) ) : ?>
+					<button type="button" class="button ep-license-hint-retry" data-licensekey="<?php echo esc_attr( $ep_license_connection_hint['cta']['license_key'] ); ?>"><?php echo esc_html( $ep_license_connection_hint['cta']['label'] ); ?></button>
+				<?php elseif ( ! empty( $ep_license_connection_hint['cta'] ) ) : ?>
+					<a class="button" href="<?php echo esc_url( $ep_license_connection_hint['cta']['url'] ); ?>" target="<?php echo esc_attr( $ep_license_connection_hint['cta']['target'] ); ?>">
+						<?php echo esc_html( $ep_license_connection_hint['cta']['label'] ); ?>
+					</a>
+				<?php endif; ?>
             </p>
         </div>
     <?php endif; ?>

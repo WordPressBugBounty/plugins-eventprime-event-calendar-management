@@ -119,28 +119,7 @@ $booking = $booking_controller->load_booking_detail( $booking_id );
                                                     $at_val = $booking_attendees_val;
                                                 } else{
                                                     $formated_val = $ep_functions->ep_get_slug_from_string( $labels );
-                                                    $at_val = '---';
-                                                    foreach( $booking_attendees_val as $key => $baval ) {
-                                                        if( isset( $baval[$formated_val] ) && ! empty( $baval[$formated_val] ) ) {
-                                                            $at_val = $baval[$formated_val];
-                                                            if( is_array( $at_val ) ) {
-                                                                $at_val = implode( ', ', $at_val );
-                                                            }
-                                                            break;
-                                                        }
-                                                    }
-                                                    if( empty( $at_val ) ) {
-                                                        $formated_val = strtolower( $labels );
-                                                        foreach( $booking_attendees_val as $key => $baval ) {
-                                                            if( isset( $baval[$formated_val] ) && ! empty( $baval[$formated_val] ) ) {
-                                                                $at_val = $baval[$formated_val];
-                                                                if( is_array( $at_val ) ) {
-                                                                    $at_val = implode( ', ', $at_val );
-                                                                }
-                                                                break;
-                                                            }
-                                                        }
-                                                    }
+													$at_val       = $ep_functions->ep_get_booking_attendee_field_value( $booking_attendees_val, $labels ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- existing template variable.
                                                 }
                                                 $at_val = apply_filters(
                                                     'ep_booking_attendee_details_backend',

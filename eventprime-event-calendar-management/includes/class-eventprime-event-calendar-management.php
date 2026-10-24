@@ -517,6 +517,7 @@ class Eventprime_Event_Calendar_Management {
 
                 $this->loader->add_action('init',$plugin_public, 'ep_apply_slug_rules',10,0);
                 $this->loader->add_filter('query_vars',$plugin_public,'ep_filter_query_vars',10,1);
+		$this->loader->add_action( 'parse_request', $plugin_public, 'eventprime_route_taxonomy_request' );
                 $this->loader->add_filter( 'post_type_link', $plugin_public, 'ep_filter_event_post_type_link', 10, 2 );
 
                 // Redirect to Login page upon Logging out 

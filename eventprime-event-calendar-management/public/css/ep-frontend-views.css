@@ -77,9 +77,13 @@
     text-overflow: ellipsis;
     width: 100%;
     line-height: normal;
-    display: inline-block;
+    /* Up to two lines, then ellipsis (was a single line, which cut most titles on phones) */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    white-space: nowrap;
+    white-space: normal;
     text-decoration: none !important;
     box-shadow: none;
 }
@@ -861,18 +865,45 @@ ul.ep-event-share li.ep-event-social-icon:first-child svg {
 
 }
 
-/* -- Mobile ---*/
+/* -- Mobile and tablet: image and details are stacked below 1068px (ep-box-col-2 / ep-box-col-10), so no overlap ---*/
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 1067px) {
 
-    .ep-single-figure-box {
+    .ep-single-figure-box,
+    html.hillstar-theme .ep-single-figure-box {
         margin-right: 0px;
+        padding: 24px 0 0;
         text-align: center;
     }
 
+    .ep-single-figure-box img,
+    html.hillstar-theme .ep-single-figure-box img {
+        max-height: 360px;
+    }
 
-    .ep-single-box-content {
-        padding: 50px 50px 50px 50px;
+    /* People and avatars: show the whole photo within the stacked image cap */
+    .ep-performer-img-section .ep-single-figure-box img,
+    .ep-organizer-img-section .ep-single-figure-box img {
+        object-fit: contain;
+    }
+
+    /* Placeholder avatar/image: show it whole instead of cropping it */
+    .ep-single-box-thumb .ep-single-figure-box img[src$="dummy-user.png"],
+    .ep-single-box-thumb .ep-single-figure-box img[src$="dummy_image.png"] {
+        object-fit: contain;
+    }
+
+    .ep-single-box-content,
+    html.hillstar-theme .ep-single-box-content {
+        padding: 32px;
+    }
+}
+
+@media screen and (max-width: 600px) {
+
+    .ep-single-box-content,
+    html.hillstar-theme .ep-single-box-content {
+        padding: 24px;
     }
 }
 
@@ -979,6 +1010,67 @@ ul.ep-event-share li.ep-event-social-icon:first-child svg {
 
 .ep-mini-list-price > div {
     margin-bottom: 0px !important;
+}
+
+/* Mini list row: aligned with the details card above it, thumbnail | text | date, price and button */
+.ep-mini-list .ep-upcoming-mini-list {
+    margin-left: 15px;
+    margin-right: 15px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.ep-mini-list .ep-upcoming-mini-list > .ep-box-col-3:first-child {
+    flex: 0 0 88px;
+    max-width: 88px;
+}
+
+.ep-mini-list .ep-upcoming-mini-list .ep-event-image img {
+    width: 72px;
+    height: 72px;
+}
+
+.ep-mini-list .ep-upcoming-mini-list > .ep-box-col-6 {
+    flex: 1 1 0;
+    max-width: none;
+    min-width: 0;
+    padding: 0.5rem 0.75rem !important;
+}
+
+.ep-mini-list .ep-upcoming-mini-list > .ep-box-col-3:last-child {
+    flex: 0 0 100%;
+    max-width: 100%;
+}
+
+.ep-mini-list .ep-upcoming-mini-list > .ep-box-col-3:last-child .ep-text-end {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    text-align: start;
+}
+
+@media (min-width: 768px) {
+    .ep-mini-list .ep-upcoming-mini-list .ep-event-image img {
+        width: 96px;
+        height: 96px;
+    }
+
+    .ep-mini-list .ep-upcoming-mini-list > .ep-box-col-3:first-child {
+        flex: 0 0 112px;
+        max-width: 112px;
+    }
+
+    .ep-mini-list .ep-upcoming-mini-list > .ep-box-col-3:last-child {
+        flex: 0 0 240px;
+        max-width: 240px;
+    }
+
+    .ep-mini-list .ep-upcoming-mini-list > .ep-box-col-3:last-child .ep-text-end {
+        display: block;
+        text-align: end;
+    }
 }
 #ep-organizer-upcoming-events .ep-mini-list-price{
     display: flex;

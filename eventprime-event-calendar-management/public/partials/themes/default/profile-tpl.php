@@ -30,7 +30,7 @@ $ep_requests = new EP_Requests;
         </div>
     </div>
 <div class="ep-box-row ep-text-small ep-g-5">
-    <div class="ep-box-col-3">
+	<div class="ep-box-col-3 ep-box-col-md-4">
         <ul class="ep-list-group ep-myaccount-tabs ep-mx-0 ep-mb-3 ep-pl-0 ep-overflow-hidden" role="tablist">
             <li class="ep-list-group-item ep-text-center ep-py-4 ep-user-profile-avatar-tab" role="presentation">
                 <img class="ep-rounded-circle" src="<?php echo esc_url( get_avatar_url( $args->current_user->ID ) ); ?>" style="max-width:50%;">
@@ -81,7 +81,7 @@ $ep_requests = new EP_Requests;
         </ul>
     </div>
 
-    <div class="ep-box-col-9">
+	<div class="ep-box-col-9 ep-box-col-md-8">
         <!-- Event Loader -->
         <?php do_action( 'ep_add_loader_section' );?>
         <!-- Event Loader End -->

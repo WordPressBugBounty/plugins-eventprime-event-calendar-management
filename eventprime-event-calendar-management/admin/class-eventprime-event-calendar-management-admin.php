@@ -282,6 +282,7 @@ class Eventprime_Event_Calendar_Management_Admin {
                         wp_enqueue_script( 'ep-admin-license-page-js', plugin_dir_url( __FILE__ ) . 'js/ep-admin-license.js', array( 'jquery' ), $this->version );
                         $params = array(
                             'ep_license_nonce' => wp_create_nonce( 'ep-license-nonce' ),
+							'request_failed'   => esc_html__( 'The license request could not be completed. Your saved license details have not been changed. Please check the connection and try again.', 'eventprime-event-calendar-management' ),
                         );
 
                         wp_localize_script( 'ep-admin-license-page-js', 'ep_admin_license_settings', $params );

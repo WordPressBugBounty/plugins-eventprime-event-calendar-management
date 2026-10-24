@@ -28,7 +28,7 @@ if( isset( $args->events->posts ) && !empty( $args->events->posts ) ) {
     <div class="ep-box-col-12">
         <div class="ep-event-list-item ep-border ep-rounded ep-mb-4 ep-text-small <?php if ($is_event_expired) echo 'ep-event-expired' ?>">
             <div class="ep-box-row ep-m-0">
-                <div class="ep-box-col-3 ep-p-0 ep-border-right ep-position-relative ep-rounded-tbl-right">
+				<div class="ep-box-col-3 ep-box-col-md-3 ep-p-0 ep-border-right ep-position-relative ep-rounded-tbl-right">
                     <?php if ( ! empty( $event->_thumbnail_id ) ) { ?>
                     <a href="<?php echo esc_url($url); ?>" <?php echo esc_attr( $new_window );?> class="ep-img-link">
                             <?php
@@ -76,7 +76,7 @@ if( isset( $args->events->posts ) && !empty( $args->events->posts ) ) {
                 </div>
                 <?php do_action( 'ep_event_view_before_event_title', $event );?>
             
-                <div class="ep-box-col-6 ep-p-4 ep-text-small ep-bg-white">
+				<div class="ep-box-col-6 ep-box-col-md-6 ep-p-4 ep-text-small ep-bg-white">
                     <div class="ep-box-list-item">
                         <div class="ep-box-title ep-box-list-title ep-text-truncate">
                             <!-- Event Type -->
@@ -121,7 +121,7 @@ if( isset( $args->events->posts ) && !empty( $args->events->posts ) ) {
                     </div>
                 </div>
 
-                <div class="ep-box-col-3 ep-box-list-right-col ep-px-0 ep-pt-4 ep-rounded-tbr-right ep-overflow-hidden ep-border-left ep-position-relative ep-d-flex ep-box-direction ep-bg-white">
+				<div class="ep-box-col-3 ep-box-col-md-3 ep-box-list-right-col ep-px-0 ep-pt-4 ep-rounded-tbr-right ep-overflow-hidden ep-border-left ep-position-relative ep-d-flex ep-box-direction ep-bg-white">
                     <div class="ep-px-2 ep-text-end ep-list-view-pricing-area ep-d-flex ep-box-direction ep-flex-1">
                         <div class="ep-event-list-view-action ep-flex-wrap ep-content-right">
                             <?php do_action( 'ep_event_view_event_dates', $event, 'list' );?>

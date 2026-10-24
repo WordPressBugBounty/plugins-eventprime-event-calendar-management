@@ -2,6 +2,30 @@
 $ep_functions = new Eventprime_Basic_Functions;
 $hide_seating_type = $ep_functions->ep_get_global_settings( 'single_venue_hide_seating_type' );
 $ep_requests = new EP_Requests;
+// Imported years, saved calendar dates and legacy timestamps have distinct formats.
+$eventprime_venue_established = '';
+if ( ! empty( $args->venue->em_established ) && is_scalar( $args->venue->em_established ) ) {
+	$eventprime_established_value  = trim( (string) $args->venue->em_established );
+	$eventprime_established_format = get_option( 'date_format' );
+	if ( preg_match( '/^[1-9][0-9]{3}$/D', $eventprime_established_value ) ) {
+		$eventprime_venue_established = $eventprime_established_value;
+	} elseif ( preg_match( '/^-?[0-9]+$/D', $eventprime_established_value ) ) {
+		if ( function_exists( 'wp_date' ) ) {
+			$eventprime_venue_established = wp_date( $eventprime_established_format, (int) $eventprime_established_value );
+		} else {
+			$eventprime_venue_established = date_i18n( $eventprime_established_format, (int) $eventprime_established_value + (float) get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
+		}
+	} else {
+		foreach ( array_unique( array( 'Y-m-d', $eventprime_established_format ) ) as $eventprime_date_format ) {
+			$eventprime_established_date = DateTimeImmutable::createFromFormat( '!' . $eventprime_date_format, $eventprime_established_value, new DateTimeZone( 'UTC' ) );
+			if ( $eventprime_established_date && $eventprime_established_date->format( $eventprime_date_format ) === $eventprime_established_value ) {
+				// date_i18n expects local calendar fields encoded as a UTC timestamp.
+				$eventprime_venue_established = date_i18n( $eventprime_established_format, $eventprime_established_date->getTimestamp() );
+				break;
+			}
+		}
+	}
+}
 ?>
 <div class="ep-single-frontend-view-container ep-mb-5" id="ep_single_frontend_view_container">
     <div class="ep-view-container">
@@ -26,13 +50,13 @@ $ep_requests = new EP_Requests;
                                     <?php echo esc_html( $args->venue->name ); ?>
                                 </h3>
                                 <ul class="ep-single-box-details-meta ep-mx-0 ep-my-2 ep-p-0">
-                                    <?php if ( ! empty( $args->venue->em_established ) ) { ?>
+									<?php if ( '' !== $eventprime_venue_established ) { ?>
                                         <li class="ep-d-inline-flex ep-box-w-100"> 
                                             <div class="em_color ep-fw-bold">
                                                 <?php esc_html_e('Established', 'eventprime-event-calendar-management'); ?> :  
                                             </div>
                                             <div class="kf-event-attr-value">
-                                                <?php echo wp_kses_post( wp_date( get_option('date_format'), $args->venue->em_established )); ?>
+												<?php echo wp_kses_post( $eventprime_venue_established ); ?>
                                             </div>
                                         </li><?php 
                                     }

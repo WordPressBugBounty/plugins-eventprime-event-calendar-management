@@ -63,7 +63,7 @@ if(isset($args->event_data->event_url))
                         }
                     }
                     ?>
-                    <div class="ep-box-col-12 ep-fs-2 ep-my-5 ep-text-center">
+					<div class="ep-box-col-12 ep-fs-2 ep-my-5 ep-text-center ep-booking-thanks">
                         <?php esc_html_e( 'Thank you! Here are your booking details', 'eventprime-event-calendar-management' );?>
                     </div>
 
@@ -463,28 +463,7 @@ if(isset($args->event_data->event_url))
                                                         foreach( $booking_attendees_field_labels as $label_key => $labels ){?>
                                                             <td class="py-3"><?php
                                                                 $formated_val = $ep_functions->ep_get_slug_from_string( $labels );
-                                                                $at_val = '---';
-                                                                foreach( $booking_attendees_val as $key => $baval ) {
-                                                                    if( isset( $baval[$formated_val] ) && ! empty( $baval[$formated_val] ) ) {
-                                                                        $at_val = $baval[$formated_val];
-                                                                        if( is_array( $at_val ) ) {
-                                                                            $at_val = implode( ', ', $at_val );
-                                                                        }
-                                                                        break;
-                                                                    }
-                                                                }
-                                                                if( empty( $at_val ) ) {
-                                                                    $formated_val = strtolower( $labels );
-                                                                    foreach( $booking_attendees_val as $key => $baval ) {
-                                                                        if( isset( $baval[$formated_val] ) && ! empty( $baval[$formated_val] ) ) {
-                                                                            $at_val = $baval[$formated_val];
-                                                                            if( is_array( $at_val ) ) {
-                                                                                $at_val = implode( ', ', $at_val );
-                                                                            }
-                                                                            break;
-                                                                        }
-                                                                    }
-                                                                }
+																$at_val       = $ep_functions->ep_get_booking_attendee_field_value( $booking_attendees_val, $labels ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- existing template variable.
                                                                 $at_val = apply_filters(
                                                                     'ep_booking_attendee_details_frontend',
                                                                     $at_val,
@@ -542,11 +521,11 @@ if(isset($args->event_data->event_url))
 
                 } 
                 else{?>
-                    <div class="ep-box-col-12 ep-fs-2 ep-my-5 ep-text-center">
+					<div class="ep-box-col-12 ep-fs-5 ep-my-4 ep-text-center">
                         <?php esc_html_e( 'To view the tickets, you need to login.', 'eventprime-event-calendar-management' );?>&nbsp;
                     </div>
                     <div class="ep-box-row ep-py-3">
-                        <div class="ep-box-col-12 ep-fs-6 ep-text-small ep-border ep-rounded ep-p-3">
+						<div class="ep-box-col-12 ep-fs-6 ep-text-small">
                             <?php echo do_shortcode( '[em_login redirect="reload"]' );?>
                         </div>
                     </div><?php

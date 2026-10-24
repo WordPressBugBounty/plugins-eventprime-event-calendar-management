@@ -9,9 +9,9 @@ $ep_requests = new EP_Requests;
                 <?php echo esc_html(apply_filters( 'ep_event_edit_booking_page_title', esc_html__( 'Edit Booking', 'eventprime-event-calendar-management' ) ));?>
             </h2>
             
-            <div class="ep-box-row ep-mt-5 ep-mb-3">
+			<div class="ep-box-row ep-mt-5 ep-mb-3 ep-checkout-event-head">
                 <?php $image_url = ($args->booking_data->event_data->image_url)?$args->booking_data->event_data->image_url:$args->booking_data->event_data->placeholder_image_url; ?>
-                <div class="ep-box-col-2 ep-pr-2 ep-border-right ep-border-warning ep-border-3 ep-lh-0 ep-box-col-sm-2 ep-box-col-xsm-2">
+				<div class="ep-checkout-img-col ep-box-col-2 ep-pr-2 ep-border-right ep-border-warning ep-border-3 ep-lh-0 ep-box-col-sm-2 ep-box-col-xsm-2">
                     <img class="ep-checkout-img-icon ep-rounded-1" src="<?php echo esc_url( $image_url );?>" alt="<?php echo esc_html( $args->booking_data->event_data->name );?>" style="max-width:100%;">
                 </div>
                

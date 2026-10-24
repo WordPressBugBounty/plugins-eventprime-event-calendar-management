@@ -10,12 +10,12 @@
 <?php foreach ( $args->organizers as $organizer ) {?>
     <div class="ep-box-col-12 ep-list-view-main ep-mb-4">
         <div class="ep-box-row ep-bg-white ep-border ep-rounded ep-text-small ep-overflow-hidden">
-            <div class="ep-box-col-3 ep-p-0 ep-bg-light ep-border-right ep-position-relative ep-organizer-row-img">
+			<div class="ep-box-col-3 ep-box-col-md-3 ep-p-0 ep-bg-light ep-border-right ep-position-relative ep-organizer-row-img">
                 <a href="<?php echo esc_url( $organizer->organizer_url ); ?>" class="ep-img-link">
                     <img src="<?php echo esc_url( $organizer->image_url ); ?>" alt="<?php echo esc_html( $organizer->name ); ?>">
                 </a>
             </div>
-            <div class="ep-box-col-6 ep-p-4 ep-text-small ep-organizer-row-desc">
+			<div class="ep-box-col-6 ep-box-col-md-6 ep-p-4 ep-text-small ep-organizer-row-desc">
                 <div class="ep-box-list-items">
                     <div class="ep-box-title ep-box-list-title">
                         <a class="ep-color-hover" data-organizer-id="<?php echo esc_attr( $organizer->id ); ?>" href="<?php echo esc_url( $organizer->organizer_url ); ?>" target="_self" rel="noopener">
@@ -29,7 +29,7 @@
                     <?php } ?>
                 </div>
             </div>
-            <div class="ep-box-col-3 ep-px-0 ep-pt-4 ep-border-left ep-position-relative ep-organizer-btn-section">
+			<div class="ep-box-col-3 ep-box-col-md-3 ep-px-0 ep-pt-4 ep-border-left ep-position-relative ep-organizer-btn-section">
                 <ul class="ep-box-social-links ep-px-2 ep-text-end ep-d-inline-flex ep-justify-content-end ep-box-w-100 ep-m-0">
                     <?php
                     if ( ! empty( $organizer->em_social_links ) ) {

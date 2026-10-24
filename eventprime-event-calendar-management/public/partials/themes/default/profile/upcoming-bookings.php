@@ -7,7 +7,7 @@
                 </span>
             </div>
         </div>
-        <div class="ep-box-row ep-box-row-cols-3 ep-text-small ep-g-3 ep-profile-coming-up-section">
+		<div class="ep-box-row ep-box-row-cols-1 ep-box-row-cols-sm-2 ep-box-row-cols-lg-3 ep-text-small ep-g-3 ep-profile-coming-up-section">
             <?php foreach( $args->upcoming_bookings as $booking ){
                 $image_url = $booking->event_data->image_url;
                 if( empty( $image_url ) ) {

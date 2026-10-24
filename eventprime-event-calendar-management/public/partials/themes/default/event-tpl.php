@@ -25,7 +25,7 @@ $ep_requests = new EP_Requests;
             
             ?>
             <div class="ep-box-row ep-gx-5">
-                <div class="ep-box-col-8" id="ep-sl-left-area">
+				<div class="ep-box-col-8 ep-box-col-md-7" id="ep-sl-left-area">
                     <div class="ep-box-row">
                         <?php
                         // Load date time template

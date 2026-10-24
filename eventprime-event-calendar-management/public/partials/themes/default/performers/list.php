@@ -10,12 +10,12 @@
 <?php foreach ( $args->performers->posts as $performer ) {?>
     <div class="ep-box-col-12 ep-list-view-main ep-mb-4">
         <div class="ep-box-row ep-bg-white ep-border ep-rounded ep-text-small ep-overflow-hidden">
-            <div class="ep-box-col-3 ep-p-0 ep-bg-light ep-border-right ep-position-relative ep-list-view-image">
+			<div class="ep-box-col-3 ep-box-col-md-3 ep-p-0 ep-bg-light ep-border-right ep-position-relative ep-list-view-image">
                 <a href="<?php echo esc_url( $performer->performer_url ); ?>" class="ep-img-link">
                     <img src="<?php echo esc_url( $performer->image_url ); ?>" alt="<?php echo esc_attr( $performer->name ); ?>">
                 </a>
             </div>
-            <div class="ep-box-col-6 ep-p-4 ep-text-small ep-performer-btn-section">
+			<div class="ep-box-col-6 ep-box-col-md-6 ep-p-4 ep-text-small ep-performer-btn-section">
                 <div class="ep-box-list-items">
                     <div class="ep-box-title ep-box-list-title">
                         <a class="ep-color-hover" data-performer-id="<?php echo esc_attr( $performer->id ); ?>" href="<?php echo esc_url( $performer->performer_url ); ?>" target="_self" rel="noopener">
@@ -33,7 +33,7 @@
                     </div>
                 </div>
             </div>
-            <div class="ep-box-col-3 ep-px-0 ep-pt-4 ep-border-left ep-position-relative">
+			<div class="ep-box-col-3 ep-box-col-md-3 ep-px-0 ep-pt-4 ep-border-left ep-position-relative">
                 <div class="ep-performer-role ep-mb-2 ep-px-2 ep-align-right">
                     <?php if ( ! empty( $performer->em_role ) ) {?>
                         <div class="ep-event-attr-name ep-fw-bold"><?php echo esc_html__( ucfirst( $performer->em_role ), 'eventprime-event-calendar-management'); ?></div>

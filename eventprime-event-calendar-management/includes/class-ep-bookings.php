@@ -655,27 +655,9 @@ class EventPrime_Bookings {
                             $booking_attendees_val = array_values( $booking_attendees );
                             $attendees = '';
                             foreach( $booking_attendees_field_labels as $label_key => $labels ){
-                                $formated_val = $ep_functions->ep_get_slug_from_string( $labels );
-                                $at_val = '---';
-                                foreach( $booking_attendees_val as $key => $baval ) {
-                                    if($formated_val == 'seat'){
-                                        if( isset( $baval[$formated_val] ) && ! empty( $baval[$formated_val] ) ) {
-                                            $seat = $baval[$formated_val];
-                                        }
-                                    }
-                                    if( isset( $baval[$formated_val] ) && ! empty( $baval[$formated_val] ) ) {
-                                        $at_val = $baval[$formated_val];
-                                        break;
-                                    }
-                                }
-                                if( empty( $at_val ) ) {
-                                    $formated_val = strtolower( $labels );
-                                    foreach( $booking_attendees_val as $key => $baval ) {
-                                        if( isset( $baval[$formated_val] ) && ! empty( $baval[$formated_val] ) ) {
-                                            $at_val = $baval[$formated_val];
-                                            break;
-                                        }
-                                    }
+								$at_val = $ep_functions->ep_get_booking_attendee_field_value( $booking_attendees_val, $labels );
+								if ( 'seat' === $ep_functions->ep_get_slug_from_string( $labels ) && '---' !== $at_val ) {
+									$seat = $at_val;
                                 }
                                 $attendees .= esc_html__( $labels, 'eventprime-event-calendar-management' ).' : '.$at_val.' | ';
                             }

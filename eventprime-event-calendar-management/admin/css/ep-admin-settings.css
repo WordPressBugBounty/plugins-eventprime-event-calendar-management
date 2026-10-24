@@ -408,3 +408,22 @@ span.ep-extension-version {
     50% {left: 110%;}
     100% {left: 110%;}
 }
+
+/* License tab connection hint: message and Retry check on one line, wrapping cleanly on narrow screens. */
+.ep-license-inline-hint p {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+.ep-license-inline-hint .ep-license-hint-retry {
+    display: inline-flex;
+    align-items: center;
+}
+.ep-license-inline-hint .ep-license-hint-retry .spinner {
+    float: none;
+    width: 16px;
+    height: 16px;
+    margin: 0 0 0 6px;
+    background-size: 16px 16px;
+}
