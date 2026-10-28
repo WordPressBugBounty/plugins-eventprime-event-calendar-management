@@ -80,6 +80,34 @@ class EP_DBhandler {
         return $wpdb->delete($table, $where, $where_format);
     }
 
+	/**
+	 * Delete ticket or ticket category rows, only when they belong to the given event.
+	 *
+	 * @param string $identifier Table identifier: 'TICKET' or 'TICKET_CATEGORIES'.
+	 * @param array  $ids        Row IDs requested for deletion.
+	 * @param int    $event_id   Event the rows must belong to.
+	 */
+	public function remove_event_rows_by_ids( $identifier, $ids, $event_id ) {
+		$event_id = absint( $event_id );
+		if ( empty( $event_id ) || ! is_array( $ids ) || ! in_array( $identifier, array( 'TICKET', 'TICKET_CATEGORIES' ), true ) ) {
+			return;
+		}
+		foreach ( $ids as $id ) {
+			$id = absint( $id );
+			if ( empty( $id ) ) {
+				continue;
+			}
+			$where = array(
+				'id'       => $id,
+				'event_id' => $event_id,
+			);
+			$row   = $this->get_all_result( $identifier, 'id', $where );
+			if ( ! empty( $row ) ) {
+				$this->remove_row( $identifier, 'id', $id, '%d' );
+			}
+		}
+	}
+
     public function get_row($identifier, $unique_field_value, $unique_field = false, $output_type = 'OBJECT') {
         global $wpdb;
         $ep_activator = new Eventprime_Event_Calendar_Management_Activator();
@@ -753,9 +781,7 @@ class EP_DBhandler {
             $em_ticket_category_delete_ids = $post['em_ticket_category_delete_ids'];
             $del_ids = json_decode(stripslashes($em_ticket_category_delete_ids));
             if (is_string($em_ticket_category_delete_ids) && is_array(json_decode(stripslashes($em_ticket_category_delete_ids))) && json_last_error() == JSON_ERROR_NONE) {
-                foreach ($del_ids as $id) {
-                    $this->remove_row('TICKET_CATEGORIES', 'id', $id);
-                }
+				$this->remove_event_rows_by_ids( 'TICKET_CATEGORIES', $del_ids, $post_id );
             }
         }
         // save tickets
@@ -890,12 +916,7 @@ class EP_DBhandler {
             $em_ticket_individual_delete_ids = $post['em_ticket_individual_delete_ids'];
             $del_ids = json_decode(stripslashes($em_ticket_individual_delete_ids));
             if (is_string($em_ticket_individual_delete_ids) && is_array(json_decode(stripslashes($em_ticket_individual_delete_ids))) && json_last_error() == JSON_ERROR_NONE) {
-                foreach ($del_ids as $id) {
-                    $get_field_data = $this->get_row('TICKET', $id);
-                    if (!empty($get_field_data)) {
-                        $this->remove_row('TICKET', 'id', $id, '%d');
-                    }
-                }
+				$this->remove_event_rows_by_ids( 'TICKET', $del_ids, $post_id );
             }
         }
         
@@ -1817,9 +1838,7 @@ class EP_DBhandler {
             $em_ticket_category_delete_ids = $post['em_ticket_category_delete_ids'];
             $del_ids = json_decode(stripslashes($em_ticket_category_delete_ids));
             if (is_string($em_ticket_category_delete_ids) && is_array(json_decode(stripslashes($em_ticket_category_delete_ids))) && json_last_error() == JSON_ERROR_NONE) {
-                foreach ($del_ids as $id) {
-                    $this->remove_row('TICKET_CATEGORIES', 'id', $id);
-                }
+				$this->remove_event_rows_by_ids( 'TICKET_CATEGORIES', $del_ids, $post_id );
             }
         }
         // save tickets
@@ -1951,12 +1970,7 @@ class EP_DBhandler {
             $em_ticket_individual_delete_ids = $post['em_ticket_individual_delete_ids'];
             $del_ids = json_decode(stripslashes($em_ticket_individual_delete_ids));
             if (is_string($em_ticket_individual_delete_ids) && is_array(json_decode(stripslashes($em_ticket_individual_delete_ids))) && json_last_error() == JSON_ERROR_NONE) {
-                foreach ($del_ids as $id) {
-                    $get_field_data = $this->get_row('TICKET', $id);
-                    if (!empty($get_field_data)) {
-                        $this->remove_row('TICKET', 'id', $id, '%d');
-                    }
-                }
+				$this->remove_event_rows_by_ids( 'TICKET', $del_ids, $post_id );
             }
         }
         

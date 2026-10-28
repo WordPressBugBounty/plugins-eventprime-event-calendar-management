@@ -1996,9 +1996,7 @@ class EventM_Ajax_Service {
                 $em_ticket_category_delete_ids = $data['em_ticket_category_delete_ids'];
                 $del_ids = json_decode( stripslashes( $em_ticket_category_delete_ids ) );
                 if( is_string( $em_ticket_category_delete_ids ) && is_array( json_decode( stripslashes( $em_ticket_category_delete_ids ) ) ) &&  json_last_error() == JSON_ERROR_NONE ) {
-                    foreach( $del_ids as $id ) {
-                        $dbhandler->remove_row($cat_table_name,'id', $id);
-                    }
+					$dbhandler->remove_event_rows_by_ids( $cat_table_name, $del_ids, $post_id );
                 }
             }
 
@@ -2250,9 +2248,7 @@ class EventM_Ajax_Service {
                 $em_ticket_individual_delete_ids = $data['em_ticket_individual_delete_ids'];
                 $del_ids = json_decode( stripslashes( $em_ticket_individual_delete_ids ) );
                 if( is_string( $em_ticket_individual_delete_ids ) && is_array( json_decode( stripslashes( $em_ticket_individual_delete_ids ) ) ) &&  json_last_error() == JSON_ERROR_NONE ) {
-                    foreach( $del_ids as $id ) {
-                        $dbhandler->remove_row($price_options_table,'id', $id);
-                    }
+					$dbhandler->remove_event_rows_by_ids( $price_options_table, $del_ids, $post_id );
                 }
             }
             

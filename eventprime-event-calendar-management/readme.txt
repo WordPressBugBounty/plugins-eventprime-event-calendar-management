@@ -5,7 +5,7 @@ Tags: event, events, event calendar, event organizer , event manager, event tick
 Requires at least: 4.8
 Tested up to: 7.1
 Requires PHP: 7.2
-Stable tag: 4.3.6.0
+Stable tag: 4.3.6.1
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -686,12 +686,16 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 == Changelog ==
 
+= 4.3.6.1: October 28, 2026 =
+* Security: Hardened booking status handling. Thanks to wellknown.info for responsibly reporting the issue.
+* Security: Hardened ticket and ticket category management on frontend event submission. Thanks to Harry Nguyen for responsibly reporting the issue.
+
 = 4.3.6.0: October 24, 2026 =
 * Security: Hardened frontend event data handling.
 * Security: Hardened PayPal payment confirmation.
 * Added: Compact calendar on phones with event dots and a list for the selected day. Props @misswyss and @massl for their mobile calendar suggestions.
 * Added: Sticky Get Tickets bar on phones using the default single-event ticket template, with the ticket price and a shortcut to ticket selection when tickets are on sale. Thanks to the requester of support ticket 58776 for the suggestion.
-* Changed: New installs now hide past events from event lists by default (Settings > Events). Existing sites keep their current setting.
+* Changed: New installs now hide past events from event lists by default (EventPrime > Settings > Frontend Views > Event Listings). Existing sites keep their current setting.
 * Fixed: Event, venue, performer, organizer and event-type grids and rows now adapt to tablet widths, with improved single-event and profile columns.
 * Fixed: Venue, performer, organizer and event-type details fit smaller screens without sideways scrolling.
 * Fixed: Bordered booking and attendee boxes align with the content column.
@@ -2440,6 +2444,9 @@ Fixed: empty event-type lists to return 0 results successfully.
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.3.6.1 =
+Security release, update recommended. Hardens booking status handling and ticket management on frontend event submission.
 
 = 4.3.6.0 =
 Security release, update recommended. Hardens frontend event data and PayPal confirmation, improves phone/tablet layouts, and adds a compact phone calendar and ticket shortcut. PayPal users: check Sandbox Mode in Settings > Payments after updating.

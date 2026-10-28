@@ -2810,11 +2810,13 @@ class Eventprime_Event_Calendar_Management_Admin {
             'exclude_from_search'       => false,
             'post_type'                 => array( 'em_booking' ),
         );
+		// 'pending' is also WordPress's built-in Pending Review status, and post statuses are global: keep it non-public.
         $args_pending   = array(
             'label'                     => _x( 'Pending', 'Pending', 'z' ),
             /* translators: %s is the number of pending bookings */
             'label_count'               => _n_noop( 'Pending (%s)', 'Pending (%s)', 'z' ),
-            'public'                    => true,
+			'public'                    => false,
+			'protected'                 => true,
             'show_in_admin_all_list'    => true,
             'show_in_admin_status_list' => true,
             'exclude_from_search'       => false,
