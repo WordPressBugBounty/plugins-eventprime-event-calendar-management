@@ -244,6 +244,10 @@ $eventprime_sticky_book_bar = false;
 		}
 		$eventprime_sticky_book_bar = ! $ep_functions->ep_is_event_sold_out( $eventprime_available_event );
 	}
+	// Site setting (false means never stored, which counts as on), then a filter for themes and add-ons.
+	$eventprime_sticky_setting  = $ep_functions->ep_get_global_settings( 'show_sticky_book_bar' );
+	$eventprime_sticky_book_bar = $eventprime_sticky_book_bar && ( false === $eventprime_sticky_setting || ! empty( $eventprime_sticky_setting ) );
+	$eventprime_sticky_book_bar = (bool) apply_filters( 'eventprime_show_sticky_book_bar', $eventprime_sticky_book_bar, $args->event );
 	// Narrow-screen shortcut to the Get Tickets Now button above; shown by ep-frontend-single-event.js.
 	if ( ! empty( $eventprime_sticky_book_bar ) ) {
 		?>

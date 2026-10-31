@@ -62,7 +62,7 @@ foreach( $args->events->posts as $event ) {
                                     }
                                 }?>
                                 <!-- Event Title -->
-                                <a class="ep-fs-5 ep-fw-bold ep-text-dark" data-event-id="<?php echo esc_attr( $single_event_data->id ); ?>" href="<?php echo esc_url( $single_event_data->event_url ); ?>" <?php echo esc_attr( $new_window );?> rel="noopener">
+								<a class="ep-title-clamp-2 ep-fs-5 ep-fw-bold ep-text-dark" title="<?php echo esc_attr( $single_event_data->em_name ); ?>" data-event-id="<?php echo esc_attr( $single_event_data->id ); ?>" href="<?php echo esc_url( $single_event_data->event_url ); ?>" <?php echo esc_attr( $new_window ); ?> rel="noopener">
                                     <?php echo esc_html( $single_event_data->em_name ); ?>
                                 </a>
                             </div>

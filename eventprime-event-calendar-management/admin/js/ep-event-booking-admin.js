@@ -54,6 +54,43 @@ jQuery( function( $ ) {
             });
         }
     });
+    // Failed PayPal bookings: re-check the payment with PayPal, then complete the booking.
+    function epPaypalAdminRequest( action, $button ) {
+        const $result = $( '#ep-paypal-recheck-result' );
+        $( '.ep-paypal-recheck-spinner' ).addClass( 'is-active' );
+        $( '#ep-paypal-recheck, #ep-paypal-complete' ).attr( 'disabled', 'disabled' );
+        $.ajax({
+            type : 'POST',
+            url  : ep_booking_obj.ajaxurl,
+            data : {
+                action     : action,
+                security   : ep_booking_obj.nonce,
+                booking_id : $button.data( 'booking-id' )
+            }
+        }).always( function( response ) {
+            const payload = ( response && response.responseJSON ) ? response.responseJSON : response;
+            const body    = ( payload && payload.data ) ? payload.data : {};
+            $( '.ep-paypal-recheck-spinner' ).removeClass( 'is-active' );
+            $( '#ep-paypal-recheck' ).removeAttr( 'disabled' );
+            $result.text( body.message || '' );
+            if ( 'ep_admin_paypal_complete' === action && ( 'completed' === body.result || 'already_completed' === body.result ) ) {
+                window.location.reload();
+                return;
+            }
+            if ( 'paid_match' === body.result ) {
+                $( '#ep-paypal-complete' ).removeAttr( 'disabled' ).show();
+            } else {
+                $( '#ep-paypal-complete' ).hide();
+            }
+        });
+    }
+    $( document ).on( 'click', '#ep-paypal-recheck', function() {
+        epPaypalAdminRequest( 'ep_admin_paypal_recheck', $( this ) );
+    });
+    $( document ).on( 'click', '#ep-paypal-complete', function() {
+        epPaypalAdminRequest( 'ep_admin_paypal_complete', $( this ) );
+    });
+
     $( document ).on( 'click', '#update_payment_status', function() {
         let booking_id = $('#post_ID').val();
         let nonce = $('#_wpnonce').val();

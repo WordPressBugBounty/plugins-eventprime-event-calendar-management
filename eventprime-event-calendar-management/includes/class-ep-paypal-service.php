@@ -91,7 +91,12 @@ class EventM_Paypal_Service {
     public function show_payment_option_button_on_front( $args ) {
         $ep_functions = new Eventprime_Basic_Functions;
         $currency_code = ! empty( $ep_functions->ep_get_global_settings('currency') ) ? $ep_functions->ep_get_global_settings('currency') : 'USD';
-        $paypal_client_id = $ep_functions->ep_get_global_settings( 'paypal_client_id' );?>
+		$paypal_client_id = $ep_functions->ep_get_global_settings( 'paypal_client_id' );
+		$paypal_processor = $ep_functions->ep_get_global_settings( 'paypal_processor' );
+		if ( empty( $paypal_processor ) || '' === trim( (string) $paypal_client_id ) ) {
+			return;
+		}
+		?>
         <div id="ep-paypal-button-container" class="ep-paypal-container" style="display:none;"></div>
         <!-- smart paypal button -->
         <script src="https://www.paypal.com/sdk/js?currency=<?php echo esc_attr($currency_code); ?>&client-id=<?php echo esc_attr( $paypal_client_id );?>"></script><?php

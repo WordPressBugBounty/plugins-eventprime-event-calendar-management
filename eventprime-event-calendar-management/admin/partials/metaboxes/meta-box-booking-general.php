@@ -142,6 +142,15 @@ $event_url = isset($booking->event_data->em_id) ?get_edit_post_link($booking->ev
                         </div>
                     <?php endif;?>
 
+					<?php if ( ! empty( $booking_status ) && 'failed' === $booking_status && 'paypal' === strtolower( $payment_method ) && current_user_can( 'manage_options' ) ) : ?>
+						<div class="ep-paypal-recheck ep-py-2">
+							<button type="button" id="ep-paypal-recheck" class="button" data-booking-id="<?php echo esc_attr( $booking_id ); ?>"><?php esc_html_e( 'Re-check with PayPal', 'eventprime-event-calendar-management' ); ?></button>
+							<button type="button" id="ep-paypal-complete" class="button button-primary" data-booking-id="<?php echo esc_attr( $booking_id ); ?>" style="display:none;"><?php esc_html_e( 'Mark as completed', 'eventprime-event-calendar-management' ); ?></button>
+							<span class="spinner ep-paypal-recheck-spinner"></span>
+							<div id="ep-paypal-recheck-result" class="ep-text-muted ep-py-2" role="status"></div>
+						</div>
+					<?php endif; ?>
+
                     <?php if( ! empty( $booking_status ) && $booking_status == 'cancelled' ):?>
                         <button class="ep-btn" type="button" id="ep_refunded_btn" onclick="ep_booking_refund_status(<?php echo esc_html($booking_id);?>,'<?php echo esc_html($payment_method);?>','<?php echo 'refunded';?>');"><?php esc_html_e('Mark as Refunded','eventprime-event-calendar-management');?></button>
                     <?php endif;?>

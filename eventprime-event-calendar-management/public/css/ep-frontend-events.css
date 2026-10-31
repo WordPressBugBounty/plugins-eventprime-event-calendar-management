@@ -1050,6 +1050,17 @@ ul.ep-event-share li.ep-event-social-icon:first-child svg {
     right: 8px;
 }
 
+/* RTL: Previous sits on the right and Next on the left (mirror of LTR); the icons are swapped in PHP with is_rtl(). */
+[dir="rtl"] #ep_events_front_views_slider .ep-event-slider-nav .ep-event-rslides_nav.prev {
+    left: auto;
+    right: 8px;
+}
+
+[dir="rtl"] #ep_events_front_views_slider .ep-event-slider-nav .ep-event-rslides_nav.next {
+    right: auto;
+    left: 8px;
+}
+
 /* Side-by-side slide: while the text padding (6% of the slide) is under 56px, the text-side arrow
    (8px + 40px) would cover the description, so it moves 8px inside the image half instead.
    The clamp switches on the slide width itself, so it works with any theme gutter; the large
@@ -1059,10 +1070,12 @@ ul.ep-event-share li.ep-event-social-icon:first-child svg {
         left: clamp(8px, calc((56px - 6%) * 10000000), calc(50% + 8px));
     }
     [dir="rtl"] #ep_events_front_views_slider .ep-event-slider-nav .ep-event-rslides_nav.prev {
-        left: 8px;
+        left: auto;
+        right: clamp(8px, calc((56px - 6%) * 10000000), calc(50% + 8px));
     }
     [dir="rtl"] #ep_events_front_views_slider .ep-event-slider-nav .ep-event-rslides_nav.next {
-        right: clamp(8px, calc((56px - 6%) * 10000000), calc(50% + 8px));
+        right: auto;
+        left: 8px;
     }
 }
 
@@ -1107,6 +1120,19 @@ ul.ep-event-share li.ep-event-social-icon:first-child svg {
     min-height: 490px;
     max-height: 490px;
 
+}
+
+/* Side-by-side slide: the icon group anchors to the image half (not the slider wrapper), on the image's outer edge.
+   LTR keeps its 20px from the right; RTL mirrors it to the left, where the image sits. */
+@media screen and (min-width: 532px) {
+    #ep_events_front_views_slider .ep-slide-item-right {
+        position: relative;
+    }
+    [dir="rtl"] #ep_events_front_views_slider .ep-slider-icon-group {
+        right: auto;
+        left: 20px;
+        margin-left: 0 !important; /* beats the .ep-ml-3 utility so the gap matches LTR's 20px */
+    }
 }
 
 /*---Event Slider View End---*/
@@ -1444,10 +1470,29 @@ ul.ep-event-share li.ep-event-social-icon:first-child svg {
         min-height: 228px;
     }
 
-    /* Stacked slide: centre the arrows on the square image on top, not on the whole card */
+    /* Stacked slide: centre the arrows on the image on top, not on the whole card.
+       Fallback first (viewport estimate), then the exact value once container units are supported. */
     #ep_events_front_views_slider .ep-event-slider-nav .ep-event-rslides_nav {
         top: min(calc(50vw - 59px), 190px);
         margin-top: 0;
+    }
+
+    /* The image box gets a height that depends only on the slider's own width (square, 228px to 420px),
+       so the arrows can be centred on it whatever the theme width or the image's own shape. */
+    @supports (width: 1cqw) {
+        #ep_events_front_views_slider {
+            container-type: inline-size;
+        }
+        #ep_events_front_views_slider .ep-slide-item-right a.ep-img-link,
+        #ep_events_front_views_slider .ep-slide-item-right img {
+            height: clamp(228px, 100cqw, 420px);
+            min-height: 0;
+            max-height: none;
+        }
+        #ep_events_front_views_slider .ep-event-slider-nav .ep-event-rslides_nav {
+            top: calc(clamp(228px, 100cqw, 420px) / 2 - 20px);
+            margin-top: 0;
+        }
     }
 
 

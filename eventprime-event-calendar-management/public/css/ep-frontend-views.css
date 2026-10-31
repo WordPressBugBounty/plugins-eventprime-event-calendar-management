@@ -568,6 +568,18 @@ ul.ep-box-social-links li::marker{
     z-index: 2;
 }
 
+/* RTL: mirror the overlap (image sits on the right, details padded on the right) from 1068px only */
+@media screen and (min-width: 1068px) {
+    [dir="rtl"] .ep-single-figure-box {
+        margin-right: 0;
+        margin-left: -200px;
+    }
+
+    [dir="rtl"] .ep-single-box-content {
+        padding: 50px 220px 50px 50px;
+    }
+}
+
 /*---Theme Specific---*/
 
 
@@ -594,6 +606,18 @@ html.hillstar-theme .ep-single-figure-box img {
     max-width: 100%;
     max-height: 450px;
     object-fit: cover;
+}
+
+/* RTL: mirror the hillstar copies from 1068px only */
+@media screen and (min-width: 1068px) {
+    html.hillstar-theme[dir="rtl"] .ep-single-figure-box {
+        margin-right: 0;
+        margin-left: -200px;
+    }
+
+    html.hillstar-theme[dir="rtl"] .ep-single-box-content {
+        padding: 50px 220px 50px 50px;
+    }
 }
 
 /*---Theme Specific End---*/
@@ -1018,6 +1042,12 @@ ul.ep-event-share li.ep-event-social-icon:first-child svg {
     margin-right: 15px;
     flex-wrap: wrap;
     align-items: center;
+}
+
+/* Performer page: the wrapper already insets the list, so do not inset the rows a second time */
+#ep-performer-upcoming-events .ep-mini-list .ep-upcoming-mini-list {
+    margin-left: 0;
+    margin-right: 0;
 }
 
 .ep-mini-list .ep-upcoming-mini-list > .ep-box-col-3:first-child {

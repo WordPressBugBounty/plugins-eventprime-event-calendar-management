@@ -55,6 +55,20 @@ $global_options = $global_settings->ep_get_settings();
                 </label>
                 <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( 'Enable to display venue section in expanded state on event page. When disabled, only the venue name will be visible and users can click to expand it for more details.', 'eventprime-event-calendar-management' );?></div>
             </td>
+		</tr>
+		<tr valign="top">
+			<th scope="row" class="titledesc">
+				<label for="show_sticky_book_bar">
+					<?php esc_html_e( 'Sticky Get Tickets Bar', 'eventprime-event-calendar-management' ); ?>
+				</label>
+			</th>
+			<td class="forminp forminp-text">
+				<label class="ep-toggle-btn">
+					<input name="show_sticky_book_bar" id="show_sticky_book_bar" type="checkbox" value="1" <?php echo ! isset( $global_options->show_sticky_book_bar ) || ! empty( $global_options->show_sticky_book_bar ) ? 'checked' : ''; ?>>
+					<span class="ep-toogle-slider round"></span>
+				</label>
+				<div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( 'Shows a bar with the price and Get Tickets Now button at the bottom of event pages on phones.', 'eventprime-event-calendar-management' ); ?></div>
+			</td>
         </tr>
         <tr valign="top">
             <th scope="row" class="titledesc">

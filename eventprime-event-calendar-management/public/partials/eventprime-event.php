@@ -58,6 +58,8 @@ if( ! empty( $post ) && $post->post_type=='em_event') {
         'event'              => $events_data['event'],
         'subtotal_text'      => esc_html__( 'Subtotal', 'eventprime-event-calendar-management' ),
         'single_event_nonce' => wp_create_nonce( 'single-event-data-nonce' ),
+		'nonce_expired_text'        => esc_html__( 'This page is out of date. Please reload.', 'eventprime-event-calendar-management' ),
+		'reload_page_text'          => esc_html__( 'Reload page', 'eventprime-event-calendar-management' ),
         'event_booking_nonce'=> wp_create_nonce( 'event-booking-nonce' ),
         'starting_from_text' => esc_html__( 'Starting from', 'eventprime-event-calendar-management' ),
         'offer_applied_text' => esc_html__( 'Offers are applied in the next step.', 'eventprime-event-calendar-management' ),
@@ -83,8 +85,12 @@ if( ! empty( $post ) && $post->post_type=='em_event') {
     $events_data['event']->child_other_events = array();
     $recurring_events = $ep_functions->ep_get_child_events( $events_data['post']->ID );
     if( ! empty( $recurring_events ) && count( $recurring_events ) > 0 ) {
-            $args->event->child_events = $recurring_events;
-        }
+		// The date-time template links each child date through event_url, which raw posts do not carry.
+		foreach ( $recurring_events as $eventprime_child_event ) {
+			$eventprime_child_event->event_url = $ep_functions->ep_get_custom_page_url( 'events_page', $eventprime_child_event->ID, 'event' );
+		}
+		$args->event->child_events = $recurring_events;
+	}
     if( empty( $recurring_events ) ) {
         // check if event has parent event
         if( ! empty( $events_data['post']->post_parent ) ) {

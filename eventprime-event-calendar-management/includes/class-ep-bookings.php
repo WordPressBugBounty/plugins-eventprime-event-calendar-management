@@ -12,6 +12,22 @@ class EventPrime_Bookings {
      * @var string
      */
     private $post_type = 'em_booking';
+
+	/**
+	 * Write one CSV row with an explicit escape argument.
+	 *
+	 * The escape argument is required on PHP 8.4 and newer and only accepted from PHP 7.4.
+	 *
+	 * @param resource $handle Open file handle.
+	 * @param array    $fields Row values.
+	 * @return int|false Length of the written row, or false on failure.
+	 */
+	public static function put_csv_row( $handle, $fields ) {
+		if ( version_compare( PHP_VERSION, '7.4', '>=' ) ) {
+			return fputcsv( $handle, $fields, ',', '"', '' );
+		}
+		return fputcsv( $handle, $fields );
+	}
     
     /**
      * Load order detail
@@ -704,7 +720,7 @@ class EventPrime_Bookings {
         header('Content-Disposition: attachment; filename="ep-bookings-'.md5(time().wp_rand(100, 999)).'.csv"');
         $f = fopen('php://output', 'w');
         foreach ( $bookings_data as $line ) {
-            fputcsv( $f, $line );
+			self::put_csv_row( $f, $line );
         }
 
         die;

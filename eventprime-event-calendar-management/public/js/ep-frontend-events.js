@@ -2974,6 +2974,12 @@ function ep_load_calendar_view_old(search_param='')
     //   Event square card Image Setting end
 }
 
+function epMobileCalendarEnabled() {
+    var settings = window.eventprime && eventprime.global_settings;
+    // Only an explicit 0 turns it off; a missing value counts as on (4.3.6.x behaviour).
+    return ! ( settings && typeof settings.calendar_compact_mobile !== 'undefined' && 0 === parseInt( settings.calendar_compact_mobile, 10 ) );
+}
+
 /**
  * Phone calendar: when the calendar is narrower than 640px, show a compact
  * month grid with coloured dots on event days and list the selected day's
@@ -2986,6 +2992,22 @@ function epMobileCalendar( calendar, el ) {
         return;
     }
     var state = el.epMobileCalendar;
+    if ( ! epMobileCalendarEnabled() ) {
+        // Setting off: undo any compact markup left from an earlier render, then stop.
+        if ( state ) {
+            state.mobile = false;
+            state.calendar = null;
+            el.classList.remove( 'ep-mcal' );
+            el.querySelectorAll( '.ep-mcal-dots' ).forEach( function ( dots ) {
+                dots.remove();
+            } );
+            var oldList = el.nextElementSibling;
+            if ( oldList && oldList.classList.contains( 'ep-mcal-list' ) ) {
+                oldList.style.display = 'none';
+            }
+        }
+        return;
+    }
     if ( ! state ) {
         state = el.epMobileCalendar = {};
         window.addEventListener( 'resize', function () {

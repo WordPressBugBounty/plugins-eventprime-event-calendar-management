@@ -427,6 +427,63 @@ jQuery( function( $ ) {
         };
     }
     
+    // POST to admin-ajax with the single event nonce. If the cached page carries an expired nonce,
+    // fetch a fresh one and replay the request once; otherwise call on_fail.
+    function ep_single_event_ajax( data, on_success, on_fail, is_retry ) {
+        const nonce_expired = function() {
+            if ( is_retry ) {
+                return on_fail();
+            }
+            $.ajax({
+                type    : "POST",
+                url     : eventprime.ajaxurl,
+                data    : { action: 'ep_refresh_single_event_nonce' },
+                success : function( nonce_response ) {
+                    if ( nonce_response && nonce_response.success && nonce_response.data && nonce_response.data.nonce ) {
+                        em_front_event_object.em_event_data.single_event_nonce = nonce_response.data.nonce;
+                        data.security = nonce_response.data.nonce;
+                        ep_single_event_ajax( data, on_success, on_fail, true );
+                    } else {
+                        on_fail();
+                    }
+                },
+                error   : on_fail
+            });
+        };
+        $.ajax({
+            type    : "POST",
+            url     : eventprime.ajaxurl,
+            data    : data,
+            success : function( response ) {
+                if ( response && response.success === false && response.data && response.data.code === 'ep_nonce_expired' ) {
+                    nonce_expired();
+                    return;
+                }
+                on_success( response );
+            },
+            error   : function( xhr ) {
+                if ( xhr && ( xhr.status === 403 || xhr.status === 0 ) ) {
+                    nonce_expired();
+                    return;
+                }
+                on_fail();
+            }
+        });
+    }
+
+    // Show a visible message with a reload link and clear the ticket modal loader.
+    function ep_single_event_show_reload_message() {
+        const object = em_front_event_object.em_event_data;
+        const message = $( '<span></span>' ).text( object.nonce_expired_text + ' ' );
+        const link = $( '<a href="#"></a>' ).text( object.reload_page_text ).on( 'click', function( e ) {
+            e.preventDefault();
+            window.location.reload();
+        });
+        $( '#ep_single_event_before_checkout_error_msg' ).empty().append( message, link );
+        $( '#ep-event-ticket-checkout-modal .ep-loader' ).parent( '.ep-modal-body' ).removeClass( 'ep-loader-active' );
+        $( '#ep-event-ticket-checkout-modal .ep-loader' ).hide();
+    }
+
     // Update cart ticket data with debounce
     const ep_update_cart_ticket_data = debounce(function (action, ticket_id)
     {
@@ -490,11 +547,7 @@ jQuery( function( $ ) {
                 security: em_front_event_object.em_event_data.single_event_nonce
             };
         
-            $.ajax({
-                type        : "POST",
-                url         : eventprime.ajaxurl,
-                data        : data,
-                success     : function( response ) {
+            ep_single_event_ajax( data, function( response ) {
                     if( response.success == true ) {     
                         const data = response.data;
                         const single_ticket_detail_id = 'single_ticket_detail' + data.id;
@@ -537,8 +590,7 @@ jQuery( function( $ ) {
                     $('#ep-event-ticket-checkout-modal .ep-loader').parent('.ep-modal-body').removeClass('ep-loader-active');
                     $('#ep-event-ticket-checkout-modal .ep-loader').hide();
                     
-                }
-            });
+                }, ep_single_event_show_reload_message );
             
             if( ep_added_ticket_option.length > 0 ) {
                 $( '#ep_single_event_checkout_btn' ).removeAttr( 'disabled' );
@@ -861,21 +913,15 @@ jQuery( function( $ ) {
 
         // Return a Promise to handle the asynchronous AJAX request
         return new Promise((resolve, reject) => {
-            $.ajax({
-                type: "POST",
-                url: eventprime.ajaxurl,
-                data: data,
-                success: function(response) {
+            ep_single_event_ajax( data, function(response) {
                     if (response.success) {
                         resolve(response.data.offers);
                     } else {
                         resolve([]); // Return an empty array if the response is not successful
                     }
-                },
-                error: function() {
+                }, function() {
                     reject("AJAX request failed");
-                }
-            });
+                });
         });
     }
 

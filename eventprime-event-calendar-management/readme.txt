@@ -5,7 +5,7 @@ Tags: event, events, event calendar, event organizer , event manager, event tick
 Requires at least: 4.8
 Tested up to: 7.1
 Requires PHP: 7.2
-Stable tag: 4.3.6.1
+Stable tag: 4.3.7.0
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -23,9 +23,10 @@ Some of the top EventPrime features include:
 
 * Supports multi-day and recurring events.
 * Event Calendar features month, week, agenda and day views.
-* Compact month calendar on phones, with event dots and a list for the selected day.
-* Sticky Get Tickets shortcut on phones when using the default single-event ticket template.
+* Compact month calendar on phones, with event dots and a list for the selected day, and a setting to turn it on or off.
+* Sticky Get Tickets shortcut on phones when using the default single-event ticket template, with a setting to turn it on or off.
 * Accept payments for bookings via PayPal and Stripe.
+* Re-check a Failed PayPal booking from the booking screen and complete it when PayPal confirms the payment.
 * Option to create multiple ticket types and categories for your events with in-built tickets creation module.
 * Add entrance or cover charges along with per-ticket fees.
 * Build offers based on different conditions.
@@ -585,7 +586,7 @@ Allow users to post comments under events. Comments can be reviewed and moderate
 
 = Admin Attendee Bookings =
 
-Allows admins to create custom bookings from dashboard and add attendees manually.
+Allows admins to create custom bookings from dashboard and add attendees manually. Admin Attendee Bookings 4.3 also offers optional member assignment for admin bookings and audited booking owner correction. Member assignment requires EventPrime 4.3.6.1 or later and is disabled by default.
 
 [Download Admin Attendee Bookings](https://theeventprime.com/all-extensions/admin-attendee-bookings/)
 
@@ -686,8 +687,30 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 == Changelog ==
 
+= 4.3.7.0: October 31, 2026 =
+* Added: Setting to turn off the sticky Get Tickets bar on phones (EventPrime > Settings > Frontend Views).
+* Added: Setting to enable or disable the compact mobile calendar (EventPrime > Settings > Frontend Views).
+* Added: Admins can re-check a Failed PayPal booking whose payment was taken and complete it.
+* Added: The Licence tab shows whether the licence is activated on this site.
+* Fixed: Bulk Event Copy keeps ticket visibility role settings.
+* Fixed: The Upcoming Event Dates links in the Additional Dates window of recurring events now open the right page.
+* Fixed: A PayPal request error no longer appears at checkout when PayPal is not configured.
+* Fixed: The ticket total no longer stays at 0.00 when an event page is cached for a long time.
+* Fixed: A warning no longer appears when a guest books an event.
+* Fixed: Incomplete licence deactivation responses no longer clear saved licence records.
+* Fixed: Licence box corner radius and spacing match the extensions box.
+* Fixed: Booking CSV exports no longer show notices on PHP 8.4.
+* Fixed: The attendee CSV export fills the Seat No. column for Live Seating bookings.
+* Fixed: Slider arrows on phones sit at the centre of the image.
+* Fixed: Right-to-left layouts: slider arrows, wishlist and share icons, view switcher buttons, single venue, performer, organizer and event-type images and the Share menu now display correctly.
+* Fixed: Right-to-left layouts: English titles and text cut short with an ellipsis now show the ellipsis at the end while keeping their alignment.
+* Fixed: Profile, ticket window and booking details are easier to read in dark mode, and transaction lists fit on phones.
+* Fixed: The ticket window's Checkout and Close buttons are reachable on phones when several tickets are listed.
+* Fixed: Long event titles are limited to two lines in the staggered grid and Upcoming Events list.
+* Fixed: Performer page Upcoming Events rows line up with the hero card.
+
 = 4.3.6.1: October 28, 2026 =
-* Security: Hardened booking status handling. Thanks to wellknown.info for responsibly reporting the issue.
+* Security: Hardened booking status handling. Thanks to Aaron - WellKnown for responsibly reporting the issue.
 * Security: Hardened ticket and ticket category management on frontend event submission. Thanks to Harry Nguyen for responsibly reporting the issue.
 
 = 4.3.6.0: October 24, 2026 =
@@ -2444,6 +2467,9 @@ Fixed: empty event-type lists to return 0 results successfully.
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.3.7.0 =
+Adds settings to turn off the phone Get Tickets bar and compact calendar, lets admins re-check Failed PayPal bookings, and improves right-to-left, dark mode and phone layouts.
 
 = 4.3.6.1 =
 Security release, update recommended. Hardens booking status handling and ticket management on frontend event submission.

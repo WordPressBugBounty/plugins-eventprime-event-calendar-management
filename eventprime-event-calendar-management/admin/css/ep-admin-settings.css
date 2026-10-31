@@ -216,6 +216,24 @@ span.ep-tooltips::after {
     border: 1px solid #2a8663;
 }
 
+.ep-status-not-activated {
+    background-color: #b45309;
+    color: #ffffff;
+    border: 1px solid #92400e;
+}
+
+@media (max-width: 991px) {
+    .ep-license-sidebar {
+        margin-top: 16px;
+    }
+}
+
+.ep-license-site-hint {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+}
+
 .ep-license-expired .ep-license-expiration-date{
     --ep-text-opacity: 1;
     color: rgba(var(--ep-danger-color),var(--ep-text-opacity))!important;
@@ -273,7 +291,7 @@ span.ep-extension-version {
 .ep-license-list .ep-license-item {
     background: #fdfdfd;
     border: 1px solid #e0e0e0;
-    border-radius: 10px;
+    border-radius: var(--ep-border-radius);
     padding: 16px;
     margin-bottom: 24px;
     transition: box-shadow 0.3s ease;

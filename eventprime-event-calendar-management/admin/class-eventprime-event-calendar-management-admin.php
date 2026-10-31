@@ -4407,6 +4407,7 @@ class Eventprime_Event_Calendar_Management_Admin {
                                                         $ticket_data['multiple_offers_option']       = ( isset( $ticket->multiple_offers_option ) && !empty( $ticket->multiple_offers_option ) ) ? $ticket->multiple_offers_option : '';
                                                         $ticket_data['multiple_offers_max_discount'] = ( isset( $ticket->multiple_offers_max_discount ) && !empty( $ticket->multiple_offers_max_discount ) ) ? $ticket->multiple_offers_max_discount : '';
                                                         $ticket_data['ticket_template_id']           = ( isset( $ticket->ticket_template_id ) && !empty( $ticket->ticket_template_id ) ) ? $ticket->ticket_template_id : '';
+								$ticket_data['visibility'] = isset( $ticket->visibility ) ? $ticket->visibility : '';
 
                                                         $format = array();
                                                         foreach ( $ticket_data as $key => $value ) {
@@ -4501,6 +4502,7 @@ class Eventprime_Event_Calendar_Management_Admin {
                                         $ticket_data['multiple_offers_option']       = ( isset( $ticket->multiple_offers_option ) && !empty( $ticket->multiple_offers_option ) ) ? $ticket->multiple_offers_option : '';
                                         $ticket_data['multiple_offers_max_discount'] = ( isset( $ticket->multiple_offers_max_discount ) && !empty( $ticket->multiple_offers_max_discount ) ) ? $ticket->multiple_offers_max_discount : '';
                                         $ticket_data['ticket_template_id']           = ( isset( $ticket->ticket_template_id ) && !empty( $ticket->ticket_template_id ) ) ? $ticket->ticket_template_id : '';
+						$ticket_data['visibility']                                   = isset( $ticket->visibility ) ? $ticket->visibility : '';
 
                                         $format = array();
                                         foreach ( $ticket_data as $key => $value ) {

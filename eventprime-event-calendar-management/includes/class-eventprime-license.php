@@ -169,6 +169,16 @@ class EventPrime_License {
             );
         }
 
+		// A confirmed deactivation needs the licence state as well as the success flag; an incomplete or contradictory answer is not a decision.
+		$has_license_state = isset( $license_data->license ) && is_string( $license_data->license );
+		if ( ! empty( $license_data->success ) && ( ! $has_license_state || 'deactivated' !== $license_data->license ) ) {
+			return array(
+				'status'  => false,
+				'type'    => 'invalid_json',
+				'message' => __( 'Invalid response from license server.', 'eventprime-event-calendar-management' ),
+			);
+		}
+
         if (!empty($license_data->success)) {
             return array(
                 'status'  => true,
@@ -763,6 +773,37 @@ class EventPrime_License {
 }
 
 
+	/**
+	 * Decide how the licence sidebar describes a licence on this site.
+	 *
+	 * @param string $status          Status reported by the licence server for the key.
+	 * @param int    $installed_total Included extensions installed on this site.
+	 * @param int    $activated_total Of those, how many have a valid licence status stored locally.
+	 * @return array { class, label, hint }
+	 */
+	public function ep_get_license_site_state( $status, $installed_total, $activated_total ) {
+		if ( 'active' !== $status && 'inactive' !== $status ) {
+			return array(
+				'class' => 'ep-license-expired',
+				'label' => $status,
+				'hint'  => '',
+			);
+		}
+		if ( (int) $activated_total < 1 ) {
+			return array(
+				'class' => 'ep-license-not-activated',
+				'label' => __( 'Not activated on this site', 'eventprime-event-calendar-management' ),
+				'hint'  => __( 'Click Activate License on each extension.', 'eventprime-event-calendar-management' ),
+			);
+		}
+		return array(
+			'class' => 'ep-license-activated',
+			'label' => 'Active',
+			/* translators: 1: number of extensions activated on this site, 2: number of included extensions installed on this site */
+			'hint'  => sprintf( __( 'Activated on this site: %1$d of %2$d extensions', 'eventprime-event-calendar-management' ), (int) $activated_total, max( (int) $installed_total, (int) $activated_total ) ),
+		);
+	}
+
 public function ep_get_licenses_details() {
     $ep_license_data = get_option('metagauss_license_data', []);
 
@@ -794,8 +835,24 @@ public function ep_get_licenses_details() {
 
 
             
-            $status_class = ($first_plugin['status'] === 'active' || $first_plugin['status'] === 'inactive' ) ? 'ep-license-activated' : 'ep-license-expired';
-            $status = ($first_plugin['status'] === 'active' || $first_plugin['status'] === 'inactive')?'Active':$first_plugin['status'];
+				// Paid-up licences are described for this site: how many included, installed extensions are activated here.
+				$installed_total = 0;
+				$activated_total = 0;
+				foreach ( $license_entry['plugins'] as $download_id => $plugin ) {
+					$extension_key = $this->ep_get_extension_key_by_download_id( $download_id );
+					if ( $extension_key && class_exists( $extension_key ) ) {
+						++$installed_total;
+						if ( 'valid' === get_option( $extension_key . '_license_status', '' ) ) {
+							++$activated_total;
+						}
+					}
+				}
+				$site_state   = $this->ep_get_license_site_state( $first_plugin['status'], $installed_total, $activated_total );
+				$status_class = $site_state['class'];
+				$status       = $site_state['label'];
+				if ( 'ep-license-not-activated' === $site_state['class'] && 'ep-status-active' === $status_class2 ) {
+					$status_class2 = 'ep-status-not-activated';
+				}
             $masked_key = substr($license_key, 0, 5) . str_repeat('*', strlen($license_key) - 10) . substr($license_key, -5);
             //$masked_key = $license_key;
             $expiration = !empty($first_plugin['expire_date']) ? $first_plugin['expire_date'] : 'Lifetime';
@@ -835,6 +892,9 @@ public function ep_get_licenses_details() {
                                                 </span>
 
                                                 <span class="ep-extension-action-result"></span>
+												<?php if ( ! empty( $site_state['hint'] ) ) : ?>
+													<span class="ep-license--value ep-license-site-hint"><?php echo esc_html( $site_state['hint'] ); ?></span>
+												<?php endif; ?>
                                             </div>
                             
                             <div class="ep-license-details__field ep-license-expiration-date ep-fw-bold ep-text-success ep-my-2">

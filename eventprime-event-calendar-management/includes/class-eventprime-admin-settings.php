@@ -490,6 +490,7 @@ class EventPrime_Admin_settings{
         $global_settings_data->calendar_title_format           = sanitize_text_field( $form_data['calendar_title_format'] );
         $global_settings_data->hide_calendar_rows              = isset( $form_data['hide_calendar_rows'] ) ? (int) $form_data['hide_calendar_rows'] : 0;
         $global_settings_data->hide_time_on_front_calendar     = isset( $form_data['hide_time_on_front_calendar'] ) ? (int) $form_data['hide_time_on_front_calendar'] : 0;
+		$global_settings_data->calendar_compact_mobile         = ! empty( $form_data['calendar_compact_mobile'] ) ? 1 : 0;
         $global_settings_data->show_event_types_on_calendar     = isset( $form_data['show_event_types_on_calendar'] ) ? (int) $form_data['show_event_types_on_calendar'] : 0;
         $global_settings_data->front_switch_view_option        = $form_data['front_switch_view_option'];
         $global_settings_data->hide_past_events                = isset($form_data['hide_past_events']) ? (int) $form_data['hide_past_events'] : 0;
@@ -807,6 +808,7 @@ class EventPrime_Admin_settings{
         $global_settings_data = $global_settings->ep_get_settings();
         $global_settings_data->hide_weather_tab = ( ! empty( $form_data['hide_weather_tab'] ) ? 1 : 0 );
         $global_settings_data->expand_venue_container = ( ! empty( $form_data['expand_venue_container'] ) ? 1 : 0 );
+		$global_settings_data->show_sticky_book_bar   = ( ! empty( $form_data['show_sticky_book_bar'] ) ? 1 : 0 );
         if( empty( $global_settings_data->hide_weather_tab ) ) {
             $global_settings_data->weather_unit_fahrenheit  = ( ! empty( $form_data['weather_unit_fahrenheit'] ) ? 1 : 0 );
         } else{

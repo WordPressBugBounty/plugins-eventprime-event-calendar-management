@@ -10894,6 +10894,8 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
                 'event'              => $events_data['event'],
                 'subtotal_text'      => esc_html__( 'Subtotal', 'eventprime-event-calendar-management' ),
                 'single_event_nonce' => wp_create_nonce( 'single-event-data-nonce' ),
+				'nonce_expired_text'   => esc_html__( 'This page is out of date. Please reload.', 'eventprime-event-calendar-management' ),
+				'reload_page_text'     => esc_html__( 'Reload page', 'eventprime-event-calendar-management' ),
                 'event_booking_nonce'=> wp_create_nonce( 'event-booking-nonce' ),
                 'starting_from_text' => esc_html__( 'Starting from', 'eventprime-event-calendar-management' ),
                 'offer_applied_text' => esc_html__( 'Offers are applied in the next step.', 'eventprime-event-calendar-management' ),
@@ -11193,6 +11195,7 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
             //     $newdata['ep_event_booking_total_price'] = round( $newdata['ep_event_booking_total_price'] + $newdata['ep_wc_product_total'] , 2 ); 
             // }
         }
+		$user_id = '';
         if(is_user_logged_in())
         {
             $user_id = get_current_user_id();

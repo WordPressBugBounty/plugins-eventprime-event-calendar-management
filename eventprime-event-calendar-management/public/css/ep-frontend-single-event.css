@@ -734,6 +734,30 @@ ul.ep-event-share:after {
     left: -50px;
 }
 
+/* Keep the closed/open menu inside the viewport on narrow screens (#2247):
+   anchor its end edge to the icon, mirrored for RTL. */
+@media (max-width: 768px) {
+    .ep-sl-event-action .ep-calendar-exp-dropdown-content.ep-event-share {
+        left: auto;
+        right: 0;
+    }
+    html[dir="rtl"] .ep-sl-event-action .ep-calendar-exp-dropdown-content.ep-event-share {
+        left: 0;
+        right: auto;
+    }
+    .ep-sl-event-action .ep-calendar-exp-dropdown-content.ep-event-share:before,
+    .ep-sl-event-action .ep-calendar-exp-dropdown-content.ep-event-share:after {
+        left: auto;
+        right: 10px;
+        margin-left: 0;
+    }
+    html[dir="rtl"] .ep-sl-event-action .ep-calendar-exp-dropdown-content.ep-event-share:before,
+    html[dir="rtl"] .ep-sl-event-action .ep-calendar-exp-dropdown-content.ep-event-share:after {
+        left: 10px;
+        right: auto;
+    }
+}
+
 .ep-calendar-exp-dropdown-content li:first-child a{
     padding-top: 5px;
 }
