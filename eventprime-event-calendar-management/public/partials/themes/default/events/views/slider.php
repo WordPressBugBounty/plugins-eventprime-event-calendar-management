@@ -31,7 +31,7 @@ if( isset( $args->events->posts ) && !empty( $args->events->posts ) ) {
             <div class="ep-bg-white ep-slide-item ep-slide-item-left <?php if ($is_event_expired) echo 'ep-event-expired' ?> ep-d-flex ep-flex-1 ep-flex-column">
                 <?php do_action( 'ep_event_view_before_event_title', $event );?>
 
-                <div class="ep-box-title ep-box-card-title ep-text-truncate">
+				<div class="ep-box-title ep-box-card-title ep-text-truncate" dir="auto">
                     <a href="<?php echo esc_url($url); ?>" <?php echo esc_attr( $new_window );?> class="ep-fw-bold ep-fs-3 ep-mt-3 ep-text-dark">
                         <?php echo esc_html( $event->em_name ); ?>
                     </a>
@@ -60,7 +60,7 @@ if( isset( $args->events->posts ) && !empty( $args->events->posts ) ) {
                 <?php do_action( 'ep_event_view_before_event_description', $event ); ?> 
                 
                 <!-- Event Description -->
-                <div class="ep-box-card-desc ep-text-small ep-mb-auto">
+				<div class="ep-box-card-desc ep-text-small ep-mb-auto" dir="auto">
                     <?php if ( ! empty( $event->description ) ) {
                         echo wp_kses_post( $event->description );
                     }?>

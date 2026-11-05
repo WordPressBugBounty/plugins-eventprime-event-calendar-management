@@ -734,16 +734,19 @@ ul.ep-event-share:after {
     left: -50px;
 }
 
-/* Keep the closed/open menu inside the viewport on narrow screens (#2247):
-   anchor its end edge to the icon, mirrored for RTL. */
+/* Keep the closed/open menu inside the viewport (#2247, #2283).
+   The shared .ep-event-share rule in ep-frontend-events.css (left: 22px) can load
+   after this file, so the desktop offset is repeated with a selector that wins
+   regardless of stylesheet order. On phones, and in RTL at every width (the icon
+   sits near the left edge), anchor the menu's end edge to the icon instead. */
+.ep-sl-event-action .ep-calendar-exp-dropdown-content.ep-event-share {
+    min-width: 120px;
+    left: -50px;
+}
 @media (max-width: 768px) {
     .ep-sl-event-action .ep-calendar-exp-dropdown-content.ep-event-share {
         left: auto;
         right: 0;
-    }
-    html[dir="rtl"] .ep-sl-event-action .ep-calendar-exp-dropdown-content.ep-event-share {
-        left: 0;
-        right: auto;
     }
     .ep-sl-event-action .ep-calendar-exp-dropdown-content.ep-event-share:before,
     .ep-sl-event-action .ep-calendar-exp-dropdown-content.ep-event-share:after {
@@ -751,11 +754,16 @@ ul.ep-event-share:after {
         right: 10px;
         margin-left: 0;
     }
-    html[dir="rtl"] .ep-sl-event-action .ep-calendar-exp-dropdown-content.ep-event-share:before,
-    html[dir="rtl"] .ep-sl-event-action .ep-calendar-exp-dropdown-content.ep-event-share:after {
-        left: 10px;
-        right: auto;
-    }
+}
+html[dir="rtl"] .ep-sl-event-action .ep-calendar-exp-dropdown-content.ep-event-share {
+    left: 0;
+    right: auto;
+}
+html[dir="rtl"] .ep-sl-event-action .ep-calendar-exp-dropdown-content.ep-event-share:before,
+html[dir="rtl"] .ep-sl-event-action .ep-calendar-exp-dropdown-content.ep-event-share:after {
+    left: 10px;
+    right: auto;
+    margin-left: 0;
 }
 
 .ep-calendar-exp-dropdown-content li:first-child a{

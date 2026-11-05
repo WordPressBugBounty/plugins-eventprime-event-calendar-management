@@ -208,6 +208,16 @@ background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/s
     margin-right: -15px;
 }
 
+/* RTL: the flex row already puts Previous on the right and Next on the left; mirror the outward offsets (icons are swapped in PHP with is_rtl()). */
+[dir="rtl"] #ep_widget_container.ep-event-slide-container .ep-event-widget-slider-nav a.prev {
+    margin-left: 0;
+    margin-right: -15px;
+}
+[dir="rtl"] #ep_widget_container.ep-event-slide-container .ep-event-widget-slider-nav a.next {
+    margin-right: 0;
+    margin-left: -15px;
+}
+
 .ep_perfomer_gallery_modal_container ul.ep-rslides{
     margin: 0px !important;
     padding: 0px !important;

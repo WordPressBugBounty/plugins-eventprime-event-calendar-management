@@ -7023,78 +7023,105 @@ public function ep_get_event_date_time_diff( $event ) {
         }
     }
     
-    public function individual_events_shortcode_argument( $meta_query, $individual_events = '' ) {
-        if( $individual_events == 'yesterday' ) {
-            $yesterday_dt = new DateTime('yesterday');
-            $yesterday_dt->setTime(0, 0, 0); // Set to start of the day
-            $yesterday_ts = $yesterday_dt->getTimestamp();
+	/**
+	 * Get the site-local [start, end) timestamps for an individual_events option.
+	 *
+	 * The range covers whole calendar days or the calendar month in the site timezone,
+	 * so a day that is 23 or 25 hours long on a DST change is handled correctly.
+	 * The end timestamp is exclusive (local midnight that starts the next period).
+	 *
+	 * @param string   $individual_events Shortcode option: yesterday, today, tomorrow or this month.
+	 * @param int|null $reference         Optional UTC timestamp to treat as "now" (defaults to the current time).
+	 * @return int[]|null Array with 'start' and 'end' timestamps, or null for an unrecognized option.
+	 */
+	public function get_individual_events_date_range( $individual_events = '', $reference = null ) {
+		if ( ! is_string( $individual_events ) || ! in_array( $individual_events, array( 'yesterday', 'today', 'tomorrow', 'this month' ), true ) ) {
+			return null;
+		}
+		try {
+			$timezone = new DateTimeZone( $this->ep_get_site_timezone() );
+		} catch ( Exception $e ) {
+			$timezone = new DateTimeZone( 'UTC' );
+		}
+		$reference = ( null === $reference ) ? time() : (int) $reference;
+		$now       = ( new DateTimeImmutable( '@' . $reference ) )->setTimezone( $timezone );
+		$year      = (int) $now->format( 'Y' );
+		$month     = (int) $now->format( 'n' );
+		$day       = (int) $now->format( 'j' );
+		// Local midnight of a calendar date; setDate() normalizes day or month overflow.
+		$midnight = function ( $y, $m, $d ) use ( $now ) {
+			return $now->setDate( $y, $m, $d )->setTime( 0, 0, 0 )->getTimestamp();
+		};
 
-            $today_dt = new DateTime('today');
-            $today_dt->setTime(0, 0, 0);
-            $today_ts = $today_dt->getTimestamp();
+		switch ( $individual_events ) {
+			case 'yesterday':
+				return array(
+					'start' => $midnight( $year, $month, $day - 1 ),
+					'end'   => $midnight( $year, $month, $day ),
+				);
+			case 'tomorrow':
+				return array(
+					'start' => $midnight( $year, $month, $day + 1 ),
+					'end'   => $midnight( $year, $month, $day + 2 ),
+				);
+			case 'this month':
+				return array(
+					'start' => $midnight( $year, $month, 1 ),
+					'end'   => $midnight( $year, $month + 1, 1 ),
+				);
+			default: // Today.
+				return array(
+					'start' => $midnight( $year, $month, $day ),
+					'end'   => $midnight( $year, $month, $day + 1 ),
+				);
+		}
+	}
 
-            $meta_query[] = array(
-                'key'     => 'em_start_date',
-                'value'   => array($yesterday_ts, $today_ts),
-                'compare' => 'BETWEEN',
-                'type'    => 'NUMERIC'
-            );
-        }
-
-        if( $individual_events == 'today' ) {
-            $today_dt = new DateTime('today');
-            $today_dt->setTime(0, 0, 0);
-            $today_ts = $today_dt->getTimestamp();
-
-            $tomorrow_dt = new DateTime('tomorrow');
-            $tomorrow_dt->setTime(0, 0, 0);
-            $tomorrow_ts = $tomorrow_dt->getTimestamp();
-
-            $meta_query[] = array(
-                'key'     => 'em_start_date',
-                'value'   => array($today_ts, $tomorrow_ts),
-                'compare' => 'BETWEEN',
-                'type'    => 'NUMERIC'
-            );
-        }
-
-        if( $individual_events == 'tomorrow' ) {
-            $tomorrow_dt = new DateTime('tomorrow');
-            $tomorrow_dt->setTime(0, 0, 0);
-            $tomorrow_ts = $tomorrow_dt->getTimestamp();
-
-            $day_after_tomorrow_dt = new DateTime('tomorrow');
-            $day_after_tomorrow_dt->modify('+1 day');
-            $day_after_tomorrow_dt->setTime(0, 0, 0);
-            $day_after_tomorrow_ts = $day_after_tomorrow_dt->getTimestamp();
-
-            $meta_query[] = array(
-                'key'     => 'em_start_date',
-                'value'   => array($tomorrow_ts, $day_after_tomorrow_ts),
-                'compare' => 'BETWEEN',
-                'type'    => 'NUMERIC'
-            );
-        }
-
-        if( $individual_events == 'this month' ) {
-            $this_month_dt = new DateTime('first day of this month');
-            $this_month_dt->setTime(0, 0, 0);
-            $this_month_ts = $this_month_dt->getTimestamp();
-
-            $next_month_dt = new DateTime('first day of next month');
-            $next_month_dt->setTime(0, 0, 0);
-            $next_month_ts = $next_month_dt->getTimestamp();
-
-            $meta_query[] = array(
-                'key'     => 'em_start_date',
-                'value'   => array($this_month_ts, $next_month_ts),
-                'compare' => 'BETWEEN',
-                'type'    => 'NUMERIC'
-            );
-        }
-
-        return $meta_query;
-    }
+	/**
+	 * Restrict an events meta query to an individual_events range on the start date.
+	 *
+	 * Events are selected when start >= range start and start < range end (site timezone).
+	 * The range is added with AND to the whole incoming query; an incoming OR group is kept
+	 * intact as a nested group so its meaning does not change.
+	 *
+	 * @param array    $meta_query        Incoming meta query.
+	 * @param string   $individual_events Shortcode option: yesterday, today, tomorrow or this month.
+	 * @param int|null $reference         Optional UTC timestamp to treat as "now" (defaults to the current time).
+	 * @return array
+	 */
+	public function individual_events_shortcode_argument( $meta_query, $individual_events = '', $reference = null ) {
+		$range = $this->get_individual_events_date_range( $individual_events, $reference );
+		if ( empty( $range ) ) {
+			return $meta_query;
+		}
+		$range_clauses = array(
+			array(
+				'key'     => 'em_start_date',
+				'value'   => $range['start'],
+				'compare' => '>=',
+				'type'    => 'NUMERIC',
+			),
+			array(
+				'key'     => 'em_start_date',
+				'value'   => $range['end'],
+				'compare' => '<',
+				'type'    => 'NUMERIC',
+			),
+		);
+		if ( ! is_array( $meta_query ) ) {
+			$meta_query = array();
+		}
+		if ( isset( $meta_query['relation'] ) && 'OR' === strtoupper( (string) $meta_query['relation'] ) ) {
+			return array_merge(
+				array(
+					'relation' => 'AND',
+					$meta_query,
+				),
+				$range_clauses
+			);
+		}
+		return array_merge( $meta_query, $range_clauses );
+	}
 
     
     public function individual_events_shortcode_argument_old( $meta_query, $individual_events = '' ){
@@ -13722,14 +13749,16 @@ public function ep_get_events( $fields ) {
         $new_post_id = wp_insert_post($new_post);
         // Get all the post meta data from the original post
         $post_meta = get_post_meta($post_id);
-        $skip_meta_keys = $this->ep_get_skip_event_meta_keys( array(), $post_id, $new_post_id, 'duplicate' );
+		// Elementor's generated-CSS marker must not be copied: the copy has no CSS file and Elementor regenerates it.
+		$skip_meta_keys = $this->ep_get_skip_event_meta_keys( array( '_elementor_css' ), $post_id, $new_post_id, 'duplicate' );
         // Loop through each meta key and copy it to the new post
         foreach ($post_meta as $meta_key => $meta_values) {
             if ( in_array( $meta_key, $skip_meta_keys, true ) ) {
                 continue;
             }
             foreach ($meta_values as $meta_value) {
-                add_post_meta($new_post_id, $meta_key, maybe_unserialize($meta_value));
+				// get_post_meta() returns unslashed data and add_post_meta() unslashes again, so slash first to keep escapes (e.g. Elementor JSON).
+				add_post_meta( $new_post_id, $meta_key, wp_slash( maybe_unserialize( $meta_value ) ) );
             }
          }
          

@@ -5,7 +5,7 @@ Tags: event, events, event calendar, event organizer , event manager, event tick
 Requires at least: 4.8
 Tested up to: 7.1
 Requires PHP: 7.2
-Stable tag: 4.3.7.0
+Stable tag: 4.3.8.0
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -686,6 +686,22 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.3.8.0: November 5, 2026 =
+* Fixed: Duplicate Event keeps Elementor layouts that contain quotes or backslashes in their text, and the copy keeps its styles.
+* Fixed: individual_events="today", "yesterday", "tomorrow" and "this month" now follow your site's timezone and no longer list events from the next day or month. An event is included by its start date. Props @alicadabra for the report.
+* Fixed: The attendee CSV export no longer stops with an error when a price is empty or unreadable. Unreadable cells show "Invalid price (see docs)" and the download completes.
+* Fixed: Right-to-left sites: the Event Slider widget and block arrows are mirrored.
+* Fixed: The Add to calendar menu on the single event page no longer makes the page slightly wider than the screen.
+* Fixed: Dark mode: the profile active tab, count badges and warning buttons are easier to read.
+* Fixed: Dark mode: the Buy Tickets sidebar on the single event page is easier to read.
+* Fixed: Dark mode: profile tabs, Edit Profile and the guest login links on Booking Details are easier to read.
+* Fixed: Clearing the keyword search on All Events and pressing Find Events now removes the old keyword filter.
+* Fixed: Right-to-left sites: descriptions in the card, staggered grid, slider and upcoming event views end with the ellipsis at the end of the text.
+* Fixed: Safari: long event titles end with the ellipsis at the end of the text on right-to-left and left-to-right pages.
+* Fixed: The All Events calendar weekday names follow the calendar width when the window is resized or a phone is rotated.
+* Changed: Dark mode single event page: the Sold Out text uses a lighter red.
+* Changed: Right-to-left sites: the Add to calendar menu starts at the calendar button, and English descriptions are left-aligned inside cards.
 
 = 4.3.7.0: October 31, 2026 =
 * Added: Setting to turn off the sticky Get Tickets bar on phones (EventPrime > Settings > Frontend Views).
@@ -2467,6 +2483,9 @@ Fixed: empty event-type lists to return 0 results successfully.
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.3.8.0 =
+Fixes Elementor event duplication, the individual_events date options, attendee CSV exports, and dark mode, right-to-left, Safari and calendar display issues.
 
 = 4.3.7.0 =
 Adds settings to turn off the phone Get Tickets bar and compact calendar, lets admins re-check Failed PayPal bookings, and improves right-to-left, dark mode and phone layouts.

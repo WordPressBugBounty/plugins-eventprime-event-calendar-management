@@ -90,7 +90,7 @@ if( isset( $args->events->posts ) && !empty( $args->events->posts ) ) {
                                 }
                             }?>
                             <!-- Event Title -->
-                            <a class="ep-fs-5 ep-fw-bold ep-text-dark" data-event-id="<?php echo esc_attr( $event->id ); ?>" href="<?php echo esc_url($url); ?>" <?php echo esc_attr( $new_window );?> rel="noopener">
+							<a class="ep-fs-5 ep-fw-bold ep-text-dark" dir="auto" data-event-id="<?php echo esc_attr( $event->id ); ?>" href="<?php echo esc_url( $url ); ?>" <?php echo esc_attr( $new_window ); ?> rel="noopener">
                                 <?php echo esc_html( $event->em_name ); ?>
                             </a>
                         </div>

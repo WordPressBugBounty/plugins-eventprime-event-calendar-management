@@ -220,9 +220,13 @@ jQuery(function ($) {
         const search_keyword = $('#ep_event_keyword_search').val();
 
         const param = {label: 'Keyword', key: 'keyword', value: search_keyword};
-        if (search_keyword) {
+        if (search_keyword && search_keyword.trim() !== '') {
             event_applied_filters_render_content(param);
             event_filters_selection_update(event_search_params, param);
+        } else {
+            // An empty (or blank) search removes the keyword filter and its chip; other filters stay.
+            event_filters_selection_remove(event_search_params, 'keyword');
+            $('#ep_keyword').remove();
         }
 
         const display_style = $('#ep-events-style').val();
@@ -634,6 +638,8 @@ function event_filters_selection_remove(event_search_params, key) {
                 jQuery('#filter_performer').select2("val", "");
             } else if (key === 'event_organizers') {
                 jQuery('#ep-filter-org').select2();
+            } else if (key === 'keyword') {
+                jQuery('#ep_event_keyword_search').val('');
             }
             break;
         }
@@ -756,9 +762,57 @@ jQuery(window).resize(function () {
 
 });
 
+// Weekday header: short names at 720px or less, the configured format above.
+// Kept in sync when the calendar container is resized after load.
+function epCalendarHeaderSync(el) {
+	var state = el && el.epHeaderFormat;
+	if (!state || !state.calendar) {
+		return;
+	}
+	var container = document.getElementById('ep-events-content-container');
+	var width = container ? container.clientWidth : 0; // 0 while hidden (jQuery would still measure it)
+	if (!width) {
+		state.hidden = true; // re-checked when it is shown
+		return;
+	}
+	if (state.hidden) {
+		state.hidden = false;
+		state.calendar.updateSize(); // the grid was laid out while hidden
+	}
+	var weekday = width <= 720 ? 'short' : state.configured;
+	if (weekday === state.applied) {
+		return;
+	}
+	state.applied = weekday;
+	state.calendar.setOption('dayHeaderFormat', {weekday: weekday});
+}
+
+function epCalendarHeaderResponsive(calendar, el, configured) {
+	if (!calendar || !el) {
+		return;
+	}
+	el.epHeaderFormat = {calendar: calendar, configured: configured, applied: null};
+	epCalendarHeaderSync(el);
+	var container = document.getElementById('ep-events-content-container');
+	if (container && !container.epHeaderObserver && typeof ResizeObserver !== 'undefined') {
+		container.epHeaderObserver = new ResizeObserver(function () {
+			// next frame: changing the header inside the callback would loop the observer
+			if (container.epHeaderFrame) {
+				return;
+			}
+			container.epHeaderFrame = window.requestAnimationFrame(function () {
+				container.epHeaderFrame = 0;
+				epCalendarHeaderSync(document.getElementById('ep_event_calendar'));
+			});
+		});
+		container.epHeaderObserver.observe(container);
+	}
+}
+
 // check calendar view width
 function epCalViewWidhth() {
     $ = jQuery;
+    epCalendarHeaderSync(document.getElementById('ep_event_calendar'));
     calAreaWidht = $("#ep-events-content-container").innerWidth();
     if (calAreaWidht <= 620) {
         $("#ep-events-content-container").addClass("ep-narrow");
@@ -1248,12 +1302,7 @@ function ep_load_calendar_view(search_param = '')
         calendar.render();
         epMobileCalendar( calendar, calendarEl );
 
-        let calAreaWidht = $("#ep-events-content-container").innerWidth();
-        if (calAreaWidht <= 720) {
-            calendar.setOption('dayHeaderFormat', {weekday: 'short'});
-        } else {
-            calendar.setOption('dayHeaderFormat', {weekday: column_header_format});
-        }
+        epCalendarHeaderResponsive( calendar, calendarEl, column_header_format );
 
         // custom class on the toolbal title
         let cal_title_class = 'ep-calendar-title-short';
@@ -1673,12 +1722,7 @@ function ep_load_calendar_view_new(search_param = '') {
         calendar.render();
         epMobileCalendar( calendar, calendarEl );
 
-        let calAreaWidht = $("#ep-events-content-container").innerWidth();
-        if (calAreaWidht <= 720) {
-            calendar.setOption('dayHeaderFormat', {weekday: 'short'});
-        } else {
-            calendar.setOption('dayHeaderFormat', {weekday: column_header_format});
-        }
+        epCalendarHeaderResponsive( calendar, calendarEl, column_header_format );
 
         // custom class on the toolbar title
         let cal_title_class = 'ep-calendar-title-short';
@@ -2066,12 +2110,7 @@ function ep_load_calendar_view_new2(search_param = '') {
     calendar.render();
     epMobileCalendar( calendar, calendarEl );
 
-    let calAreaWidht = $("#ep-events-content-container").innerWidth();
-    if (calAreaWidht <= 720) {
-        calendar.setOption('dayHeaderFormat', {weekday: 'short'});
-    } else {
-        calendar.setOption('dayHeaderFormat', {weekday: column_header_format});
-    }
+    epCalendarHeaderResponsive( calendar, calendarEl, column_header_format );
 
     // toolbar title class
     let cal_title_class = 'ep-calendar-title-short';
@@ -2429,8 +2468,7 @@ function ep_load_calendar_view_new3(search_param = '') {
     epMobileCalendar( calendar, calendarEl );
 
     // Responsive header
-    const width = $("#ep-events-content-container").innerWidth();
-    calendar.setOption('dayHeaderFormat', {weekday: width <= 720 ? 'short' : column_header_format});
+    epCalendarHeaderResponsive( calendar, calendarEl, column_header_format );
 
     // Calendar title styling
     const cal_title_class = (eventprime.global_settings.calendar_title_format || '').includes('DD')
@@ -2827,12 +2865,7 @@ function ep_load_calendar_view_old(search_param='')
             calendar.render();
             epMobileCalendar( calendar, calendarEl );
 
-            let calAreaWidht = $( "#ep-events-content-container" ).innerWidth();
-            if( calAreaWidht <= 720 ) {
-                calendar.setOption( 'dayHeaderFormat', { weekday: 'short' } );
-            } else{
-                calendar.setOption( 'dayHeaderFormat', { weekday: column_header_format } );
-            }
+            epCalendarHeaderResponsive( calendar, calendarEl, column_header_format );
 
             // custom class on the toolbal title
             let cal_title_class = 'ep-calendar-title-short';

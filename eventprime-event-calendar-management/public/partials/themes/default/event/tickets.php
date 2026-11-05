@@ -553,7 +553,7 @@ $eventprime_sticky_book_bar = false;
                                             <img src="<?php echo esc_url( $image[0] );?>" alt="<?php echo esc_attr( $args->event->name ); ?>" class="ep-rounded" style="max-width:100%;" />
                                         </div><?php
                                     }?>
-                                    <div class="ep-fs-5 ep-fw-bold ep-mt-2 ep-text-truncate" id="ep_event_ticket_modal_right_event_name"> <?php echo esc_html( $args->event->name ); ?> </div>
+									<div class="ep-fs-5 ep-fw-bold ep-mt-2 ep-text-truncate" id="ep_event_ticket_modal_right_event_name" dir="auto"> <?php echo esc_html( $args->event->name ); ?> </div>
                                     <?php if( ! empty( $args->event->em_venue ) ) {
                                         $event_venue = $ep_functions->get_single_venue( $args->event->em_venue );
                                         if(!empty($event_venue)){

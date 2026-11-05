@@ -387,8 +387,8 @@ html.ep-embed-responsive .emagic{
 }
 
 .ep-dark-mode-enabled .emagic .ep-btn-warning {
-    --ep-btn-top-color: #AD8200;
-    --ep-btn-bottom-color: #997300;
+    --ep-btn-top-color: #946D00;
+    --ep-btn-bottom-color: #876300;
     --ep-btn-border-color: #CC9900;
     --ep-btn-hover-border-color: #CC9900;
     --ep-btn-color: #fff;
@@ -863,6 +863,7 @@ a.ep-title-clamp-2 {
 a.ep-title-clamp-2,
 .ep-desc-truncate,
 .ep-content-truncate,
+.ep-box-card-desc,
 .ep-box-title.ep-box-list-title.ep-text-truncate > div,
 .ep-box-title.ep-box-list-title.ep-text-truncate > a,
 #ep_event_calendar .fc-h-event .fc-event-title,
@@ -890,7 +891,8 @@ body.rtl :is(.ep-text-truncate, .ep-box-title.ep-box-list-title.ep-text-truncate
 .ep-box-title.ep-box-list-title.ep-text-truncate > a,
 a.ep-title-clamp-2,
 .ep-desc-truncate,
-.ep-content-truncate {
+.ep-content-truncate,
+.ep-box-card-desc {
     width: fit-content;
     max-width: 100%;
 }
@@ -1401,6 +1403,73 @@ body .emagic h6 {
 
 .ep-dark-mode-enabled .ep-list-group.ep-myaccount-tabs .ep-list-group-item .ep-tab-link{
     --ep-bg-opacity: 0.2;
+}
+
+/* Dark mode, active profile tab: the translucent theme tint let the white label fall to about 2:1 on light pages.
+   Keep the tint but make it opaque and darkened (40% theme colour over black), so white text stays at 4.5:1 or better for any theme colour. */
+.ep-dark-mode-enabled .ep-list-group.ep-myaccount-tabs .ep-list-group-item .ep-tab-link.ep-tab-active{
+    background-color: rgba(var(--themeColor), 1) !important;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6));
+}
+
+/* Dark mode, profile count badges sit on the fixed yellow warning colour, so their label must stay dark. */
+.ep-dark-mode-enabled .emagic .ep-myaccount-tabs .ep-bg-warning,
+.ep-dark-mode-enabled .emagic .ep-fs-6 > .ep-bg-warning.ep-rounded-5{
+    color: #000 !important;
+}
+
+/* #2287 Dark mode, profile tabs: the tab row was a 25 percent translucent dark tint over the page, with the theme's dark text colour,
+   so on a dark page the labels were unreadable. Make the row opaque and the labels white, independent of the page and theme colours. */
+.ep-dark-mode-enabled .emagic .ep-myaccount-tabs .ep-list-group-item.ep-tab-item{
+    --ep-bg-opacity: 1;
+}
+.ep-dark-mode-enabled .ep-list-group.ep-myaccount-tabs .ep-list-group-item .ep-tab-link:not(.ep-tab-active){
+    color: #fff;
+}
+.ep-dark-mode-enabled .ep-list-group.ep-myaccount-tabs .ep-list-group-item .ep-tab-link:not(.ep-tab-active):hover,
+.ep-dark-mode-enabled .ep-list-group.ep-myaccount-tabs .ep-list-group-item .ep-tab-link:not(.ep-tab-active):focus{
+    background-color: rgba(var(--themeColor), 0.3);
+    color: #fff;
+}
+.ep-dark-mode-enabled .ep-list-group.ep-myaccount-tabs .ep-list-group-item .ep-tab-link:focus-visible,
+.ep-dark-mode-enabled .ep-tab-container .ep-user-profile-edit-profile a:focus-visible,
+.ep-dark-mode-enabled .ep-booking-container #ep_attendee_login_form_wrapper .ep-login-form a:focus-visible{
+    outline: 2px solid #a9dc63;
+    outline-offset: -2px;
+}
+
+/* #2287 Dark mode, profile "Edit Profile" link: it sits on the bare page, so give it its own dark chip and a light link colour. */
+.ep-dark-mode-enabled .ep-tab-container .ep-user-profile-edit-profile a{
+    display: inline-block;
+    padding: 2px 10px !important;
+    border-radius: 4px;
+    background-color: #262626;
+    color: #a9dc63;
+}
+.ep-dark-mode-enabled .ep-tab-container .ep-user-profile-edit-profile a:hover,
+.ep-dark-mode-enabled .ep-tab-container .ep-user-profile-edit-profile a:focus{
+    background-color: #3a3a3a;
+    color: #c4e98f;
+}
+
+/* #2287 Dark mode, guest login on the booking details page: the form sits on the bare page, so make it a dark card with light text and links. */
+.ep-dark-mode-enabled .ep-booking-container #ep_attendee_login_form_wrapper .ep-login-form{
+    background-color: #262626;
+    color: #fff;
+}
+.ep-dark-mode-enabled .ep-booking-container #ep_attendee_login_form_wrapper .ep-login-form .ep-modal-title,
+.ep-dark-mode-enabled .ep-booking-container #ep_attendee_login_form_wrapper .ep-login-form .ep-form-label{
+    color: #fff;
+}
+.ep-dark-mode-enabled .ep-booking-container #ep_attendee_login_form_wrapper .ep-login-form a{
+    color: #a9dc63;
+}
+.ep-dark-mode-enabled .ep-booking-container #ep_attendee_login_form_wrapper .ep-login-form a:hover,
+.ep-dark-mode-enabled .ep-booking-container #ep_attendee_login_form_wrapper .ep-login-form a:focus{
+    color: #c4e98f;
+}
+.ep-dark-mode-enabled .ep-booking-container #ep_attendee_login_form_wrapper .ep-login-form .ep-text-danger{
+    color: #ff6b7a !important;
 }
 
 /*--- dark Mode End---*/
@@ -2401,6 +2470,33 @@ body.ep-modal-open-body {
 .ep-dark-mode-enabled .ep-booking-container .ep-table a,
 .ep-dark-mode-enabled .ep-tab-container .ep-tab-content .ep-table a {
     color: #a9dc63;
+}
+
+/*---- Dark mode readable text: single event booking sidebar (#2285) ----*/
+.ep-dark-mode-enabled .ep-buy-ticket-section {
+    color: #fff;
+}
+.ep-dark-mode-enabled .ep-buy-ticket-section h1,
+.ep-dark-mode-enabled .ep-buy-ticket-section h2,
+.ep-dark-mode-enabled .ep-buy-ticket-section h3,
+.ep-dark-mode-enabled .ep-buy-ticket-section h4,
+.ep-dark-mode-enabled .ep-buy-ticket-section h5,
+.ep-dark-mode-enabled .ep-buy-ticket-section h6 {
+    color: inherit;
+}
+.ep-dark-mode-enabled .ep-buy-ticket-section .ep-text-muted {
+    color: #b3b3b3 !important;
+}
+.ep-dark-mode-enabled .ep-buy-ticket-section .ep-text-success {
+    color: #5fd49a !important;
+}
+.ep-dark-mode-enabled .ep-buy-ticket-section .ep-text-danger {
+    color: #ff6b7a !important;
+}
+.ep-dark-mode-enabled .emagic .ep-buy-ticket-section .ep-ticket-btn {
+    --ep-btn-color: #fff;
+    --ep-btn-hover-color: #fff;
+    --ep-btn-active-color: #fff;
 }
 
 .ep-dark-mode-enabled .emagic .ep-btn-outline-dark{

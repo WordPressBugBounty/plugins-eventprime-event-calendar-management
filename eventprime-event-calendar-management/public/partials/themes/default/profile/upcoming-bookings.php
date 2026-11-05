@@ -32,7 +32,7 @@
                                     <!--social sharing-->
                                     <?php do_action( 'ep_event_view_social_sharing_icon', $booking->event_data, 'event_list' );?>
                                 </div>
-                                <div class="ep-card-title ep-fw-bold ep-text-truncate ep-mb-2">
+								<div class="ep-card-title ep-fw-bold ep-text-truncate ep-mb-2" dir="auto">
                                     <?php echo esc_attr( $booking->event_data->name );?>
                                 </div>
                                 <?php if( ! empty( $booking->event_data->venue_details ) && ! empty( $booking->event_data->venue_details->em_address ) ) {?>

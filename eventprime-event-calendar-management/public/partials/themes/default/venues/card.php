@@ -18,7 +18,7 @@ $hide_seating_type = $ep_functions->ep_get_global_settings( 'venue_hide_seating_
                 </a>
             </div>
             <div class="ep-box-card-content ep-p-3 ep-bg-white">
-                <div class="ep-box-title ep-box-card-title ep-text-truncate ep-mb-2">
+				<div class="ep-box-title ep-box-card-title ep-text-truncate ep-mb-2" dir="auto">
                     <a href="<?php echo esc_url( $venue->venue_url ); ?>" class="ep-fw-bold ep-fs-6">
                         <?php echo esc_html( $venue->name ); ?>
                     </a>

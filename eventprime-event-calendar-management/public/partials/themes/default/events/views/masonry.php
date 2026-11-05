@@ -79,7 +79,7 @@ foreach ( $args->events->posts as $event ) {
             <div class="ep-box-card-content ep-text-small ep-p-3 ep-bg-white ep-d-flex ep-flex-column">
                 <!-- Event Title -->
                 <div class="ep-box-title ep-box-card-title ep-mb-2">
-					<a href="<?php echo esc_url( $url ); ?>" <?php echo esc_attr( $new_window ); ?> title="<?php echo esc_attr( $event->em_name ); ?>" class="ep-title-clamp-2 ep-fw-bold ep-fs-6 ep-my-3 ep-text-dark">
+					<a href="<?php echo esc_url( $url ); ?>" <?php echo esc_attr( $new_window ); ?> title="<?php echo esc_attr( $event->em_name ); ?>" class="ep-title-clamp-2 ep-fw-bold ep-fs-6 ep-my-3 ep-text-dark" dir="auto">
                         <?php echo esc_html( $event->em_name ); ?>
                     </a>
                 </div><?php
@@ -106,7 +106,7 @@ foreach ( $args->events->posts as $event ) {
                 <?php do_action( 'ep_event_view_before_event_description', $event ); ?>
 
                 <!-- Event Description -->
-                <div class="ep-box-card-desc-masonry ep-box-card-desc ep-text-small ep-mb-2">
+				<div class="ep-box-card-desc-masonry ep-box-card-desc ep-text-small ep-mb-2" dir="auto">
                     <?php if ( ! empty( $event->description ) ) {
                         echo  wp_kses_post( wp_trim_words($event->description , 100 ));
                     }?>

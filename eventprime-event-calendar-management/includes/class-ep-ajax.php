@@ -2923,6 +2923,100 @@ class EventM_Ajax_Service {
         }
     }
 
+	/**
+	 * Normalise one stored amount (ticket subtotal, ticket quantity or event fixed fee) for the attendee CSV.
+	 *
+	 * Missing, null, false and blank values count as zero. Integers, floats and numeric strings (surrounding
+	 * whitespace allowed, negative values allowed) keep their numeric value. Anything else (formatted currency,
+	 * text, arrays, objects, true, infinite values) is rejected.
+	 *
+	 * @param mixed $value Stored value.
+	 * @return int|float|null Number, or null when the value is not a trustworthy number.
+	 */
+	private function normalize_attendee_csv_amount( $value ) {
+		if ( null === $value || false === $value ) {
+			return 0;
+		}
+		if ( is_string( $value ) ) {
+			$value = trim( $value );
+			if ( '' === $value ) {
+				return 0;
+			}
+			if ( ! is_numeric( $value ) ) {
+				return null;
+			}
+			$value = $value + 0;
+		}
+		if ( ( is_int( $value ) || is_float( $value ) ) && is_finite( (float) $value ) ) {
+			return $value;
+		}
+		return null;
+	}
+
+	/**
+	 * Price (ticket subtotals plus the event fixed fee) and ticket count of one booking for the attendee CSV.
+	 *
+	 * Each value is a number, or null when the stored data it depends on cannot be read as a number.
+	 * The two are independent: a bad fixed fee makes Price null but leaves Ticket Count intact.
+	 *
+	 * @param mixed $order_info The stored em_order_info of the booking.
+	 * @return array array( 'price' => number|null, 'qty' => number|null ).
+	 */
+	public function get_attendee_csv_order_amounts( $order_info ) {
+		if ( empty( $order_info ) ) {
+			return array(
+				'price' => 0,
+				'qty'   => 0,
+			);
+		}
+		if ( ! is_array( $order_info ) ) {
+			return array(
+				'price' => null,
+				'qty'   => null,
+			);
+		}
+		$tickets = isset( $order_info['tickets'] ) ? $order_info['tickets'] : array();
+		if ( empty( $tickets ) && ! is_array( $tickets ) && ! is_object( $tickets ) ) {
+			$tickets = array();
+		}
+		$ticket_sub_total = 0;
+		$ticket_qty       = 0;
+		if ( ! is_array( $tickets ) && ! is_object( $tickets ) ) {
+			$ticket_sub_total = null;
+			$ticket_qty       = null;
+			$tickets          = array();
+		}
+		foreach ( $tickets as $ticket ) {
+			if ( is_object( $ticket ) ) {
+				$ticket = get_object_vars( $ticket );
+			}
+			if ( ! is_array( $ticket ) ) {
+				$ticket_sub_total = null;
+				$ticket_qty       = null;
+				break;
+			}
+			if ( null !== $ticket_sub_total ) {
+				$subtotal         = $this->normalize_attendee_csv_amount( isset( $ticket['subtotal'] ) ? $ticket['subtotal'] : null );
+				$ticket_sub_total = ( null === $subtotal ) ? null : $ticket_sub_total + $subtotal;
+			}
+			if ( null !== $ticket_qty ) {
+				$qty        = $this->normalize_attendee_csv_amount( isset( $ticket['qty'] ) ? $ticket['qty'] : null );
+				$ticket_qty = ( null === $qty ) ? null : $ticket_qty + $qty;
+			}
+		}
+		$price = null;
+		if ( null !== $ticket_sub_total ) {
+			$fixed_price = $this->normalize_attendee_csv_amount( isset( $order_info['event_fixed_price'] ) ? $order_info['event_fixed_price'] : null );
+			if ( null !== $fixed_price ) {
+				$price = $ticket_sub_total + $fixed_price;
+			}
+		}
+		return array(
+			'price' => $price,
+			'qty'   => $ticket_qty,
+		);
+	}
+
     /**
      * Download attendees
      */
@@ -2974,15 +3068,14 @@ class EventM_Ajax_Service {
                 ( 
                     (!empty($other_order_info) && isset($other_order_info['user_email']) && !empty($other_order_info['user_email'])) ? $other_order_info['user_email'] : '' 
                 );
-                $ticket_sub_total = 0;
-                $ticket_qty = 0;
-                foreach( $other_order_info['tickets'] as $ticket ){
-                    $ticket_sub_total = $ticket_sub_total + $ticket->subtotal;
-                    $ticket_qty = $ticket_qty + $ticket->qty;
-                }
-                $csv->price =  $ticket_sub_total + $other_order_info['event_fixed_price'];
-                $csv->no_tickets =  $ticket_qty;
-                $csv->amount_total =  $other_order_info['booking_total'];
+
+				$amounts = $this->get_attendee_csv_order_amounts( $other_order_info );
+				// A value that cannot be read as a number is marked in its cell; the booking stays in the file.
+				$invalid_amount    = __( 'Invalid price (see docs)', 'eventprime-event-calendar-management' );
+				$csv->price        = ( null === $amounts['price'] ) ? $invalid_amount : $amounts['price'];
+				$csv->no_tickets   = ( null === $amounts['qty'] ) ? $invalid_amount : $amounts['qty'];
+				$csv->amount_total = ( is_array( $other_order_info ) && isset( $other_order_info['booking_total'] ) ) ? $other_order_info['booking_total'] : '';
+
                 $event = $ep_functions->get_single_event( $booking->em_event,$single_event );
                 if( ! empty( $event->id ) ){
                     $csv->event_name = $event->name;
