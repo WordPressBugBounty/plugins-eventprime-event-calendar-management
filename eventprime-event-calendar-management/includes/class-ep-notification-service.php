@@ -374,9 +374,9 @@ class EventM_Notification_Service {
                     $order_item_html .= '<td style="'.$order_item_style.'"><span>'.$ticket->name.'</span></td>';
                     $order_item_html .= '<td style="'.$order_item_style.'"><span>'.$ep_functions->ep_price_with_position($ticket->price).' ' .$fees.'</span></td>';
                     $order_item_html .= '<td style="'.$order_item_style.'"><span>'.$ticket->qty.'</span></td>';
-                    $order_item_html .= '<td style="'.$order_item_style.'"><span>'.$ep_functions->ep_price_with_position( $ticket->subtotal ).'</span></td>';
+					$order_item_html .= '<td style="' . $order_item_style . '"><span>' . $ep_functions->ep_price_with_position( $ep_functions->ep_order_amount_or_zero( $ticket->subtotal ) ) . '</span></td>';
                     
-                    $ticket_sub_total = $ticket_sub_total + $ticket->subtotal;
+					$ticket_sub_total = $ticket_sub_total + $ep_functions->ep_order_amount_or_zero( $ticket->subtotal );
                 $order_item_html .= '</tr>';
             }
 
@@ -384,7 +384,7 @@ class EventM_Notification_Service {
             if( ! empty( $offers ) ) {
                 if(isset($order_info['discount']))
                 {
-                    $order_info['discount'] += $offers;
+					$order_info['discount'] = $ep_functions->ep_order_amount_or_zero( $order_info['discount'] ) + $offers;
                 }
                 else
                 {
@@ -393,12 +393,12 @@ class EventM_Notification_Service {
                
             }
 
-            $sub_total = $ticket_sub_total + $order_info['event_fixed_price'];
+			$sub_total = $ticket_sub_total + $ep_functions->ep_order_amount_or_zero( isset( $order_info['event_fixed_price'] ) ? $order_info['event_fixed_price'] : 0 );
             $mail_body = str_replace( "<td>(order_item_data)</td>", $order_item_html, $mail_body );
                 
-            $mail_body = str_replace( "$(Discount)", $ep_functions->ep_price_with_position( isset( $order_info['discount'] ) ? $order_info['discount'] : 0 ), $mail_body );
-            $mail_body = str_replace( "$(Fixed Event Fee)", $ep_functions->ep_price_with_position( $order_info['event_fixed_price'] ), $mail_body );
-            $mail_body = str_replace( "$(Order Total)", $ep_functions->ep_price_with_position( $order_info['booking_total'] ), $mail_body );
+			$mail_body       = str_replace( '$(Discount)', $ep_functions->ep_price_with_position( $ep_functions->ep_order_amount_or_zero( isset( $order_info['discount'] ) ? $order_info['discount'] : 0 ) ), $mail_body );
+			$mail_body       = str_replace( '$(Fixed Event Fee)', $ep_functions->ep_price_with_position( $ep_functions->ep_order_amount_or_zero( $order_info['event_fixed_price'] ) ), $mail_body );
+			$mail_body       = str_replace( '$(Order Total)', $ep_functions->ep_price_with_position( $ep_functions->ep_order_amount_or_zero( $order_info['booking_total'] ) ), $mail_body );
             $payment_gateway = ( ! empty( $booking->em_payment_method ) ? ucfirst( $booking->em_payment_method ) : 'N/A' );
             $mail_body = str_replace( "$(Payment Gateway)", ucfirst( $booking->em_payment_method ), $mail_body );
             $mail_body = str_replace( "$(Booking Status)", ucfirst( $booking->em_status ), $mail_body );
@@ -486,9 +486,9 @@ class EventM_Notification_Service {
             }
             if ( empty( $sub_total ) && ! empty( $tickets ) ) {
                 foreach( $tickets as $ticket ) {
-                    $sub_total += $ticket->subtotal;
+					$sub_total += $ep_functions->ep_order_amount_or_zero( $ticket->subtotal );
                 }
-                $sub_total += isset( $order_info['event_fixed_price'] ) ? $order_info['event_fixed_price'] : 0;
+				$sub_total += $ep_functions->ep_order_amount_or_zero( isset( $order_info['event_fixed_price'] ) ? $order_info['event_fixed_price'] : 0 );
             }
             $mail_body = $global_setting->admin_booking_confirmed_email;
             $to = $this->get_admin_notification_email( $global_setting );
@@ -504,8 +504,8 @@ class EventM_Notification_Service {
             $booking_date_time = esc_html( $ep_functions->ep_timestamp_to_datetime( $booking->em_date ) );
             $mail_body = str_replace( "(booking_date)", empty($booking_date_time) ? '' : $booking_date_time, $mail_body );
             $mail_body = str_replace( "(subtotal)", $ep_functions->ep_price_with_position($sub_total), $mail_body );
-            $mail_body = str_replace( "(discount)", $ep_functions->ep_price_with_position(isset($order_info['discount']) ? $order_info['discount'] : 0), $mail_body );
-            $mail_body = str_replace( "(order_total)", $ep_functions->ep_price_with_position($order_info['booking_total']), $mail_body );
+			$mail_body         = str_replace( '(discount)', $ep_functions->ep_price_with_position( $ep_functions->ep_order_amount_or_zero( isset( $order_info['discount'] ) ? $order_info['discount'] : 0 ) ), $mail_body );
+			$mail_body         = str_replace( '(order_total)', $ep_functions->ep_price_with_position( $ep_functions->ep_order_amount_or_zero( $order_info['booking_total'] ) ), $mail_body );
             $payment_gateway = isset($booking->em_payment_method) ? ucfirst($booking->em_payment_method) : 'N/A';
             $mail_body = str_replace( "(payment_method)", $payment_gateway, $mail_body );
             $mail_body = str_replace( "(user_name)", $booking_user_name, $mail_body );
@@ -601,15 +601,15 @@ class EventM_Notification_Service {
             }
             $ticket_sub_total = $total_qty = 0;
             foreach( $tickets as $ticket ){
-                $ticket_sub_total = $ticket_sub_total + $ticket->subtotal;
+				$ticket_sub_total = $ticket_sub_total + $ep_functions->ep_order_amount_or_zero( $ticket->subtotal );
                 $total_qty = $total_qty + $ticket->qty;
             }
         
-            $mail_body = str_replace( "$(Subtotal)", $ep_functions->ep_price_with_position( isset($order_info['booking_total']) ? $order_info['booking_total'] : 0 ), $mail_body );
+			$mail_body      = str_replace( '$(Subtotal)', $ep_functions->ep_price_with_position( $ep_functions->ep_order_amount_or_zero( isset( $order_info['booking_total'] ) ? $order_info['booking_total'] : 0 ) ), $mail_body );
             $mail_body = str_replace( "(Quantity)", $total_qty, $mail_body );
             $mail_body = str_replace( "$(Price)", $ep_functions->ep_price_with_position( $ticket_sub_total ), $mail_body );
-            $mail_body = str_replace( "$(Discount)", $ep_functions->ep_price_with_position( isset( $order_info['discount']) ? $order_info['discount'] : 0 ), $mail_body );
-            $mail_body = str_replace( "$(Fixed Event Fee)", $ep_functions->ep_price_with_position( $order_info['event_fixed_price'] ), $mail_body );
+			$mail_body      = str_replace( '$(Discount)', $ep_functions->ep_price_with_position( $ep_functions->ep_order_amount_or_zero( isset( $order_info['discount'] ) ? $order_info['discount'] : 0 ) ), $mail_body );
+			$mail_body      = str_replace( '$(Fixed Event Fee)', $ep_functions->ep_price_with_position( $ep_functions->ep_order_amount_or_zero( $order_info['event_fixed_price'] ) ), $mail_body );
             $lastFoot = explode( '</tfoot>', $mail_body );
             $lastFootUpdate = $lastFoot[0];
             if( ! empty( $booking->em_attendee_names ) && count( $booking->em_attendee_names ) > 0 ) {
@@ -647,7 +647,7 @@ class EventM_Notification_Service {
         if( empty( $global_setting->disable_admin_email ) ) {
             if ( empty( $ticket_sub_total ) && ! empty( $tickets ) ) {
                 foreach( $tickets as $ticket ) {
-                    $ticket_sub_total += $ticket->subtotal;
+					$ticket_sub_total += $ep_functions->ep_order_amount_or_zero( $ticket->subtotal );
                 }
             }
             $headers = $this->get_email_headers( $global_setting );
@@ -715,15 +715,15 @@ class EventM_Notification_Service {
                 $mail_body = str_replace( "Event Date Time", empty( $event_date_time ) ? '' : $event_date_time, $mail_body );
             }
             foreach( $tickets as $ticket ) {
-                $ticket_sub_total = $ticket_sub_total + $ticket->subtotal;
+				$ticket_sub_total = $ticket_sub_total + $ep_functions->ep_order_amount_or_zero( $ticket->subtotal );
                 $total_qty = $total_qty + $ticket->qty;
             }
         
-            $mail_body = str_replace( "$(Subtotal)", $ep_functions->ep_price_with_position( ! empty( $order_info['booking_total'] ) ? $order_info['booking_total'] : 0 ), $mail_body );
+			$mail_body      = str_replace( '$(Subtotal)', $ep_functions->ep_price_with_position( $ep_functions->ep_order_amount_or_zero( ! empty( $order_info['booking_total'] ) ? $order_info['booking_total'] : 0 ) ), $mail_body );
             $mail_body = str_replace( "(Quantity)", $total_qty, $mail_body );
             $mail_body = str_replace( "$(Price)", $ep_functions->ep_price_with_position($ticket_sub_total), $mail_body );
-            $mail_body = str_replace( "$(Discount)", $ep_functions->ep_price_with_position( isset($order_info['discount']) ? $order_info['discount'] : 0 ), $mail_body );
-            $mail_body = str_replace( "$(Fixed Event Fee)", $ep_functions->ep_price_with_position($order_info['event_fixed_price']), $mail_body );
+			$mail_body      = str_replace( '$(Discount)', $ep_functions->ep_price_with_position( $ep_functions->ep_order_amount_or_zero( isset( $order_info['discount'] ) ? $order_info['discount'] : 0 ) ), $mail_body );
+			$mail_body      = str_replace( '$(Fixed Event Fee)', $ep_functions->ep_price_with_position( $ep_functions->ep_order_amount_or_zero( $order_info['event_fixed_price'] ) ), $mail_body );
             $lastFoot = explode( '</tfoot>', $mail_body );
             $lastFootUpdate = $lastFoot[0];
             if( ! empty( $booking->em_attendee_names ) && count( $booking->em_attendee_names ) > 0 ) {
@@ -760,7 +760,7 @@ class EventM_Notification_Service {
         }
 
         // Admin email
-        $sub_total = $ticket_sub_total + $order_info['event_fixed_price'];
+		$sub_total = $ticket_sub_total + $ep_functions->ep_order_amount_or_zero( isset( $order_info['event_fixed_price'] ) ? $order_info['event_fixed_price'] : 0 );
         if( empty( $global_setting->disable_admin_email ) && $global_setting->send_booking_pending_admin_email == 1 ) {
             if ( empty( $event_date_time ) && isset( $booking->event_data->em_start_date ) ) {
                 $event_date_time = esc_html( $ep_functions->ep_timestamp_to_date( $booking->event_data->em_start_date, $ep_functions->ep_get_datepicker_format(), 1 ) );
@@ -770,9 +770,9 @@ class EventM_Notification_Service {
             }
             if ( empty( $sub_total ) && ! empty( $tickets ) ) {
                 foreach( $tickets as $ticket ) {
-                    $ticket_sub_total += $ticket->subtotal;
+					$ticket_sub_total += $ep_functions->ep_order_amount_or_zero( $ticket->subtotal );
                 }
-                $sub_total = $ticket_sub_total + $order_info['event_fixed_price'];
+				$sub_total = $ticket_sub_total + $ep_functions->ep_order_amount_or_zero( isset( $order_info['event_fixed_price'] ) ? $order_info['event_fixed_price'] : 0 );
             }
             $mail_body = isset($global_setting->booking_pending_admin_email) ? $global_setting->booking_pending_admin_email : sprintf( esc_html__( 'User %s has Booking Pending with Booking ID #%d.', 'eventprime-event-calendar-management' ), $booking_user_email, $booking_id );
             
@@ -789,8 +789,8 @@ class EventM_Notification_Service {
             $booking_date_time = esc_html( $ep_functions->ep_timestamp_to_datetime( $booking->em_date ) );
             $mail_body = str_replace( "(booking_date)", empty($booking_date_time) ? '' : $booking_date_time, $mail_body );
             $mail_body = str_replace( "(subtotal)", $ep_functions->ep_price_with_position($sub_total), $mail_body );
-            $mail_body = str_replace( "(discount)", $ep_functions->ep_price_with_position(isset($order_info['discount']) ? $order_info['discount'] : 0), $mail_body );
-            $mail_body = str_replace( "(order_total)", $ep_functions->ep_price_with_position($order_info['booking_total']), $mail_body );
+			$mail_body         = str_replace( '(discount)', $ep_functions->ep_price_with_position( $ep_functions->ep_order_amount_or_zero( isset( $order_info['discount'] ) ? $order_info['discount'] : 0 ) ), $mail_body );
+			$mail_body         = str_replace( '(order_total)', $ep_functions->ep_price_with_position( $ep_functions->ep_order_amount_or_zero( $order_info['booking_total'] ) ), $mail_body );
             $payment_gateway = isset($booking->em_payment_method) ? ucfirst($booking->em_payment_method) : 'N/A';
             $mail_body = str_replace( "(payment_method)", $payment_gateway, $mail_body );
             $mail_body = str_replace( "(user_name)", $booking_user_name, $mail_body );
@@ -851,15 +851,15 @@ class EventM_Notification_Service {
             $ticket_sub_total = 0;
             $total_qty = 0;
             foreach($tickets as $ticket):
-                $ticket_sub_total = $ticket_sub_total + $ticket->subtotal;
+				$ticket_sub_total = $ticket_sub_total + $ep_functions->ep_order_amount_or_zero( $ticket->subtotal );
                 $total_qty = $total_qty + $ticket->qty;
             endforeach;
         
-            $mail_body = str_replace("$(Subtotal)", $ep_functions->ep_price_with_position( isset($order_info['booking_total']) ? $order_info['booking_total'] : 0 ), $mail_body);
+			$mail_body = str_replace( '$(Subtotal)', $ep_functions->ep_price_with_position( $ep_functions->ep_order_amount_or_zero( isset( $order_info['booking_total'] ) ? $order_info['booking_total'] : 0 ) ), $mail_body );
             $mail_body = str_replace("(Quantity)", $total_qty, $mail_body);
             $mail_body = str_replace("$(Price)", $ep_functions->ep_price_with_position($ticket_sub_total), $mail_body);
-            $mail_body = str_replace("$(Discount)", $ep_functions->ep_price_with_position( isset($order_info['discount']) ? $order_info['discount'] : 0 ), $mail_body);
-            $mail_body = str_replace("$(Fixed Event Fee)", $ep_functions->ep_price_with_position($order_info['event_fixed_price']), $mail_body);
+			$mail_body = str_replace( '$(Discount)', $ep_functions->ep_price_with_position( $ep_functions->ep_order_amount_or_zero( isset( $order_info['discount'] ) ? $order_info['discount'] : 0 ) ), $mail_body );
+			$mail_body = str_replace( '$(Fixed Event Fee)', $ep_functions->ep_price_with_position( $ep_functions->ep_order_amount_or_zero( $order_info['event_fixed_price'] ) ), $mail_body );
         
             $lastFoot = explode( '</tfoot>', $mail_body );
             $lastFootUpdate = $lastFoot[0];

@@ -60,6 +60,17 @@ a.ep-customize-banner-wrap{
     margin: 30px auto;
     box-shadow: 1px 1px 3px 2px rgb(215 215 215 / 26%);
 }
+@media (max-width: 782px) {
+	.ep-premium-banner-main .ep-customize-banner-wrap{
+		flex-direction: column;
+		gap: 12px;
+		max-width: 100%;
+		box-sizing: border-box;
+	}
+	.ep-premium-banner-main .ep-banner-pitch-head{
+		font-size: 1.25rem;
+	}
+}
  /*--Customization Banner End--*/
 </style>
 

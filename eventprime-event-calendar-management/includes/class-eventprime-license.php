@@ -35,6 +35,10 @@ class EventPrime_License {
             'body'    => $api_params
         ));
 
+		if ( class_exists( 'EventPrime_License_Diagnostics' ) ) {
+			EventPrime_License_Diagnostics::capture( 'activation_unified', $response, true );
+		}
+
         if (is_wp_error($response)) {
             return array(
                 'status'  => false,
@@ -250,6 +254,9 @@ class EventPrime_License {
 				'body'      => $api_params,
 			)
 		);
+		if ( class_exists( 'EventPrime_License_Diagnostics' ) ) {
+			EventPrime_License_Diagnostics::capture( 'activation_legacy', $response, false );
+		}
 		$license_data  = null;
 		$message       = '';
 		$request_error = '';
@@ -804,6 +811,60 @@ class EventPrime_License {
 		);
 	}
 
+	/**
+	 * Tell whether a stored licence record belongs to a lifetime key.
+	 *
+	 * Recognises the explicit store marker, the text markers and the
+	 * 1969/1970 sentinel the store sends for timestamp 0.
+	 *
+	 * @param mixed $entry One stored plugin record from metagauss_license_data.
+	 * @return bool
+	 */
+	public function ep_license_entry_is_lifetime( $entry ) {
+		if ( ! is_array( $entry ) ) {
+			return false;
+		}
+		if ( isset( $entry['lifetime'] ) && filter_var( $entry['lifetime'], FILTER_VALIDATE_BOOLEAN ) ) {
+			return true;
+		}
+		foreach ( array( 'expires', 'expiration', 'expire_date' ) as $marker_key ) {
+			if ( isset( $entry[ $marker_key ] ) && is_string( $entry[ $marker_key ] ) && 'lifetime' === strtolower( trim( $entry[ $marker_key ] ) ) ) {
+				return true;
+			}
+		}
+		$expiration_empty = ! isset( $entry['expiration'] ) || '' === $entry['expiration'] || ( is_numeric( $entry['expiration'] ) && (int) $entry['expiration'] <= 0 );
+		if ( $expiration_empty && ! empty( $entry['expire_date'] ) && is_string( $entry['expire_date'] ) ) {
+			$sentinel_ts = strtotime( $entry['expire_date'] );
+			if ( is_int( $sentinel_ts ) && $sentinel_ts <= 2 * DAY_IN_SECONDS ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Expiry timestamp of a stored licence record, 0 when lifetime or unknown.
+	 *
+	 * @param mixed $entry One stored plugin record from metagauss_license_data.
+	 * @return int
+	 */
+	public function ep_license_entry_expiry_ts( $entry ) {
+		if ( ! is_array( $entry ) || $this->ep_license_entry_is_lifetime( $entry ) ) {
+			return 0;
+		}
+		$expiration_ts = isset( $entry['expiration'] ) && is_numeric( $entry['expiration'] ) ? (int) $entry['expiration'] : 0;
+		if ( $expiration_ts > 0 ) {
+			return $expiration_ts;
+		}
+		if ( ! empty( $entry['expire_date'] ) && is_string( $entry['expire_date'] ) ) {
+			$maybe_ts = strtotime( $entry['expire_date'] );
+			if ( is_int( $maybe_ts ) && $maybe_ts > 0 ) {
+				return $maybe_ts;
+			}
+		}
+		return 0;
+	}
+
 public function ep_get_licenses_details() {
     $ep_license_data = get_option('metagauss_license_data', []);
 
@@ -825,13 +886,12 @@ public function ep_get_licenses_details() {
             $status_class2 = 'ep-status-active';
 
             // Override if expired
-            if (!empty($first_plugin['expiration']) && is_numeric($first_plugin['expiration'])) {
-                if ((int)$first_plugin['expiration'] < time()) {
-                    $status = 'Expired';
-                    $status_class = 'ep-license-expired';
-                    $status_class2 = 'ep-status-expired';
-                }
-            }
+				$entry_expiry_ts = $this->ep_license_entry_expiry_ts( $first_plugin );
+				if ( $entry_expiry_ts > 0 && $entry_expiry_ts < time() ) {
+					$status        = 'Expired';
+					$status_class  = 'ep-license-expired';
+					$status_class2 = 'ep-status-expired';
+				}
 
 
             
@@ -855,7 +915,10 @@ public function ep_get_licenses_details() {
 				}
             $masked_key = substr($license_key, 0, 5) . str_repeat('*', strlen($license_key) - 10) . substr($license_key, -5);
             //$masked_key = $license_key;
-            $expiration = !empty($first_plugin['expire_date']) ? $first_plugin['expire_date'] : 'Lifetime';
+				$expiration = ! empty( $first_plugin['expire_date'] ) ? $first_plugin['expire_date'] : 'Lifetime';
+				if ( $this->ep_license_entry_is_lifetime( $first_plugin ) ) {
+					$expiration = esc_html__( 'Lifetime', 'eventprime-event-calendar-management' );
+				}
             $type = $first_plugin['slug'];
             ?>
             <div class="ep-license-list">

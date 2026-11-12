@@ -393,10 +393,17 @@ function ep_event_download_attendees( event_id ){
                     return false;
                 }
                 else{
-                    var link = document.createElement('a');
-                    link.download = "attendees.csv";
-                    link.href = 'data:application/csv;charset=utf-8,' + encodeURIComponent(response);
+                    var text = String( response );
+                    var bom = ( text.charCodeAt( 0 ) === 0xFEFF ) ? '' : '\uFEFF';
+                    var blob = new Blob( [ bom, text ], { type: 'text/csv;charset=utf-8;' } );
+                    var url = window.URL.createObjectURL( blob );
+                    var link = document.createElement( 'a' );
+                    link.href = url;
+                    link.download = 'attendees.csv';
+                    document.body.appendChild( link );
                     link.click();
+                    document.body.removeChild( link );
+                    setTimeout( function () { window.URL.revokeObjectURL( url ); }, 0 );
                 }
         }
         });

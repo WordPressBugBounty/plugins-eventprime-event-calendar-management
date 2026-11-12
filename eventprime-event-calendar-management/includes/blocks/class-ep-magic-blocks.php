@@ -7,6 +7,12 @@ if ( ! defined( 'ABSPATH' ) ) {
         private $event_prime;
 	    private $version;
         public $ep_events;
+	/**
+	 * Number of slider blocks rendered on the current request.
+	 *
+	 * @var int
+	 */
+	private static $slider_count = 0;
 
         private function ep_get_attachment_url( $attachment_id, $size = 'large' ) {
             $attachment_id = absint( $attachment_id );
@@ -445,7 +451,8 @@ if ( ! defined( 'ABSPATH' ) ) {
             wp_enqueue_script(
                 'ep-blocks-scripts',
                 plugin_dir_url(EP_PLUGIN_FILE) . 'admin/js/ep-blocks-public.js',
-                false, ''
+				array( 'jquery' ),
+				EVENTPRIME_VERSION
             );
             $data_array = array(
                 'ajax_url'=> admin_url('admin-ajax.php'),
@@ -610,7 +617,8 @@ if ( ! defined( 'ABSPATH' ) ) {
             wp_enqueue_script(
                 'ep-blocks-scripts',
                 plugin_dir_url(EP_PLUGIN_FILE) . 'admin/js/ep-blocks-public.js',
-                false, ''
+				array( 'jquery' ),
+				EVENTPRIME_VERSION
             );
             wp_enqueue_style(
                 'ep-blocks-style',
@@ -632,12 +640,14 @@ if ( ! defined( 'ABSPATH' ) ) {
                 )
             );
             $events = $event_controller->get_events_post_data($query);
-            $number = 1;
+
+			$number = absint( ++self::$slider_count );
+
             $html = '';
             ob_start();
             if ( is_object( $events ) && ! empty( $events->posts ) ) {?>
-                <div id="ep_block_container" class="ep-event-slide-container ep-position-relative">
-                    <ul class="ep_event_slides ep-event-slider-<?php echo esc_attr( $number ); ?> ep-m-0 ep-p-0">
+				<div id="ep_block_container" class="ep-event-slide-container ep-block-slider ep-position-relative">
+					<ul class="ep_event_slides ep-event-slider-<?php echo esc_attr( $number ); ?> ep-event-block-slider-<?php echo esc_attr( $number ); ?> ep-m-0 ep-p-0">
                         <?php foreach ( $events->posts as $event ){ ?>
                             <li class="ep-m-0 ep-p-0 ep-block-event-slide">
                                 <div class="ep-block-slider-meta">
@@ -652,9 +662,10 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <div class="ep-event-block-slider-nav-<?php echo esc_attr( $number ); ?> ep-event-block-slider-nav" ></div>
                 </div>
                 <script>
-                    window.onload = function() {
+					(function() {
+					function epInit() {
                         let slide_duration = eventprime.global_settings.event_detail_image_slider_duration;
-                        jQuery('.ep-event-slider-<?php echo esc_attr( $number ); ?>').responsiveSlides({
+						jQuery('.ep-event-block-slider-<?php echo esc_attr( $number ); ?>').responsiveSlides({
                             auto: eventprime.global_settings.event_detail_image_auto_scroll,
                             speed: 500,
                             timeout: ( slide_duration * 1000 ),
@@ -671,6 +682,8 @@ if ( ! defined( 'ABSPATH' ) ) {
                             namespace: "ep-block-rslides"
                         });
                     }
+					if ( document.readyState === 'complete' ) { epInit(); } else { window.addEventListener( 'load', epInit ); }
+					})();
                 </script> <?php
             }
             $html = ob_get_contents();

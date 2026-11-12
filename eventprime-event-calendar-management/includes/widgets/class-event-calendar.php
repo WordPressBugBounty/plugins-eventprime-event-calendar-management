@@ -26,7 +26,8 @@ if (!class_exists('EventM_calendar')) {
             wp_enqueue_script(
                 'ep-widgets-scripts',
                 plugin_dir_url(dirname(__DIR__)) . '/admin/js/ep-widgets-public.js',
-                false, ''
+				array( 'jquery' ),
+				EVENTPRIME_VERSION
             );
             $data_array = array(
                 'ajax_url'=> admin_url('admin-ajax.php'),

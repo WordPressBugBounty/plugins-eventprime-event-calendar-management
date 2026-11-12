@@ -157,6 +157,8 @@ class Eventprime_Event_Calendar_Management {
                 
                 require_once plugin_dir_path( dirname( __FILE__)) . 'includes/class-eventprime-license.php';
                 require_once plugin_dir_path( dirname( __FILE__)) . 'includes/class-ep-license-notices.php';
+				require_once plugin_dir_path( __DIR__ ) . 'includes/class-eventprime-license-diagnostics.php';
+				require_once plugin_dir_path( __DIR__ ) . 'includes/class-eventprime-elementor-seo-notice.php';
                 require_once plugin_dir_path( dirname( __FILE__)) . 'includes/class-metagauss-license-migrator.php';
                 
                 require_once plugin_dir_path( dirname( __FILE__)) . 'includes/class-ep-bookings.php';
@@ -219,6 +221,7 @@ class Eventprime_Event_Calendar_Management {
 
 		$plugin_admin = new Eventprime_Event_Calendar_Management_Admin( $this->get_plugin_name(), $this->get_version() );
 		$license_notices = new EventPrime_License_Notices();
+		$elementor_seo_notice = new EventPrime_Elementor_Seo_Notice();
                 $this->loader->add_action('admin_enqueue_scripts', $plugin_admin,'deregister_acf_timepicker_on_custom_post',999);
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
@@ -234,6 +237,8 @@ class Eventprime_Event_Calendar_Management {
                 $this->loader->add_action( 'admin_notices', $plugin_admin, 'ep_print_notices' );
                 $this->loader->add_action( 'admin_notices', $license_notices, 'maybe_render_notice' );
                 $this->loader->add_action( 'wp_ajax_ep_dismiss_license_notice', $license_notices, 'ajax_dismiss_notice' );
+				$this->loader->add_action( 'admin_notices', $elementor_seo_notice, 'maybe_render_notice' );
+				$this->loader->add_action( 'wp_ajax_ep_dismiss_elementor_seo_notice', $elementor_seo_notice, 'ajax_dismiss_notice' );
                 /* 
                  * Event Types start
                  */
@@ -609,6 +614,8 @@ class Eventprime_Event_Calendar_Management {
                 'deactivate_bundle_license' =>false,
                 'upload_license_file' =>false,
                 'check_license_status' => false,
+				'license_connection_test'           => false,
+				'license_diagnostics_clear'         => false,
                 
 
             );

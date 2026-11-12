@@ -5326,6 +5326,115 @@ class Eventprime_Rest_Api {
 
     /* ---------- Additional handlers (CRUD) ---------- */
 
+	/**
+	 * Site timezone as a DateTimeZone, with a fallback for WordPress older than 5.3 (no wp_timezone()).
+	 *
+	 * @return DateTimeZone
+	 */
+	public static function get_site_timezone_object() {
+		if ( function_exists( 'wp_timezone' ) ) {
+			return wp_timezone();
+		}
+		return self::get_site_timezone_fallback();
+	}
+
+	/**
+	 * Build the site timezone from the timezone_string / gmt_offset options (used before WordPress 5.3).
+	 *
+	 * @return DateTimeZone
+	 */
+	public static function get_site_timezone_fallback() {
+		$tz_string = get_option( 'timezone_string', '' );
+		if ( ! empty( $tz_string ) ) {
+			try {
+				return new DateTimeZone( $tz_string );
+			} catch ( Exception $e ) {
+				return new DateTimeZone( 'UTC' );
+			}
+		}
+		$offset_seconds = (int) ( (float) get_option( 'gmt_offset', 0 ) * 3600 );
+		$tz_name        = timezone_name_from_abbr( '', $offset_seconds, 0 );
+		return new DateTimeZone( $tz_name ? $tz_name : 'UTC' );
+	}
+
+	/**
+	 * Parse one REST event date input into the stored EventPrime shape (site timezone).
+	 *
+	 * Accepts a combined date-time string (an explicit offset is honoured, otherwise the site timezone),
+	 * a Y-m-d date with an optional separate time, or an all-digit Unix timestamp. A date without a time
+	 * keeps the event's existing time of day, or falls back to 00:00:00 (start) / 23:59:59 (end).
+	 *
+	 * @param mixed  $value         Raw date input.
+	 * @param mixed  $time_value    Raw separate time input, or an empty string.
+	 * @param bool   $is_end        True for the end date, false for the start date.
+	 * @param string $existing_time Stored time of day (for example 6:00 PM), or an empty string.
+	 * @return array|WP_Error Array with date_ts, time_12h, datetime_ts, or WP_Error invalid_date (400).
+	 */
+	private function normalize_event_update_datetime( $value, $time_value, $is_end, $existing_time ) {
+		$invalid = new WP_Error( 'invalid_date', 'Invalid date or time value.', array( 'status' => 400 ) );
+		if ( ! is_scalar( $value ) || ! is_scalar( $time_value ) ) {
+			return $invalid;
+		}
+		$value      = sanitize_text_field( (string) $value );
+		$time_value = sanitize_text_field( (string) $time_value );
+		$timezone   = self::get_site_timezone_object();
+		$default    = $is_end ? '23:59:59' : '00:00:00';
+
+		$parse = function ( $text ) use ( $timezone ) {
+			try {
+				$parsed = new DateTime( $text, $timezone );
+			} catch ( Exception $e ) {
+				return null;
+			}
+			$errors = DateTime::getLastErrors();
+			if ( ! empty( $errors ) && ( ! empty( $errors['warning_count'] ) || ! empty( $errors['error_count'] ) ) ) {
+				return null;
+			}
+			return $parsed->setTimezone( $timezone );
+		};
+
+		if ( ctype_digit( $value ) ) {
+			$moment = $parse( '@' . $value );
+		} elseif ( preg_match( '/\d{1,2}:\d{2}/', $value ) ) {
+			$moment = $parse( $value );
+		} else {
+			$day = $parse( $value );
+			if ( null === $day ) {
+				return $invalid;
+			}
+			$time_text = '' !== $time_value ? $time_value : ( is_string( $existing_time ) ? trim( $existing_time ) : '' );
+			$moment    = null;
+			if ( '' !== $time_text ) {
+				$moment = $parse( $day->format( 'Y-m-d' ) . ' ' . $time_text );
+				if ( null === $moment && '' !== $time_value ) {
+					return $invalid;
+				}
+			}
+			if ( null === $moment ) {
+				$moment = $parse( $day->format( 'Y-m-d' ) . ' ' . $default );
+			}
+		}
+		if ( null === $moment ) {
+			return $invalid;
+		}
+
+		$date_str = $moment->format( 'Y-m-d' );
+		$time_12h = $moment->format( 'g:i A' );
+		$ep       = class_exists( 'Eventprime_Basic_Functions' ) ? new Eventprime_Basic_Functions() : null;
+		if ( $ep && method_exists( $ep, 'ep_date_to_timestamp' ) && method_exists( $ep, 'ep_datetime_to_timestamp' ) ) {
+			$date_ts     = (int) $ep->ep_date_to_timestamp( $date_str, 'Y-m-d', 1 );
+			$datetime_ts = (int) $ep->ep_datetime_to_timestamp( $date_str . ' ' . $time_12h, 'Y-m-d', '', 0, 1 );
+		} else {
+			$date_ts     = (int) strtotime( $date_str . ' 00:00:00' );
+			$datetime_ts = (int) $moment->getTimestamp();
+		}
+		return array(
+			'date_ts'     => $date_ts,
+			'time_12h'    => $time_12h,
+			'datetime_ts' => $datetime_ts,
+		);
+	}
+
     public function handle_event_update( WP_REST_Request $request ) {
         $id = absint( $request->get_param( 'id' ) );
         $post = get_post( $id );
@@ -5333,14 +5442,38 @@ class Eventprime_Rest_Api {
             return new WP_Error( 'not_found', 'Event not found.', array( 'status' => 404 ) );
         }
         $body = $request->get_body_params();
+		// Validate every date input before anything is written, so a bad value leaves the event untouched.
+		$date_meta = array();
+		foreach ( array( 'start', 'end' ) as $edge ) {
+			$is_end   = ( 'end' === $edge );
+			$date_val = null;
+			foreach ( array( 'em_' . $edge . '_date_time', $edge . '_date_time', 'em_' . $edge . '_date' ) as $field ) {
+				if ( isset( $body[ $field ] ) && ( is_array( $body[ $field ] ) || is_object( $body[ $field ] ) || '' !== trim( (string) $body[ $field ] ) ) ) {
+					$date_val = $body[ $field ];
+					break;
+				}
+			}
+			if ( null === $date_val ) {
+				continue;
+			}
+			$time_val = ( isset( $body[ 'em_' . $edge . '_time' ] ) && is_scalar( $body[ 'em_' . $edge . '_time' ] ) ) ? $body[ 'em_' . $edge . '_time' ] : '';
+			$parsed   = $this->normalize_event_update_datetime( $date_val, $time_val, $is_end, get_post_meta( $id, 'em_' . $edge . '_time', true ) );
+			if ( is_wp_error( $parsed ) ) {
+				return $parsed;
+			}
+			$date_meta[ 'em_' . $edge . '_date' ]      = $parsed['date_ts'];
+			$date_meta[ 'em_' . $edge . '_time' ]      = $parsed['time_12h'];
+			$date_meta[ 'em_' . $edge . '_date_time' ] = $parsed['datetime_ts'];
+		}
         $update = array( 'ID' => $id );
         if ( isset( $body['em_name'] ) ) $update['post_title'] = sanitize_text_field( $body['em_name'] );
         if ( isset( $body['description'] ) ) $update['post_content'] = sanitize_textarea_field( $body['description'] );
         if ( ! empty( $update ) ) {
             wp_update_post( $update );
         }
-        if ( isset( $body['em_start_date'] ) ) update_post_meta( $id, 'em_start_date', sanitize_text_field( $body['em_start_date'] ) );
-        if ( isset( $body['em_end_date'] ) ) update_post_meta( $id, 'em_end_date', sanitize_text_field( $body['em_end_date'] ) );
+		foreach ( $date_meta as $meta_key => $meta_value ) {
+			update_post_meta( $id, $meta_key, $meta_value );
+		}
         return rest_ensure_response( array( 'status' => 'success', 'count' => 1, 'event' => array( 'id' => $id ) ) );
     }
 
@@ -5381,26 +5514,112 @@ class Eventprime_Rest_Api {
         return rest_ensure_response( array( 'status' => 'error', 'message' => 'Failed to create ticket.' ), 500 );
     }
 
+	/**
+	 * Resolve the parent event post of a ticket mirror post.
+	 *
+	 * @param int $ticket_id Ticket post ID.
+	 * @return WP_Post|null The event post, or null when it cannot be resolved.
+	 */
+	protected function ep_get_ticket_parent_event( $ticket_id ) {
+		$value = get_post_meta( $ticket_id, 'em_event', true );
+		if ( is_array( $value ) ) {
+			$value = reset( $value );
+		}
+		if ( ! is_int( $value ) && ! ( is_string( $value ) && ctype_digit( $value ) ) ) {
+			return null;
+		}
+		$event_id = absint( $value );
+		if ( ! $event_id ) {
+			return null;
+		}
+		$event = get_post( $event_id );
+		if ( empty( $event ) || 'em_event' !== $event->post_type ) {
+			return null;
+		}
+		return $event;
+	}
+
+	/**
+	 * Check whether the parent event of a ticket is visible to the current user.
+	 *
+	 * @param int   $ticket_id Ticket post ID.
+	 * @param array $cache     Visibility results keyed by event ID.
+	 * @return bool
+	 */
+	protected function ep_ticket_event_is_visible( $ticket_id, array &$cache ) {
+		$event = $this->ep_get_ticket_parent_event( $ticket_id );
+		if ( null === $event ) {
+			return false;
+		}
+		if ( ! isset( $cache[ $event->ID ] ) ) {
+			$cache[ $event->ID ] = $this->ep_can_view_event_post( $event );
+		}
+		return (bool) $cache[ $event->ID ];
+	}
+
     public function handle_tickets_list( WP_REST_Request $request ) {
         $params = $request->get_query_params();
         $event_id = isset( $params['event_id'] ) ? absint( $params['event_id'] ) : 0;
-        $args = array( 'post_type' => 'em_ticket', 'posts_per_page' => 20 );
-        if ( $event_id ) $args['meta_query'] = array( array( 'key' => 'em_event', 'value' => $event_id ) );
-        $q = get_posts( $args );
-        $out = array();
-        $epf = new Eventprime_Basic_Functions();
-        $currency = $epf->ep_get_global_settings('currency');
-        foreach ( $q as $t ) {
-            $out[] = array(
-                'ticket_id' => $t->ID,
-                'event_id' => intval( get_post_meta( $t->ID, 'em_event', true ) ),
-                'type' => sanitize_text_field( $t->post_title ),
-                'price' => get_post_meta( $t->ID, 'em_price', true ) !== '' ? floatval( get_post_meta( $t->ID, 'em_price', true ) ) : 0,
-                'currency' => $currency ? $currency : 'USD',
-                'available' => get_post_meta( $t->ID, 'em_capacity', true ) !== '' ? intval( get_post_meta( $t->ID, 'em_capacity', true ) ) : null,
-                'created_at' => isset( $t->post_date ) ? $t->post_date : null,
-            );
-        }
+		if ( $event_id ) {
+			$event_post = get_post( $event_id );
+			if ( empty( $event_post ) || 'em_event' !== $event_post->post_type || ! $this->ep_can_view_event_post( $event_post ) ) {
+				return new WP_Error( 'not_found', 'Event not found.', array( 'status' => 404 ) );
+			}
+		}
+
+		$visibility_cache = array();
+
+		$per_page = 20;
+		$max_page = 50;
+		$page     = 1;
+		$args     = array(
+			'post_type'      => 'em_ticket',
+			'posts_per_page' => $per_page,
+			'orderby'        => array(
+				'date' => 'DESC',
+				'ID'   => 'DESC',
+			),
+		);
+		if ( $event_id ) {
+			$args['meta_query'] = array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- existing lookup of one event's tickets.
+				array(
+					'key'   => 'em_event',
+					'value' => $event_id,
+				),
+			);
+		}
+		$out        = array();
+		$epf        = new Eventprime_Basic_Functions();
+		$currency   = $epf->ep_get_global_settings( 'currency' );
+		$can_manage = current_user_can( 'manage_options' );
+		// Page through the tickets until enough visible ones are collected or the data runs out.
+		$collected = 0;
+		$fetched   = 0;
+		do {
+			$args['paged'] = $page;
+			$q             = get_posts( $args );
+			$fetched       = count( $q );
+			foreach ( $q as $t ) {
+				if ( $collected >= $per_page ) {
+					break;
+				}
+				$is_orphan = null === $this->ep_get_ticket_parent_event( $t->ID );
+				if ( $is_orphan ? ! $can_manage : ! $this->ep_ticket_event_is_visible( $t->ID, $visibility_cache ) ) {
+					continue;
+				}
+				$out[] = array(
+					'ticket_id'  => $t->ID,
+					'event_id'   => intval( get_post_meta( $t->ID, 'em_event', true ) ),
+					'type'       => sanitize_text_field( $t->post_title ),
+					'price'      => get_post_meta( $t->ID, 'em_price', true ) !== '' ? floatval( get_post_meta( $t->ID, 'em_price', true ) ) : 0,
+					'currency'   => $currency ? $currency : 'USD',
+					'available'  => get_post_meta( $t->ID, 'em_capacity', true ) !== '' ? intval( get_post_meta( $t->ID, 'em_capacity', true ) ) : null,
+					'created_at' => isset( $t->post_date ) ? $t->post_date : null,
+				);
+				++$collected;
+			}
+			++$page;
+		} while ( $collected < $per_page && $fetched === $per_page && $page <= $max_page );
 
         $resp = rest_ensure_response( array( 'status' => 'success', 'count' => count( $out ), 'tickets' => $out ) );
         return $resp;
@@ -5598,6 +5817,10 @@ class Eventprime_Rest_Api {
         $id = absint( $request->get_param( 'id' ) );
         $post = get_post( $id );
         if ( empty( $post ) || $post->post_type !== 'em_ticket' ) return new WP_Error( 'not_found', 'Ticket not found.', array( 'status' => 404 ) );
+		$visibility_cache = array();
+		if ( ! $this->ep_ticket_event_is_visible( $post->ID, $visibility_cache ) ) {
+			return new WP_Error( 'not_found', 'Ticket not found.', array( 'status' => 404 ) );
+		}
         return rest_ensure_response( array( 'status' => 'success', 'count' => 1, 'ticket' => array( 'id' => $post->ID, 'name' => sanitize_text_field( $post->post_title ), 'price' => get_post_meta( $post->ID, 'em_price', true ), 'event_id' => get_post_meta( $post->ID, 'em_event', true ) ) ) );
     }
 

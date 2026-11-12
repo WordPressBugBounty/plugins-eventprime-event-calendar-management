@@ -139,7 +139,7 @@ $sub_options = $global_settings->sub_options;
                 <label>
                     <input class="regular-text" name="checkout_page_timer" id="checkout_page_timer" type="number" min="1" value="<?php echo esc_html( $global_options->checkout_page_timer );?>">
                 </label>
-                <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( 'Sets the timer (in minutes) for how long the tickets will be kept on hold for the current user while checkout is in progress. Once the timer ends, tickets are released and the current user will be requested to restart the checkout process and taken back to the event page. Timer, along with depleting bar, is displayed to the users on top of the checkout page during the checkout.', 'eventprime-event-calendar-management' );?></div>
+				<div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( 'Sets the length (in minutes) of the countdown shown at the top of the checkout page, with a depleting bar. When the countdown ends, the visitor is asked to restart the checkout and is taken back to the event page. The countdown does not reserve or hold tickets while the visitor is on the checkout page.', 'eventprime-event-calendar-management' ); ?></div>
             </td>
         </tr>
 

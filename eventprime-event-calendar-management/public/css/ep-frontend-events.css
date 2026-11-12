@@ -1558,16 +1558,25 @@ ul.ep-event-share li.ep-event-social-icon:first-child svg {
 #ep_event_calendar.fc.ep-mcal .fc-toolbar.fc-header-toolbar .fc-toolbar-chunk,
 #ep-events-content-container.ep-narrow #ep_event_calendar.fc.ep-mcal .fc-toolbar.fc-header-toolbar .fc-toolbar-chunk {
     margin-bottom: 0 !important;
+    min-width: 0;
+}
+
+#ep_event_calendar.fc.ep-mcal .fc-toolbar.fc-header-toolbar .fc-toolbar-chunk:first-child {
+    flex: 1 1 auto;
 }
 
 #ep_event_calendar.ep-mcal .fc-toolbar-title {
     font-size: 1.25rem;
     font-weight: 600;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
 }
 
 #ep_event_calendar.fc.ep-mcal .fc-toolbar.fc-header-toolbar .fc-toolbar-chunk:last-child {
     display: flex;
+    flex: 0 0 auto;
     flex-wrap: nowrap;
     align-items: center;
     gap: 0.25rem;

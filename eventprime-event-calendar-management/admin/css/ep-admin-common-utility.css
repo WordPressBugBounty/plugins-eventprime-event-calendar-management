@@ -4052,3 +4052,13 @@ table.ep-setting-table-main th {
     padding-top: 4px;
     display: inline-block;
 }
+
+/* Phones: EventPrime settings fields fit the screen (#2318) */
+@media (max-width: 782px) {
+    #ep_setting_form select.ep-form-control,
+    #ep_setting_form input.ep-form-control {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+}

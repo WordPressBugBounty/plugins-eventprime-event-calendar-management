@@ -194,11 +194,11 @@ class EventM_Report_Controller_List {
                                     
                                 }
                             }
-                            $ticket_sub_total = $ticket_sub_total + $ticket->subtotal;
+							$ticket_sub_total = $ticket_sub_total + $ep_functions->ep_order_amount_or_zero( $ticket->subtotal );
                         }
                     } else if( ! empty( $order_info['order_item_data'] ) ) {
                         foreach( $order_info['order_item_data'] as $order_item_data ){
-                            $ticket_sub_total = $ticket_sub_total + $order_item_data->sub_total;
+							$ticket_sub_total = $ticket_sub_total + $ep_functions->ep_order_amount_or_zero( $order_item_data->sub_total );
                         }
                     }
                     $att_count = 1;
@@ -222,7 +222,7 @@ class EventM_Report_Controller_List {
                                     
                                 }
                             }
-                            $ticket_sub_total = $ticket_sub_total + $ticket->subtotal;
+							$ticket_sub_total = $ticket_sub_total + $ep_functions->ep_order_amount_or_zero( $ticket->subtotal );
                         }
                     }
                 }
@@ -235,10 +235,10 @@ class EventM_Report_Controller_List {
                     }
                 }
                 if( !empty( $order_info['event_fixed_price'] ) ) {
-                    $ticket_sub_total = $ticket_sub_total + $order_info['event_fixed_price'];
+					$ticket_sub_total = $ticket_sub_total + $ep_functions->ep_order_amount_or_zero( $order_info['event_fixed_price'] );
                 }
                 if( isset($order_info['coupon_code']) || isset($order_info['ep_coupon_data']) || isset($order_info['woo_coupon_data']) ){
-                    $coupon_discount = $coupon_discount + $order_info['discount'];
+					$coupon_discount = $coupon_discount + $ep_functions->ep_order_amount_or_zero( isset( $order_info['discount'] ) ? $order_info['discount'] : 0 );
                 }
                 $total_attendees = $total_attendees + $att_count; 
             }

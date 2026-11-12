@@ -1068,7 +1068,7 @@ jQuery( function( $ ) {
                             performer_data += '</a>';
                         performer_data += '</div>';
                         performer_data += '<div class="ep-performer-content-wrapper ep-align-self-center ep-pt-2 ep-text-center ep-text-small">';
-                            performer_data += '<div class="ep-performer-name ep-fw-bold ep-text-small ep-text-truncate">'
+                            performer_data += '<div class="ep-performer-name ep-fw-bold ep-text-small ep-text-truncate" dir="auto">'
                                 performer_data += '<a href="'+performer_data.performer_url+'" target="_blank">';
                                     performer_data += performer_data.name;
                                 performer_data += '</a>';
@@ -1578,6 +1578,60 @@ jQuery( function( $ ) {
         sync();
     }
     ep_init_sticky_book_bar();
+
+    /* Add to calendar menu: keyboard access (#2303). */
+    function ep_set_calendar_menu_state( container, open ) {
+        var trigger = container.querySelector( '.ep-exp-dropbtn' );
+        if ( open ) {
+            container.classList.add( 'ep-menu-open' );
+        } else {
+            container.classList.remove( 'ep-menu-open' );
+        }
+        if ( trigger ) {
+            trigger.setAttribute( 'aria-expanded', open ? 'true' : 'false' );
+        }
+        return trigger;
+    }
+
+    function ep_calendar_menu_key( container, key ) {
+        var trigger = container.querySelector( '.ep-exp-dropbtn' );
+        var isOpen = container.classList.contains( 'ep-menu-open' );
+        if ( key === 'Enter' || key === ' ' ) {
+            ep_set_calendar_menu_state( container, ! isOpen );
+        } else if ( key === 'Escape' && isOpen ) {
+            ep_set_calendar_menu_state( container, false );
+            if ( trigger ) {
+                trigger.focus();
+            }
+        }
+    }
+
+    function ep_calendar_menu_focus_out( container, relatedTarget ) {
+        if ( ! relatedTarget || ! container.contains( relatedTarget ) ) {
+            ep_set_calendar_menu_state( container, false );
+        }
+    }
+
+    $( document ).on( 'keydown', '.ep-event-ical-action', function( e ) {
+        var onTrigger = $( e.target ).hasClass( 'ep-exp-dropbtn' );
+        if ( ( e.key === 'Enter' || e.key === ' ' ) && ! onTrigger ) {
+            return;
+        }
+        if ( e.key === 'Enter' || e.key === ' ' ) {
+            e.preventDefault();
+        }
+        ep_calendar_menu_key( this, e.key );
+    } );
+    $( document ).on( 'focusout', '.ep-event-ical-action', function( e ) {
+        ep_calendar_menu_focus_out( this, e.relatedTarget || e.originalEvent && e.originalEvent.relatedTarget );
+    } );
+    $( document ).on( 'click', function( e ) {
+        $( '.ep-event-ical-action.ep-menu-open' ).each( function() {
+            if ( ! this.contains( e.target ) ) {
+                ep_set_calendar_menu_state( this, false );
+            }
+        } );
+    } );
 
 });
 

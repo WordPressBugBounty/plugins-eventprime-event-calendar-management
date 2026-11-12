@@ -29,6 +29,16 @@
             );
         } );
 
+        $( document ).on( 'click', '.ep-elementor-seo-notice .notice-dismiss', function() {
+            $.post(
+                ep_ajax_object.ajax_url,
+                {
+                    action: 'ep_dismiss_elementor_seo_notice',
+                    nonce: ep_ajax_object.nonce
+                }
+            );
+        } );
+
         // Add submenu icon for Services only when the Material icon font is available.
         function epInjectServicesMenuIcon() {
             var servicesMenu = document.querySelector( '#adminmenu .wp-submenu a[href$="page=ep-customization-promo"]' );

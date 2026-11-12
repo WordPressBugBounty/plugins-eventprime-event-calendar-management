@@ -18,7 +18,8 @@ class EventM_slider extends WP_Widget {
         wp_enqueue_script(
         'ep-widgets-scripts',
         plugin_dir_url(dirname(__DIR__)) . '/admin/js/ep-widgets-public.js',
-            false, ''
+			array( 'jquery' ),
+			EVENTPRIME_VERSION
         );
 
         wp_enqueue_style(
@@ -64,7 +65,8 @@ class EventM_slider extends WP_Widget {
         <?php endif;?>
 
         <script>
-            window.onload = function() { 
+			(function() {
+			function epInit() {
                 jQuery('.ep-event-slider-<?php echo esc_attr( $this->number ); ?>').responsiveSlides({
                     auto: true, 
                     speed: 500, 
@@ -82,6 +84,8 @@ class EventM_slider extends WP_Widget {
                     namespace: "ep-widget-rslides"
                 });
             }
+			if ( document.readyState === 'complete' ) { epInit(); } else { window.addEventListener( 'load', epInit ); }
+			})();
         </script><?php
     }
 

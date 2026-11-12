@@ -545,7 +545,7 @@ class EventM_User_Controller {
                             return $result = array(
                                 'success'  => 1,
                                 'msg'      => esc_html__( 'Successfully logged in!', 'eventprime-event-calendar-management' ),
-                                'user'     => $user,
+								'user'     => array( 'ID' => (int) $user->ID ),
                                 'redirect' => $redirect,
                             );
                             //wp_redirect( wp_validate_redirect( apply_filters( 'ep_login_redirect', $redirect, $user ), get_permalink( ep_get_global_settings( 'profile_page' ) ) ) );

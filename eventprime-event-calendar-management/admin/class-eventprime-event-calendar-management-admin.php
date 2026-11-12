@@ -283,6 +283,10 @@ class Eventprime_Event_Calendar_Management_Admin {
                         $params = array(
                             'ep_license_nonce' => wp_create_nonce( 'ep-license-nonce' ),
 							'request_failed'   => esc_html__( 'The license request could not be completed. Your saved license details have not been changed. Please check the connection and try again.', 'eventprime-event-calendar-management' ),
+							'diag_running'     => esc_html__( 'Running the connection test...', 'eventprime-event-calendar-management' ),
+							'diag_copied'      => esc_html__( 'Report copied.', 'eventprime-event-calendar-management' ),
+							'diag_copy_failed' => esc_html__( 'Could not copy automatically. Select the report text and copy it.', 'eventprime-event-calendar-management' ),
+							'diag_cleared'     => esc_html__( 'Diagnostic records cleared.', 'eventprime-event-calendar-management' ),
                         );
 
                         wp_localize_script( 'ep-admin-license-page-js', 'ep_admin_license_settings', $params );
@@ -582,8 +586,9 @@ class Eventprime_Event_Calendar_Management_Admin {
                 'em-booking-js',
                 'ep_booking_obj',
                 array(
-					'ajaxurl' => admin_url( 'admin-ajax.php' ),
-					'nonce'   => $nonce,
+					'ajaxurl'      => admin_url( 'admin-ajax.php' ),
+					'nonce'        => $nonce,
+					'export_error' => esc_html__( 'The export could not be completed. Please try again. If it keeps failing, check the server error log or ask your host.', 'eventprime-event-calendar-management' ),
                 )
             );
 
@@ -655,7 +660,8 @@ class Eventprime_Event_Calendar_Management_Admin {
                 'ep-admin-utility-script',
                 'ep_admin_utility_script',
                 array(
-					'ajaxurl' => admin_url( 'admin-ajax.php' ),
+					'ajaxurl'      => admin_url( 'admin-ajax.php' ),
+					'export_error' => esc_html__( 'The export could not be completed. Please try again. If it keeps failing, check the server error log or ask your host.', 'eventprime-event-calendar-management' ),
                 )
             );
         }
@@ -3152,6 +3158,16 @@ class Eventprime_Event_Calendar_Management_Admin {
 
     public function ep_booking_filters_argu( $query ) {
     global $pagenow;
+
+		// Another plugin can run a WP_Query while plugins are still loading, before pluggable functions such as wp_verify_nonce() exist.
+		if ( ! function_exists( 'wp_verify_nonce' ) || ! did_action( 'init' ) ) {
+			return $query;
+		}
+
+		// Only the admin main query for bookings is filtered here.
+		if ( ! $query instanceof WP_Query || ! $query->is_main_query() ) {
+			return $query;
+		}
 
     // Verify nonce before processing the query
     if ( isset( $_GET['ep_booking_filter_nonce_field'] ) && 

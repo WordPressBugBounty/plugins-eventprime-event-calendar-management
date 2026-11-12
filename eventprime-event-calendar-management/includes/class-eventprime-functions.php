@@ -2855,21 +2855,48 @@ public function ep_get_event_date_time_diff( $event ) {
         echo '</select>';
     }
 
+	/**
+	 * Return the stored event end instant when it is usable, otherwise 0.
+	 *
+	 * @param mixed $end_ts   Stored em_end_date_time value.
+	 * @param mixed $start_ts Stored em_start_date_time value.
+	 * @return int
+	 */
+	private function ep_get_valid_event_end_instant( $end_ts, $start_ts ) {
+		if ( ! is_numeric( $end_ts ) || (int) $end_ts <= 0 ) {
+			return 0;
+		}
+		$end_ts = (int) $end_ts;
+		if ( is_numeric( $start_ts ) && (int) $start_ts > 0 && $end_ts < (int) $start_ts ) {
+			return 0;
+		}
+		return $end_ts;
+	}
+
     public function check_event_has_expired($event) {
         $expired = false;
         if ($event) {
             if (is_int($event)) {
                 $event_end_date = get_post_meta($event, 'em_end_date', true);
                 $event_end_time = get_post_meta($event, 'em_end_time', true);
+				$event_end_instant   = get_post_meta( $event, 'em_end_date_time', true );
+				$event_start_instant = get_post_meta( $event, 'em_start_date_time', true );
             } else {
                 if (!empty($event->em_end_date)) {
                     $event_end_date = $event->em_end_date;
                     if (!empty($event->em_end_time)) {
                         $event_end_time = $event->em_end_time;
                     }
+					$event_end_instant   = isset( $event->em_end_date_time ) ? $event->em_end_date_time : 0;
+					$event_start_instant = isset( $event->em_start_date_time ) ? $event->em_start_date_time : 0;
                 }
             }
             if (!empty($event_end_date)) {
+				// A valid stored end instant decides; the day + time-string logic below is the fallback.
+				$valid_end_instant = $this->ep_get_valid_event_end_instant( isset( $event_end_instant ) ? $event_end_instant : 0, isset( $event_start_instant ) ? $event_start_instant : 0 );
+				if ( $valid_end_instant > 0 ) {
+					return $valid_end_instant < $this->ep_get_current_timestamp();
+				}
                 $end_date = $event_end_date;
                 if (!empty($event_end_time)) {
                     $end_date = $this->ep_timestamp_to_date($event_end_date);
@@ -2975,6 +3002,47 @@ public function ep_get_event_date_time_diff( $event ) {
         }
         return $capacity;
     }
+
+	/**
+	 * Normalise one stored order-info amount (ticket subtotal, ticket quantity, fixed fee, discount, total).
+	 *
+	 * Missing, null, false and blank values count as zero. Integers, floats and numeric strings (surrounding
+	 * whitespace allowed, negative values allowed) keep their numeric value. Anything else (formatted currency,
+	 * text, arrays, objects, true, infinite values) is rejected.
+	 *
+	 * @param mixed $value Stored value.
+	 * @return int|float|null Number, or null when the value is not a trustworthy number.
+	 */
+	public function ep_normalize_order_amount( $value ) {
+		if ( null === $value || false === $value ) {
+			return 0;
+		}
+		if ( is_string( $value ) ) {
+			$value = trim( $value );
+			if ( '' === $value ) {
+				return 0;
+			}
+			if ( ! is_numeric( $value ) ) {
+				return null;
+			}
+			$value = $value + 0;
+		}
+		if ( ( is_int( $value ) || is_float( $value ) ) && is_finite( (float) $value ) ) {
+			return $value;
+		}
+		return null;
+	}
+
+	/**
+	 * Normalise a stored order-info amount, counting anything malformed as zero.
+	 *
+	 * @param mixed $value Stored value.
+	 * @return int|float Number, zero when the value is not a trustworthy number.
+	 */
+	public function ep_order_amount_or_zero( $value ) {
+		$amount = $this->ep_normalize_order_amount( $value );
+		return null === $amount ? 0 : $amount;
+	}
 
     public function ep_price_with_position($price, $currency_symbol = '', $format_price = true) {
         if ($format_price) {
@@ -6434,7 +6502,7 @@ public function ep_get_event_date_time_diff( $event ) {
         if( $hide_past_events == 1 ) {
             array_push( $params['meta_query'], array(
                 'key'     => 'em_end_date',
-                'value'   => strtotime( 'today' ),
+				'value'   => $this->ep_get_site_today_start_timestamp(),
                 'compare' => '>='
             ) );
         }
@@ -7075,6 +7143,20 @@ public function ep_get_event_date_time_diff( $event ) {
 					'end'   => $midnight( $year, $month, $day + 1 ),
 				);
 		}
+	}
+
+	/**
+	 * Start of the current day in the site timezone as a Unix timestamp.
+	 *
+	 * @param int|null $reference Optional Unix timestamp to treat as "now" (tests).
+	 * @return int
+	 */
+	public function ep_get_site_today_start_timestamp( $reference = null ) {
+		$range = $this->get_individual_events_date_range( 'today', $reference );
+		if ( is_array( $range ) && isset( $range['start'] ) ) {
+			return (int) $range['start'];
+		}
+		return strtotime( 'today' );
 	}
 
 	/**
@@ -13102,7 +13184,7 @@ public function ep_get_events( $fields ) {
                 'datepicker_format' => $this->ep_get_global_settings( 'datepicker_format' ),
                 'time_format' => $this->ep_get_global_settings( 'time_format' ),
                 'ajaxurl'   => admin_url('admin-ajax.php'),
-            ),
+			)
         );
 
         wp_localize_script(
@@ -13745,8 +13827,8 @@ public function ep_get_events( $fields ) {
             'post_type'     => $original_post->post_type,
             'post_author'   => $original_post->post_author,
         );
-        // Insert the new post into the database
-        $new_post_id = wp_insert_post($new_post);
+		// get_post() returns unslashed data and wp_insert_post() unslashes again, so slash first to keep backslashes.
+		$new_post_id = wp_insert_post( wp_slash( $new_post ) );
         // Get all the post meta data from the original post
         $post_meta = get_post_meta($post_id);
 		// Elementor's generated-CSS marker must not be copied: the copy has no CSS file and Elementor regenerates it.

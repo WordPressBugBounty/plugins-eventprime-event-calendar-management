@@ -158,16 +158,39 @@ jQuery( function( $ ) {
             type        : "POST",
             url         : ajaxurl,
             data        : data,
-            success     : function( response ) {
-                var blob      = new Blob([response]);
-                var link      = document.createElement('a');
-                link.href     = window.URL.createObjectURL(blob);
-                link.download = "bookings.csv";
-                link.click();
+            success     : function( response, status, xhr ) {
+                var type = xhr.getResponseHeader( 'Content-Type' ) || '';
+                if ( typeof response === 'string' && response !== '' && type.toLowerCase().indexOf( 'text/csv' ) !== -1 ) {
+                    var blob      = new Blob([response]);
+                    var link      = document.createElement('a');
+                    link.href     = window.URL.createObjectURL(blob);
+                    link.download = "bookings.csv";
+                    link.click();
+                    return;
+                }
+                var message = ( response && response.data && response.data.message ) ? response.data.message : ep_booking_obj.export_error;
+                ep_show_export_error( message );
+            },
+            error       : function() {
+                ep_show_export_error( ep_booking_obj.export_error );
+            },
+            complete    : function() {
                 $('.ep-spinner').removeClass('ep-is-active');
             }
         });
     });
+
+    // show a visible error notice when the bookings export fails
+    function ep_show_export_error( message ) {
+        $( '.ep-export-error' ).remove();
+        var notice = $( '<div class="notice notice-error ep-export-error" role="alert"></div>' ).append( $( '<p></p>' ).text( message ) );
+        var anchor = $( '.wrap .wp-header-end' ).first();
+        if ( anchor.length ) {
+            anchor.after( notice );
+        } else {
+            $( '.wrap' ).first().prepend( notice );
+        }
+    }
 
     // show transaction log
     $( document ).on( 'click', '#ep_show_booking_transaction_log', function() {

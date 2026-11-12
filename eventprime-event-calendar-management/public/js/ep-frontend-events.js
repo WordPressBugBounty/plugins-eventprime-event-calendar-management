@@ -803,9 +803,41 @@ function epCalendarHeaderResponsive(calendar, el, configured) {
 			container.epHeaderFrame = window.requestAnimationFrame(function () {
 				container.epHeaderFrame = 0;
 				epCalendarHeaderSync(document.getElementById('ep_event_calendar'));
+				epCalendarEventLinksSync(document.getElementById('ep_event_calendar'));
 			});
 		});
 		container.epHeaderObserver.observe(container);
+	}
+}
+
+// Month grid: event links are inert at 720px or less (or on a mobile device) and restored when widened.
+// Idempotent; the original href is kept in data-ep-href while it is removed.
+function epCalendarEventLinksSync(el) {
+	el = el || document.getElementById('ep_event_calendar');
+	if (!el) {
+		return;
+	}
+	var container = document.getElementById('ep-events-content-container');
+	var width = container ? container.clientWidth : 0; // 0 while hidden: no change
+	if (!width) {
+		return;
+	}
+	var isMobile = /iPhone|iPad|iPod|Android|webOS|BlackBerry|Windows Phone/i.test(navigator.userAgent);
+	var narrow = isMobile || width <= 720;
+	var links = el.querySelectorAll('table.fc-scrollgrid-sync-table .fc-daygrid-event');
+	for (var i = 0; i < links.length; i++) {
+		var link = links[i];
+		if (narrow) {
+			if (link.hasAttribute('href')) {
+				if (!link.hasAttribute('data-ep-href')) {
+					link.setAttribute('data-ep-href', link.getAttribute('href'));
+				}
+				link.removeAttribute('href');
+			}
+		} else if (link.hasAttribute('data-ep-href') && !link.hasAttribute('href')) {
+			link.setAttribute('href', link.getAttribute('data-ep-href'));
+			link.removeAttribute('data-ep-href');
+		}
 	}
 }
 
@@ -813,6 +845,7 @@ function epCalendarHeaderResponsive(calendar, el, configured) {
 function epCalViewWidhth() {
     $ = jQuery;
     epCalendarHeaderSync(document.getElementById('ep_event_calendar'));
+    epCalendarEventLinksSync(document.getElementById('ep_event_calendar'));
     calAreaWidht = $("#ep-events-content-container").innerWidth();
     if (calAreaWidht <= 620) {
         $("#ep-events-content-container").addClass("ep-narrow");
@@ -863,19 +896,6 @@ function getMonthNames(locale) {
     }
     return monthNames;
 }
-
-jQuery(document).ready(function () {
-    // Check if the user is using a mobile device
-    setTimeout(function () {
-        const calAreaWidht = jQuery("#ep-events-content-container").innerWidth();
-        var isMobile = /iPhone|iPad|iPod|Android|webOS|BlackBerry|Windows Phone/i.test(navigator.userAgent);
-        if (isMobile || calAreaWidht <= 720) {
-            // Remove href attribute for event table a tag
-            jQuery('#ep_event_calendar.fc table.fc-scrollgrid-sync-table .fc-daygrid-event').removeAttr('href');
-        }
-    }, 3000);
-});
-
 
 function ep_load_calendar_view(search_param = '')
 {
@@ -1303,6 +1323,12 @@ function ep_load_calendar_view(search_param = '')
         epMobileCalendar( calendar, calendarEl );
 
         epCalendarHeaderResponsive( calendar, calendarEl, column_header_format );
+        epCalendarEventLinksSync( calendarEl );
+        calendar.on( 'datesSet', function () {
+            window.requestAnimationFrame( function () {
+                epCalendarEventLinksSync( calendarEl );
+            } );
+        } );
 
         // custom class on the toolbal title
         let cal_title_class = 'ep-calendar-title-short';

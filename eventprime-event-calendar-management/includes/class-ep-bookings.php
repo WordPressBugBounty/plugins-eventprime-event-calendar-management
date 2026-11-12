@@ -14,6 +14,38 @@ class EventPrime_Bookings {
     private $post_type = 'em_booking';
 
 	/**
+	 * WooCommerce order summaries read during the current bookings export, keyed by order id.
+	 *
+	 * @var array
+	 */
+	private $woo_summary_cache = array();
+
+	/**
+	 * Prefix a CSV text cell with an apostrophe when a spreadsheet could read it as a formula.
+	 *
+	 * Non-strings (ints, floats) and plain numbers such as -12.50 or +4412345678 are returned unchanged.
+	 *
+	 * @param mixed $value Cell value.
+	 * @return mixed Cell value, prefixed with a single quote when needed.
+	 */
+	public static function neutralize_csv_cell( $value ) {
+		if ( ! is_string( $value ) || '' === $value ) {
+			return $value;
+		}
+		$first = $value[0];
+		if ( "\t" === $first || "\r" === $first || '=' === $first || '@' === $first ) {
+			return "'" . $value;
+		}
+		if ( '+' === $first || '-' === $first ) {
+			if ( is_numeric( $value ) || preg_match( '/^[+-]\s?[0-9][0-9.,\s]*$/', $value ) ) {
+				return $value;
+			}
+			return "'" . $value;
+		}
+		return $value;
+	}
+
+	/**
 	 * Write one CSV row with an explicit escape argument.
 	 *
 	 * The escape argument is required on PHP 8.4 and newer and only accepted from PHP 7.4.
@@ -23,6 +55,7 @@ class EventPrime_Bookings {
 	 * @return int|false Length of the written row, or false on failure.
 	 */
 	public static function put_csv_row( $handle, $fields ) {
+		$fields = array_map( array( __CLASS__, 'neutralize_csv_cell' ), (array) $fields );
 		if ( version_compare( PHP_VERSION, '7.4', '>=' ) ) {
 			return fputcsv( $handle, $fields, ',', '"', '' );
 		}
@@ -468,7 +501,9 @@ class EventPrime_Bookings {
             );
             $bookings = $this->get_bookings_post_data( $args );
             if( isset( $bookings->posts ) && count( $bookings->posts ) > 0 ) {
-                $this->process_booking_downloadable_csv( $bookings->posts );
+				$this->process_booking_downloadable_csv( $bookings->posts, false );
+				// A normal page request (not AJAX): end the request without the wp_die() HTML page.
+				exit;
             }
         }
     }
@@ -526,10 +561,115 @@ class EventPrime_Bookings {
         return;
     }
     
-    /*
-     * Download Bookings CSV
-     */
-    public function process_booking_downloadable_csv( $bookings ) {
+	/**
+	 * Download Bookings CSV.
+	 *
+	 * @param array $bookings  Booking posts.
+	 * @param bool  $terminate End the request with wp_die() (AJAX callers). The bulk action passes false and exits itself.
+	 */
+	public function process_booking_downloadable_csv( $bookings, $terminate = true ) {
+		$bookings_data = $this->build_booking_csv_rows( $bookings );
+		header( 'Content-Type: text/csv; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename="ep-bookings-' . md5( time() . wp_rand( 100, 999 ) ) . '.csv"' );
+		$f = fopen( 'php://output', 'w' );
+		foreach ( $bookings_data as $line ) {
+			self::put_csv_row( $f, $line );
+		}
+
+		if ( $terminate ) {
+			wp_die();
+		}
+	}
+
+	/**
+	 * Coupon codes used by one booking: EventPrime coupon, WooCommerce coupons stored with the booking,
+	 * the legacy ep_coupon_code value and the codes read from the linked WooCommerce order.
+	 *
+	 * @param mixed $order_info  Stored em_order_info of the booking.
+	 * @param array $woo_summary Result of get_booking_woo_order_summary().
+	 * @return array List of unique codes in first-seen order.
+	 */
+	private function get_booking_coupon_codes( $order_info, $woo_summary ) {
+		$raw = array();
+		if ( is_array( $order_info ) ) {
+			if ( isset( $order_info['ep_coupon_data']['coupon_code'] ) ) {
+				$raw[] = $order_info['ep_coupon_data']['coupon_code'];
+			}
+			if ( ! empty( $order_info['woo_coupon_data'] ) && is_array( $order_info['woo_coupon_data'] ) ) {
+				foreach ( $order_info['woo_coupon_data'] as $woo_coupon ) {
+					if ( is_array( $woo_coupon ) && ! empty( $woo_coupon['coupon_code'] ) ) {
+						$raw[] = $woo_coupon['coupon_code'];
+					}
+				}
+			}
+			if ( ! empty( $order_info['ep_coupon_code'] ) && is_string( $order_info['ep_coupon_code'] ) ) {
+				$raw[] = $order_info['ep_coupon_code'];
+			}
+		}
+		if ( ! empty( $woo_summary['coupon_codes'] ) && is_array( $woo_summary['coupon_codes'] ) ) {
+			$raw = array_merge( $raw, $woo_summary['coupon_codes'] );
+		}
+		$codes = array();
+		foreach ( $raw as $code ) {
+			if ( ! is_scalar( $code ) ) {
+				continue;
+			}
+			$code = trim( sanitize_text_field( (string) $code ) );
+			if ( '' !== $code && ! in_array( $code, $codes, true ) ) {
+				$codes[] = $code;
+			}
+		}
+		return $codes;
+	}
+
+	/**
+	 * Read the linked WooCommerce order of a booking (read-only).
+	 *
+	 * @param object $booking Booking object from load_booking_detail().
+	 * @return array Empty array without a linked order; otherwise order_id, coupon_codes, tax, total and currency.
+	 */
+	public function get_booking_woo_order_summary( $booking ) {
+		$order_id = absint( isset( $booking->wc_order_id ) ? $booking->wc_order_id : 0 );
+		if ( ! $order_id ) {
+			return array();
+		}
+		$result = array(
+			'order_id'     => $order_id,
+			'coupon_codes' => array(),
+			'tax'          => null,
+			'total'        => null,
+			'currency'     => '',
+		);
+		if ( function_exists( 'wc_get_order' ) ) {
+			try {
+				$order = wc_get_order( $order_id );
+				if ( is_a( $order, 'WC_Order' ) ) {
+					$result['coupon_codes'] = (array) $order->get_coupon_codes();
+					$result['tax']          = (float) $order->get_total_tax();
+					$result['total']        = (float) $order->get_total();
+					$result['currency']     = (string) $order->get_currency();
+				}
+			} catch ( \Throwable $e ) {
+				$result = array(
+					'order_id'     => $order_id,
+					'coupon_codes' => array(),
+					'tax'          => null,
+					'total'        => null,
+					'currency'     => '',
+				);
+			}
+		}
+		$filtered = apply_filters( 'ep_booking_csv_woo_order_summary', $result, $booking ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- public hook name given in the issue.
+		return is_array( $filtered ) ? $filtered : $result;
+	}
+
+	/**
+	 * Build the rows of the All Bookings CSV.
+	 *
+	 * @param array $bookings Booking objects (as returned by get_bookings_post_data()).
+	 * @return array Row 0 is the header row; every row is a numerically indexed list of cell values.
+	 */
+	public function build_booking_csv_rows( $bookings ) {
         $ep_functions = new Eventprime_Basic_Functions;
         $bookings_data = array(); 
         $bookings_data[0]['id'] =              esc_html__('Booking ID', 'eventprime-event-calendar-management');
@@ -558,6 +698,18 @@ class EventPrime_Bookings {
         $bookings_data[0]['payment_status'] =  esc_html__('Payment Status', 'eventprime-event-calendar-management');
         $bookings_data[0]['log'] =             esc_html__('Transacton Log', 'eventprime-event-calendar-management');
         $bookings_data[0]['guest'] =           esc_html__('Guest Booking Data', 'eventprime-event-calendar-management');
+		$bookings_data[0]['attendee_no']     = esc_html__( 'Attendee No.', 'eventprime-event-calendar-management' );
+		$bookings_data[0]['woo_order_id']    = esc_html__( 'WooCommerce Order ID', 'eventprime-event-calendar-management' );
+		$bookings_data[0]['coupon_codes']    = esc_html__( 'Coupon Code(s)', 'eventprime-event-calendar-management' );
+		$bookings_data[0]['tax']             = esc_html__( 'Tax Amount', 'eventprime-event-calendar-management' );
+		$bookings_data[0]['order_total']     = esc_html__( 'Order Total', 'eventprime-event-calendar-management' );
+		$bookings_data[0]['order_currency']  = esc_html__( 'Order Currency', 'eventprime-event-calendar-management' );
+		$attendee_columns                    = $this->get_booking_csv_attendee_columns( $bookings );
+		foreach ( $attendee_columns as $column_index => $column_label ) {
+			/* translators: %s: attendee field label */
+			$bookings_data[0][ 'attendee_field_' . $column_index ] = sprintf( __( 'Attendee %s', 'eventprime-event-calendar-management' ), $column_label );
+		}
+		$this->woo_summary_cache = array();
         if( ! empty( $bookings ) ) {
             $row = 1;
             foreach( $bookings as $booking ) {
@@ -606,26 +758,35 @@ class EventPrime_Bookings {
                 
                 $order_info = isset($booking->em_order_info) ? $booking->em_order_info : array();
                 $tickets = isset($order_info['tickets']) ? $order_info['tickets'] : array();
+				$invalid_price_text = esc_html__( 'Invalid price (see docs)', 'eventprime-event-calendar-management' );
                 $ticket_sub_total = 0;
                 if( ! empty( $tickets ) ):
                     foreach($tickets as $ticket):
-                        $ticket_sub_total = $ticket_sub_total + $ticket->subtotal;           
+						$ticket_amount = $ep_functions->ep_normalize_order_amount( isset( $ticket->subtotal ) ? $ticket->subtotal : null );
+						if ( null === $ticket_amount || null === $ticket_sub_total ) {
+							$ticket_sub_total = null;
+						} else {
+							$ticket_sub_total = $ticket_sub_total + $ticket_amount;
+						}
                     endforeach;
                 endif;
-                $bookings_data[$row]['price']=$ep_functions->ep_price_with_position($ticket_sub_total);
+				$bookings_data[ $row ]['price']         = null === $ticket_sub_total ? $invalid_price_text : $ep_functions->ep_price_with_position( $ticket_sub_total );
                 $bookings_data[$row]['attendees_count']= '';
-                $bookings_data[$row]['subtotal']=$ep_functions->ep_price_with_position($ticket_sub_total);
+				$bookings_data[ $row ]['subtotal']      = $bookings_data[ $row ]['price'];
                 $bookings_data[$row]['event_price']='';
                 
                 if( !empty( $order_info['event_fixed_price'] ) ) {
-                    $bookings_data[$row]['event_price']= $ep_functions->ep_price_with_position($order_info['event_fixed_price']);
+					$fixed_price_amount                   = $ep_functions->ep_normalize_order_amount( $order_info['event_fixed_price'] );
+					$bookings_data[ $row ]['event_price'] = null === $fixed_price_amount ? $invalid_price_text : $ep_functions->ep_price_with_position( $fixed_price_amount );
                 }
                 $bookings_data[$row]['discount']='';
-                
-                if(isset($order_info['coupon_code'])){
-                    $bookings_data[$row]['discount']= $ep_functions->ep_price_with_position($order_info['discount']);
-                }
-                $bookings_data[$row]['amount_received']= $ep_functions->ep_price_with_position($order_info['booking_total']) ;
+				$discount_amount                 = $ep_functions->ep_normalize_order_amount( isset( $order_info['discount'] ) ? $order_info['discount'] : null );
+				if ( null === $discount_amount ) {
+					$bookings_data[ $row ]['discount'] = $invalid_price_text;
+				} elseif ( 0 !== $discount_amount && 0.0 !== $discount_amount ) {
+					$bookings_data[ $row ]['discount'] = $ep_functions->ep_price_with_position( $discount_amount );
+				}
+				$bookings_data[ $row ]['amount_received'] = $ep_functions->ep_price_with_position( $ep_functions->ep_order_amount_or_zero( isset( $order_info['booking_total'] ) ? $order_info['booking_total'] : 0 ) );
                 
                 $bookings_data[$row]['gateway']= isset($booking->em_payment_method) ? ucfirst($booking->em_payment_method) : 'N/A';
                 $bookings_data[$row]['booking_status'] = isset($booking->em_status) ? ucfirst($booking->em_status) : 'N/A';
@@ -652,79 +813,133 @@ class EventPrime_Bookings {
                     $bookings_data[$row]['guest'] = serialize($order_info['guest_booking_custom_data']);
                 }
                 
-                $attendees_count = 0;
-                if( ! empty( $booking->em_attendee_names ) && count( $booking->em_attendee_names ) > 0 ) {
-                    $attendee_names = $ep_functions->ep_normalize_booking_attendee_fields( $booking->em_attendee_names );
-                    foreach( $attendee_names as $ticket_id => $attendee_data ) {
-                        foreach( $attendee_data as $booking_attendees ) {
-                            $booking_attendees_val = array_values( $booking_attendees );
-                            $attendees_count++;
-                        }
-                    }
-                    $bookings_data[$row]['attendees_count']=$attendees_count;
-                    $booking_attendees_field_labels = array();
-                    $count = 0;
-                    foreach( $booking->em_attendee_names as $ticket_id => $attendee_data ) {
-                        $booking_attendees_field_labels = $ep_functions->ep_get_booking_attendee_field_labels( $attendee_data[1] );
-                        foreach( $attendee_data as $booking_attendees ) {
-                            $seat = '';
-                            $booking_attendees_val = array_values( $booking_attendees );
-                            $attendees = '';
-                            foreach( $booking_attendees_field_labels as $label_key => $labels ){
-								$at_val = $ep_functions->ep_get_booking_attendee_field_value( $booking_attendees_val, $labels );
-								if ( 'seat' === $ep_functions->ep_get_slug_from_string( $labels ) && '---' !== $at_val ) {
-									$seat = $at_val;
-                                }
-                                $attendees .= esc_html__( $labels, 'eventprime-event-calendar-management' ).' : '.$at_val.' | ';
-                            }
-                            $bookings_data[$row]['attendees'] = $attendees;
-                            $bookings_data[$row]['seat'] = $seat;
-                            if( $count < $attendees_count - 1 ) {
-                                $row++;
-                                $bookings_data[$row]['id']='';
-                                $bookings_data[$row]['user_name']='';
-                                $bookings_data[$row]['email']='';
-                                $bookings_data[$row]['event']='';
-                                $bookings_data[$row]['sdate']='';
-                                $bookings_data[$row]['stime']='';
-                                $bookings_data[$row]['edate']='';
-                                $bookings_data[$row]['etime']='';
-                                $bookings_data[$row]['event_type']='';
-                                $bookings_data[$row]['venue']='';
-                                $bookings_data[$row]['address']='';
-                                $bookings_data[$row]['seat_type']='';
-                                $bookings_data[$row]['attendees']=$attendees;
-                                $bookings_data[$row]['seat']= $seat;
-                                $bookings_data[$row]['currency']='';
-                                $bookings_data[$row]['price']='';
-                                $bookings_data[$row]['attendees_count']='';
-                                $bookings_data[$row]['subtotal']='';
-                                $bookings_data[$row]['event_price']='';
-                                $bookings_data[$row]['discount']='';
-                                $bookings_data[$row]['amount_received']='';
-                                $bookings_data[$row]['gateway']='';
-                                $bookings_data[$row]['booking_status']='';
-                                $bookings_data[$row]['payment_status']='';
-                                $bookings_data[$row]['log']='';
-                                $bookings_data[$row]['guest']='';
-                            }
-                            $count++;
-                        }
-                    }
-                }
+				$woo_summary                             = $this->get_cached_woo_order_summary( $booking );
+				$bookings_data[ $row ]['woo_order_id']   = empty( $woo_summary['order_id'] ) ? '' : $woo_summary['order_id'];
+				$bookings_data[ $row ]['coupon_codes']   = implode( ', ', $this->get_booking_coupon_codes( $order_info, $woo_summary ) );
+				$bookings_data[ $row ]['tax']            = ( isset( $woo_summary['tax'] ) && is_numeric( $woo_summary['tax'] ) ) ? number_format( (float) $woo_summary['tax'], 2, '.', '' ) : '';
+				$bookings_data[ $row ]['order_total']    = ( isset( $woo_summary['total'] ) && is_numeric( $woo_summary['total'] ) ) ? number_format( (float) $woo_summary['total'], 2, '.', '' ) : '';
+				$bookings_data[ $row ]['order_currency'] = empty( $woo_summary['currency'] ) ? '' : $woo_summary['currency'];
+				$bookings_data[ $row ]['attendee_no']    = '';
+
+				$attendee_list = $this->get_booking_csv_attendees( $booking );
+				if ( ! empty( $booking->em_attendee_names ) && is_array( $booking->em_attendee_names ) ) {
+					$bookings_data[ $row ]['attendees_count'] = count( $attendee_list );
+				}
+				$first_row = $row;
+				foreach ( $attendee_list as $attendee_index => $attendee ) {
+					if ( $attendee_index > 0 ) {
+						++$row;
+						foreach ( array( 'id', 'user_name', 'email', 'event', 'sdate', 'stime', 'edate', 'etime', 'event_type', 'venue', 'address', 'seat_type', 'currency', 'gateway', 'booking_status', 'payment_status', 'woo_order_id', 'coupon_codes', 'order_currency' ) as $repeat_key ) {
+							$bookings_data[ $row ][ $repeat_key ] = $bookings_data[ $first_row ][ $repeat_key ];
+						}
+						foreach ( array( 'price', 'attendees_count', 'subtotal', 'event_price', 'discount', 'amount_received', 'tax', 'order_total', 'log', 'guest' ) as $blank_key ) {
+							$bookings_data[ $row ][ $blank_key ] = '';
+						}
+					}
+					$attendee_values = array_values( $attendee );
+					$attendees       = '';
+					$seat            = '';
+					foreach ( $ep_functions->ep_get_booking_attendee_field_labels( $attendee ) as $label ) {
+						$at_val = $ep_functions->ep_get_booking_attendee_field_value( $attendee_values, $label );
+						if ( 'seat' === $ep_functions->ep_get_slug_from_string( $label ) && '---' !== $at_val ) {
+							$seat = $at_val;
+						}
+						$attendees .= esc_html__( $label, 'eventprime-event-calendar-management' ) . ' : ' . $at_val . ' | '; // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText -- label comes from stored attendee data, as before.
+					}
+					$bookings_data[ $row ]['attendees']   = $attendees;
+					$bookings_data[ $row ]['seat']        = $seat;
+					$bookings_data[ $row ]['attendee_no'] = $attendee_index + 1;
+					foreach ( $attendee_columns as $column_index => $column_label ) {
+						$column_value = $ep_functions->ep_get_booking_attendee_field_value( $attendee_values, $column_label );
+						$bookings_data[ $row ][ 'attendee_field_' . $column_index ] = '---' === $column_value ? '' : $column_value;
+					}
+				}
                 $row++;
             }
         }
 
-        header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="ep-bookings-'.md5(time().wp_rand(100, 999)).'.csv"');
-        $f = fopen('php://output', 'w');
-        foreach ( $bookings_data as $line ) {
-			self::put_csv_row( $f, $line );
-        }
+		$columns = array_keys( $bookings_data[0] );
+		$rows    = array();
+		foreach ( $bookings_data as $data_row ) {
+			$line = array();
+			foreach ( $columns as $column ) {
+				$line[] = isset( $data_row[ $column ] ) ? $data_row[ $column ] : '';
+			}
+			$rows[] = $line;
+		}
+		return $rows;
+	}
 
-        die;
-    }
+	/**
+	 * Cached, per-export lookup of the linked WooCommerce order.
+	 *
+	 * @param object $booking Booking object.
+	 * @return array Result of get_booking_woo_order_summary().
+	 */
+	private function get_cached_woo_order_summary( $booking ) {
+		$order_id = absint( isset( $booking->wc_order_id ) ? $booking->wc_order_id : 0 );
+		if ( ! $order_id ) {
+			return array();
+		}
+		if ( ! isset( $this->woo_summary_cache[ $order_id ] ) ) {
+			$this->woo_summary_cache[ $order_id ] = $this->get_booking_woo_order_summary( $booking );
+		}
+		return $this->woo_summary_cache[ $order_id ];
+	}
+
+	/**
+	 * Flat list of the attendee arrays of one booking (non-array entries are skipped).
+	 *
+	 * @param object $booking Booking object.
+	 * @return array List of attendee arrays in ticket order.
+	 */
+	private function get_booking_csv_attendees( $booking ) {
+		$attendees = array();
+		if ( empty( $booking->em_attendee_names ) || ! is_array( $booking->em_attendee_names ) ) {
+			return $attendees;
+		}
+		foreach ( $booking->em_attendee_names as $attendee_group ) {
+			if ( ! is_array( $attendee_group ) ) {
+				continue;
+			}
+			foreach ( $attendee_group as $attendee ) {
+				if ( is_array( $attendee ) ) {
+					$attendees[] = $attendee;
+				}
+			}
+		}
+		return $attendees;
+	}
+
+	/**
+	 * Attendee field labels that get their own column: First, Middle and Last Name first, then the others in
+	 * order of first appearance across all bookings of the export. The seat field is never included.
+	 *
+	 * @param array $bookings Booking objects.
+	 * @return array List of labels.
+	 */
+	private function get_booking_csv_attendee_columns( $bookings ) {
+		$ep_functions = new Eventprime_Basic_Functions();
+		$labels       = array();
+		if ( ! empty( $bookings ) ) {
+			foreach ( $bookings as $booking ) {
+				foreach ( $this->get_booking_csv_attendees( $booking ) as $attendee ) {
+					foreach ( $ep_functions->ep_get_booking_attendee_field_labels( $attendee ) as $label ) {
+						if ( is_string( $label ) && '' !== $label && 'seat' !== $ep_functions->ep_get_slug_from_string( $label ) && ! in_array( $label, $labels, true ) ) {
+							$labels[] = $label;
+						}
+					}
+				}
+			}
+		}
+		$name_labels = array_values( array_intersect( array( 'First Name', 'Middle Name', 'Last Name' ), $labels ) );
+		$labels      = array_merge( $name_labels, array_values( array_diff( $labels, $name_labels ) ) );
+		$labels      = apply_filters( 'ep_bookings_csv_attendee_columns', $labels, $bookings ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- public hook name given in the issue.
+		if ( ! is_array( $labels ) ) {
+			return array();
+		}
+		return array_values( array_unique( array_filter( $labels, 'is_string' ) ) );
+	}
 
     /**
      * Check if booking eligible for edit

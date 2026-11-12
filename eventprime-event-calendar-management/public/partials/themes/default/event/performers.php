@@ -21,7 +21,7 @@ if( count( $performers ) > 0 && empty( $ep_functions->ep_get_global_settings( 'h
                             <img class="ep-performer-img ep-rounded-1" src="<?php echo esc_url( $performer->image_url );?>" width="96" height="96">
                         </a>
                         <div class="ep-performer-content-wrapper ep-align-self-center ep-pt-2 ep-text-center ep-text-small">
-                            <div class="ep-performer-name ep-fw-bold ep-text-small ep-text-truncate">
+							<div class="ep-performer-name ep-fw-bold ep-text-small ep-text-truncate" dir="auto">
                                 <a href="<?php echo esc_url( $performer->performer_url );?>" target="_blank" class="ep-button-text-color">
                                     <?php echo esc_html( $performer->name );?>
                                 </a>

@@ -222,6 +222,14 @@ html.ep-embed-responsive .emagic{
     border-color: var(--ep-btn-active-border-color)!important;
 }
 
+/* Keyboard focus indicator for EventPrime buttons (#2304). Two-tone ring: white inside, dark outside. */
+.emagic .ep-btn:focus-visible,
+.emagic .ep-btn-check:focus-visible + .ep-btn {
+    outline: 2px solid transparent; /* shows as a real outline in forced-colors / high contrast mode */
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #212529 !important;
+}
+
 .emagic .ep-btn-sm {
     --ep-btn-padding-y: 0.25rem;
     --ep-btn-padding-x: 0.5rem;
@@ -2501,6 +2509,28 @@ body.ep-modal-open-body {
 
 .ep-dark-mode-enabled .emagic .ep-btn-outline-dark{
     --ep-btn-color: #fff;
+}
+
+/*---- Light mode readable offers notice and offer icon (#2305) ----*/
+body:not(.ep-dark-mode-enabled) #ep_single_event_available_offers .ep-bg-success.ep-text-success {
+    color: #146c43 !important; /* 5.68:1 on the notice tint rgb(232,243,238), 6.45:1 on white */
+}
+body:not(.ep-dark-mode-enabled) #ep_single_event_available_offers .offer-icon.ep-text-warning {
+    color: #997404 !important; /* 4.33:1 on white (graphic minimum 3:1) */
+}
+
+/*---- Dark mode: text outside the EventPrime panels follows the theme text colour (#2306, #2317) ----*/
+/* The plugin dark mode only darkens EventPrime panels, so text that sits directly on the theme page
+   must not be forced white. Inheriting the theme colour is readable on light and on dark pages. */
+.ep-dark-mode-enabled #ep_single_event_start_time {
+    color: inherit !important;
+}
+.ep-dark-mode-enabled .ep_event_wishlist_action.ep-rounded-tbl-right .ep-handle-fav:not(.ep-text-danger):not(:hover) {
+    color: inherit;
+}
+.ep-dark-mode-enabled #ep-sl-event-end {
+    color: inherit !important;
+    opacity: 0.8; /* keeps the muted look: #212529 text on white 8.01:1, #ffffff on #1d1d1d 11.15:1 */
 }
 
 /*-- If dark mode on ends:---*/

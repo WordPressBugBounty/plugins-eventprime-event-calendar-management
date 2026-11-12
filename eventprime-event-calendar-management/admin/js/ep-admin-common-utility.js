@@ -113,18 +113,36 @@ jQuery(function ($) {
                 type: "POST",
                 url: ajaxurl,
                 data: data,
-                success: function(response) {
-                    let blob = new Blob([response]);
-                    let link = document.createElement('a');
-                    link.href = window.URL.createObjectURL(blob);
-                    let file_name = 'attendees-' + event_id + '.csv';
-                    link.download = file_name;
-                    link.click();
+                success: function(response, status, xhr) {
+                    let type = xhr.getResponseHeader('Content-Type') || '';
+                    if (typeof response === 'string' && response !== '' && type.toLowerCase().indexOf('text/csv') !== -1) {
+                        let blob = new Blob([response]);
+                        let link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        let file_name = 'attendees-' + event_id + '.csv';
+                        link.download = file_name;
+                        link.click();
+                        return;
+                    }
+                    let message = (response && response.data && response.data.message) ? response.data.message : ep_admin_utility_script.export_error;
+                    ep_show_attendee_export_error(message);
+                },
+                error: function() {
+                    ep_show_attendee_export_error(ep_admin_utility_script.export_error);
+                },
+                complete: function() {
                     $('#ep_print_attendee_list_loader').removeClass('is-active');
                 }
             });
         }
     });
+
+    // show a visible error notice when the attendee export fails
+    function ep_show_attendee_export_error(message) {
+        $('.ep-export-error').remove();
+        let notice = $('<div class="notice notice-error ep-export-error" role="alert"></div>').append($('<p></p>').text(message));
+        $('.wrap').first().prepend(notice);
+    }
     
     $('.ep_field_list').on('change', function () {
         

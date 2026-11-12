@@ -86,6 +86,19 @@ $activate_license_btn = $key.'_license_activate';
         
     </div>    
 
+	<?php if ( current_user_can( 'manage_options' ) && class_exists( 'EventPrime_License_Diagnostics' ) ) : ?>
+	<details class="ep-license-diagnostics ep-my-4">
+		<summary><?php esc_html_e( 'Connection diagnostics', 'eventprime-event-calendar-management' ); ?></summary>
+		<p><?php esc_html_e( 'Use this when a licence action cannot reach the licence server. The test sends a placeholder key to theeventprime.com, does not activate or change any licence, and nothing is sent automatically. The report below can be copied and shared with support.', 'eventprime-event-calendar-management' ); ?></p>
+		<p>
+			<button type="button" class="button" id="ep-license-diag-run"><?php esc_html_e( 'Run connection test', 'eventprime-event-calendar-management' ); ?></button>
+			<button type="button" class="button" id="ep-license-diag-copy"><?php esc_html_e( 'Copy report', 'eventprime-event-calendar-management' ); ?></button>
+			<button type="button" class="button" id="ep-license-diag-clear"><?php esc_html_e( 'Clear records', 'eventprime-event-calendar-management' ); ?></button>
+		</p>
+		<textarea readonly id="ep-license-diag-report" rows="14" class="large-text code"><?php echo esc_textarea( EventPrime_License_Diagnostics::format_report( EventPrime_License_Diagnostics::get_records() ) ); ?></textarea>
+	</details>
+	<?php endif; ?>
+
     <!-- end license -->
 
     <!-- License Manager Modal --> 

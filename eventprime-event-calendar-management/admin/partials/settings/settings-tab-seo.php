@@ -29,7 +29,7 @@ $ext_list = $ep_functions->ep_list_all_exts();
                     <input name="enable_seo_urls" id="enable_seo_urls" onclick="hide_show_google_share_setting(this,'ep_enable_seo_urls_child')" type="checkbox" value="1" <?php echo isset($global_options->enable_seo_urls ) && $global_options->enable_seo_urls == 1 ? 'checked' : '';?>>
                     <span class="ep-toogle-slider round"></span>
                 </label>
-                <div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( 'Turning this on will replace current ID based event URLs with custom subdirectory and slug structure. You may wish to redirect your old URLs to new ones if they are already cached by search engines.', 'eventprime-event-calendar-management' );?></div>
+				<div class="ep-help-tip-info ep-my-2 ep-text-muted"><?php esc_html_e( 'Turning this on will replace current ID based event URLs with custom subdirectory and slug structure. You may wish to redirect your old URLs to new ones if they are already cached by search engines. If you use Elementor Pro Theme Builder, single-event display conditions need this setting on and WordPress Settings > Permalinks set to anything other than Plain.', 'eventprime-event-calendar-management' ); ?></div>
             </td>
         </tr>
         <tr valign="top" class="ep_enable_seo_urls_child" style="<?php echo isset($global_options->enable_seo_urls ) && $global_options->enable_seo_urls == 1 ? '' : 'display:none;';?>">

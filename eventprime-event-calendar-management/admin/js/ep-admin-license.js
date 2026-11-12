@@ -63,6 +63,60 @@ jQuery( function( $ ) {
         showResult($btn, $('<textarea>').html(message).text(), false);
     }
     
+    // Connection diagnostics panel.
+    function diagPost($btn, action, doneMessage) {
+        const $report = $('#ep-license-diag-report');
+        $btn.prop('disabled', true).attr('aria-busy', 'true');
+        $.post(get_ajax_url(), { action: action, nonce: ep_admin_license_settings.ep_license_nonce })
+            .done(function(response) {
+                if (response && response.success && response.data && typeof response.data.report === 'string') {
+                    $report.val(response.data.report);
+                    if (doneMessage) {
+                        show_toast('success', doneMessage);
+                    }
+                } else {
+                    const message = response && response.data && response.data.message ? response.data.message : ep_admin_license_settings.request_failed;
+                    show_toast('error', message);
+                }
+            })
+            .fail(function() {
+                show_toast('error', ep_admin_license_settings.request_failed);
+            })
+            .always(function() {
+                $btn.prop('disabled', false).removeAttr('aria-busy');
+            });
+    }
+
+    $('#ep-license-diag-run').on('click', function() {
+        diagPost($(this), 'ep_license_connection_test', '');
+    });
+
+    $('#ep-license-diag-clear').on('click', function() {
+        diagPost($(this), 'ep_license_diagnostics_clear', ep_admin_license_settings.diag_cleared);
+    });
+
+    $('#ep-license-diag-copy').on('click', function() {
+        const $report = $('#ep-license-diag-report');
+        const text = $report.val();
+        function fallbackCopy() {
+            $report[0].select();
+            let copied = false;
+            try {
+                copied = document.execCommand('copy');
+            } catch (e) {
+                copied = false;
+            }
+            show_toast(copied ? 'success' : 'error', copied ? ep_admin_license_settings.diag_copied : ep_admin_license_settings.diag_copy_failed);
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function() {
+                show_toast('success', ep_admin_license_settings.diag_copied);
+            }, fallbackCopy);
+        } else {
+            fallbackCopy();
+        }
+    });
+
     $('#ep_setting_form').on('keydown', 'input', function(event) {
   if (event.key === 'Enter') {
     event.preventDefault();

@@ -5,7 +5,7 @@ Tags: event, events, event calendar, event organizer , event manager, event tick
 Requires at least: 4.8
 Tested up to: 7.1
 Requires PHP: 7.2
-Stable tag: 4.3.8.0
+Stable tag: 4.3.9.0
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -27,6 +27,7 @@ Some of the top EventPrime features include:
 * Sticky Get Tickets shortcut on phones when using the default single-event ticket template, with a setting to turn it on or off.
 * Accept payments for bookings via PayPal and Stripe.
 * Re-check a Failed PayPal booking from the booking screen and complete it when PayPal confirms the payment.
+* Export bookings and attendees to CSV, including attendee columns, coupon, tax and WooCommerce totals.
 * Option to create multiple ticket types and categories for your events with in-built tickets creation module.
 * Add entrance or cover charges along with per-ticket fees.
 * Build offers based on different conditions.
@@ -653,6 +654,10 @@ That's easy. Just write to us at our [Contact page](https://theeventprime.com/su
 
 We are always happy to hear your particular needs and requirements. Similar to reporting a bug, just write to us at our [Contact page](https://theeventprime.com/support/). Our support team will contact you right away.
 
+= Elementor Pro Theme Builder single-event templates do not apply to my events. What should I check? =
+
+EventPrime shows an event on its own address (/event/event-name/) only when "Enable Pretty URLs" is turned on in EventPrime > Settings > General > SEO and WordPress Settings > Permalinks is not set to Plain. Otherwise event links use your Events page, and Elementor Pro Theme Builder display conditions for single events may not apply. Turn the setting on, save your permalinks, and test the event again.
+
 
 == Screenshots ==
 
@@ -686,6 +691,35 @@ We are always happy to hear your particular needs and requirements. Similar to r
 
 
 == Changelog ==
+
+= 4.3.9.0: November 12, 2026 =
+* Added: The bookings CSV export has columns for attendee details, coupon, tax and WooCommerce totals.
+* Added: The License tab shows privacy-safe licence diagnostics.
+* Added: A notice and help text appear when Elementor Pro is active and SEO URLs are off.
+* Security: Hardened booking and attendee CSV exports.
+* Security: Hardened ticket listing visibility checks. Thanks to Nguyen Vu Thanh Danh for responsibly reporting the issue.
+* Security: Hardened AJAX request checks.
+* Security: Hardened login requests.
+* Security: Hardened bookings export permissions. Export now requires the bookings capability.
+* Fixed: Duplicate Event keeps backslashes in the copied event.
+* Fixed: The hide-past events cut-off uses midnight in your site's timezone.
+* Fixed: Updating an event through the REST API stores the date timestamps.
+* Fixed: Order info no longer fails on malformed amounts on PHP 8.
+* Fixed: The Event Slider works with several instances on one page, loads its jQuery dependency, and shows correct block styles and arrows.
+* Fixed: The Add to calendar menu can be used with the keyboard.
+* Fixed: The focus ring and text contrast are clearer in light and dark mode.
+* Fixed: Performer names follow the text direction automatically on right-to-left sites.
+* Fixed: Calendar event links work again after the calendar is widened.
+* Fixed: The attendee CSV opens correctly in spreadsheet apps (UTF-8 BOM).
+* Fixed: The compact calendar toolbar no longer overflows.
+* Fixed: Admin screens display correctly on phones.
+* Fixed: Events expiry uses the event end date and time.
+* Fixed: A lifetime licence is shown correctly.
+* Fixed: Email Attendees no longer adds backslashes before quotes, and recipients are validated.
+* Fixed: Clearer messages when an export fails, and the attendee CSV shows the current email address.
+* Fixed: Help text for the checkout timer.
+* Fixed: A fatal error on the bookings screen caused by an early WP_Query call.
+* Fixed: The licence notice uses the best stored licence and has a "Check license status" button.
 
 = 4.3.8.0: November 5, 2026 =
 * Fixed: Duplicate Event keeps Elementor layouts that contain quotes or backslashes in their text, and the copy keeps its styles.
@@ -2483,6 +2517,9 @@ Fixed: empty event-type lists to return 0 results successfully.
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.3.9.0 =
+Fixes calendar, slider, export, licence and accessibility issues and adds security hardening. Updating is recommended.
 
 = 4.3.8.0 =
 Fixes Elementor event duplication, the individual_events date options, attendee CSV exports, and dark mode, right-to-left, Safari and calendar display issues.

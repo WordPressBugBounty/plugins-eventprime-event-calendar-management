@@ -209,6 +209,16 @@
     visibility: visible;
     opacity: 1;
 }
+.ep-sl-event-action.ep-menu-open .ep-calendar-exp-dropdown-content.ep-event-share {
+    display: block !important;
+    visibility: visible;
+    opacity: 1;
+}
+.ep-exp-dropbtn:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+    border-radius: 2px;
+}
 ul.ep-event-share li.ep-event-social-icon:first-child {
     margin-top: 0.5rem !important;
 }

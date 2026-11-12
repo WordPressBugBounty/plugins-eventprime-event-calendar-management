@@ -11,6 +11,11 @@ class EventPrime_License_Notices {
 	const DISMISS_DELAY_DAYS = 7;
 
 	/**
+	 * Stored licence statuses that mean the licence is not usable.
+	 */
+	const INVALID_STATUSES = array( 'expired', 'invalid', 'deactivated', 'disabled', 'revoked' );
+
+	/**
 	 * Map notice types to user meta keys.
 	 *
 	 * @var array
@@ -107,11 +112,15 @@ class EventPrime_License_Notices {
 
 		$current_time_gmt = current_time( 'timestamp', true );
                 //print_r($current_time_gmt);die;
-		$expires_ts       = isset( $license_state['expires_ts'] ) ? absint( $license_state['expires_ts'] ) : 0;
+		$expires_ts = isset( $license_state['expires_ts'] ) ? (int) $license_state['expires_ts'] : 0;
 		$status           = strtolower( $license_state['status'] ?? '' );
 		$has_key          = ! empty( $license_state['has_key'] );
 
-		$invalid_statuses = array( 'expired', 'invalid', 'deactivated', 'disabled', 'revoked' );
+		if ( $expires_ts < 0 || ! empty( $license_state['lifetime'] ) ) {
+			$expires_ts = 0;
+		}
+
+		$invalid_statuses = self::INVALID_STATUSES;
 		$bucket           = '';
 
 		// Expired has the highest priority.
@@ -163,13 +172,31 @@ class EventPrime_License_Notices {
 			esc_html( $notice['secondary_cta']['label'] )
 		) : '';
 
+		$tertiary_btn = ! empty( $notice['tertiary_cta'] ) ? sprintf(
+			'<a class="button" href="%1$s" target="%2$s" rel="noopener">%3$s</a>',
+			esc_url( $notice['tertiary_cta']['url'] ),
+			isset( $notice['tertiary_cta']['target'] ) ? esc_attr( $notice['tertiary_cta']['target'] ) : '_self',
+			esc_html( $notice['tertiary_cta']['label'] )
+		) : '';
+
 		?>
+		<style id="ep-license-notice-phone-css">
+			@media (max-width: 600px) {
+				.ep-license-notice-actions { display: flex; flex-wrap: nowrap; gap: 3px; }
+				.ep-license-notice-actions .button { flex: 1 1 auto; min-width: 0; margin-right: 0; padding: 0 4px; font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
+			}
+			@media (max-width: 385px) {
+				.ep-license-notice-actions { flex-wrap: wrap; }
+				.ep-license-notice-actions .button { flex: 1 1 auto; max-width: 100%; padding: 0 8px; font-size: 13px; overflow: visible; text-overflow: clip; white-space: normal; }
+			}
+		</style>
 		<div class="<?php echo $classes; ?>"<?php echo $style_attr . $data_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 			<p><strong><?php echo esc_html( $notice['heading'] ); ?></strong> <?php echo esc_html( $notice['message'] ); ?></p>
-			<?php if ( $primary_btn || $secondary_btn ) : ?>
+			<?php if ( $primary_btn || $secondary_btn || $tertiary_btn ) : ?>
 				<p class="ep-license-notice-actions">
 					<?php echo $primary_btn; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 					<?php echo $secondary_btn; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					<?php echo $tertiary_btn; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 				</p>
 			<?php endif; ?>
 		</div>
@@ -237,6 +264,13 @@ class EventPrime_License_Notices {
 					'label'  => esc_html__( 'Account dashboard', 'eventprime-event-calendar-management' ),
 					'target' => '_blank',
 				),
+				'tertiary_cta'  => $is_license_tab
+					? array()
+					: array(
+						'url'    => $license_tab_url,
+						'label'  => esc_html__( 'Check license status', 'eventprime-event-calendar-management' ),
+						'target' => '_self',
+					),
 			),
 			'no_license_paid_active' => array(
 				'heading'      => esc_html__( "Your EventPrime license isn't connected yet.", 'eventprime-event-calendar-management' ),
@@ -300,6 +334,10 @@ class EventPrime_License_Notices {
 		// Prefer new metagauss license data if present.
 		$meta_license_data = get_option( 'metagauss_license_data', array() );
 		if ( ! empty( $meta_license_data ) && is_array( $meta_license_data ) ) {
+			$license_helper = new EventPrime_License();
+			$now            = time();
+			$best_state     = array();
+			$best_rank      = array();
 			foreach ( $meta_license_data as $license_key => $license_entry ) {
 				if ( empty( $license_key ) || empty( $license_entry['plugins'] ) || ! is_array( $license_entry['plugins'] ) ) {
 					continue;
@@ -312,19 +350,36 @@ class EventPrime_License_Notices {
 					break;
 				}
 
-				$expiration_ts = isset( $first_plugin['expiration'] ) && is_numeric( $first_plugin['expiration'] ) ? (int) $first_plugin['expiration'] : 0;
-				if ( ! $expiration_ts && ! empty( $first_plugin['expire_date'] ) ) {
-					$maybe_ts = strtotime( $first_plugin['expire_date'] );
-					$expiration_ts = $maybe_ts ? $maybe_ts : 0;
+				$expiration_ts = $license_helper->ep_license_entry_expiry_ts( $first_plugin );
+				$is_lifetime   = $license_helper->ep_license_entry_is_lifetime( $first_plugin );
+				$status        = $first_plugin['status'] ?? '';
+				$status_lower  = strtolower( (string) $status );
+
+				// Class 3: usable; class 2: empty status (connection state); class 1: invalid or past expiry.
+				if ( '' !== $status_lower && ! in_array( $status_lower, self::INVALID_STATUSES, true ) && ( $is_lifetime || ! $expiration_ts || $expiration_ts >= $now ) ) {
+					$class = 3;
+				} elseif ( '' === $status_lower ) {
+					$class = 2;
+				} else {
+					$class = 1;
 				}
 
-				return array(
-					'has_key'     => true,
-					'status'      => $first_plugin['status'] ?? '',
-					'expires_ts'  => $expiration_ts,
-					'license_key' => $license_key,
-					'download_id' => $download_id,
-				);
+				// Higher class wins, then lifetime, then the later expiry; stored order breaks ties.
+				$rank = array( $class, $is_lifetime ? 1 : 0, $expiration_ts );
+				if ( empty( $best_rank ) || $rank > $best_rank ) {
+					$best_rank  = $rank;
+					$best_state = array(
+						'has_key'     => true,
+						'status'      => $status,
+						'expires_ts'  => $expiration_ts,
+						'lifetime'    => $is_lifetime,
+						'license_key' => $license_key,
+						'download_id' => $download_id,
+					);
+				}
+			}
+			if ( ! empty( $best_state ) ) {
+				return $best_state;
 			}
 		}
 
