@@ -13,6 +13,39 @@ $is_able_to_purchase = $ep_functions->ep_check_event_restrictions( $args->event 
 $max_ticket_reached_message = ( isset($args->event->em_event_max_tickets_reached_message) && ! empty($args->event->em_event_max_tickets_reached_message))?$args->event->em_event_max_tickets_reached_message:esc_html__('You have already reached the maximum ticket limit for this event and cannot purchase additional tickets.','eventprime-event-calendar-management');
 $max_ticket_per_order = $is_able_to_purchase[0];
 
+// Events with an overall capacity: one capacity state for the whole block (empty array when there is no pool).
+$eventprime_pool_state = ( new EventPrime_Capacity() )->get_pool_state( $args->event, array( 'context' => 'display' ) );
+$eventprime_pool_note  = '';
+if ( ! empty( $eventprime_pool_state['pools']['event'] ) && $eventprime_pool_state['pools']['event']['remaining'] > 0 ) {
+	// Show the event-level limit only when it is what stops visitors (smaller than what the ticket types alone allow).
+	$eventprime_types_remaining = 0;
+	$eventprime_types_show_left = false;
+	foreach ( $eventprime_pool_state['tickets'] as $eventprime_type_state ) {
+		if ( ! empty( $eventprime_type_state['on_sale'] ) ) {
+			$eventprime_types_remaining += $eventprime_type_state['remaining'];
+		}
+	}
+	foreach ( $all_tickets as $eventprime_type_ticket ) {
+		if ( isset( $eventprime_type_ticket->show_remaining_tickets ) && 1 === (int) $eventprime_type_ticket->show_remaining_tickets ) {
+			$eventprime_types_show_left = true;
+		}
+	}
+	if ( $eventprime_types_show_left && $eventprime_pool_state['pools']['event']['remaining'] < $eventprime_types_remaining ) {
+		/* translators: %d: number of tickets left for the whole event. */
+		$eventprime_pool_note = sprintf( _n( 'Only %d ticket is left for this event.', 'Only %d tickets are left for this event.', $eventprime_pool_state['pools']['event']['remaining'], 'eventprime-event-calendar-management' ), $eventprime_pool_state['pools']['event']['remaining'] );
+	}
+}
+$eventprime_pool_kses = array(
+	'input' => array(
+		'type'  => true,
+		'id'    => true,
+		'value' => true,
+	),
+);
+// Markup of the pool note and the hidden remaining input (empty strings without a pool, so those pages are unchanged).
+$eventprime_pool_note_html  = '' === $eventprime_pool_note ? '' : '<div class="ep-text-small ep-mb-2 ep-event-pool-left" id="ep_event_pool_left_note">' . esc_html( $eventprime_pool_note ) . '</div>';
+$eventprime_pool_input_html = empty( $eventprime_pool_state['pools']['event'] ) ? '' : '<input type="hidden" id="ep_event_pool_remaining" value="' . esc_attr( $eventprime_pool_state['pools']['event']['remaining'] ) . '" />';
+
 // Set to true when the Get Tickets Now button is rendered (sticky bar on phones).
 $eventprime_sticky_book_bar = false;
 
@@ -403,6 +436,11 @@ $eventprime_sticky_book_bar = false;
                                                                 }
                                                             }
                                                         }
+													if ( ! empty( $eventprime_pool_state['tickets'][ $ticket->id ] ) ) {
+														// Overall capacity: the smaller of the type and the event remaining.
+														$remaining_caps  = $eventprime_pool_state['tickets'][ $ticket->id ]['effective_remaining']; // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variable already used by this template.
+														$ticket_sold_out = $remaining_caps < 1 ? 1 : 0; // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variable already used by this template.
+													}
                                                         $max_caps = absint( $ticket->capacity );
                                                         if( absint( $ticket->max_ticket_no ) > 0 ) {
                                                             $max_caps = absint( $ticket->max_ticket_no );
@@ -588,6 +626,7 @@ $eventprime_sticky_book_bar = false;
                                         </div>
                                     </div>
 									<div class="ep-mt-3 ep-ticket-modal-actions">
+<?php echo wp_kses_post( $eventprime_pool_note_html ); // phpcs:ignore Generic.WhiteSpace.ScopeIndent.Incorrect -- Starts at column 0 so nothing is printed when there is no pool. ?>
                                         <div class="ep-error-message" id="ep_single_event_before_checkout_error_msg"></div>
                                         <?php if( $ticket_booking_start == 1 ) {?>
                                             <form action="<?php echo esc_url( get_permalink( $ep_functions->ep_get_global_settings( 'booking_page' ) ) ); ?>" method="post" name="ep_event_booking" id="ep_event_booking_form">
@@ -615,6 +654,7 @@ $eventprime_sticky_book_bar = false;
                                                     <?php if($max_ticket_per_order!==true){?>
                                                     <input type="hidden" name="ep_allowed_max_total_ticket_per_order" id="ep_allowed_max_total_ticket_per_order" value="<?php echo esc_attr($max_ticket_per_order);?>" />
                                                     <?php }?>
+<?php echo wp_kses( $eventprime_pool_input_html, $eventprime_pool_kses ); // phpcs:ignore Generic.WhiteSpace.ScopeIndent.Incorrect -- Starts at column 0 so nothing is printed when there is no pool. ?>
                                                 <?php do_action('ep_after_event_ticket_book_button', $args->event->em_id);?>
                                             </form><?php
                                         }?>

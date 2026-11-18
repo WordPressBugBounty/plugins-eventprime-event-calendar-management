@@ -1,6 +1,50 @@
+/**
+ * Limit a ticket quantity to the places left for the whole event (overall event capacity).
+ *
+ * Pure function (no DOM), so it can be unit tested with Node.
+ *
+ * @param {Object} qtyByTicket Quantity chosen per ticket id, e.g. { 12: 2, 13: 1 }.
+ * @param {number|string} ticketId Ticket id whose quantity is being changed.
+ * @param {number} wantedQty Quantity the visitor asks for on that ticket.
+ * @param {number|string|null} pool Places left for the event; null, '' or NaN means no limit.
+ * @return {{qty: number, clamped: boolean, allowed: number}} qty: the quantity allowed, clamped: true when it was reduced,
+ *         allowed: the most the ticket may take given the other tickets (Infinity when there is no limit).
+ */
+function epClampToPool( qtyByTicket, ticketId, wantedQty, pool ) {
+    var wanted = parseInt( wantedQty, 10 );
+    if ( isNaN( wanted ) || wanted < 0 ) {
+        wanted = 0;
+    }
+    if ( pool === null || pool === undefined || pool === '' || isNaN( parseInt( pool, 10 ) ) ) {
+        return { qty: wanted, clamped: false, allowed: Infinity };
+    }
+    var others = 0;
+    for ( var id in qtyByTicket ) {
+        if ( Object.prototype.hasOwnProperty.call( qtyByTicket, id ) && String( id ) !== String( ticketId ) ) {
+            var other = parseInt( qtyByTicket[ id ], 10 );
+            if ( ! isNaN( other ) && other > 0 ) {
+                others += other;
+            }
+        }
+    }
+    var allowed = Math.max( 0, parseInt( pool, 10 ) - others );
+    if ( wanted > allowed ) {
+        return { qty: allowed, clamped: true, allowed: allowed };
+    }
+    return { qty: wanted, clamped: false, allowed: allowed };
+}
+
+if ( typeof module !== 'undefined' && module.exports ) {
+    module.exports = { epClampToPool: epClampToPool };
+}
+
 jQuery( function( $ ) {
     $( document ).ready(function() {
         $( 'body' ).addClass( 'ep-event-detail-template' );
+        // overall event capacity: screen readers announce the capacity message shown in the ticket modal
+        if( $( '#ep_event_pool_remaining' ).length > 0 ) {
+            $( '#ep_single_event_before_checkout_error_msg' ).attr( { 'role': 'status', 'aria-live': 'polite' } );
+        }
         // hide default theme featured image and title
         if( $( '.ep-event-detail-template .wp-block-post-featured-image' ).length > 0 ) {
             $( '.ep-event-detail-template .wp-block-post-featured-image' ).hide();
@@ -180,6 +224,7 @@ jQuery( function( $ ) {
                 qty = max_allowed_qty;
             }
             $( '#ep_event_ticket_qty_' + parent_id ).val( qty );
+            ep_clear_pool_message();
             // update price
             //ep_update_tickets_data( 'minus', parent_id );
             ep_update_cart_ticket_data( 'minus', parent_id );
@@ -195,6 +240,17 @@ jQuery( function( $ ) {
             }
             if( qty > max_allowed_qty ) {
                 qty = max_allowed_qty;
+            }
+            // overall event capacity: never select more than the places left for the whole event
+            if( $( '#ep_event_pool_remaining' ).length > 0 ) {
+                let pool_left = parseInt( $( '#ep_event_pool_remaining' ).val(), 10 );
+                let pool_clamp = epClampToPool( ep_get_ticket_quantities(), parent_id, qty, pool_left );
+                qty = pool_clamp.qty;
+                if( pool_clamp.clamped ) {
+                    ep_show_pool_message( pool_left );
+                } else{
+                    ep_clear_pool_message();
+                }
             }
             $( '#ep_event_ticket_qty_' + parent_id ).val( qty );
             // update price
@@ -484,6 +540,41 @@ jQuery( function( $ ) {
         $( '#ep-event-ticket-checkout-modal .ep-loader' ).hide();
     }
 
+    // quantity chosen for every ticket in the ticket modal, keyed by ticket id
+    function ep_get_ticket_quantities() {
+        let quantities = {};
+        $( '.ep-checkout-ticket-quantity-num' ).each( function() {
+            let input_id = ( $( this ).attr( 'id' ) || '' ).replace( 'ep_event_ticket_qty_', '' );
+            if( input_id ) {
+                quantities[ input_id ] = parseInt( $( this ).val(), 10 ) || 0;
+            }
+        });
+        return quantities;
+    }
+
+    // message when the places left for the whole event are not enough
+    function ep_show_pool_message( pool_left ) {
+        let event_data = em_front_event_object.em_event_data;
+        let message = event_data.pool_none;
+        if( pool_left > 0 ) {
+            message = ( pool_left === 1 ? event_data.pool_left_one : event_data.pool_left_many ).replace( '%d', pool_left );
+        }
+        if( message ) {
+            // the same words are not shown twice: the note under the tickets hides while the message shows
+            $( '#ep_event_pool_left_note' ).hide();
+            $( '#ep_single_event_before_checkout_error_msg' ).text( message ).attr( 'data-ep-pool-msg', '1' );
+        }
+    }
+
+    // remove the message above, only when it is the overall capacity message
+    function ep_clear_pool_message() {
+        let error_box = $( '#ep_single_event_before_checkout_error_msg' );
+        if( error_box.attr( 'data-ep-pool-msg' ) ) {
+            error_box.text( '' ).removeAttr( 'data-ep-pool-msg' );
+            $( '#ep_event_pool_left_note' ).show();
+        }
+    }
+
     // Update cart ticket data with debounce
     const ep_update_cart_ticket_data = debounce(function (action, ticket_id)
     {
@@ -586,7 +677,8 @@ jQuery( function( $ ) {
                     }
                     calculate_tickets_total();
                     $( '#ep_event_booking_ticket' ).attr( 'data-ticket_options', JSON.stringify( ep_added_ticket_option ) );
-                    $('#ep_single_event_before_checkout_error_msg').html('');
+                    // keep the overall event capacity message (cleared by the plus and minus buttons instead)
+                    $('#ep_single_event_before_checkout_error_msg:not([data-ep-pool-msg])').html('');
                     $('#ep-event-ticket-checkout-modal .ep-loader').parent('.ep-modal-body').removeClass('ep-loader-active');
                     $('#ep-event-ticket-checkout-modal .ep-loader').hide();
                     
@@ -1397,6 +1489,15 @@ jQuery( function( $ ) {
                 }
             });
             
+            // overall event capacity: the selected total can not be above the places left for the whole event
+            if( ticket_error == 0 && $( '#ep_event_pool_remaining' ).length > 0 ) {
+                let pool_left = parseInt( $( '#ep_event_pool_remaining' ).val(), 10 );
+                if( ! isNaN( pool_left ) && tickets_count > pool_left ) {
+                    ticket_error = 1;
+                    ep_show_pool_message( pool_left );
+                }
+            }
+
             if( ticket_error == 0 ) {
                 let booking_event_id = $( '#ep_event_booking_event_id' ).val();
                 let ep_event_offer_data = $( '#ep_event_offer_data' ).val();

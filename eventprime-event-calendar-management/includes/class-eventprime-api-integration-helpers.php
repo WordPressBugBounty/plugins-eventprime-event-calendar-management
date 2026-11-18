@@ -133,6 +133,17 @@ class Eventprime_API_Integration_Helpers {
                 }
             }
         }
+		// Additive capacity numbers (bookings subtracted, overall event capacity applied). `capacity` is unchanged.
+		if ( ! empty( $ticket_data ) && $event_id && class_exists( 'EventPrime_Rest_Booking' ) ) {
+			$capacity_state = ( new EventPrime_Rest_Booking() )->get_state( $event_id );
+			foreach ( $ticket_data as $index => $ticket_row ) {
+				$row_id = isset( $ticket_row['ticket_id'] ) ? absint( $ticket_row['ticket_id'] ) : 0;
+				if ( $row_id > 0 && isset( $capacity_state['tickets'][ $row_id ] ) ) {
+					$ticket_data[ $index ]['sold']      = (int) $capacity_state['tickets'][ $row_id ]['sold'];
+					$ticket_data[ $index ]['remaining'] = (int) $capacity_state['tickets'][ $row_id ]['effective_remaining'];
+				}
+			}
+		}
         // Fallback: query ticket posts directly if core helper returned no results
         if ( empty( $ticket_data ) && $event_id ) {
             // Look for tickets where meta 'em_event' stores the event id. Some installs store as plain int, others

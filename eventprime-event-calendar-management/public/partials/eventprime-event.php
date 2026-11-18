@@ -81,6 +81,16 @@ if( ! empty( $post ) && $post->post_type=='em_event') {
         'free_text'          => esc_html__( 'Free', 'eventprime-event-calendar-management' ),
         'max_tickets_per_order_msg' => $max_tickets[1],
     );
+	// Strings for the overall event capacity message; only added for events that have a pool.
+	// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template-scope array already used by this template.
+	if ( ep_get_event_overall_capacity( $args->event ) > 0 ) {
+		/* translators: %d: number of tickets left for the whole event. */
+		$localized_script['pool_left_one'] = esc_html__( 'Only %d ticket is left for this event.', 'eventprime-event-calendar-management' );
+		/* translators: %d: number of tickets left for the whole event. */
+		$localized_script['pool_left_many'] = esc_html__( 'Only %d tickets are left for this event.', 'eventprime-event-calendar-management' );
+		$localized_script['pool_none']      = esc_html__( 'No places are left for this event.', 'eventprime-event-calendar-management' );
+	}
+	// phpcs:enable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
     // check for child events
     $events_data['event']->child_other_events = array();
     $recurring_events = $ep_functions->ep_get_child_events( $events_data['post']->ID );

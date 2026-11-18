@@ -165,6 +165,9 @@ class EventPrime_Bookings {
 
         update_post_meta( $booking->em_id, 'em_status', $booking_status );
 
+		// Capacity overshoot (#2346): record only, never cancel, change the status or refund.
+		( new EventPrime_Capacity() )->maybe_record_overshoot( $booking->em_id, $booking_status );
+
         do_action( 'ep_after_update_booking_status', $booking->em_id, $data );
 
         // update order info
@@ -332,12 +335,17 @@ class EventPrime_Bookings {
     
     public function update_status($booking_id, $status = 'pending'){
         $response = array( 'message'=> esc_html__( 'Updated Successfully.', 'eventprime-event-calendar-management' ) );
+
+		$capacity_service = new EventPrime_Capacity();
+		$capacity_held    = $capacity_service->booking_counted_quantity( $booking_id );
         if($status == 'refunded'){
             if ( class_exists( 'EventM_Live_Seating_List_Controller' ) ) {
                 $seating_controller = new EventM_Live_Seating_List_Controller();
                 $seating_controller->refund_and_cancelled_seats_handler( $booking_id ); 
             }
-            return $this->mark_booking_refunded($booking_id);
+			$refund_response = $this->mark_booking_refunded( $booking_id );
+			$capacity_service->maybe_fire_released( $booking_id, $capacity_held );
+			return $refund_response;
         }
         $postData = array( 'ID' => $booking_id, 'post_status' => $status );
         wp_update_post( $postData );
@@ -367,6 +375,8 @@ class EventPrime_Bookings {
         } else {
             $ep_notify->booking_pending( $booking_id );
         }
+
+		$capacity_service->maybe_fire_released( $booking_id, $capacity_held );
         
         return $response;
     }

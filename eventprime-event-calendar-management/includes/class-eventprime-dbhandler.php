@@ -1382,6 +1382,12 @@ class EP_DBhandler {
         $post_data['em_event_max_tickets_per_order'] = (isset($post['em_event_max_tickets_per_order'])) ? sanitize_text_field($post['em_event_max_tickets_per_order']) : '';
         $post_data['em_event_max_tickets_reached_message'] = (isset($post['em_event_max_tickets_reached_message'])) ? sanitize_textarea_field($post['em_event_max_tickets_reached_message']) : '';
         $post_data['em_restrict_no_of_bookings_per_user'] = (isset($post['em_restrict_no_of_bookings_per_user'])) ? absint($post['em_restrict_no_of_bookings_per_user']) : '';
+		// Overall event capacity: written only when the key is posted (an absent key never clears it).
+		$overall_capacity_old = absint( get_post_meta( $post_id, 'em_event_overall_capacity', true ) );
+		$overall_capacity_new = $this->ep_get_posted_overall_capacity( $post );
+		if ( null !== $overall_capacity_new ) {
+			$post_data['em_event_overall_capacity'] = $overall_capacity_new;
+		}
         // save social info
         $em_social_links = array();
         if (isset($post['em_social_links']) && count($post['em_social_links']) > 0) {
@@ -1420,6 +1426,7 @@ class EP_DBhandler {
         $post_data['em_edit_booking_date_data'] = $em_edit_booking_date_data;
         
         $this->eventprime_save_event_metadata($post_id,$post_data);
+		$this->ep_fire_overall_capacity_actions( $post_id, $overall_capacity_old, $overall_capacity_new );
 
         do_action('ep_after_save_event_metadata', $post_id, $post);
         
@@ -1450,6 +1457,46 @@ class EP_DBhandler {
         
     }
     
+	/**
+	 * Read the overall event capacity from a posted event form (#2012).
+	 *
+	 * The key must be present in the form to change anything: an absent key (cached form, quick edit, REST,
+	 * import, front-end submission) returns null and leaves the stored value untouched. A present key returns a
+	 * positive integer, or an empty string when blank or invalid (which clears the pool).
+	 *
+	 * @param array $post Posted (sanitised) event form.
+	 * @return int|string|null Positive int, '' to clear, or null when the key is absent.
+	 */
+	public function ep_get_posted_overall_capacity( $post ) {
+		if ( ! is_array( $post ) || ! array_key_exists( 'em_event_overall_capacity', $post ) ) {
+			return null;
+		}
+		$raw = is_scalar( $post['em_event_overall_capacity'] ) ? trim( (string) $post['em_event_overall_capacity'] ) : '';
+		return ( '' !== $raw && ctype_digit( $raw ) && (int) $raw > 0 ) ? (int) $raw : '';
+	}
+
+	/**
+	 * Fire the overall capacity change actions after the event meta is saved (#2012).
+	 *
+	 * @param int             $post_id  Event id.
+	 * @param int             $old_pool Previous pool (0 = none).
+	 * @param int|string|null $new_pool Posted value: positive int, '' (cleared) or null (key absent, nothing changed).
+	 */
+	private function ep_fire_overall_capacity_actions( $post_id, $old_pool, $new_pool ) {
+		if ( null === $new_pool ) {
+			return;
+		}
+		$new_pool = absint( $new_pool );
+		if ( $new_pool === (int) $old_pool ) {
+			return;
+		}
+		do_action( 'ep_after_event_overall_capacity_saved', $post_id, (int) $old_pool, $new_pool ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Public hook documented in class-ep-capacity.php.
+		// An existing pool raised or cleared: more places can now be sold. A cleared pool reports 0 (the amount is not known).
+		if ( (int) $old_pool > 0 && ( 0 === $new_pool || $new_pool > (int) $old_pool ) ) {
+			do_action( 'ep_event_capacity_released', $post_id, 0 === $new_pool ? 0 : $new_pool - (int) $old_pool ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Public hook documented in class-ep-capacity.php.
+		}
+	}
+
     public function eventprime_save_event_metadata($post_id,$post_data)
     {
         if(!empty($post_data))

@@ -237,6 +237,60 @@ class Eventprime_Event_Calendar_Management_Admin {
 					'one_booking_field_req'            => esc_html__( 'Please select atleast one booking field.', 'eventprime-event-calendar-management' ),
 					'min_ticket_no_zero_error'         => esc_html__( 'The minimum ticket quantity per order must be greater than zero.', 'eventprime-event-calendar-management' ),
 					'max_ticket_no_zero_error'         => esc_html__( 'The maximum ticket quantity per order must be greater than zero.', 'eventprime-event-calendar-management' ),
+					'no_seats_left_to_allocate'        => esc_html__( 'No seats left to allocate.', 'eventprime-event-calendar-management' ),
+					'overall_capacity_invalid'         => esc_html__( 'Please enter a whole number of 0 or more.', 'eventprime-event-calendar-management' ),
+					'overall_capacity_qty_help'        => esc_html__( 'Total number of tickets available for this ticket type. With an overall event capacity set, this is the most tickets of this type that can be sold (enter the overall capacity for no separate limit for this type).', 'eventprime-event-calendar-management' ),
+					'overall_capacity_category_note'   => esc_html__( 'Category quantity is informational while an event total is set.', 'eventprime-event-calendar-management' ),
+					'capacity_prefix_info'             => esc_html__( 'Note:', 'eventprime-event-calendar-management' ),
+					'capacity_prefix_warn'             => esc_html__( 'Warning:', 'eventprime-event-calendar-management' ),
+					'capacity_prefix_danger'           => esc_html__( 'Important:', 'eventprime-event-calendar-management' ),
+					/* translators: 1: overall event capacity, 2: tickets sold, 3: tickets left. */
+					'capacity_live_total'              => esc_html__( '%1$d total, %2$d sold, %3$d left.', 'eventprime-event-calendar-management' ),
+					/* translators: 1: overall event capacity, 2: tickets sold, 3: tickets left. */
+					'capacity_live_total_soldout'      => esc_html__( '%1$d total, %2$d sold, %3$d left. Sold out.', 'eventprime-event-calendar-management' ),
+					/* translators: 1: most tickets all ticket types can sell, 2: tickets sold, 3: tickets left. */
+					'capacity_live_nototal'            => esc_html__( 'No event total. Ticket types can sell up to %1$d in total: %2$d sold, %3$d left.', 'eventprime-event-calendar-management' ),
+					/* translators: %d: overall event capacity. */
+					'capacity_live_empty_total'        => esc_html__( '%d total. Add a ticket type to start selling.', 'eventprime-event-calendar-management' ),
+					'capacity_live_empty'              => esc_html__( 'No event total and no ticket types yet. Add a ticket type to start selling.', 'eventprime-event-calendar-management' ),
+					/* translators: %s: ticket type name. */
+					'capacity_legend_sold'             => esc_html__( '%s sold:', 'eventprime-event-calendar-management' ),
+					'capacity_legend_left'             => esc_html__( 'Left:', 'eventprime-event-calendar-management' ),
+					'capacity_stat_sold'               => esc_html__( 'Sold', 'eventprime-event-calendar-management' ),
+					'capacity_stat_left'               => esc_html__( 'Left', 'eventprime-event-calendar-management' ),
+					'capacity_chip_out'                => esc_html__( 'Sold out', 'eventprime-event-calendar-management' ),
+					'capacity_chip_capped'             => esc_html__( 'Capped by event total', 'eventprime-event-calendar-management' ),
+					'capacity_chip_on_sale'            => esc_html__( 'On sale', 'eventprime-event-calendar-management' ),
+					'capacity_chip_informational'      => esc_html__( 'Informational', 'eventprime-event-calendar-management' ),
+					'capacity_help_blank'              => esc_html__( 'Leave blank for no overall limit. Each ticket type then sells up to its own Available Quantity, exactly as before.', 'eventprime-event-calendar-management' ),
+					'capacity_help_total'              => esc_html__( 'Total tickets across all ticket types. Each ticket type\'s quantity is a limit for that type only.', 'eventprime-event-calendar-management' ),
+					'capacity_help_seats'              => esc_html__( 'Optional. Limits the total number of seats sold across all ticket types.', 'eventprime-event-calendar-management' ),
+					/* translators: 1: new overall capacity, 2: tickets already sold. */
+					'capacity_w_lowered'               => esc_html__( '%1$d is lower than the %2$d already sold. Nothing is cancelled and existing bookings stay valid, but this event will show as sold out. Raise the total to at least %2$d to sell more tickets.', 'eventprime-event-calendar-management' ),
+					/* translators: 1: ticket type name, 2: sold, 3: limit, 4: number over. */
+					'capacity_w_over'                  => esc_html__( '%1$s: %2$d sold, above its limit of %3$d (%4$d over). Nothing is cancelled; this ticket type shows as sold out.', 'eventprime-event-calendar-management' ),
+					/* translators: %s: ticket type name. */
+					'capacity_w_zero'                  => esc_html__( '%s: its limit is 0, so no tickets of this type can be sold.', 'eventprime-event-calendar-management' ),
+					/* translators: 1: ticket type name, 2: its limit, 3: overall event capacity. */
+					'capacity_w_above'                 => esc_html__( '%1$s: its limit of %2$d is above the event total of %3$d, so the event total applies.', 'eventprime-event-calendar-management' ),
+					/* translators: 1: sum of ticket limits, 2: overall event capacity. */
+					'capacity_w_less'                  => esc_html__( 'Ticket limits add up to %1$d, but the event total is %2$d. At most %1$d tickets can sell, so the total can never be reached. Raise a ticket limit, or set it to the event total for no separate limit.', 'eventprime-event-calendar-management' ),
+					/* translators: 1: sum of ticket limits, 2: overall event capacity. */
+					'capacity_w_more'                  => esc_html__( 'Ticket limits add up to %1$d, more than the event total of %2$d. That is fine: whichever runs out first stops sales.', 'eventprime-event-calendar-management' ),
+					'capacity_w_nototal'               => esc_html__( 'No event total is set, so each ticket type sells up to its own Available Quantity, exactly as before.', 'eventprime-event-calendar-management' ),
+					/* translators: 1: category name, 2: category quantity. */
+					'capacity_w_nototal_cat'           => esc_html__( 'Category quantity (%1$s: %2$d) still limits the ticket types inside that category.', 'eventprime-event-calendar-management' ),
+					/* translators: 1: category name, 2: category quantity. */
+					'capacity_w_catover'               => esc_html__( '%1$s: its ticket types add up to more than the category quantity of %2$d. Lower a ticket quantity or raise the category quantity.', 'eventprime-event-calendar-management' ),
+					/* translators: %1$d: overall event capacity. */
+					'capacity_w_soldout_total'         => esc_html__( 'All %1$d tickets are booked, so the event shows as sold out. Raise the total (and any ticket limits) to sell more.', 'eventprime-event-calendar-management' ),
+					/* translators: %1$d: tickets the ticket types can sell. */
+					'capacity_w_soldout'               => esc_html__( 'All %1$d tickets are booked, so the event shows as sold out. Raise a ticket quantity to sell more.', 'eventprime-event-calendar-management' ),
+					'capacity_seat_always'             => esc_html__( 'This event uses seat selection. Each seat is one place and the seats you assign to ticket types set the ticket quantities.', 'eventprime-event-calendar-management' ),
+					/* translators: 1: overall event capacity, 2: seats assigned to ticket types. */
+					'capacity_seat_pool_below'         => esc_html__( 'Only %1$d of the %2$d seats can be sold. Once %1$d places are booked the event shows as sold out, even if seats remain free on the plan.', 'eventprime-event-calendar-management' ),
+					/* translators: 1: overall event capacity, 2: seats assigned to ticket types. */
+					'capacity_seat_pool_above'         => esc_html__( 'The overall capacity (%1$d) is higher than the %2$d seats assigned to ticket types, so the seats are the limit. Raise the seats in the seat plan to sell more.', 'eventprime-event-calendar-management' ),
 				)
             );
 

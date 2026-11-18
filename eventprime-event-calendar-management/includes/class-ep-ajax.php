@@ -367,6 +367,11 @@ class EventM_Ajax_Service {
                     $data['ep_event_booking_event_fixed_price'] = 0;
                 }
                 $current_user = wp_get_current_user();
+				// Capacity (#2346 / #2012): validate every line and the cart total under a per-event lock, before the generic checks.
+				$capacity_service  = new EventPrime_Capacity();
+				$capacity_event_id = isset( $data['ep_event_booking_event_id'] ) ? absint( $data['ep_event_booking_event_id'] ) : 0;
+				$capacity_override = class_exists( 'Eventprime_Admin_Attendee_Booking' ) && ! empty( get_option( 'ep_set_admin_aab_' . $current_user->ID ) );
+				$capacity_checked  = $capacity_service->guard_checkout( $capacity_event_id, $data['ep_event_booking_ticket_data'], $capacity_override );
                 //echo 'data 1';
                 //print_r($data);
                 if( class_exists("Eventprime_Admin_Attendee_Booking")){
@@ -383,16 +388,23 @@ class EventM_Ajax_Service {
                 
                 if($data=='ticket_sold')
                 {
+					$capacity_service->release_lock( $capacity_event_id );
                     wp_send_json_error( array( 'error' => esc_html__( 'One or more ticket types for this event are sold out. Please select from the available tickets or check back later for availability.', 'eventprime-event-calendar-management' ) ) );
                     die;
                 }
-                
+
+				// Re-check the normalised lines (quantities may have been raised to a minimum per order), still under the lock.
+				if ( $capacity_checked && is_array( $data ) && isset( $data['ep_event_booking_ticket_data'] ) ) {
+					$capacity_service->guard_checkout( $capacity_event_id, $data['ep_event_booking_ticket_data'], false, false );
+				}
+
                 $enable_gdpr = $ep_functions->ep_get_global_settings( 'enable_gdpr_tools' );
                 $show_checkbox = $ep_functions->ep_get_global_settings('show_gdpr_consent_checkbox');
                 if($enable_gdpr==1 && $show_checkbox==1)
                 {
                     if(!isset($data['ep_gdpr_consent']) || empty($data['ep_gdpr_consent']))
                     {
+						$capacity_service->release_lock( $capacity_event_id );
                         wp_send_json_error( array( 'error' => esc_html__( 'You must accept the Privacy Policy.', 'eventprime-event-calendar-management' ) ) );
                         die;
                     }
@@ -401,6 +413,7 @@ class EventM_Ajax_Service {
                 $woocommerce_validate = $ep_functions->ep_validate_woocommerce_product_data($data);
                 if($woocommerce_validate===false)
                 {
+					$capacity_service->release_lock( $capacity_event_id );
                     wp_send_json_error( array( 'error' => esc_html__( 'WooCommerce Product calculation missed matched.', 'eventprime-event-calendar-management' ) ) );
                     die;
                 }
@@ -445,6 +458,7 @@ class EventM_Ajax_Service {
                 
                 if($data===false)
                 {
+					$capacity_service->release_lock( $capacity_event_id );
                     wp_send_json_error( array( 'error' => esc_html__( 'Something went wrong.', 'eventprime-event-calendar-management' ) ) );
                     die;
                 }
@@ -527,6 +541,10 @@ class EventM_Ajax_Service {
                 update_post_meta( $new_post_id, 'ep_order_key', $order_key );
                 
                 do_action( 'ep_after_booking_created', $new_post_id, $data );
+
+				if ( $capacity_override ) {
+					$capacity_service->note_admin_override( $new_post_id );
+				}
                 
                 // if booking total is 0 then confirm booking
                 if( $payment_method == 'none' && empty( $order_info['booking_total'] ) ){
@@ -536,6 +554,9 @@ class EventM_Ajax_Service {
                     $booking_controller      = new EventPrime_Bookings;
                     $booking_controller->confirm_booking( $new_post_id, $data );
                 }
+
+				// The booking is written (and confirmed when free): the capacity lock is no longer needed.
+				$capacity_service->release_lock( $capacity_event_id );
 
                 $response                 = new stdClass();
                 $response->order_id       = $new_post_id;

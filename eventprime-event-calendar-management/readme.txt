@@ -5,7 +5,7 @@ Tags: event, events, event calendar, event organizer , event manager, event tick
 Requires at least: 4.8
 Tested up to: 7.1
 Requires PHP: 7.2
-Stable tag: 4.3.9.0
+Stable tag: 4.4.0.0
 License: GPLv2 or later
 
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -28,7 +28,7 @@ Some of the top EventPrime features include:
 * Accept payments for bookings via PayPal and Stripe.
 * Re-check a Failed PayPal booking from the booking screen and complete it when PayPal confirms the payment.
 * Export bookings and attendees to CSV, including attendee columns, coupon, tax and WooCommerce totals.
-* Option to create multiple ticket types and categories for your events with in-built tickets creation module.
+* Option to create multiple ticket types and categories for your events with in-built tickets creation module, plus an optional overall event capacity shared by all ticket types.
 * Add entrance or cover charges along with per-ticket fees.
 * Build offers based on different conditions.
 * You can also create informative events without bookings.
@@ -111,7 +111,7 @@ Apart from regular event settings, there are multiple advanced settings to make 
 
 * Add additional event dates apart from start and end dates.
 * Create ticket categories with each category capable of including multiple ticket types.
-* Set capacity or inventory for your tickets.
+* Set capacity or inventory for your tickets, and an optional overall event capacity across all ticket types.
 * Create offers for each ticket type with pre-set conditions. Incentivize your sales with automated early-bird and last minute offers among other combinations.
 * Set visibility of event tickets based on different conditions.
 * Choose from a list of venues and locations for your event.
@@ -654,6 +654,10 @@ That's easy. Just write to us at our [Contact page](https://theeventprime.com/su
 
 We are always happy to hear your particular needs and requirements. Similar to reporting a bug, just write to us at our [Contact page](https://theeventprime.com/support/). Our support team will contact you right away.
 
+= How do I set one total capacity for all ticket types of an event? =
+
+Open the event, go to the Tickets tab and fill in "Overall event capacity" (for example 50). Any mix of ticket types can be sold until that total is reached, and each ticket type's own quantity works as an optional limit for that type (for example 10 for children). Leave the field blank to keep limiting each ticket type on its own. If you sell through the WooCommerce Checkout extension, update it to the version that checks the whole cart for full coverage.
+
 = Elementor Pro Theme Builder single-event templates do not apply to my events. What should I check? =
 
 EventPrime shows an event on its own address (/event/event-name/) only when "Enable Pretty URLs" is turned on in EventPrime > Settings > General > SEO and WordPress Settings > Permalinks is not set to Plain. Otherwise event links use your Events page, and Elementor Pro Theme Builder display conditions for single events may not apply. Turn the setting on, save your permalinks, and test the event again.
@@ -691,6 +695,17 @@ EventPrime shows an event on its own address (/event/event-name/) only when "Ena
 
 
 == Changelog ==
+
+= 4.4.0.0: November 18, 2026 =
+* Added: An optional "Overall event capacity" field in the event's Tickets tab. Set one total for all ticket types (for example 50) and each ticket type's own quantity works as an optional limit for that type. Events with the field left blank work as before.
+* Added: A redesigned "Event capacity" section in the event editor shows total, sold and left, and explains how the limits combine.
+* Added: Tickets left, Sold Out labels and the progress bar follow the overall event capacity.
+* Added: The REST API and the Abilities API accept "overall_capacity" when creating or updating an event, and event and ticket output now include the remaining places ("overall_capacity", "event_remaining", "sold", "remaining").
+* Added: Developer hooks for extensions: "ep_capacity_held_quantity", "ep_capacity_inventory_type", "ep_capacity_rejected", "ep_enforce_ticket_capacity", "ep_event_capacity_exceeded" and "ep_event_capacity_released", plus the functions "ep_get_event_capacity_state()" and "ep_check_capacity_for_cart()".
+* Added: A hidden filter, "ep_fes_show_overall_capacity", reserved for the front-end event submission form. The front-end submission form does not show or change the overall capacity.
+* Changed: For all events, with or without an overall capacity, the server now checks each ticket type's remaining quantity and the whole cart when an order is placed, under a short per-event lock, so an order can no longer exceed a ticket type's quantity. Customers see a specific message such as "Only 3 tickets of Adult are left" instead of "Something went wrong." Sites that rely on the old behaviour can switch the check off for events without an overall capacity with the "ep_enforce_ticket_capacity" filter.
+* Changed: Bookings created through the REST API or the Abilities API now record their tickets, so they use up ticket availability and the overall event capacity, and a booking that does not fit is refused. Bookings made through these APIs before the update carry no tickets and are not changed.
+* Fixed: Refunds, failures and cancellations set through the REST API now release the places.
 
 = 4.3.9.0: November 12, 2026 =
 * Added: The bookings CSV export has columns for attendee details, coupon, tax and WooCommerce totals.
@@ -2517,6 +2532,9 @@ Fixed: empty event-type lists to return 0 results successfully.
 * Initial Release
 
 == Upgrade Notice ==
+
+= 4.4.0.0 =
+Adds an optional overall event capacity shared by all ticket types, and checks ticket limits on the server for every order. WooCommerce Checkout and Live Seating updates follow for full coverage.
 
 = 4.3.9.0 =
 Fixes calendar, slider, export, licence and accessibility issues and adds security hardening. Updating is recommended.

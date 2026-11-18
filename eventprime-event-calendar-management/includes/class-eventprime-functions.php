@@ -8527,6 +8527,11 @@ public function ep_is_event_sold_out( $event )
 {
         $total_caps = $total_bookings = 0;
         if( ! empty( $event ) && ! $this->check_event_has_expired( $event ) && ! empty( $event->all_tickets_data ) ) {
+				// Events with an overall capacity: sold out when the event or every listed type has no places left.
+				$ep_pool_state = ( new EventPrime_Capacity() )->get_pool_state( $event, array( 'context' => 'checkout' ) );
+			if ( ! empty( $ep_pool_state ) ) {
+					return ! empty( $ep_pool_state['sold_out'] );
+			}
                 if(isset($event->all_bookings))
                 {
                     $all_event_bookings = $this->get_event_booking_by_event_id( $event->id, true,$event->all_bookings );
@@ -9667,7 +9672,14 @@ public function get_event_booking_by_event_id( $event_id, $ticket_qty = false ,$
                 // ticket booked capacity
                 $total_bookings += ( ! empty( $booked_tickets_data[$ticket->id] ) ? $booked_tickets_data[$ticket->id] : 0 );
             }
-            if( $total_caps > $total_bookings ) {
+			// Events with an overall capacity: sold out when no place is left for the listed tickets.
+			$ep_pool_state = array();
+			if ( is_object( $event ) ) {
+				$ep_pool_event                   = clone $event;
+				$ep_pool_event->all_tickets_data = $tickets;
+				$ep_pool_state                   = ( new EventPrime_Capacity() )->get_pool_state( $ep_pool_event, array( 'context' => 'checkout' ) );
+			}
+			if ( ! empty( $ep_pool_state ) ? empty( $ep_pool_state['sold_out'] ) : $total_caps > $total_bookings ) {
                 // set booking status now
                 if( empty( $min_start ) && empty( $max_end ) ) {
                     if( $price > 0 ) {
@@ -13348,6 +13360,11 @@ public function ep_get_events( $fields ) {
        
 
     public function ep_get_available_tickets($event, $ticket){
+		// Events with an overall capacity: the smaller of the type and the event remaining (capacity service).
+		$ep_pool_state = ( new EventPrime_Capacity() )->get_pool_state( $event, array( 'context' => 'checkout' ) );
+		if ( ! empty( $ep_pool_state['tickets'][ $ticket->id ] ) ) {
+			return apply_filters( 'ep_update_remaining_capacity', $ep_pool_state['tickets'][ $ticket->id ]['effective_remaining'], $event, $ticket ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Existing public hook, same arguments as below.
+		}
         if(isset($event->all_bookings))
         {
             $all_event_bookings = $this->get_event_booking_by_event_id( $event->em_id, true,$event->all_bookings );
@@ -13499,6 +13516,11 @@ public function ep_get_events( $fields ) {
 	public function get_event_available_tickets( $event ) {
 		$available_tickets = 0;
 		if( ! empty( $event ) && ! $this->check_event_has_expired( $event ) && ! empty( $event->all_tickets_data ) ) {
+			// Events with an overall capacity: places left now (on sale types only), never above the event remaining.
+			$ep_pool_state = ( new EventPrime_Capacity() )->get_pool_state( $event, array( 'context' => 'display' ) );
+			if ( ! empty( $ep_pool_state ) ) {
+				return absint( $ep_pool_state['available_now'] );
+			}
                         if(isset($event->all_bookings))
                         {
                             $all_event_bookings = $this->get_event_booking_by_event_id( $event->id, true,$event->all_bookings );
@@ -13532,6 +13554,12 @@ public function ep_get_events( $fields ) {
 
     public function ep_get_ticket_available_spaces($event, $ticket, $booked_tickets_data) {
         $available_tickets = 0;
+		// Events with an overall capacity: the type remaining capped by the event remaining (0 when not on sale).
+		$ep_pool_state = ( new EventPrime_Capacity() )->get_pool_state( $event, array( 'context' => 'display' ) );
+		if ( ! empty( $ep_pool_state['tickets'][ $ticket->id ] ) ) {
+			$ep_ticket_state = $ep_pool_state['tickets'][ $ticket->id ];
+			return empty( $ep_ticket_state['on_sale'] ) ? 0 : absint( $ep_ticket_state['effective_remaining'] );
+		}
         $check_ticket_visibility = $this->check_for_ticket_visibility( $ticket, $event );
         if( ! empty( $check_ticket_visibility['status'] ) ) {
             $check_ticket_available = $this->check_for_ticket_available_for_booking( $ticket, $event );

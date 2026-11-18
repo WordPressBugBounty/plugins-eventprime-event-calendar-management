@@ -43,6 +43,9 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                         <?php esc_html_e( 'Add Ticket Type', 'eventprime-event-calendar-management' );?>
                     </button>
                 </div>
+				<?php
+				require __DIR__ . '/meta-box-overall-capacity-field.php';
+				?>
                 <!--Existing Tickets-->
                 <div id="ep_existing_tickets_category_list" class="ep_existing_tickets_category_list ep-box-col-12">
                     <?php 
@@ -78,6 +81,9 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                                             <a href="javascript:void(0)" class="ep-ticket-cat-delete ep-item-delete" data-parent_id="<?php echo esc_attr( $cat_row_id );?>" title="<?php esc_html_e( 'Delete Category', 'eventprime-event-calendar-management' );?>"><?php esc_html_e( 'Delete', 'eventprime-event-calendar-management' );?></a>
                                         </div>
                                     </div>
+									<?php if ( $ep_overall_capacity > 0 ) : ?>
+										<p class="ep-text-small ep-text-muted ep-overall-capacity-cat-note"><?php esc_html_e( 'Category quantity is informational while an event total is set.', 'eventprime-event-calendar-management' ); ?></p>
+									<?php endif; ?>
                                 
                                     <div class="ep-ticket-category-section" data-parent_category_id="<?php echo esc_attr( $row_key );?>">
                                         <?php 
@@ -126,7 +132,8 @@ $is_event_expired = $ep_functions->check_event_has_expired( $single_event_data )
                                         }?>
                                     </div><?php
                                     $total_caps = $ep_functions->get_category_tickets_capacity( $existing_cat_ticket_data );
-                                    if( $total_caps < $cat_data->capacity ){?>
+									if ( $total_caps < $cat_data->capacity || $ep_overall_capacity > 0 ) {
+										?>
                                         <div class="ep_category_add_tickets_button" id="ep_category_add_tickets_button_<?php echo esc_attr( $cat_row_id );?>">
                                             <button type="button" class="button button-large ep-m-3 ep-open-category-ticket-modal" data-id="ep_event_ticket_tier_modal" data-parent_id="<?php echo esc_attr( $cat_row_id );?>"><?php esc_html_e( 'Add Tickets', 'eventprime-event-calendar-management' );?></button>
                                         </div><?php
@@ -413,7 +420,7 @@ echo sprintf(
                                         <span id="ep_ticket_remaining_capacity" data-max_ticket_label="<?php esc_html_e('Remaining Seats', 'eventprime-event-calendar-management'); ?>"></span>
                                     </div> 
                                     <div class="ep-box-col-12">
-                                        <p class="ep-text-small ep-text-muted"><?php esc_html_e('Total number of tickets available for this ticket type.','eventprime-event-calendar-management');?></p>
+										<p class="ep-text-small ep-text-muted"><?php echo esc_html( $ep_overall_capacity > 0 ? __( 'Total number of tickets available for this ticket type. With an overall event capacity set, this is the most tickets of this type that can be sold (enter the overall capacity for no separate limit for this type).', 'eventprime-event-calendar-management' ) : __( 'Total number of tickets available for this ticket type.', 'eventprime-event-calendar-management' ) ); ?></p>
                                     </div>
                                     
                                     <div class="ep-box-col-10 ep-mt-3">

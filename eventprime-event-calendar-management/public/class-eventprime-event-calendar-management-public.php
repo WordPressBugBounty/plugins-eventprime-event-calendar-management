@@ -2249,17 +2249,25 @@ class Eventprime_Event_Calendar_Management_Public {
                                 // show bragraphs
                                 if( $event_booking_status_option == 'bargraph' ) {
                                     $total_tickets = $attendee_count = $width = 0; 
-                                    $total_booking = $ep_functions->get_total_booking_number_by_event_id( $event->em_id );
+									// Events with an overall capacity use the capacity service (same numbers as the ticket modal).
+									$ep_pool_state = ( new EventPrime_Capacity() )->get_pool_state( $event, array( 'context' => 'checkout' ) );
+									$total_booking = ! empty( $ep_pool_state ) ? $ep_pool_state['sold'] : $ep_functions->get_total_booking_number_by_event_id( $event->em_id );
                                     if( ! empty( $event->all_tickets_data ) ) {
                                         foreach( $event->all_tickets_data as $tickets ) {
                                             //$check_ticket_available = EventM_Factory_Service::check_for_ticket_available_for_booking( $tickets, $event );
                                             $total_tickets = $total_tickets + $tickets->capacity;
                                         }
                                     }
+								if ( ! empty( $ep_pool_state ) ) {
+										$total_tickets = $ep_pool_state['effective_total'];
+								}
                                     if( $total_tickets > 0 ) {
                                         if( $total_booking > 0  && $total_tickets > 0 ) {
                                             $width = ( $total_booking / $total_tickets ) * 100;
                                             $width = number_format( (float)$width, 2 );
+										if ( ! empty( $ep_pool_state ) && $width > 100 ) {
+												$width = '100.00';
+										}
                                         }?>
                                         <div class="ep-event-ticket-progress ep-box-w-100">
                                             <div class="ep-event-ticket-count">

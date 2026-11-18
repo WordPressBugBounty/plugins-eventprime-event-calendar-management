@@ -162,6 +162,8 @@ class Eventprime_Event_Calendar_Management {
                 require_once plugin_dir_path( dirname( __FILE__)) . 'includes/class-metagauss-license-migrator.php';
                 
                 require_once plugin_dir_path( dirname( __FILE__)) . 'includes/class-ep-bookings.php';
+				require_once plugin_dir_path( __DIR__ ) . 'includes/class-ep-capacity.php';
+				require_once plugin_dir_path( __DIR__ ) . 'includes/class-ep-rest-booking.php';
                 
                 require_once plugin_dir_path( dirname( __FILE__)) . 'includes/class-ep-report-controller-list.php';
                 require_once plugin_dir_path(dirname( __FILE__)) . 'includes/class-ep-widgets.php';

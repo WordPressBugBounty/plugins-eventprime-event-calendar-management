@@ -1,3 +1,287 @@
+/**
+ * Overall event capacity helpers (#2012). Pure functions (no DOM), so they can be unit tested with Node.
+ */
+
+/**
+ * Parse the overall capacity field: a plain positive whole number is a pool, anything else means no pool.
+ *
+ * @param {*} value Raw field value.
+ * @return {number} The pool size, or 0 for no pool.
+ */
+function ep_parse_overall_capacity( value ) {
+    var raw = ( value === null || typeof value === 'undefined' ) ? '' : String( value ).trim();
+    if ( ! /^[0-9]+$/.test( raw ) ) {
+        return 0;
+    }
+    var number = parseInt( raw, 10 );
+    return number > 0 ? number : 0;
+}
+
+/**
+ * Validate the overall capacity field text. Blank is valid (no limit); otherwise a whole number of 0 or more.
+ *
+ * @param {*} value Raw field value.
+ * @return {boolean} True when the text can be saved as typed.
+ */
+function ep_is_valid_overall_capacity( value ) {
+    var raw = ( value === null || typeof value === 'undefined' ) ? '' : String( value ).trim();
+    return raw === '' || /^[0-9]+$/.test( raw );
+}
+
+/**
+ * The most one ticket type may hold: the pool when one is set, else the modal max attribute (0 = none).
+ *
+ * @param {number} pool Overall capacity (0 = none).
+ * @param {*} attrMax Value of the quantity input max attribute.
+ * @return {number} The limit, 0 when there is none.
+ */
+function ep_ticket_qty_limit( pool, attrMax ) {
+    if ( pool > 0 ) {
+        return pool;
+    }
+    var max = parseInt( attrMax, 10 );
+    return ( isNaN( max ) || max < 0 ) ? 0 : max;
+}
+
+/**
+ * Replace %d, %s, %1$d and %2$s placeholders in a translated string.
+ *
+ * @param {string} template Translated string.
+ * @param {Array} values Values in order.
+ * @return {string} The string with the values inserted.
+ */
+function ep_overall_capacity_format( template, values ) {
+    var index = 0;
+    return String( template ).replace( /%(?:(\d+)\$)?[ds]/g, function ( match, position ) {
+        var at = position ? parseInt( position, 10 ) - 1 : index++;
+        return typeof values[ at ] === 'undefined' ? '' : String( values[ at ] );
+    } );
+}
+
+/**
+ * Escape text for use inside HTML.
+ *
+ * @param {*} value Any value.
+ * @return {string} Escaped text.
+ */
+function ep_capacity_escape( value ) {
+    return String( value ).replace( /[&<>"']/g, function ( ch ) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ ch ];
+    } );
+}
+
+/**
+ * Whole number of 0 or more from any value (anything else is 0).
+ *
+ * @param {*} value Raw value.
+ * @return {number} Whole number.
+ */
+function ep_capacity_whole( value ) {
+    var number = parseInt( value, 10 );
+    return ( isNaN( number ) || number < 0 ) ? 0 : number;
+}
+
+/**
+ * Work out every number the capacity card shows. Pure: it only reads the model.
+ *
+ * model = { pool, soldTotal (optional), tickets: [ { id, name, capacity, sold, cat } ], categories: [ { id, name, capacity } ] }
+ * With a pool, a ticket capacity is a ceiling for that type; the pool always wins. Without a pool each type
+ * sells up to its own quantity (today's behaviour).
+ *
+ * @param {Object} model The page model.
+ * @return {Object} The computed state.
+ */
+function ep_capacity_compute( model ) {
+    var pool = ep_capacity_whole( model.pool );
+    var has = pool > 0;
+    var tickets = model.tickets || [];
+    var sold = 0, sumOwnLeft = 0, capacitySum = 0, tk = {};
+    tickets.forEach( function ( ticket ) {
+        var limit = ep_capacity_whole( ticket.capacity );
+        var soldNow = ep_capacity_whole( ticket.sold );
+        var ownLeft = Math.max( 0, limit - soldNow );
+        sold += soldNow;
+        sumOwnLeft += ownLeft;
+        capacitySum += limit;
+        tk[ ticket.id ] = { limit: limit, sold: soldNow, ownLeft: ownLeft, left: ownLeft, over: Math.max( 0, soldNow - limit ), above: has && limit > pool, zero: limit < 1 };
+    } );
+    if ( typeof model.soldTotal !== 'undefined' && model.soldTotal !== null ) {
+        sold = Math.max( sold, ep_capacity_whole( model.soldTotal ) );
+    }
+    var poolLeft = has ? Math.max( 0, pool - sold ) : null;
+    var left = has ? Math.min( poolLeft, sumOwnLeft ) : sumOwnLeft;
+    tickets.forEach( function ( ticket ) {
+        var item = tk[ ticket.id ];
+        item.left = has ? Math.min( item.ownLeft, poolLeft ) : item.ownLeft;
+    } );
+    var capacity = has ? pool : capacitySum;
+    return {
+        has: has,
+        total: pool,
+        empty: tickets.length < 1,
+        sold: sold,
+        left: left,
+        poolLeft: poolLeft,
+        capacity: capacity,
+        capacitySum: capacitySum,
+        sumOwnLeft: sumOwnLeft,
+        tk: tk,
+        soldOut: tickets.length > 0 && capacity > 0 && left === 0,
+        lowered: has && sold > pool,
+        overBy: has ? Math.max( 0, sold - pool ) : 0
+    };
+}
+
+/**
+ * The live line: "N total, N sold, N left." (or the no-total and empty variants).
+ *
+ * @param {Object} c Result of ep_capacity_compute().
+ * @param {Object} T Translated templates.
+ * @return {string} The sentence.
+ */
+function ep_capacity_summary_text( c, T ) {
+    var f = ep_overall_capacity_format;
+    if ( c.empty ) {
+        return c.has ? f( T.capacity_live_empty_total, [ c.total ] ) : T.capacity_live_empty;
+    }
+    if ( c.has ) {
+        return f( c.soldOut ? T.capacity_live_total_soldout : T.capacity_live_total, [ c.total, c.sold, c.left ] );
+    }
+    return f( T.capacity_live_nototal, [ c.capacity, c.sold, c.left ] );
+}
+
+/**
+ * The chip of one ticket type row: sold out, capped by the event total, or on sale.
+ *
+ * @param {Object} c Result of ep_capacity_compute().
+ * @param {string|number} id Ticket id.
+ * @return {string} One of 'out', 'info', 'ok'.
+ */
+function ep_capacity_row_status( c, id ) {
+    var item = c.tk[ id ];
+    if ( ! item ) {
+        return 'ok';
+    }
+    if ( ( c.has && c.poolLeft === 0 ) || item.ownLeft === 0 ) {
+        return 'out';
+    }
+    return item.left < item.ownLeft ? 'info' : 'ok';
+}
+
+/**
+ * Notes and warnings for the current numbers. Never blocks saving.
+ *
+ * model.inventory 'seats' (Live Seating) drops the ticket-limit sums: the seats are the limit there.
+ * Each item: { k, lvl ('info'|'warn'|'danger'), scope ('card'|'ticket'|'category'), id, text }.
+ *
+ * @param {Object} model The page model.
+ * @param {Object} c Result of ep_capacity_compute().
+ * @param {Object} T Translated templates.
+ * @return {Array} Items, most severe first.
+ */
+function ep_capacity_warnings( model, c, T ) {
+    var f = ep_overall_capacity_format, w = [], t = c.total, seats = model.inventory === 'seats';
+    var tickets = model.tickets || [], cats = model.categories || [];
+    if ( c.lowered ) {
+        w.push( { k: 'lowered', lvl: 'danger', scope: 'card', text: f( T.capacity_w_lowered, [ t, c.sold ] ) } );
+    }
+    tickets.forEach( function ( ticket ) {
+        var x = c.tk[ ticket.id ];
+        if ( x.zero ) {
+            w.push( { k: 'zero', lvl: 'warn', scope: 'ticket', id: ticket.id, text: f( T.capacity_w_zero, [ ticket.name ] ) } );
+        }
+        if ( x.over > 0 ) {
+            w.push( { k: 'over', lvl: 'warn', scope: 'ticket', id: ticket.id, text: f( T.capacity_w_over, [ ticket.name, x.sold, x.limit, x.over ] ) } );
+        }
+        if ( x.above ) {
+            w.push( { k: 'above', lvl: 'info', scope: 'ticket', id: ticket.id, text: f( T.capacity_w_above, [ ticket.name, x.limit, t ] ) } );
+        }
+    } );
+    if ( ! c.empty && ! seats ) {
+        if ( c.has && c.capacitySum < t ) {
+            w.push( { k: 'less', lvl: 'warn', scope: 'card', text: f( T.capacity_w_less, [ c.capacitySum, t ] ) } );
+        }
+        if ( c.has && c.capacitySum > t ) {
+            w.push( { k: 'more', lvl: 'info', scope: 'card', text: f( T.capacity_w_more, [ c.capacitySum, t ] ) } );
+        }
+        if ( ! c.has ) {
+            var first = cats.length ? cats[ 0 ] : null;
+            w.push( { k: 'nototal', lvl: 'info', scope: 'card', text: T.capacity_w_nototal + ( first ? ' ' + f( T.capacity_w_nototal_cat, [ first.name, first.capacity ] ) : '' ) } );
+            cats.forEach( function ( cat ) {
+                var sum = 0;
+                tickets.forEach( function ( ticket ) {
+                    if ( String( ticket.cat ) === String( cat.id ) ) {
+                        sum += ep_capacity_whole( ticket.capacity );
+                    }
+                } );
+                if ( sum > ep_capacity_whole( cat.capacity ) ) {
+                    w.push( { k: 'catover', lvl: 'warn', scope: 'category', id: cat.id, text: f( T.capacity_w_catover, [ cat.name, ep_capacity_whole( cat.capacity ) ] ) } );
+                }
+            } );
+        }
+    }
+    if ( c.soldOut && ! c.lowered ) {
+        w.push( { k: 'soldout', lvl: 'info', scope: 'card', text: f( c.has ? T.capacity_w_soldout_total : T.capacity_w_soldout, [ c.capacity ] ) } );
+    }
+    var order = { danger: 0, warn: 1, info: 2 };
+    return w.sort( function ( a, b ) {
+        return order[ a.lvl ] - order[ b.lvl ];
+    } );
+}
+
+/**
+ * Lines of the Live Seating note (inventory = seats). Exact wording of the extension report, section B5.
+ *
+ * @param {number} pool Overall capacity (0 = none).
+ * @param {number} seats Seats assigned to ticket types.
+ * @param {Object} T Translated templates.
+ * @return {Array} One to two lines.
+ */
+function ep_capacity_seat_notes( pool, seats, T ) {
+    var f = ep_overall_capacity_format, lines = [ T.capacity_seat_always ];
+    if ( pool > 0 && seats > 0 && pool < seats ) {
+        lines.push( f( T.capacity_seat_pool_below, [ pool, seats ] ) );
+    } else if ( pool > 0 && seats > 0 && pool > seats ) {
+        lines.push( f( T.capacity_seat_pool_above, [ pool, seats ] ) );
+    }
+    return lines;
+}
+
+/**
+ * Widths (percent) for the stacked allocation bar and the per-type mini bar.
+ *
+ * @param {Object} c Result of ep_capacity_compute().
+ * @param {Array} tickets Model tickets.
+ * @return {Object} { segments: [ { id, pct } ], mark: percent or null, base }
+ */
+function ep_capacity_bar_geometry( c, tickets ) {
+    var base = Math.max( c.capacity, c.sold, 1 );
+    var segments = [];
+    tickets.forEach( function ( ticket ) {
+        var x = c.tk[ ticket.id ];
+        if ( x && x.sold > 0 ) {
+            segments.push( { id: ticket.id, pct: Math.min( 100, x.sold / base * 100 ) } );
+        }
+    } );
+    return { segments: segments, mark: ( c.has && c.sold > c.total ) ? c.total / base * 100 : null, base: base };
+}
+
+if ( typeof module !== 'undefined' && module.exports ) {
+    module.exports = {
+        ep_parse_overall_capacity: ep_parse_overall_capacity,
+        ep_is_valid_overall_capacity: ep_is_valid_overall_capacity,
+        ep_ticket_qty_limit: ep_ticket_qty_limit,
+        ep_overall_capacity_format: ep_overall_capacity_format,
+        ep_capacity_escape: ep_capacity_escape,
+        ep_capacity_compute: ep_capacity_compute,
+        ep_capacity_summary_text: ep_capacity_summary_text,
+        ep_capacity_row_status: ep_capacity_row_status,
+        ep_capacity_warnings: ep_capacity_warnings,
+        ep_capacity_seat_notes: ep_capacity_seat_notes,
+        ep_capacity_bar_geometry: ep_capacity_bar_geometry
+    };
+}
+
 jQuery( function( $ ) {
     var date_format = 'yy-mm-dd';
     var is_24h_time = ( eventprime.global_settings.time_format === 'HH:mm' );
@@ -2389,7 +2673,8 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
             ep_init_native_time_fields( '#ep_event_ticket_tier_modal' );
             // update remaining capacity
             let cat_row_data = $( '#' + parent_id ).data( 'cat_row_data' );
-            if( cat_row_data.capacity ) {
+            // with an overall capacity the category quantity is a guide only (initiate_the_ticket_modal() set the pool limit)
+            if( cat_row_data.capacity && ! ep_get_overall_capacity() ) {
                 let cat_capacity = cat_row_data.capacity;
                 // check for created tickets
                 let ticket_capacity = 0;
@@ -3244,6 +3529,13 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
             ticket_tier_data.icon = ticket_icon;
         }
 
+        // an invalid overall capacity blocks the ticket save only; the post save is not affected
+        if( ! ep_validate_overall_capacity_field() ) {
+            $( '#ep_event_ticket_qty_error' ).html( em_event_meta_box_object.overall_capacity_invalid );
+            ep_open_ticket_tab('ep-ticket-inventory');
+            return false;
+        }
+
         let em_event_ticket_qty = tickets_data.get( 'capacity' );
         if( em_event_ticket_qty ) {
             if (!em_event_ticket_qty || isNaN(em_event_ticket_qty) || !Number.isInteger(Number(em_event_ticket_qty)) || em_event_ticket_qty <= 0) {
@@ -3255,8 +3547,8 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
            
         }
 
-            // check for max quantity
-            let max_qty = $( 'input[name=capacity]' ).attr( 'max' );
+            // check for max quantity (the overall event capacity, when set, is the most one type can hold)
+            let max_qty = ep_ticket_qty_limit( ep_get_overall_capacity(), $( 'input[name=capacity]' ).attr( 'max' ) );
             if( max_qty ) {
                 if( parseInt( em_event_ticket_qty, 10 ) > parseInt( max_qty, 10 ) ) {
                     $( '#ep_event_ticket_qty_error' ).html( em_event_meta_box_object.max_capacity_error + ' ' + max_qty );
@@ -3268,7 +3560,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
             else {
                 // Only check when ticket within category
                 if ( $('input[name="em_ticket_category_id"]').val() ) {
-                    $( '#ep_event_ticket_qty_error' ).html("No seats left to allocate.");
+                    $( '#ep_event_ticket_qty_error' ).html( em_event_meta_box_object.no_seats_left_to_allocate );
                     document.getElementById( 'ep_event_ticket_qty' ).focus();
                     ep_open_ticket_tab('ep-ticket-inventory');
                     return false;
@@ -3776,7 +4068,7 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
                 
                 // update remaining capacity
                 let cat_row_data = $( '#' + parent_category_id ).data( 'cat_row_data' );
-                if( cat_row_data.capacity ) {
+                if( cat_row_data.capacity && ! ep_get_overall_capacity() ) {
                     let cat_capacity = cat_row_data.capacity;
                     // check for created tickets
                     let ticket_capacity = 0;
@@ -4205,7 +4497,280 @@ $('#em_start_time, #em_start_date, #em_end_date').on('change', updateEndTimePick
         $( '#ep_existing_offers_list' ).html( '' );
 
         $( '#ep_event_ticket_qty' ).removeAttr( 'max' );
+        ep_apply_overall_capacity_to_ticket_modal();
     }
+
+    /* ---- Overall event capacity (#2012, capacity section of the Tickets tab) ---- */
+
+    // the pool typed in the field (0 = none or invalid)
+    function ep_get_overall_capacity() {
+        return ep_parse_overall_capacity( $( '#ep_event_overall_capacity' ).val() );
+    }
+
+    // with a pool, the pool is the most any type can hold and the category quantity does not limit it
+    function ep_apply_overall_capacity_to_ticket_modal() {
+        let pool = ep_get_overall_capacity();
+        if( pool > 0 ) {
+            let max_label = $( '#ep_ticket_remaining_capacity' ).data( 'max_ticket_label' );
+            $( '#ep_ticket_remaining_capacity' ).html( max_label + ': ' + pool );
+            $( '#ep_event_ticket_qty' ).attr( 'max', pool );
+        }
+    }
+
+    // validate the field text; shows or clears the inline error
+    function ep_validate_overall_capacity_field() {
+        let valid = ep_is_valid_overall_capacity( $( '#ep_event_overall_capacity' ).val() );
+        $( '#ep_event_overall_capacity_error' ).text( valid ? '' : em_event_meta_box_object.overall_capacity_invalid );
+        return valid;
+    }
+
+    let ep_capacity_observer = null;
+    let ep_capacity_palette = [ '#2271b1', '#7a3fb0', '#b45f06', '#00794c', '#a3262e', '#5f6b7a' ];
+
+    // read the JSON of a ticket or category row ({} when missing or broken)
+    function ep_capacity_row_json( $row, attribute ) {
+        try {
+            let parsed = JSON.parse( $row.attr( attribute ) || '{}' );
+            return parsed && typeof parsed === 'object' ? parsed : {};
+        } catch( e ) {
+            return {};
+        }
+    }
+
+    // build the page model from the ticket and category rows (also unsaved ones) and the server sold numbers
+    function epCapacityReadTickets() {
+        let $card = $( '#ep_event_overall_capacity_row' );
+        let sold_map = {};
+        try {
+            sold_map = JSON.parse( $card.attr( 'data-ep-capacity-sold-map' ) || '{}' ) || {};
+        } catch( e ) {
+            sold_map = {};
+        }
+        let model = {
+            pool: ep_get_overall_capacity(),
+            soldTotal: parseInt( $card.attr( 'data-ep-capacity-sold' ), 10 ) || 0,
+            inventory: $card.attr( 'data-ep-capacity-inventory' ) || 'tickets',
+            seats: parseInt( $card.attr( 'data-ep-capacity-seats' ), 10 ) || 0,
+            tickets: [],
+            categories: []
+        };
+        let add_ticket = function( $row, cat_id ) {
+            let data = ep_capacity_row_json( $row, 'data-ticket_row_data' );
+            let id = typeof data.id === 'undefined' ? $row.attr( 'id' ) : data.id;
+            model.tickets.push( {
+                id: String( id ),
+                name: data.name || '',
+                capacity: data.capacity,
+                sold: sold_map[ id ] || 0,
+                cat: cat_id,
+                row: $row
+            });
+        };
+        $( '#ep_existing_tickets_list .ep-cat-list-class' ).each( function() {
+            let $cat = $( this );
+            let cat = ep_capacity_row_json( $cat, 'data-cat_row_data' );
+            let cat_id = typeof cat.id === 'undefined' ? $cat.attr( 'id' ) : cat.id;
+            model.categories.push( { id: String( cat_id ), name: cat.name || '', capacity: cat.capacity, el: $cat } );
+            $cat.find( '.ep-tickets-cate-ticket-row' ).each( function() {
+                add_ticket( $( this ), String( cat_id ) );
+            });
+        });
+        $( '#ep_existing_individual_tickets_list .ep-tickets-indi-ticket-row' ).each( function() {
+            add_ticket( $( this ), '' );
+        });
+        return model;
+    }
+
+    // write html into an element only when it changed (keeps screen readers and the observer quiet)
+    function ep_capacity_set_html( $el, html ) {
+        if( $el.data( 'ep_capacity_html' ) !== html ) {
+            $el.data( 'ep_capacity_html', html ).html( html );
+        }
+    }
+
+    function ep_capacity_note_html( item ) {
+        let object = em_event_meta_box_object;
+        let prefix = item.lvl === 'info' ? object.capacity_prefix_info : ( item.lvl === 'warn' ? object.capacity_prefix_warn : object.capacity_prefix_danger );
+        let icon = item.lvl === 'info' ? 'i' : '!';
+        return '<li class="ep-capacity-note ep-capacity-note--' + item.lvl + '"><span class="ep-capacity-note-icon" aria-hidden="true">' + icon + '</span><span><span class="ep-capacity-sr">' + ep_capacity_escape( prefix ) + '</span> ' + ep_capacity_escape( item.text ) + '</span></li>';
+    }
+
+    // the stacked allocation bar and its legend (text, so colour is never the only signal)
+    function ep_capacity_bar_html( model, c, summary ) {
+        let object = em_event_meta_box_object;
+        let geometry = ep_capacity_bar_geometry( c, model.tickets );
+        let color = {};
+        model.tickets.forEach( function( ticket, index ) {
+            color[ ticket.id ] = ep_capacity_palette[ index % ep_capacity_palette.length ];
+        });
+        let html = '<div class="ep-capacity-bar" role="img" aria-label="' + ep_capacity_escape( summary ) + '">';
+        geometry.segments.forEach( function( segment ) {
+            html += '<i style="width:' + segment.pct.toFixed( 2 ) + '%;background:' + color[ segment.id ] + '"></i>';
+        });
+        if( geometry.mark !== null ) {
+            html += '<span class="ep-capacity-bar-mark" style="inset-inline-start:' + geometry.mark.toFixed( 2 ) + '%"></span>';
+        }
+        html += '</div><div class="ep-capacity-legend">';
+        model.tickets.forEach( function( ticket ) {
+            html += '<span style="--ep-cap-color:' + color[ ticket.id ] + '">' + ep_capacity_escape( ep_overall_capacity_format( object.capacity_legend_sold, [ ticket.name ] ) ) + ' <b>' + c.tk[ ticket.id ].sold + '</b></span>';
+        });
+        html += '<span class="ep-capacity-legend-left">' + ep_capacity_escape( object.capacity_legend_left ) + ' <b>' + c.left + '</b></span></div>';
+        return { html: html, color: color, base: geometry.base };
+    }
+
+    // sold, left, status chip and mini bar under each ticket type row, plus the notes that concern that row
+    function ep_capacity_render_rows( model, c, warnings, bar ) {
+        let object = em_event_meta_box_object;
+        model.tickets.forEach( function( ticket ) {
+            let $holder = ticket.row.find( '> .ep-box-col-12 > .ep-box-row' ).first();
+            if( ! $holder.length ) {
+                return;
+            }
+            let $info = $holder.children( '.ep-capacity-rowinfo' );
+            if( ! $info.length ) {
+                $info = $( '<div class="ep-box-col-12 ep-capacity-rowinfo"></div>' ).appendTo( $holder );
+            }
+            let x = c.tk[ ticket.id ];
+            let status = ep_capacity_row_status( c, ticket.id );
+            let label = status === 'out' ? object.capacity_chip_out : ( status === 'info' ? object.capacity_chip_capped : object.capacity_chip_on_sale );
+            let eff = x.limit;
+            let sold_pct = Math.min( 100, x.sold / bar.base * 100 );
+            let limit_pct = Math.min( 100, eff / bar.base * 100 );
+            let html = '<div class="ep-capacity-rowline">';
+            html += '<span class="ep-capacity-stat">' + ep_capacity_escape( object.capacity_stat_sold ) + ' <b>' + x.sold + '</b></span>';
+            html += '<span class="ep-capacity-stat">' + ep_capacity_escape( object.capacity_stat_left ) + ' <b>' + x.left + '</b></span>';
+            html += '<span class="ep-capacity-chip ep-capacity-chip--' + status + '">' + ep_capacity_escape( label ) + '</span>';
+            html += '<span class="ep-capacity-mini" aria-hidden="true"><i class="ep-capacity-mini-limit" style="width:' + limit_pct.toFixed( 2 ) + '%"></i><i class="ep-capacity-mini-sold" style="width:' + sold_pct.toFixed( 2 ) + '%;background:' + bar.color[ ticket.id ] + '"></i></span>';
+            html += '</div>';
+            let notes = '';
+            warnings.forEach( function( item ) {
+                if( item.scope === 'ticket' && String( item.id ) === String( ticket.id ) ) {
+                    notes += ep_capacity_note_html( item );
+                }
+            });
+            if( notes ) {
+                html += '<ul class="ep-capacity-notes ep-capacity-notes--row">' + notes + '</ul>';
+            }
+            ep_capacity_set_html( $info, html );
+        });
+    }
+
+    // informational chip and note on each category while a total is set, and the category over-allocation warning
+    function ep_capacity_render_categories( model, c, warnings ) {
+        let object = em_event_meta_box_object;
+        model.categories.forEach( function( cat ) {
+            let $column = cat.el.find( '.ep-cat-capacity' ).first().parent();
+            let $note = cat.el.children( '.ep-overall-capacity-cat-note' );
+            let $chip = $column.find( '.ep-capacity-cat-chip' );
+            if( c.has ) {
+                if( ! $note.length ) {
+                    $( '<p class="ep-text-small ep-text-muted ep-overall-capacity-cat-note"></p>' ).text( object.overall_capacity_category_note ).insertAfter( cat.el.children( '.ep-box-row' ).first() );
+                }
+                if( ! $chip.length ) {
+                    $( '<span class="ep-capacity-chip ep-capacity-chip--info ep-capacity-cat-chip"></span>' ).text( object.capacity_chip_informational ).appendTo( $column );
+                }
+            } else {
+                $note.remove();
+                $chip.remove();
+            }
+            let text = '';
+            warnings.forEach( function( item ) {
+                if( item.scope === 'category' && String( item.id ) === String( cat.id ) ) {
+                    text += ep_capacity_note_html( item );
+                }
+            });
+            let $warn = cat.el.children( '.ep-capacity-catwarn' );
+            if( text && ! $warn.length ) {
+                $warn = $( '<ul class="ep-capacity-notes ep-capacity-notes--row ep-capacity-catwarn"></ul>' ).insertAfter( cat.el.children( '.ep-box-row' ).first() );
+            }
+            if( $warn.length ) {
+                ep_capacity_set_html( $warn, text );
+                $warn.prop( 'hidden', '' === text );
+            }
+        });
+    }
+
+    // refresh the whole section from the rows on the page and the field value
+    function epCapacityRenderSummary() {
+        let $card = $( '#ep_event_overall_capacity_row' );
+        if( ! $card.length ) {
+            return;
+        }
+        let object = em_event_meta_box_object;
+        let model = epCapacityReadTickets();
+        let c = ep_capacity_compute( model );
+        let seats = model.inventory === 'seats';
+        let warnings = ep_capacity_warnings( model, c, object );
+        let summary = ep_capacity_summary_text( c, object );
+        if( ep_is_valid_overall_capacity( $( '#ep_event_overall_capacity' ).val() ) ) {
+            $( '#ep_event_overall_capacity_error' ).text( '' );
+        }
+        // live line (aria-live): only touch the text when it really changed
+        let $live = $( '#ep_capacity_live' );
+        if( $live.text() !== summary ) {
+            $live.text( summary );
+        }
+        let bar = ep_capacity_bar_html( model, c, summary );
+        ep_capacity_set_html( $( '#ep_capacity_bar' ), c.empty ? '' : bar.html );
+        // help, rule and empty state
+        let help = seats ? object.capacity_help_seats : ( c.has ? object.capacity_help_total : object.capacity_help_blank );
+        $( '#ep_event_overall_capacity_help' ).text( help );
+        $( '#ep_event_overall_capacity_rule' ).prop( 'hidden', ! c.has );
+        $( '#ep_capacity_empty' ).prop( 'hidden', ! c.empty );
+        // Live Seating note
+        if( seats ) {
+            let lines = ep_capacity_seat_notes( model.pool, model.seats, object );
+            ep_capacity_set_html( $( '#ep_capacity_seat_notes' ), lines.map( function( line ) {
+                return '<p>' + ep_capacity_escape( line ) + '</p>';
+            } ).join( '' ) );
+        }
+        // card notes (ticket and category notes sit next to their rows)
+        let notes = '';
+        warnings.forEach( function( item ) {
+            if( item.scope === 'card' ) {
+                notes += ep_capacity_note_html( item );
+            }
+        });
+        ep_capacity_set_html( $( '#ep_capacity_notes' ), notes );
+        ep_capacity_render_rows( model, c, warnings, bar );
+        ep_capacity_render_categories( model, c, warnings );
+        // quantity help of the ticket modal
+        let $help = $( '#ep-ticket-inventory > .ep-box-col-12 > p.ep-text-muted' ).first();
+        if( $help.length ) {
+            if( typeof $help.data( 'ep_original_help' ) === 'undefined' ) {
+                $help.data( 'ep_original_help', $help.text() );
+            }
+            $help.text( model.pool > 0 ? object.overall_capacity_qty_help : $help.data( 'ep_original_help' ) );
+        }
+    }
+
+    // render without the observer reacting to our own writes
+    function ep_sync_overall_capacity_ui() {
+        if( ! $( '#ep_event_overall_capacity' ).length ) {
+            return;
+        }
+        epCapacityRenderSummary();
+        if( ep_capacity_observer ) {
+            ep_capacity_observer.takeRecords();
+        }
+    }
+
+    $( document ).on( 'input change blur', '#ep_event_overall_capacity', function() {
+        ep_validate_overall_capacity_field();
+        ep_sync_overall_capacity_ui();
+    });
+    $( function() {
+        ep_sync_overall_capacity_ui();
+        // keep the section current when tickets or categories are added, edited or deleted
+        if( window.MutationObserver ) {
+            ep_capacity_observer = new MutationObserver( function() {
+                ep_sync_overall_capacity_ui();
+            });
+            $( '#ep_existing_tickets_category_list, #ep_existing_individual_tickets_list' ).each( function() {
+                ep_capacity_observer.observe( this, { childList: true, subtree: true, attributes: true, attributeFilter: [ 'data-ticket_row_data', 'data-cat_row_data' ] } );
+            });
+        }
+    });
 
     // blank the category modal input
     function initiate_the_category_modal() {

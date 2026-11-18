@@ -177,7 +177,7 @@ class EventPrime_Abilities {
 				'description'         => esc_html__( 'Creates an EventPrime booking.', 'eventprime-event-calendar-management' ),
 				'category'            => 'eventprime-content-management',
 				'input_schema'        => $this->get_booking_create_input_schema(),
-				'output_schema'       => $this->get_entity_output_schema( 'booking', esc_html__( 'The created booking.', 'eventprime-event-calendar-management' ) ),
+				'output_schema'       => $this->get_created_booking_output_schema(),
 				'execute_callback'    => array( $this, 'execute_create_booking' ),
 				'permission_callback' => array( $this, 'can_create_booking' ),
 				'meta'                => $this->get_mutation_meta(),
@@ -481,25 +481,48 @@ class EventPrime_Abilities {
 			$available = true;
 		}
 
+		// Additive: places really left (bookings subtracted) next to the raw capacity above, which stays as it was.
+		$remaining       = ( is_array( $source ) && isset( $source['remaining'] ) ) ? (int) $source['remaining'] : null;
+		$capacity_event  = ( is_array( $source ) && ! empty( $source['event_id'] ) ) ? absint( $source['event_id'] ) : ( isset( $input['event_id'] ) ? absint( $input['event_id'] ) : 0 );
+		$capacity_fields = array(
+			'overall_capacity' => null,
+			'event_remaining'  => null,
+		);
+		if ( $capacity_event > 0 ) {
+			$capacity_fields = ( new EventPrime_Rest_Booking() )->event_capacity_fields( $capacity_event );
+		}
+
 		return array(
-			'status'          => 'success',
-			'available'       => $available,
-			'available_count' => $available_count,
-			'ticket'          => null !== $matched ? $matched : new stdClass(),
-			'ticket_count'    => count( $items ),
+			'status'           => 'success',
+			'available'        => $available,
+			'available_count'  => $available_count,
+			'remaining'        => $remaining,
+			'event_remaining'  => $capacity_fields['event_remaining'],
+			'overall_capacity' => $capacity_fields['overall_capacity'],
+			'ticket'           => null !== $matched ? $matched : new stdClass(),
+			'ticket_count'     => count( $items ),
 		);
 	}
 
 	public function execute_create_booking( $input = array() ) {
-		$input = (array) $input;
+		$input  = (array) $input;
+		$helper = new EventPrime_Rest_Booking();
 
+		// Ticket ids listed by GET /tickets are ticket post ids; the booking handler works with the core ticket id.
 		if ( ! empty( $input['ticket_id'] ) ) {
-			$ticket_id    = absint( $input['ticket_id'] );
-			$ticket_post  = $ticket_id ? get_post( $ticket_id ) : null;
-			$ticket_db_id = $ticket_post && 'em_ticket' === $ticket_post->post_type ? absint( get_post_meta( $ticket_id, 'em_ticket_db_id', true ) ) : 0;
-
+			$ticket_db_id = $helper->mirror_to_core( absint( $input['ticket_id'] ) );
 			if ( $ticket_db_id > 0 ) {
 				$input['ticket_id'] = $ticket_db_id;
+			}
+		}
+		if ( ! empty( $input['tickets'] ) && is_array( $input['tickets'] ) ) {
+			foreach ( $input['tickets'] as $index => $line ) {
+				if ( is_array( $line ) && ! empty( $line['ticket_id'] ) ) {
+					$ticket_db_id = $helper->mirror_to_core( absint( $line['ticket_id'] ) );
+					if ( $ticket_db_id > 0 ) {
+						$input['tickets'][ $index ]['ticket_id'] = $ticket_db_id;
+					}
+				}
 			}
 		}
 
@@ -1119,6 +1142,10 @@ class EventPrime_Abilities {
 					'type'        => 'string',
 					'description' => esc_html__( 'Optional event description.', 'eventprime-event-calendar-management' ),
 				),
+				'overall_capacity'   => array(
+					'type'        => array( 'integer', 'string', 'null' ),
+					'description' => esc_html__( 'Optional overall capacity: the most places that can be booked across all ticket types. Empty means no limit.', 'eventprime-event-calendar-management' ),
+				),
 			),
 			'required'             => array( 'em_name' ),
 		);
@@ -1129,25 +1156,29 @@ class EventPrime_Abilities {
 			'type'                 => 'object',
 			'additionalProperties' => true,
 			'properties'           => array(
-				'id'            => array(
+				'id'               => array(
 					'type'        => 'integer',
 					'description' => esc_html__( 'Event ID.', 'eventprime-event-calendar-management' ),
 				),
-				'em_name'       => array(
+				'em_name'          => array(
 					'type'        => 'string',
 					'description' => esc_html__( 'Updated event name.', 'eventprime-event-calendar-management' ),
 				),
-				'description'   => array(
+				'description'      => array(
 					'type'        => 'string',
 					'description' => esc_html__( 'Updated event description.', 'eventprime-event-calendar-management' ),
 				),
-				'em_start_date' => array(
+				'em_start_date'    => array(
 					'type'        => 'string',
 					'description' => esc_html__( 'Updated event start date.', 'eventprime-event-calendar-management' ),
 				),
-				'em_end_date'   => array(
+				'em_end_date'      => array(
 					'type'        => 'string',
 					'description' => esc_html__( 'Updated event end date.', 'eventprime-event-calendar-management' ),
+				),
+				'overall_capacity' => array(
+					'type'        => array( 'integer', 'string', 'null' ),
+					'description' => esc_html__( 'Optional overall capacity. Leave it out to keep the current value; an empty value or 0 removes the limit.', 'eventprime-event-calendar-management' ),
 				),
 			),
 			'required'             => array( 'id' ),
@@ -1188,24 +1219,49 @@ class EventPrime_Abilities {
 		return array(
 			'type'       => 'object',
 			'properties' => array(
-				'event_id'       => array(
+				'event_id'          => array(
 					'type'        => 'integer',
 					'description' => esc_html__( 'Event ID.', 'eventprime-event-calendar-management' ),
 				),
-				'ticket_id'      => array(
+				'ticket_id'         => array(
 					'type'        => 'integer',
 					'description' => esc_html__( 'Ticket ID.', 'eventprime-event-calendar-management' ),
 				),
-				'email'          => array(
+				'email'             => array(
 					'type'        => 'string',
 					'description' => esc_html__( 'Customer email.', 'eventprime-event-calendar-management' ),
 				),
-				'booking_status' => array(
+				'booking_status'    => array(
 					'type'        => 'string',
 					'description' => esc_html__( 'Optional booking status.', 'eventprime-event-calendar-management' ),
 				),
+				'quantity'          => array(
+					'type'        => 'integer',
+					'description' => esc_html__( 'Optional number of tickets (1 to 1000). Defaults to the ticket minimum per order, at least 1.', 'eventprime-event-calendar-management' ),
+				),
+				'tickets'           => array(
+					'type'        => 'array',
+					'description' => esc_html__( 'Optional ticket lines, each with ticket_id and qty. When sent, ticket_id and quantity are ignored.', 'eventprime-event-calendar-management' ),
+					'items'       => array(
+						'type'       => 'object',
+						'properties' => array(
+							'ticket_id' => array(
+								'type'        => 'integer',
+								'description' => esc_html__( 'Ticket ID.', 'eventprime-event-calendar-management' ),
+							),
+							'qty'       => array(
+								'type'        => 'integer',
+								'description' => esc_html__( 'Number of tickets of this type.', 'eventprime-event-calendar-management' ),
+							),
+						),
+					),
+				),
+				'override_capacity' => array(
+					'type'        => 'boolean',
+					'description' => esc_html__( 'Administrators only: skip the capacity check.', 'eventprime-event-calendar-management' ),
+				),
 			),
-			'required'   => array( 'event_id', 'ticket_id', 'email' ),
+			'required'   => array( 'event_id', 'email' ),
 		);
 	}
 
@@ -1241,6 +1297,43 @@ class EventPrime_Abilities {
 				),
 			),
 		);
+	}
+
+	/**
+	 * Output schema of the create-booking ability: the generic booking entity with its documented fields.
+	 *
+	 * @return array
+	 */
+	protected function get_created_booking_output_schema() {
+		$schema = $this->get_entity_output_schema( 'booking', esc_html__( 'The created booking.', 'eventprime-event-calendar-management' ) );
+
+		$schema['properties']['booking']['properties'] = array(
+			'id'       => array(
+				'type'        => 'integer',
+				'description' => esc_html__( 'Booking ID.', 'eventprime-event-calendar-management' ),
+			),
+			'event_id' => array(
+				'type'        => 'integer',
+				'description' => esc_html__( 'Event ID.', 'eventprime-event-calendar-management' ),
+			),
+			'status'   => array(
+				'type'        => 'string',
+				'description' => esc_html__( 'Booking status.', 'eventprime-event-calendar-management' ),
+			),
+			'total'    => array(
+				'type'        => 'number',
+				'description' => esc_html__( 'Booking total.', 'eventprime-event-calendar-management' ),
+			),
+			'tickets'  => array(
+				'type'        => 'array',
+				'description' => esc_html__( 'Tickets booked.', 'eventprime-event-calendar-management' ),
+				'items'       => array(
+					'type'                 => 'object',
+					'additionalProperties' => true,
+				),
+			),
+		);
+		return $schema;
 	}
 
 	protected function get_collection_output_schema( $entity_key, $entity_desc ) {
@@ -1287,23 +1380,35 @@ class EventPrime_Abilities {
 		return array(
 			'type'       => 'object',
 			'properties' => array(
-				'status'          => array(
+				'status'           => array(
 					'type'        => 'string',
 					'description' => esc_html__( 'Execution status.', 'eventprime-event-calendar-management' ),
 				),
-				'available'       => array(
+				'available'        => array(
 					'type'        => 'boolean',
 					'description' => esc_html__( 'Whether tickets are available.', 'eventprime-event-calendar-management' ),
 				),
-				'available_count' => array(
+				'available_count'  => array(
 					'type'        => 'integer',
 					'description' => esc_html__( 'Available quantity when known.', 'eventprime-event-calendar-management' ),
 				),
-				'ticket_count'    => array(
+				'remaining'        => array(
+					'type'        => array( 'integer', 'null' ),
+					'description' => esc_html__( 'Places still left for the ticket, after bookings and the overall event capacity.', 'eventprime-event-calendar-management' ),
+				),
+				'event_remaining'  => array(
+					'type'        => array( 'integer', 'null' ),
+					'description' => esc_html__( 'Places still left for the whole event.', 'eventprime-event-calendar-management' ),
+				),
+				'overall_capacity' => array(
+					'type'        => array( 'integer', 'null' ),
+					'description' => esc_html__( 'Overall capacity of the event, null when there is none.', 'eventprime-event-calendar-management' ),
+				),
+				'ticket_count'     => array(
 					'type'        => 'integer',
 					'description' => esc_html__( 'Number of matching tickets.', 'eventprime-event-calendar-management' ),
 				),
-				'ticket'          => array(
+				'ticket'           => array(
 					'type'                 => 'object',
 					'description'          => esc_html__( 'Matching ticket data when a specific ticket was requested.', 'eventprime-event-calendar-management' ),
 					'additionalProperties' => true,

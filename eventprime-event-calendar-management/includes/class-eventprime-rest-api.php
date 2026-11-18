@@ -587,7 +587,7 @@ class Eventprime_Rest_Api {
             case 'action_update_event':
                 return esc_html__( 'GET returns sample data. POST/PUT/PATCH requires id. Include only the fields you want to change.', 'eventprime-event-calendar-management' );
             case 'action_create_booking':
-                return esc_html__( 'GET returns sample data. POST body requires event_id, ticket_id, and email.', 'eventprime-event-calendar-management' );
+				return esc_html__( 'GET returns sample data. POST body requires event_id, ticket_id (or tickets), and email. Optional: quantity, tickets, override_capacity (administrators only).', 'eventprime-event-calendar-management' );
             case 'action_update_booking':
                 return esc_html__( 'GET returns sample data. POST/PUT/PATCH requires id. Optional: status.', 'eventprime-event-calendar-management' );
             case 'action_create_ticket':
@@ -2471,6 +2471,12 @@ class Eventprime_Rest_Api {
         return rest_ensure_response( array( 'status' => 'error', 'message' => 'Missing required event data.' ), 400 );
     }
 
+		// Overall capacity (pool): validated before the event is created, so a bad value leaves nothing behind.
+		$pool = ( new EventPrime_Rest_Booking() )->parse_overall_capacity( $body );
+		if ( is_wp_error( $pool ) ) {
+			return $pool;
+		}
+
 	    // SIMPLE BOOKING DETECTION
 	    $has_tickets = ( ! empty( $body['tickets'] ) && is_array( $body['tickets'] ) ) || ! empty( $body['ticket'] );
 	    $event_booking_mode = ! empty( $booking_mode ) ? $booking_mode : ( $has_tickets ? 'bookings_on' : '' );
@@ -2520,6 +2526,8 @@ class Eventprime_Rest_Api {
     if ( ! $event_id || is_wp_error( $event_id ) ) {
         return rest_ensure_response( array( 'status' => 'error', 'message' => 'Something went wrong.' ), 500 );
     }
+
+			( new EventPrime_Rest_Booking() )->save_overall_capacity( $event_id, $pool );
 
     // Tickets creation (unchanged)
     $created_ticket_ids = array();
@@ -3169,6 +3177,35 @@ class Eventprime_Rest_Api {
         return rest_ensure_response( array( 'status' => 'success', 'count' => count( $bookings ), 'bookings' => $bookings ) );
     }
 
+	/**
+	 * Create a booking (POST integration?action=create_booking, also the Abilities `eventprime/create-booking`).
+	 *
+	 * The booking records its tickets in `em_order_info` like a checkout booking, so it uses up ticket inventory and the
+	 * overall event capacity. Request fields (existing ones keep their meaning):
+	 *
+	 * | Field             | Type       | Notes |
+	 * |-------------------|------------|-------|
+	 * | event_id          | int        | Required. |
+	 * | ticket_id         | int        | Required unless `tickets` is sent. Core ticket id, or the ticket post id listed by the tickets list. |
+	 * | quantity          | int 1-1000 | New. Default: the ticket's minimum per order (at least 1). |
+	 * | tickets           | list       | New. Lines of `{ ticket_id, qty }`; when present `ticket_id` and `quantity` are ignored. At most 50 lines. |
+	 * | email             | string     | Required. |
+	 * | booking_status    | string     | Administrators only: completed, pending, cancelled, refunded or failed. Everyone else gets pending. |
+	 * | override_capacity | bool       | New. Administrators only (HTTP 403 for anyone else): skip the capacity check, a private note is added. |
+	 *
+	 * Response: the existing `status`, `count` and `booking.id` / `booking.event_id`, plus the additive
+	 * `booking.status`, `booking.tickets` (ticket_id, name, price, qty, subtotal) and `booking.total`.
+	 *
+	 * Errors (WP_Error, machine-readable code, proper HTTP status):
+	 * - 400 ep_invalid_event, ep_invalid_booking_status, ep_invalid_ticket, ep_invalid_tickets, ep_invalid_quantity.
+	 * - 403 rest_forbidden (override by a non-administrator, other account, unknown user), ep_booking_limit_reached.
+	 * - 409 ep_capacity_sold_out, ep_capacity_pool_exceeded, ep_capacity_ticket_exceeded (error data holds
+	 *   `event_remaining`, `ticket_id`, `ticket_remaining`, `requested`), ep_booking_limit_exceeded.
+	 * Statuses that do not count (cancelled, failed, refunded) skip the capacity check and do not use up places.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
     public function handle_booking_create( WP_REST_Request $request ) {
         $body = $request->get_body_params();
         $event_id = isset( $body['event_id'] ) ? absint( $body['event_id'] ) : 0;
@@ -3178,7 +3215,9 @@ class Eventprime_Rest_Api {
 
 		$can_manage = current_user_can( 'manage_options' );
 
-        if ( empty( $event_id ) || empty( $ticket_id ) || empty( $email ) || ! is_email( $email ) ) {
+		$helper = new EventPrime_Rest_Booking();
+
+		if ( empty( $event_id ) || ( empty( $ticket_id ) && empty( $body['tickets'] ) ) || empty( $email ) || ! is_email( $email ) ) {
             return rest_ensure_response( array( 'status' => 'error', 'message' => 'Missing required booking data.' ), 400 );
         }
 
@@ -3201,18 +3240,17 @@ class Eventprime_Rest_Api {
 			}
 		}
 
-        // validate ticket via Eventprime_Basic_Functions if available
-        $ticket_ok = true;
-        if ( class_exists( 'Eventprime_Basic_Functions' ) ) {
-            $ep = new Eventprime_Basic_Functions();
-            $td = $ep->ep_get_ticket_data( $ticket_id );
-            if ( empty( $td ) ) {
-                $ticket_ok = false;
-            }
-        }
-        if ( ! $ticket_ok ) {
-            return rest_ensure_response( array( 'status' => 'error', 'message' => 'Invalid ticket.' ), 400 );
-        }
+		// Capacity override is for site managers only; anyone else asking for it is refused.
+		$override = isset( $body['override_capacity'] ) && $helper->is_truthy( $body['override_capacity'] );
+		if ( $override && ! $can_manage ) {
+			return new WP_Error( 'rest_forbidden', esc_html__( 'You are not allowed to override the event capacity.', 'eventprime-event-calendar-management' ), array( 'status' => 403 ) );
+		}
+
+		// Resolve the tickets (core id or ticket post id): they must belong to this event. Validate the quantities.
+		$lines = $helper->parse_lines( $body, $event_id );
+		if ( is_wp_error( $lines ) ) {
+			return $lines;
+		}
 
         // find or create user
         $user = get_user_by( 'email', $email );
@@ -3233,10 +3271,70 @@ class Eventprime_Rest_Api {
             $user_id = $user->ID;
         }
 
-        // create booking post
-        $post = array( 'post_title' => get_the_title( $event_id ), 'post_status' => $booking_status, 'post_type' => 'em_booking', 'post_author' => $user_id );
+		// Capacity: the per-user and per-order limits (non-administrators), then the check under the per-event lock.
+		$capacity      = new EventPrime_Capacity();
+		$counts        = $capacity->is_counted_status( $booking_status, $event_id );
+		$ep_functions  = new Eventprime_Basic_Functions();
+		$total_qty     = 0;
+		$context_lines = array();
+		foreach ( $lines as $line ) {
+			$total_qty      += $line['qty'];
+			$context_lines[] = array(
+				'id'  => $line['ticket_id'],
+				'qty' => $line['qty'],
+			);
+		}
+		if ( $counts && ! $can_manage ) {
+			$restrictions = $ep_functions->ep_check_event_restrictions( $ep_functions->get_single_event( $event_id ), $user_id );
+			if ( is_array( $restrictions ) && false === $restrictions[0] ) {
+				return new WP_Error( 'ep_booking_limit_reached', wp_strip_all_tags( (string) $restrictions[1] ), array( 'status' => 403 ) );
+			}
+			if ( is_array( $restrictions ) && is_numeric( $restrictions[0] ) && $total_qty > (int) $restrictions[0] ) {
+				return new WP_Error(
+					'ep_booking_limit_exceeded',
+					wp_strip_all_tags( (string) $restrictions[1] ),
+					array(
+						'status'          => 409,
+						'event_remaining' => (int) $restrictions[0],
+					)
+				);
+			}
+		}
+		$locked = false;
+		if ( ! $counts ) {
+			do_action( 'ep_capacity_check_skipped', $event_id, 'rest', 'status_not_counted' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Public hook documented in class-ep-capacity.php.
+		} elseif ( $override ) {
+			do_action( 'ep_capacity_check_skipped', $event_id, 'rest', 'rest_override' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Public hook documented in class-ep-capacity.php.
+		} elseif ( $capacity->is_enforced( $event_id, 'rest', $lines ) ) {
+			$locked = true;
+			$capacity->acquire_lock( $event_id );
+			$checked = $capacity->check_cart(
+				$event_id,
+				$lines,
+				array(
+					'context' => 'rest',
+					'fresh'   => true,
+				)
+			);
+			if ( is_wp_error( $checked ) ) {
+				$capacity->release_lock( $event_id );
+				return $checked;
+			}
+		}
+
+		// Create the booking post as "failed" (never counted) until every meta is saved, so a concurrent check never sees a counted booking without tickets.
+		$post = array(
+			'post_title'  => get_the_title( $event_id ),
+			'post_status' => 'failed',
+			'post_type'   => 'em_booking',
+			'post_author' => $user_id,
+		);
+
         $new_post_id = wp_insert_post( $post );
         if ( is_wp_error( $new_post_id ) || ! $new_post_id ) {
+			if ( $locked ) {
+				$capacity->release_lock( $event_id );
+			}
             return rest_ensure_response( array( 'status' => 'error', 'message' => 'Something went wrong.' ), 500 );
         }
         update_post_meta( $new_post_id, 'em_id', $new_post_id );
@@ -3244,12 +3342,57 @@ class Eventprime_Rest_Api {
         update_post_meta( $new_post_id, 'em_date', current_time( 'timestamp', true ) );
         update_post_meta( $new_post_id, 'em_user', $user_id );
         update_post_meta( $new_post_id, 'em_name', get_the_title( $event_id ) );
-        update_post_meta( $new_post_id, 'em_status', $booking_status );
         update_post_meta( $new_post_id, 'em_payment_method', 'none' );
+		$order_info = $helper->build_order_info(
+			$event_id,
+			$lines,
+			array(
+				'event_id'                     => $event_id,
+				'booking_source'               => 'rest',
+				'ep_event_booking_ticket_data' => wp_json_encode( $context_lines ),
+			)
+		);
+		update_post_meta( $new_post_id, 'em_order_info', $order_info );
+		update_post_meta( $new_post_id, 'em_notes', array() );
+		update_post_meta( $new_post_id, 'em_payment_log', array() );
+		update_post_meta( $new_post_id, 'em_booked_seats', array() );
+		update_post_meta( $new_post_id, 'em_attendee_names', array() );
+		update_post_meta( $new_post_id, 'eventprime_updated_pattern', 1 );
+		update_post_meta( $new_post_id, 'ep_order_key', $ep_functions->ep_encrypt_decrypt_pass( 'encrypt', 'ep_order_' . $new_post_id ) );
+		if ( $override && $counts ) {
+			$capacity->note_admin_override( $new_post_id );
+		}
+
+		// Now the requested status: this is the moment the booking starts to count.
+		update_post_meta( $new_post_id, 'em_status', $booking_status );
+		if ( 'failed' !== $booking_status ) {
+			wp_update_post(
+				array(
+					'ID'          => $new_post_id,
+					'post_status' => $booking_status,
+				)
+			);
+		}
+		EventPrime_Capacity::flush_cache();
+		if ( $locked ) {
+			$capacity->release_lock( $event_id );
+		}
 
         do_action( 'ep_api_booking_created', $new_post_id, array( 'event_id' => $event_id ) );
 
-        return rest_ensure_response( array( 'status' => 'success', 'count' => 1, 'booking' => array( 'id' => $new_post_id, 'event_id' => $event_id ) ) );
+		return rest_ensure_response(
+			array(
+				'status'  => 'success',
+				'count'   => 1,
+				'booking' => array(
+					'id'       => $new_post_id,
+					'event_id' => $event_id,
+					'status'   => $booking_status,
+					'tickets'  => $helper->summarise_tickets( $order_info ),
+					'total'    => isset( $order_info['booking_total'] ) ? (float) $order_info['booking_total'] : 0.0,
+				),
+			)
+		);
     }
 
     public function handle_perform( WP_REST_Request $request ) {
@@ -5153,6 +5296,7 @@ class Eventprime_Rest_Api {
 				if ( $hide_content ) {
 					$out['content'] = '';
 				}
+				$out = array_merge( $out, ( new EventPrime_Rest_Booking() )->event_capacity_fields( $post->ID ) );
                     return $out;
             }
         }
@@ -5321,6 +5465,7 @@ class Eventprime_Rest_Api {
 		if ( $hide_content ) {
 			$out['content'] = '';
 		}
+		$out = array_merge( $out, ( new EventPrime_Rest_Booking() )->event_capacity_fields( $post->ID ) );
         return $out;
     }
 
@@ -5465,6 +5610,11 @@ class Eventprime_Rest_Api {
 			$date_meta[ 'em_' . $edge . '_time' ]      = $parsed['time_12h'];
 			$date_meta[ 'em_' . $edge . '_date_time' ] = $parsed['datetime_ts'];
 		}
+		// Overall capacity: validate before anything is written; absent leaves the pool unchanged.
+		$pool = ( new EventPrime_Rest_Booking() )->parse_overall_capacity( $body );
+		if ( is_wp_error( $pool ) ) {
+			return $pool;
+		}
         $update = array( 'ID' => $id );
         if ( isset( $body['em_name'] ) ) $update['post_title'] = sanitize_text_field( $body['em_name'] );
         if ( isset( $body['description'] ) ) $update['post_content'] = sanitize_textarea_field( $body['description'] );
@@ -5474,6 +5624,7 @@ class Eventprime_Rest_Api {
 		foreach ( $date_meta as $meta_key => $meta_value ) {
 			update_post_meta( $id, $meta_key, $meta_value );
 		}
+		( new EventPrime_Rest_Booking() )->save_overall_capacity( $id, $pool );
         return rest_ensure_response( array( 'status' => 'success', 'count' => 1, 'event' => array( 'id' => $id ) ) );
     }
 
@@ -5588,7 +5739,10 @@ class Eventprime_Rest_Api {
 				),
 			);
 		}
-		$out        = array();
+		$out             = array();
+		$capacity_helper = new EventPrime_Rest_Booking();
+		$capacity_states = array();
+
 		$epf        = new Eventprime_Basic_Functions();
 		$currency   = $epf->ep_get_global_settings( 'currency' );
 		$can_manage = current_user_can( 'manage_options' );
@@ -5607,6 +5761,11 @@ class Eventprime_Rest_Api {
 				if ( $is_orphan ? ! $can_manage : ! $this->ep_ticket_event_is_visible( $t->ID, $visibility_cache ) ) {
 					continue;
 				}
+				$ticket_event_id = intval( get_post_meta( $t->ID, 'em_event', true ) );
+				if ( $ticket_event_id > 0 && ! isset( $capacity_states[ $ticket_event_id ] ) ) {
+					// One capacity state per event, not per ticket.
+					$capacity_states[ $ticket_event_id ] = $capacity_helper->get_state( $ticket_event_id );
+				}
 				$out[] = array(
 					'ticket_id'  => $t->ID,
 					'event_id'   => intval( get_post_meta( $t->ID, 'em_event', true ) ),
@@ -5615,7 +5774,7 @@ class Eventprime_Rest_Api {
 					'currency'   => $currency ? $currency : 'USD',
 					'available'  => get_post_meta( $t->ID, 'em_capacity', true ) !== '' ? intval( get_post_meta( $t->ID, 'em_capacity', true ) ) : null,
 					'created_at' => isset( $t->post_date ) ? $t->post_date : null,
-				);
+				) + $capacity_helper->ticket_capacity_fields( $t->ID, isset( $capacity_states[ $ticket_event_id ] ) ? $capacity_states[ $ticket_event_id ] : array() ); // `available` stays the raw capacity; `capacity`, `remaining` and `sold` are added after it.
 				++$collected;
 			}
 			++$page;
@@ -5857,9 +6016,28 @@ class Eventprime_Rest_Api {
         $id = absint( $request->get_param( 'id' ) );
         $post = get_post( $id );
         if ( empty( $post ) || $post->post_type !== 'em_booking' ) return new WP_Error( 'not_found', 'Booking not found.', array( 'status' => 404 ) );
-        $body = $request->get_body_params();
-        if ( isset( $body['status'] ) ) update_post_meta( $id, 'em_status', sanitize_text_field( $body['status'] ) );
-        return rest_ensure_response( array( 'status' => 'success', 'count' => 1, 'booking' => array( 'id' => $id ) ) );
+		$body    = $request->get_body_params();
+		$booking = array( 'id' => $id );
+		if ( isset( $body['status'] ) ) {
+			// Keep post_status and em_status in step so refunds, failures and cancellations release their places (no emails, no refund hooks).
+			$helper   = new EventPrime_Rest_Booking();
+			$override = isset( $body['override_capacity'] ) && $helper->is_truthy( $body['override_capacity'] );
+			if ( $override && ! current_user_can( 'manage_options' ) ) {
+				return new WP_Error( 'rest_forbidden', esc_html__( 'You are not allowed to override the event capacity.', 'eventprime-event-calendar-management' ), array( 'status' => 403 ) );
+			}
+			$updated = $helper->apply_status( $id, $body['status'], $override );
+			if ( is_wp_error( $updated ) ) {
+				return $updated;
+			}
+			$booking['status'] = $updated;
+		}
+		return rest_ensure_response(
+			array(
+				'status'  => 'success',
+				'count'   => 1,
+				'booking' => $booking,
+			)
+		);
     }
 
     public function handle_booking_delete( WP_REST_Request $request ) {
